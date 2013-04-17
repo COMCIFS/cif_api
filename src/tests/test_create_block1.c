@@ -1,5 +1,5 @@
 /*
- * test_create_block.c
+ * test_create_block1.c
  *
  * Tests general function of the CIF API's cif_create_block() and
  * cif_get_block() functions.

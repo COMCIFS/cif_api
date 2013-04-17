@@ -41,13 +41,10 @@ int main(int argc, char *argv[]) {
       { "\\u039daSt\\u1fc2", "\\u03bdast\\u0397\\u0345\\u0300" },
     };
     UChar buffer[CIF_LINE_LENGTH];
-    int counter = 1;
+    int counter;
     cif_block_t *block;
 
-#define TO_U(s) ( \
-    u_unescape((s), buffer, CIF_LINE_LENGTH), \
-    buffer \
-)
+#define TO_U(s) TO_UNICODE((s), buffer, CIF_LINE_LENGTH)
 
     TESTHEADER(test_name);
     CREATE_CIF(test_name, cif);

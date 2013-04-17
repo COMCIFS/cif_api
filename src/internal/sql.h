@@ -21,7 +21,7 @@
 
 #define CREATE_FRAME_SQL "insert into save_frame(container_id, data_block_id, name, name_orig) values (?, ?, ?, ?)"
 
-#define GET_FRAME_SQL "select container_id as id, name_orig from data_block where data_block_id = ? and name = ?"
+#define GET_FRAME_SQL "select container_id as id, name_orig from save_frame where data_block_id = ? and name = ?"
 
 #define DESTROY_CONTAINER_SQL "delete from container where id = ?"
 

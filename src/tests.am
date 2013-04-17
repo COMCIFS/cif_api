@@ -9,8 +9,9 @@
 compiled_tests = \
     $(testdir)/test_create \
     $(testdir)/test_create_block1 \
-    $(testdir)/test_create_block2
-# cif_block_create_frame
+    $(testdir)/test_create_block2 \
+    $(testdir)/test_get_block \
+    $(testdir)/test_block_create_frame1
 # cif_block_get_frame
 # cif_container_free
 # cif_container_destroy

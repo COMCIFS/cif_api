@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <unicode/ustring.h>
 #include "../cif.h"
 
 /*
@@ -53,9 +54,13 @@
   fprintf(stderr, "  subtest %d passed\n", _code); \
 } while (0)
 
+#define TO_UNICODE(s, buffer, buf_len) ( \
+    u_unescape((s), buffer, buf_len), \
+    buffer \
+)
 
 /*
- * Creates a new managed cif, recording a pointer to it in cif, which must therefore be an lvalue.
+ * Creates a new managed cif, recording a handle on it in cif, which must therefore be an lvalue.
  * Generates a hard failure if unsuccessful.
  */
 #define CREATE_CIF(n, cif) do { \
@@ -84,4 +89,37 @@
         fprintf(stderr, "warning: %s: ... failed with code %d.\n", _test_name, _result); \
     } \
 } while (0)
+
+/*
+ * Creates a new data block bearing the specified code in the specified cif, recording a handle on it
+ * in 'block', which must therefore be an lvalue.  Generates a hard failure if unsuccessful.
+ */
+#define CREATE_BLOCK(n, cif, code, block) do { \
+    const char *_test_name = (n); \
+    int _result; \
+    UChar *_code = (code); \
+    fprintf(stdout, "%s: Creating a managed data block...\n", _test_name); \
+    _result = cif_create_block((cif), _code, &block); \
+    if (_result != CIF_OK) { \
+        fprintf(stderr, "error: %s: ... failed with code %d.\n", _test_name, _result); \
+        return HARD_FAIL; \
+    } else if (block == NULL) { \
+        fprintf(stderr, "error: %s: ... did not set the block pointer.\n", _test_name); \
+        return HARD_FAIL; \
+    } \
+} while (0)
+
+/*
+ * Destroys the specified managed data block, or emits a warning if it fails to do so
+ */
+#define DESTROY_BLOCK(n, block) do { \
+    const char *_test_name = (n); \
+    int _result; \
+    fprintf(stdout, "%s: Destroying a managed data block...\n", _test_name); \
+    _result = cif_container_destroy(block); \
+    if (result != CIF_OK) { \
+        fprintf(stderr, "warning: %s: ... failed with code %d.\n", _test_name, _result); \
+    } \
+} while (0)
+
 

@@ -29,6 +29,8 @@ int cif_block_create_frame(
     cif_frame_t *temp;
     struct cif_s *cif;
 
+    TRACELINE;
+
     /* validate and normalize the frame code */
     if ((block == NULL) || (block->block_id >= 0)) return CIF_INVALID_HANDLE;
 
@@ -39,6 +41,8 @@ int cif_block_create_frame(
      * re-use, exiting this function with an error on failure.
      */
     PREPARE_STMT(cif, create_frame, CREATE_FRAME_SQL);
+
+    TRACELINE;
 
     temp = (cif_frame_t *) malloc(sizeof(cif_frame_t));
     if (temp != NULL) {
@@ -51,14 +55,21 @@ int cif_block_create_frame(
         temp->block_id = block->id;
 
         result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_FRAMECODE);
+
+        TRACELINE;
+
         if (result != CIF_OK) {
             SET_RESULT(result);
         } else {
             temp->code_orig = cif_u_strdup(code);
             if (temp->code_orig != NULL) {
                 if(BEGIN(cif->db) == SQLITE_OK) {
-                    if(sqlite3_exec(cif->db, "insert into container values (null)", NULL, NULL, NULL) == SQLITE_OK) {
+                    TRACELINE;
+                    if(sqlite3_exec(cif->db, "insert into container(id) values (null)", NULL, NULL, NULL)
+                            == SQLITE_OK) {
                         temp->id = sqlite3_last_insert_rowid(cif->db);
+
+                        TRACELINE;
 
                         /* Bind the needed parameters to the statement and execute it */
                         if ((sqlite3_bind_int64(cif->create_frame_stmt, 1, temp->id) == SQLITE_OK)
@@ -68,6 +79,8 @@ int cif_block_create_frame(
                                 && (sqlite3_bind_text16(cif->create_frame_stmt, 4, temp->code_orig, -1,
                                         SQLITE_STATIC) == SQLITE_OK)) {
                             STEP_HANDLING;
+
+                            TRACELINE;
 
                             switch (STEP_STMT(cif, create_frame)) {
                                 case SQLITE_CONSTRAINT:
@@ -82,6 +95,8 @@ int cif_block_create_frame(
                                     }
                                     /* else drop out the bottom */
                             }
+
+                            TRACELINE;
                         }
     
                         /* discard the prepared statement */
@@ -147,7 +162,7 @@ int cif_block_get_frame(
                         /* There cannot be any more rows, as the DB enforces per-block frame code uniqueness */
                         return CIF_OK;
                     case SQLITE_DONE:
-                        FAIL(soft, CIF_NOSUCH_BLOCK);
+                        FAIL(soft, CIF_NOSUCH_FRAME);
                     /* else fall out the bottom */
                 }
             }
