@@ -1,4 +1,27 @@
-.autotools
-.cproject
-.project
-.settings
+# Eclipse workspace files
+/.autotools
+/.cproject
+/.project
+/.settings
+
+# Build artifacts
+.deps/
+.dirstamp
+.libs/
+*.lo
+*.log
+*.o
+config.h
+config.status
+Doxyfile
+libtool
+Makefile
+stamp-h1
+src/internal/schema.h
+
+# Target files
+*.la
+/*.gz
+
+# General working files
+*.swp

@@ -1,0 +1,7 @@
+# Special rule for files in this directory: git ignores everything except
+# .gitignore and files ending in .c, .h, or .test.
+*
+!.gitignore
+!*.[ch]
+!*.test
+
