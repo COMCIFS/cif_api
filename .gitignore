@@ -5,6 +5,7 @@
 /.settings
 
 # Build artifacts
+/autom4te.cache
 .deps/
 .dirstamp
 .libs/
