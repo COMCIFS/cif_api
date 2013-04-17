@@ -52,7 +52,7 @@
  *
  * That kind of abstraction is by no means novel, but the important and perhaps distinguishing point is that the
  * interface definitions intentionally do not specify the internal form of the data.  The documentation therefore
- * uses the term "managed" to describe the data that the core CIF manipulation functions operate on, which is
+ * uses the generic term "managed" to describe the data that the core CIF manipulation functions operate on, which is
  * implementation dependent.  The author imagines that most implementations will use some kind of in-memory
  * implementation separate from any source file, but implementations that operate directly on physical files are
  * conceivable and allowed.  Thus, where the documentation describes "managed" CIFs or CIF sub-objects, it is
