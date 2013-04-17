@@ -10,7 +10,6 @@ compiled_tests = \
     $(testdir)/test_create \
     $(testdir)/test_create_block1 \
     $(testdir)/test_create_block2
-# cif_get_block
 # cif_block_create_frame
 # cif_block_get_frame
 # cif_container_free
@@ -68,6 +67,8 @@ TESTS_ENVIRONMENT = \
   CC="$(CC)" \
   CCLD="$(CCLD)" \
   LIBTOOL="$(LIBTOOL)"
+
+EXTRA_DIST += $(testdir)/link.test $(testdir)/test.h
 
 CLEANFILES += $(testdir)/linktest.c $(testdir)/linktest.lo $(testdir)/linktest
 

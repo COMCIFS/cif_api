@@ -252,7 +252,8 @@ LIB_CURRENT = 0
 LIB_REVISION = 0
 LIB_AGE = 0
 LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
-EXTRA_DIST = notes.txt style.txt
+EXTRA_DIST = notes.txt style.txt $(testdir)/link.test \
+	$(testdir)/test.h
 AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS)
 BUILT_SOURCES = internal/schema.h
 CLEANFILES = $(testdir)/linktest.c $(testdir)/linktest.lo \

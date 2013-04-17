@@ -232,6 +232,9 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = src
 EXTRA_DIST = \
+  Doxyfile \
+  dox-html \
+  dox-man \
   README \
   misc/cif_schema.sql \
   misc/footer.html \
@@ -247,6 +250,17 @@ ACLOCAL_AMFLAGS = -I m4
 @make_docs_TRUE@doxygen_html_targets = dox-html
 @make_docs_FALSE@doxygen_man_targets = 
 @make_docs_TRUE@doxygen_man_targets = dox-man
+@make_docs_FALSE@dox_deps = 
+@make_docs_TRUE@dox_deps = Doxyfile src/cif.h misc/main.dox misc/footer.html
+@install_docs_FALSE@html_install = :
+
+# The chmod in the below command is needed to work around weirdness in the behavior of the
+# "distcheck" target
+@install_docs_TRUE@html_install = test -d dox-html && html_dir=dox-html || html_dir=$(top_srcdir)/dox-html; \
+@install_docs_TRUE@  $(MKDIR_P) $(DESTDIR)$(pkgdocdir); \
+@install_docs_TRUE@  cp -pR $${html_dir} $(DESTDIR)$(pkgdocdir)/html; \
+@install_docs_TRUE@  chmod -R u+w $(DESTDIR)$(pkgdocdir)/html
+
 pkgdocdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -657,7 +671,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-generic clean-libtool clean-local mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -677,7 +691,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am:
+install-data-am: install-data-local
 
 install-dvi: install-dvi-recursive
 
@@ -709,7 +723,8 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
 	-rm -f Makefile
-maintainer-clean-am: distclean-am maintainer-clean-generic
+maintainer-clean-am: distclean-am maintainer-clean-generic \
+	maintainer-clean-local
 
 mostlyclean: mostlyclean-recursive
 
@@ -730,44 +745,46 @@ uninstall-am: uninstall-local
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am am--refresh check check-am clean clean-generic \
-	clean-libtool clean-local ctags ctags-recursive dist dist-all \
-	dist-bzip2 dist-gzip dist-lzma dist-shar dist-tarZ dist-xz \
-	dist-zip distcheck distclean distclean-generic distclean-hdr \
+	clean-libtool ctags ctags-recursive dist dist-all dist-bzip2 \
+	dist-gzip dist-lzma dist-shar dist-tarZ dist-xz dist-zip \
+	distcheck distclean distclean-generic distclean-hdr \
 	distclean-libtool distclean-local distclean-tags \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am html-local info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-html-local install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-local
+	install-data install-data-am install-data-local install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-html-local install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic maintainer-clean-local mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-recursive uninstall uninstall-am uninstall-local
 
 
 html-local: $(doxygen_html_targets)
 	:
 
-install-html-local: html-local
-	test -d dox-html && { $(MKDIR_P) $(DESTDIR)$(pkgdocdir); cp -pR dox-html $(DESTDIR)$(pkgdocdir)/html; }
+install-data-local: install-html-local
+
+install-html-local:
+	$(html_install)
 
 uninstall-local:
 	$(RM) -rf $(DESTDIR)$(pkgdocdir)
 
-clean-local:
-	$(RM) -rf dox-html
-	$(RM) -rf dox-man
-
 distclean-local:
 	$(RM) -rf autom4te.cache
+
+maintainer-clean-local:
+	$(RM) -rf dox-html
+	$(RM) -rf dox-man
 
 dox-man: dox-html
 	test -d $@ && $(RM) -rf $@
 	$(DOXYGEN) Doxyfile
 
-dox-html: Doxyfile src/cif.h misc/main.dox misc/footer.html
+dox-html: $(dox_deps)
 	$(RM) -rf dox-html
 	$(RM) -rf dox-man
 	$(DOXYGEN) Doxyfile

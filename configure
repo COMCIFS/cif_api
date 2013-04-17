@@ -795,10 +795,12 @@ SQLITE_CPPFLAGS
 ICU_LIBS
 WARNING_FLAGS
 C_STD_FLAGS
-make_docs_FALSE
-make_docs_TRUE
 DOXYGEN
 COUNT_LINES
+install_docs_FALSE
+install_docs_TRUE
+make_docs_FALSE
+make_docs_TRUE
 MAINT
 MAINTAINER_MODE_FALSE
 MAINTAINER_MODE_TRUE
@@ -918,8 +920,9 @@ with_gnu_ld
 enable_libtool_lock
 enable_maintainer_mode
 enable_extra_warnings
-enable_docs
 enable_debug
+enable_doc_rebuild
+with_docs
 with_line_counter
 '
       ac_precious_vars='build_alias
@@ -1574,11 +1577,10 @@ Optional Features:
                           developers identify questionable code. Not all
                           warnings emitted as a result indicate genuine
                           problems. [default=no]
-  --enable-docs           Generate and install documentation. Requires
-                          doxygen. [default=yes if doxygen is found, otherwise
-                          no]
   --enable-debug          cause the library to emit debug messages at runtime.
                           Desirable only for developers. [default=no]
+  --enable-doc-rebuild    Rebuild the generated documentation. Requires
+                          doxygen. [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1586,6 +1588,8 @@ Optional Packages:
   --with-pic              try to use only PIC/non-PIC objects [default=use
                           both]
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
+  --with-docs             Whether to install documentation. See also
+                          --enable-doc-rebuild. [default=yes]
   --with-line-counter=<line count command>
                           specifies a command that counts lines read from its
                           standard input and writes the count to its standard
@@ -2573,7 +2577,6 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
-#AM_INIT_AUTOMAKE([parallel-tests])
 case `pwd` in
   *\ * | *\	*)
     { $as_echo "$as_me:$LINENO: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
@@ -4398,13 +4401,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:4401: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:4404: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4404: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:4407: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4407: output\"" >&5)
+  (eval echo "\"\$as_me:4410: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -5610,7 +5613,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 5613 "configure"' > conftest.$ac_ext
+  echo '#line 5616 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7466,11 +7469,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7469: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7472: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7473: \$? = $ac_status" >&5
+   echo "$as_me:7476: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7805,11 +7808,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7808: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7811: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7812: \$? = $ac_status" >&5
+   echo "$as_me:7815: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7910,11 +7913,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7913: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7916: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7917: \$? = $ac_status" >&5
+   echo "$as_me:7920: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -7965,11 +7968,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7968: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7971: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7972: \$? = $ac_status" >&5
+   echo "$as_me:7975: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10768,7 +10771,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10771 "configure"
+#line 10774 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10864,7 +10867,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10867 "configure"
+#line 10870 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11094,6 +11097,8 @@ CC="$lt_save_CC"
 ac_config_headers="$ac_config_headers config.h"
 
 
+# User options
+
 
 { $as_echo "$as_me:$LINENO: checking whether to disable maintainer-specific portions of Makefiles" >&5
 $as_echo_n "checking whether to disable maintainer-specific portions of Makefiles... " >&6; }
@@ -11133,21 +11138,6 @@ else
 fi
 
 
-# Check whether --enable-docs was given.
-if test "${enable_docs+set}" = set; then
-  enableval=$enable_docs; case ${enable_docs} in
-  yes|no) : ;;
-  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_docs}' for --enable-docs" >&5
-$as_echo "$as_me: error: Unrecognized value '${enable_docs}' for --enable-docs" >&2;}
-   { (exit 1); exit 1; }; }
-     ;;
-esac
-
-else
-  enable_docs=''
-fi
-
-
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval=$enable_debug; case ${enable_debug} in
@@ -11165,6 +11155,55 @@ esac
 
 else
   enable_debug=no
+fi
+
+
+# Check whether --enable-doc-rebuild was given.
+if test "${enable_doc_rebuild+set}" = set; then
+  enableval=$enable_doc_rebuild; case ${enable_doc_rebuild} in
+  yes|no) : ;;
+  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_doc_rebuild}' for --enable-doc-rebuild" >&5
+$as_echo "$as_me: error: Unrecognized value '${enable_doc_rebuild}' for --enable-doc-rebuild" >&2;}
+   { (exit 1); exit 1; }; }
+     ;;
+esac
+
+else
+  enable_doc_rebuild='no'
+fi
+
+
+ if test "x${enable_doc_rebuild}" = xyes; then
+  make_docs_TRUE=
+  make_docs_FALSE='#'
+else
+  make_docs_TRUE='#'
+  make_docs_FALSE=
+fi
+
+
+
+# Check whether --with-docs was given.
+if test "${with_docs+set}" = set; then
+  withval=$with_docs; case $with_docs in
+  yes|no) : ;;
+  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${with_docs}' for --with-docs" >&5
+$as_echo "$as_me: error: Unrecognized value '${with_docs}' for --with-docs" >&2;}
+   { (exit 1); exit 1; }; }
+     ;;
+esac
+
+else
+  with_docs=yes
+fi
+
+
+ if test "x${with_docs}" = xyes; then
+  install_docs_TRUE=
+  install_docs_FALSE='#'
+else
+  install_docs_TRUE='#'
+  install_docs_FALSE=
 fi
 
 
@@ -11246,6 +11285,8 @@ esac
 
 fi
 
+
+# Programs used during the build process
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -12236,9 +12277,7 @@ fi
 $as_echo "$MKDIR_P" >&6; }
 
 
-if test "x${enable_docs}" != xno; then
-
-  # Extract the first word of "doxygen", so it can be a program name with args.
+# Extract the first word of "doxygen", so it can be a program name with args.
 set dummy doxygen; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -12278,29 +12317,15 @@ $as_echo "no" >&6; }
 fi
 
 
-  if test "x${DOXYGEN}" = x && test "x${enable_docs}" = xyes; then
+if test "x${DOXYGEN}" = x && test "x${enable_doc_rebuild}" = xyes; then
 
-    { { $as_echo "$as_me:$LINENO: error: Documentation generation is enabled, but doxygen is not found." >&5
-$as_echo "$as_me: error: Documentation generation is enabled, but doxygen is not found." >&2;}
+  { { $as_echo "$as_me:$LINENO: error: Documentation regeneration is enabled, but doxygen is not found." >&5
+$as_echo "$as_me: error: Documentation regeneration is enabled, but doxygen is not found." >&2;}
    { (exit 1); exit 1; }; }
 
 fi
 
 
-else
-  DOXYGEN=''
-fi
-
-
-
-
- if test "x${DOXYGEN}" != x; then
-  make_docs_TRUE=
-  make_docs_FALSE='#'
-else
-  make_docs_TRUE='#'
-  make_docs_FALSE=
-fi
 
 
 # test the line counter
@@ -12964,13 +12989,13 @@ fi
 
 
 
-# Reset the CPPFLAGS.  The changes we made must not be propagated out into
-# the build environment (at least, not directly).
+# Reset the CPPFLAGS.  The changes we made for internal purposes must not be
+# propagated to the build environment (at least, not directly).
 CPPFLAGS="${CPPFLAGS_save}"
 
-# (Over)write the Makefiles
+# (Over)write the Makefiles and other configure-generated files
+ac_config_files="$ac_config_files Doxyfile Makefile src/Makefile"
 
-ac_config_files="$ac_config_files Makefile Doxyfile src/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -13098,17 +13123,24 @@ $as_echo "$as_me: error: conditional \"MAINTAINER_MODE\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
-if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
-  { { $as_echo "$as_me:$LINENO: error: conditional \"am__fastdepCC\" was never defined.
-Usually this means the macro was only invoked conditionally." >&5
-$as_echo "$as_me: error: conditional \"am__fastdepCC\" was never defined.
-Usually this means the macro was only invoked conditionally." >&2;}
-   { (exit 1); exit 1; }; }
-fi
 if test -z "${make_docs_TRUE}" && test -z "${make_docs_FALSE}"; then
   { { $as_echo "$as_me:$LINENO: error: conditional \"make_docs\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 $as_echo "$as_me: error: conditional \"make_docs\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${install_docs_TRUE}" && test -z "${install_docs_FALSE}"; then
+  { { $as_echo "$as_me:$LINENO: error: conditional \"install_docs\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+$as_echo "$as_me: error: conditional \"install_docs\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
+  { { $as_echo "$as_me:$LINENO: error: conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+$as_echo "$as_me: error: conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -13878,8 +13910,8 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
-    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
+    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5

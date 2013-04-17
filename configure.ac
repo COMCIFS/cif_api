@@ -12,9 +12,11 @@ AC_CONFIG_SRCDIR([src/cif.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
-#AM_INIT_AUTOMAKE([parallel-tests])
+dnl AM_INIT_AUTOMAKE([parallel-tests])
 LT_INIT([disable-static])
 AC_CONFIG_HEADERS([config.h])
+
+# User options
 
 AM_MAINTAINER_MODE([enable])
 
@@ -27,15 +29,6 @@ AC_ARG_ENABLE([extra-warnings],
     )],
   [enable_extra_warnings=no])
 
-AC_ARG_ENABLE([docs],
-  [AS_HELP_STRING([--enable-docs],
-    [Generate and install documentation.  Requires doxygen.  @<:@default=yes if doxygen is found, otherwise no@:>@])],
-  [AS_CASE([$[]{enable_docs}],
-    [yes|no], [],
-              [AC_MSG_ERROR([Unrecognized value '$[]{enable_docs}' for --enable-docs])]
-    )],
-  [enable_docs=''])
-
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug],
     [cause the library to emit debug messages at runtime.  Desirable only for developers. [default=no]])],
@@ -45,6 +38,27 @@ AC_ARG_ENABLE([debug],
            [AC_MSG_ERROR([Unrecognized value '$[]{enable_debug}' for --enable-debug])]
     )],
   [enable_debug=no])
+
+AC_ARG_ENABLE([doc-rebuild],
+  [AS_HELP_STRING([--enable-doc-rebuild],
+    [Rebuild the generated documentation.  Requires doxygen.  [default=no]])],
+  [AS_CASE([$[]{enable_doc_rebuild}],
+    [yes|no], [],
+              [AC_MSG_ERROR([Unrecognized value '$[]{enable_doc_rebuild}' for --enable-doc-rebuild])]
+    )],
+  [enable_doc_rebuild='no'])
+
+AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
+
+AC_ARG_WITH([docs],
+  [AS_HELP_STRING([--with-docs], [Whether to install documentation. See also --enable-doc-rebuild. [default=yes]])],
+  [AS_CASE([$[]with_docs],
+    [yes|no], [],
+              [AC_MSG_ERROR([Unrecognized value '$[]{with_docs}' for --with-docs])]
+    )],
+  [with_docs=yes])
+
+AM_CONDITIONAL([install_docs], [test "x$[]{with_docs}" = xyes])
 
 # We need a program that will count lines and report the result to stdout:
 AC_ARG_WITH([line-counter],
@@ -62,21 +76,19 @@ AC_ARG_WITH([line-counter],
       [AC_MSG_ERROR([I don't know how to count lines.  Try telling me via --with-line-counter.])])
   ])
 
+# Programs used during the build process
+
 AC_PROG_CC
 AC_PROG_GREP
 AC_PROG_SED
 AC_PROG_MKDIR_P
 
-AS_IF([test "x$[]{enable_docs}" != xno], [
-  AC_PATH_PROG([DOXYGEN], [doxygen], [])
-  AS_IF([test "x$[]{DOXYGEN}" = x && test "x$[]{enable_docs}" = xyes], [
-    AC_MSG_ERROR([Documentation generation is enabled, but doxygen is not found.])
-  ])
-], [DOXYGEN=''])
+AC_PATH_PROG([DOXYGEN], [doxygen], [])
+AS_IF([test "x$[]{DOXYGEN}" = x && test "x$[]{enable_doc_rebuild}" = xyes], [
+  AC_MSG_ERROR([Documentation regeneration is enabled, but doxygen is not found.])
+])
 
 AC_SUBST([DOXYGEN])
-
-AM_CONDITIONAL([make_docs], [test "x$[]{DOXYGEN}" != x])
 
 # test the line counter
 AC_MSG_CHECKING([whether '$[]{COUNT_LINES}' works])
@@ -164,16 +176,16 @@ AC_CHECK_HEADER([unicode/ustring.h], [], [AC_MSG_FAILURE([Required header unicod
 AC_SUBST([SQLITE_CPPFLAGS])
 AC_SUBST([ICU_CPPFLAGS])
 
-# Reset the CPPFLAGS.  The changes we made must not be propagated out into
-# the build environment (at least, not directly).
+# Reset the CPPFLAGS.  The changes we made for internal purposes must not be
+# propagated to the build environment (at least, not directly).
 CPPFLAGS="${CPPFLAGS_save}"
 
-# (Over)write the Makefiles
-
+# (Over)write the Makefiles and other configure-generated files
 AC_CONFIG_FILES([
-  Makefile
   Doxyfile
+  Makefile
   src/Makefile
 ])
+
 AC_OUTPUT
 

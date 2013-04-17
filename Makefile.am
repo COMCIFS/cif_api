@@ -7,6 +7,9 @@
 SUBDIRS = src
 
 EXTRA_DIST = \
+  Doxyfile \
+  dox-html \
+  dox-man \
   README \
   misc/cif_schema.sql \
   misc/footer.html \
@@ -22,9 +25,22 @@ ACLOCAL_AMFLAGS = -I m4
 if make_docs
 doxygen_html_targets = dox-html
 doxygen_man_targets = dox-man
+dox_deps = Doxyfile src/cif.h misc/main.dox misc/footer.html
 else
 doxygen_html_targets =
 doxygen_man_targets =
+dox_deps = 
+endif
+
+if install_docs
+# The chmod in the below command is needed to work around weirdness in the behavior of the
+# "distcheck" target
+html_install = test -d dox-html && html_dir=dox-html || html_dir=$(top_srcdir)/dox-html; \
+  $(MKDIR_P) $(DESTDIR)$(pkgdocdir); \
+  cp -pR $${html_dir} $(DESTDIR)$(pkgdocdir)/html; \
+  chmod -R u+w $(DESTDIR)$(pkgdocdir)/html
+else
+html_install = :
 endif
 
 pkgdocdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
@@ -32,24 +48,29 @@ pkgdocdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 html-local: $(doxygen_html_targets)
 	:
 
-install-html-local: html-local
-	test -d dox-html && { $(MKDIR_P) $(DESTDIR)$(pkgdocdir); cp -pR dox-html $(DESTDIR)$(pkgdocdir)/html; }
+## This rule should not be necessary, but Automake seems otherwise to ignore the 
+## install-html-local rule, perhaps because there are no targets with an HTML
+## primary.
+install-data-local: install-html-local
+
+install-html-local:
+	$(html_install)
 
 uninstall-local:
 	$(RM) -rf $(DESTDIR)$(pkgdocdir)
 
-clean-local:
-	$(RM) -rf dox-html
-	$(RM) -rf dox-man
-
 distclean-local:
 	$(RM) -rf autom4te.cache
+
+maintainer-clean-local:
+	$(RM) -rf dox-html
+	$(RM) -rf dox-man
 
 dox-man: dox-html
 	test -d $@ && $(RM) -rf $@
 	$(DOXYGEN) Doxyfile
 
-dox-html: Doxyfile src/cif.h misc/main.dox misc/footer.html
+dox-html: $(dox_deps)
 	$(RM) -rf dox-html
 	$(RM) -rf dox-man
 	$(DOXYGEN) Doxyfile
