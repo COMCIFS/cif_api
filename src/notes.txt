@@ -1,0 +1,15 @@
+
+The SQLite CIF storage engine requires SQLite 3.6.19 or later, compiled
+with foreign key and trigger support.  The system will detect whether
+suitable support is available in the SQLite library, and fail gracefully
+in the event that it is not.
+
+The source is largely compliant with ISO C89, but that it leans slightly
+on one implementation-dependent limit. Specifically, it contains one string
+literal that exceeds the least length (509 chars) that compliant compilers
+are required to support.  As of this writing, that literal is 841 chars
+long, and all C89-compliant compilers known to the author in fact support
+string literals of that length.  The source also relies on a handful of
+common library functions that are not standardized by C89, but are
+standardized by C99.  For example, memcpy().
+

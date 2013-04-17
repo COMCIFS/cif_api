@@ -1,0 +1,296 @@
+/*
+ * cif.c
+ *
+ * Copyright (C) 2013 John C. Bollinger
+ *
+ * All rights reserved.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stddef.h>
+#include <sqlite3.h>
+
+/* For UChar: */
+#include <unicode/umachine.h>
+
+#include "cif.h"
+#include "internal/schema.h"
+#include "internal/utils.h"
+#include "internal/sql.h"
+#include "utlist.h"
+
+#define INIT_STMT(cif, stmt_name) cif->stmt_name##_stmt = NULL
+
+/*
+ * A callback function used by cif_create() at runtime to detect whether foreign key support is available
+ * and successfully enabled:
+ */
+static int cif_create_callback(void *context, /*@unused@*/ int n_columns UNUSED, char **column_texts,
+        /*@unused@*/ char **column_names UNUSED) {
+    *((int *) context) = (((*column_texts != NULL) && (**column_texts == '1')) ? 1 : 0);
+    return 0;
+}
+
+#ifdef DEBUG
+static void debug_sql(void *context UNUSED, const char *text) {
+    fprintf(stderr, "debug: beginning to execute \"%s\"\n", text);
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int cif_create(cif_t **cif) {
+    FAILURE_HANDLING;
+    cif_t *temp;
+
+    if (cif == NULL) return CIF_ARGUMENT_ERROR;
+
+    temp = (cif_t *) malloc(sizeof(cif_t));
+    if (temp != NULL) {
+        if (
+                /*
+                 * Per the SQLite docs, it is recommended and safe, albeit currently
+                 * unnecessary, to initialize the library prior to first use.
+                 */
+                (DEBUG_WRAP2(sqlite3_initialize()) == SQLITE_OK)
+
+                /*
+                 * Open a connection to a temporary SQLite database.  The database will
+                 * use UTF-16 as its default character encoding (and also the function
+                 * requires the filename to be encoded in UTF-16).
+                 */
+                && (DEBUG_WRAP2(sqlite3_open16(&cif_uchar_nul, &(temp->db))) == SQLITE_OK)) {
+            int fks_enabled = 0;
+
+            /* TODO: probably other DB setup / configuration */
+
+            if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, ENABLE_FKS_SQL, cif_create_callback, &fks_enabled, NULL))
+                    == SQLITE_OK) {
+                if (fks_enabled == 0) {
+                    SET_RESULT(CIF_ENVIRONMENT_ERROR);
+                } else if (BEGIN(temp->db) == SQLITE_OK) {
+                    int i;
+
+                    /* Execute each statement in the 'schema_statements' array */
+                    for (i = 0; i < DDL_STMT_COUNT; i++) {
+                        if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, schema_statements[i], NULL, NULL, NULL)) != SQLITE_OK) {
+#ifdef DEBUG
+                            fprintf(stderr, "Error occurs in DDL statement %d:\n%s\n", i, schema_statements[i]);
+#endif
+                            DEFAULT_FAIL(hard);
+                        }
+                    }
+
+                    if (COMMIT(temp->db) == SQLITE_OK) {
+                        /* The database is set up; now initialize the other fields of the cif object */
+                        INIT_STMT(temp, create_block);
+                        INIT_STMT(temp, get_block);
+                        INIT_STMT(temp, create_frame);
+                        INIT_STMT(temp, get_frame);
+                        INIT_STMT(temp, destroy_container);
+                        INIT_STMT(temp, create_loop);
+                        INIT_STMT(temp, get_loopnum);
+                        INIT_STMT(temp, add_loopitem);
+                        INIT_STMT(temp, get_cat_loop);
+                        INIT_STMT(temp, get_item_loop);
+                        INIT_STMT(temp, get_value);
+                        INIT_STMT(temp, set_all_values);
+                        INIT_STMT(temp, get_loop_size);
+                        INIT_STMT(temp, remove_item);
+                        INIT_STMT(temp, destroy_loop);
+                        INIT_STMT(temp, get_loop_names);
+                        INIT_STMT(temp, add_loop_item);
+                        INIT_STMT(temp, max_packet_num);
+                        INIT_STMT(temp, check_item_loop);
+                        INIT_STMT(temp, insert_value);
+                        INIT_STMT(temp, update_packet_item);
+                        INIT_STMT(temp, insert_packet_item);
+                        INIT_STMT(temp, remove_packet);
+
+#ifdef DEBUG
+                        sqlite3_trace(temp->db, debug_sql, NULL);
+#endif
+
+                        /* success */
+                        *cif = temp;
+                        return CIF_OK;
+                    }
+                }
+
+                FAILURE_HANDLER(hard):
+                ROLLBACK(temp->db);  /* ignore any error */
+            }
+
+            DEBUG_WRAP(temp->db, sqlite3_close(temp->db)); /* ignore any error */
+        }
+        free(temp);
+    }
+
+    FAILURE_TERMINUS;
+}
+
+int cif_destroy(cif_t *cif) {
+    sqlite3_stmt *stmt = NULL;
+
+    /* ensure that there is no open transaction; will fail harmlessly if not */
+    ROLLBACK(cif->db);
+
+    /* clean up any outstanding prepared statements */
+    while (CIF_TRUE) {
+        stmt = sqlite3_next_stmt(cif->db, stmt);
+        if (stmt == NULL) break;
+        DEBUG_WRAP(cif->db,sqlite3_finalize(stmt));
+    }
+
+    /* close the DB */
+    if (DEBUG_WRAP(cif->db,sqlite3_close(cif->db)) == SQLITE_OK) {
+        cif->db = NULL;
+        free(cif);
+        return CIF_OK;
+    } else {
+        free(cif);
+        return CIF_ERROR;
+    }
+}
+
+int cif_create_block(cif_t *cif, const UChar *name, cif_block_t **block) {
+    FAILURE_HANDLING;
+    cif_block_t *temp;
+    int result;
+
+    if (cif == NULL) return CIF_INVALID_HANDLE;
+
+    INIT_USTDERR;
+
+    /*
+     * Create any needed prepared statements, or prepare the existing ones for
+     * re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, create_block, CREATE_BLOCK_SQL);
+
+    temp = (cif_block_t *) malloc(sizeof(cif_block_t));
+    if (temp != NULL) {
+        /*
+         * the block's pointer members must all be initialized, in case it ends up being passed to
+         * cif_container_free()
+         */
+        temp->cif = cif;
+        temp->name = NULL;
+        temp->name_orig = NULL;
+        temp->block_id = -1; /* ensure initialized, but this is meaningful only for save frames */
+
+        /* validate and normalize the block name */
+        if ((result = cif_normalize_name(name, -1, &(temp->name), CIF_INVALID_BLOCKNAME)) != CIF_OK) {
+            SET_RESULT(result);
+        } else {
+            temp->name_orig = cif_u_strdup(name);
+            if (temp->name_orig != NULL) {
+                if(BEGIN(cif->db) == SQLITE_OK) {
+                    if(DEBUG_WRAP2(sqlite3_exec(cif->db, "insert into container(id) values (null)", NULL, NULL, NULL))
+                            == SQLITE_OK) {
+                        temp->id = sqlite3_last_insert_rowid(cif->db);
+
+#ifdef DEBUG
+                        u_fprintf(ustderr, "Creating block %S (originally %S)...\n", temp->name, temp->name_orig);
+                        u_fflush(ustderr);
+#endif    
+                        /* Bind the needed parameters to the statement and execute it */
+                        if ((sqlite3_bind_int64(cif->create_block_stmt, 1, temp->id) == SQLITE_OK)
+                                && (sqlite3_bind_text16(cif->create_block_stmt, 2, temp->name, -1,
+                                        SQLITE_STATIC) == SQLITE_OK)
+                                && (sqlite3_bind_text16(cif->create_block_stmt, 3, temp->name_orig, -1,
+                                        SQLITE_STATIC) == SQLITE_OK)) {
+                            STEP_HANDLING;
+
+                            switch (STEP_STMT(cif, create_block)) {
+                                case SQLITE_CONSTRAINT:
+                                    /* must be a duplicate block name */
+                                    /* rollback the transaction and clean up, ignoring any further error */
+                                    FAIL(soft, CIF_DUP_BLOCKNAME);
+                                case SQLITE_DONE:
+                                    if (COMMIT(cif->db) == SQLITE_OK) {
+                                        ASSIGN_TEMP_RESULT(block, temp, cif_container_free);
+                                        return CIF_OK;
+                                    }
+                                    /* else drop out the bottom */
+                            }
+                        }
+
+                        /* discard the prepared statement */
+                        DROP_STMT(cif, create_block);
+                    }
+                    FAILURE_HANDLER(soft):
+                    /* rollback the transaction, ignoring any further error */
+                    ROLLBACK(cif->db);
+                } /* else failed to begin a transaction */
+            } /* else failed to dup the original name */
+        }
+        /* free the container object and any resources associated with it */
+        (void) cif_container_free(temp);
+    }
+
+    FAILURE_TERMINUS;
+}
+
+int cif_get_block(cif_t *cif, const UChar *name, cif_block_t **block) {
+    FAILURE_HANDLING;
+    cif_block_t *temp;
+
+    if (cif == NULL) return CIF_INVALID_HANDLE;
+
+    /*
+     * Create any needed prepared statements, or prepare the existing ones for
+     * re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, get_block, GET_BLOCK_SQL);
+
+    temp = (cif_block_t *) malloc(sizeof(cif_block_t));
+    if (temp != NULL) {
+        int result;
+
+        temp->name_orig = NULL;
+        temp->block_id = -1; /* ensure initialized, but this is meaningful only for save frames */
+        result = cif_normalize_name(name, -1, &(temp->name), CIF_INVALID_BLOCKNAME);
+        if (result != CIF_OK) {
+            SET_RESULT(result);
+        } else {
+            /* Bind the needed parameters to the create block statement and execute it */
+            /* there is a uniqueness constraint on the search key, so at most one row can be returned */
+            if (sqlite3_bind_text16(cif->get_block_stmt, 1, temp->name, -1, SQLITE_STATIC) == SQLITE_OK) {
+                STEP_HANDLING;
+
+                switch (STEP_STMT(cif, get_block)) {
+                    case SQLITE_ROW:
+                        temp->cif = cif;
+                        temp->id = sqlite3_column_int64(cif->get_block_stmt, 0);
+                        GET_COLUMN_STRING(cif->get_block_stmt, 1, temp->name_orig, hard_fail);
+                        sqlite3_reset(cif->get_block_stmt);
+                        ASSIGN_TEMP_RESULT(block, temp, cif_container_free);
+                        return CIF_OK;
+                    case SQLITE_DONE:
+                        FAIL(soft, CIF_NOSUCH_BLOCK);
+                }
+            }
+
+            FAILURE_HANDLER(hard):
+            /* discard the prepared statement */
+            DROP_STMT(cif, get_block);
+        }
+
+        FAILURE_HANDLER(soft):
+        /* free the container object */
+        cif_container_free(temp);
+    }
+
+    FAILURE_TERMINUS;
+}
+
+#ifdef __cplusplus
+}
+#endif
+

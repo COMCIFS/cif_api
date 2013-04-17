@@ -1,0 +1,129 @@
+/*
+ * main.dox
+ *
+ * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ */
+
+/**
+ * @mainpage CIF Application Programming Interface and Reference Implementation
+ * @section introduction Introduction
+ * These pages document a standard C library for manipulating Crytallographic Information
+ * Framework / File (CIF) data, consisting of two parts:
+ * @li opaque data types, function specifications, constants, and macro definitions jointly constituting an
+ *     @em interface between programs that consume, manipulate, and produce CIF data and an underlying support
+ *     library, and
+ * @li an @em implementation of the interface functions and data types.
+ *
+ * Only the interface portion is intended as a COMCIFS-sanctioned standard; the reference implementation is provided
+ * to validate the form and clarify the intent of the interface specifications, though the intent is that it should
+ * be sufficiently stable and robust for general use.
+ *
+ * This initiative arose from a COMCIFS resolution adopted at the 2011 triennial conference of the International Union
+ * of Crystallography (IUCr).  The intent was to create a standard programming interface for interacting with CIF data,
+ * especially in light of the changes and additions arriving in CIF 2.0.  The working group tasked with the project
+ * chose an approach whereby multiple common programming languages could be bound to the same underlying API, instead
+ * of a family of separate, language-specific APIs being defined.  The best <i>lingua franca</i> for that purpose is
+ * standard C, so the API and reference implementation are written in a C form that is compliant with C89, C99, and
+ * C++98.
+ *
+ * At this time the API definition and reference implementation remain works in progress.  The core API for
+ * manipulating CIF data is complete, and a reference implementation is in early alpha testing at the time of this
+ * writing, but the interfaces for CIF input and output are only stubbed out, and the interfaces for validation are not
+ * yet defined at all.
+ *
+ * @section rights Rights and License
+ * The documentation, interface definition, and reference implementation are copyright (c) 2013 John C. Bollinger.
+ * All rights are reserved.
+ *
+ * These restrictive rights are asserted to preserve initial control over the works until the appropriate rights-holder
+ * (possibly IUCr) and the correct licensing (anticipated to be an open-source license of some sort) can be determined.
+ *
+ * @section concepts Concepts
+ * Beyond general CIF concepts (see Internationhal Tables for Crystallography, Vol G, Hall & McMahon eds.) and
+ * additions and extensions brought by CIF 2.0, the CIF API has a few additional concepts that users and developers
+ * should understand.
+ *
+ * @subsection management Managed CIFs
+ * The CIF API takes a somewhat abstract approach to CIF data.  Instead of focusing on its representation as a
+ * (structured) text file or character stream, it focuses on the logical structure of the data: a CIF as a collection
+ * of top-level data containers (data blocks) with one level of nested containers (save frames) and in the containers
+ * data consisting of identifiers (data names) with one or more associated values, optionally organized into
+ * possibly-repeating groups (loops).
+ *
+ * That kind of abstraction is by no means novel, but the important and perhaps distinguishing point is that the
+ * interface definitions intentionally do not specify the internal form of the data.  The documentation therefore
+ * uses the term "managed" to describe the data that the core CIF manipulation functions operate on, which is
+ * implementation dependent.  The author imagines that most implementations will use some kind of in-memory
+ * implementation separate from any source file, but implementations that operate directly on physical files are
+ * conceivable and allowed.  Thus, where the documentation describes "managed" CIFs or CIF sub-objects, it is
+ * referring to whatever form and location the implementation treats as its working space.
+ *
+ * @subsection opaque Opaque Data Structures
+ * To provide a measure of implementation-independence and to facilitate future improvements and extensions, the
+ * provided interfaces use opaque data structures as a general rule.  User code does not have full definitions of
+ * these structures, and therefore it can create or manipulate them only via the provided interface functions.
+ * Although this approach is constraining in some ways, it also frees users to program at a somewhat higher level
+ * of abstraction.
+ *
+ * @subsection handles Handles
+ * As an outgrowth of opaque data structures and managed CIFs, the API uses the concept of "handles" on managed CIFs
+ * and parts of them.  These are pointers to data structures that represent various CIF parts, but do not necessarily
+ * contain the data directly and/or are not the primary managed storage for that data.  For example, in an API
+ * implementation that used a file-based representation of managed data, the handle on a data block might contain
+ * an offset into the file of the start of that block.  The handle on a whole cif might contain a stream pointer,
+ * or perhaps just a file name.
+ *
+ * Not all data objects in the API are handles, however; data value and packet objects in particular are
+ * ordinary data (though the actual data structures are still opaque).
+ *
+ * @subsection oo Object Orientation
+ * One of the outcomes of using opaque data structures is a generally object-oriented approach to the
+ * interface specifications (in plain C).  Each function can be considered a method of some object type, taking a
+ * pointer to an instance of that type as its first argument (or a pointer to a pointer in the case of creation
+ * functions), and it is primarily via such functions (methods) that users interact with their data.  Nevertheless,
+ * the OO aspect of the interface is intentionally thin and incomplete.
+ * 
+ * @subsection resources Resource Management
+ * C programmers will be well aware of resource management issues.  The CIF API does not relieve programmers of all
+ * resource management responsibilities, but it does strive to make them straightforward and approachable.  Among
+ * the ways it handles those problems are:
+ * @li documenting resource management responsibilities and responsibility transfers associated with the various
+ *         functions;
+ * @li providing necessary resource management functions (@c cif_*_free() and in some cases @c cif_*_clean() );
+ * @li preferring to copy data to avoid aliasing, so that management responsibilities remain clear; which allows that
+ * @li composite objects take responsibility for managing their components
+ *
+ * @subsection unicode Unicode
+ * CIF 2.0 expands the CIF character repertoire to all of Unicode, therefore the API must provide for representing
+ * Unicode text in data names, data values, block codes, and frame codes.  Moreover, not only this API but
+ * @em any software that manipulates CIF 2.0 data as anything other than flat text must be prepared for added
+ * complications in ensuring "unique" and "case-insensitive" strings, and in matching user-provided strings against
+ * them.
+ *
+ * For its low-level Unicode data representation, the CIF API explicitly relies on the data types (mainly @c UChar )
+ * provided by the mature <a href='http://site.icu-project.org/'>ICU project</a>.  Developers wishing to write programs
+ * using the CIF API will certainly need the ICU development files.  Furthermore, it is expected that implementations
+ * will generally use at least a few ICU library functions, therefore programs using the CIF API will typically need
+ * the ICU libraries at run time (unless they are statically linked in).
+ *
+ * API users will frequently run into function arguments that are specified to be "Unicode strings", typically
+ * specified to be (and @em always expected to be) "NUL-terminated".  These are analogous to traditional
+ * C strings, but with units of type @c UChar instead of the traditional @c char .  Users may need to be aware,
+ * however, that this form is an encoding of Unicode in UTF-16 (with native byte order).  In particular,
+ * characters outside the Unicode "basic multilingual plane" are represented via two consecutive UChar units
+ * drawn from special ranges (a "surrogate pair" in Unicode terminology).  "NUL-terminated" refers to using a
+ * trailing sentinel value to mark the end of a string; as in traditional strings, the sentinel is the NUL character,
+ * which has code point (numeric value) 0.  Unlike in traditional strings, however, @c UChar is a 16-bit (minimum)
+ * type, so a single 0 @em byte is not sufficient to end a Unicode string.  Using @c UChar units instead of @c char
+ * units for Unicode strings makes working with Unicode strings fairly natural, especially with the ICU library's
+ * analogs of most of the familiar C string functions.
+ *
+ * When matching "case insensitive" strings for lookup or uniqueness-checking purposes, the API uses a normalized
+ * form obtained by first converting the original string to Unicode normalization form NFD, then applying the
+ * Unicode case folding algorithm to the result, and finally converting the folded text to Unicode normalization
+ * form NFC.  The procedure is suggested in Unicode's own discussion of the problem, which notes that it has the
+ * necessary property that if its output is fed back as input, then the same output is reproduced.  It also has
+ * the desired property that any two character sequences that correspond to the same printed text will have the same
+ * normalized form under the algorithm (which the case-folding algorithm alone does not ensure).
+ */
+

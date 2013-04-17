@@ -1,0 +1,95 @@
+Programming Style and Conventions for the CIF API Library
+
+In (as yet) no particular order:
+
+Prepared statements for the various needed operations on the backend SQLite
+database behind an in-memory CIF are stored in the associated struct cif_s,
+alongside the database connection.  Their names end in "_stmt".
+
+Prepared statement pointers are initially NULL; the needed statements are then
+lazilly initialized.  If ever parameter binding to or execution of a prepared
+statement fails, the statement is immediately finalized (ignoring any follow-on
+error code) and discarded by NULLing the pointer to it.
+
+SQL commands used by the program use only 7-bit ASCII characters and are
+passed to the SQLite interfaces that expect UTF-8-encoded text.
+
+*Character data* from or destined for CIF instance documents, on the other
+hand, are handled exclusively in the form of Unicode strings, as supported by
+the ICU library's C API (data type UChar *).  In practice, that means their
+in-memory encoding is UTF-16 with native byte order.  Such data are retrieved
+from and passed to the SQLite interfaces that expect that form (generally
+suffixed "16").
+
+Furthermore, the intention of the design is that character data held in any of
+the system's data-transfer objects belongs to those objects.  The object
+construction interfaces, and necessarilly the data retrieval interfaces, copy
+character data into the DTOs rather than simply recording pointers.  This way,
+long-lived DTOs can safely be created from stack data, and the cleanup
+routines can safely free the DTOs' character data.
+
+The CIF2 aggregate value types LIST and TABLE present multiple design
+challenges.  (Some of) these have been addressed via the following
+implementation and use constraints:
+
+* Value objects appearing in a LIST belong to that list and will be cleaned up
+  with it when the list is cleaned.  They must not, therefore, have a shorter
+  life than their host list.  External pointers to list elements may be
+  maintained and will remain valid as long as the value lives.  If an
+  element is removed from a list, then the responsibility for cleaning it up
+  passes to the code that removed it.
+
+* Analogous to LIST elements, table entry objects belong to the TABLE in which they
+  are enrolled (if any), and they will be cleaned up along with that host table.
+  Permissions and constraints analogous to those of LIST elements pertain to
+  TABLE entries.
+
+* Similarly, the key and value objects of a table entry belong to that entry
+  (regardless of whether it is enrolled in any table).  Again, analogous
+  permissions and constraints apply.  Additionally, behavior is undefined if
+  the key of a table entry is modified or replaced while that entry is
+  enrolled in a table, though it is always safe to modify or replace entries'
+  values.
+
+* It follows from the above that aggregate objects are jealous: their
+  constituent objects must not simultaneously belong to other aggregates, even
+  though pointers to those components may be held and used for other purposes.
+
+* Aggregate values added to the in-memory representation of a CIF are *copied*
+  into it in a manner not specified here.  The copy belongs to the in-memory
+  CIF, whereas the original remains the responsibility of its original owner.
+
+* Aggregate value objects retrieved from the in-memory representation of a CIF 
+  are again copies, the responsibility of the retriever.
+
+The "uthash" hash table package is a very convenient header-only system, but
+it has a serious shortcoming: by default, memory allocation failure results in
+a fatal error (program exit).  This undesirable behavior is overridden by
+redefining uthash's macro "uthash_fatal(msg)" to something appropriate to the
+context before using any of the HASH_ADD* macros.  It remains to be seen
+whether anything else needs to be done (for example, whether cleanup after
+recovery risks undefined behavior, such as freeing a wild pointer).
+
+Appropriate management of database and memory resources requires careful
+attention to error detection and cleanup throughout the code.  The normal
+idiom by which this is managed is to open a conditional block immediately
+after successfully obtaining a resource, and putting appropriate cleanup code
+at the end of the block.  In the event that the resource should not be cleaned
+up (e.g. if responsibility for doing so is being passed to the caller) then
+the block will be exited in the middle, most often by a 'return'.  This
+results in code that is sometimes deeply nested, but there is never any
+question at any point in the code whether a given resource needs to be cleaned
+up.
+
+The error recovery idioms make extensive use of 'goto', albeit usually disguised
+by macros.  Sometimes it is spelled "break" or "continue".  This allows
+duplication of recovery and cleanup code to be minimized.  Those occurrences
+spelled "goto" (or "break") never branch backward, whether they appear plain or
+disguised within a macro, and to the extent possible, the code is arranged so
+that no more than one "goto" jump is executed during any given passage through
+any particular function.
+
+SQLite3 Notes:
+The parameters of prepared statements are numbered starting at 1, but the
+column indices in result sets start at 0.
+

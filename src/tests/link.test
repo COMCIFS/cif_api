@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+# link.test
+#
+# A script to test compiling and linking a program that uses CIF API functions.
+#
+# Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+#
+
+echo Testing compilation and linking with the CIF API library...
+
+program_name=${testdir}/linktest
+object_file=${program_name}.lo
+source_file=${program_name}.c
+TO_REMOVE=
+
+{
+  cat >${source_file} <<-'EOF'
+	#include "cif.h"
+	
+	int main(int argc, char *argv[]) {
+  	    cif_t *cif;
+  	    cif_create(&cif);
+  	    cif_destroy(cif);
+  	    return 0;
+	}
+	EOF
+} || {
+  echo error: Test source file could not be written.
+  exit 99
+}
+TO_REMOVE=${source_file}
+echo "  Test source file written."
+
+${LIBTOOL} --tag=CC --mode=compile ${CC} -I${CIF_HEADER_DIR} -c -o ${object_file} ${source_file} || {
+  echo error: Test source file could not be compiled.
+  exit 1
+}
+TO_REMOVE="${TO_REMOVE} ${object_file}"
+echo "  Test source file compiled."
+
+${LIBTOOL} --tag=CC --mode=link ${CCLD} -no-install ${object_file} ${CIF_LA} -o ${program_name} || {
+  echo error: Test object file could not be linked.
+  exit 2
+}
+TO_REMOVE="${TO_REMOVE} ${program_name}"
+echo "  Test object file linked."
+
+echo Test successful.
+
+${LIBTOOL} --mode=clean rm -f ${TO_REMOVE} || { echo "warning: failed to clean up"; }
+
+exit 0
+

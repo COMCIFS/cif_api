@@ -1,0 +1,10 @@
+CIF API 0.1.0
+
+The CIF API provides a standard C interface for reading, writing, and
+manipulating Crystallographic Information Files (CIFs).
+
+Refer to file INSTALL for installation instructions.
+
+Refer to file COPYING for conditions for copying the contents of the
+package.
+

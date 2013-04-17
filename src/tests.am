@@ -1,0 +1,78 @@
+##
+## tests.am
+##
+## Copyright (C) 2013 John C. Bollinger
+##
+## All rights reserved.
+##
+
+compiled_tests = \
+    $(testdir)/test_create \
+    $(testdir)/test_create_block1 \
+    $(testdir)/test_create_block2
+# cif_get_block
+# cif_block_create_frame
+# cif_block_get_frame
+# cif_container_free
+# cif_container_destroy
+# cif_container_create_loop
+# cif_container_get_category_loop
+# cif_container_get_item_loop
+# cif_container_get_value
+# cif_container_set_value
+# cif_container_remove_item
+# cif_loop_free
+# cif_loop_destroy
+# cif_loop_get_names
+# cif_loop_add_item
+# cif_loop_add_packet
+# cif_loop_get_packets
+# cif_pktitr_close
+# cif_pktitr_abort
+# cif_pktitr_next_packet
+# cif_pktitr_update_packet
+# cif_pktitr_remove_packet
+# cif_packet_create
+# cif_packet_get_names
+# cif_packet_get_item
+# cif_packet_set_item
+# cif_packet_remove_item
+# cif_packet_free
+# cif_value_create
+# cif_value_clean
+# cif_value_free
+# cif_value_clone
+# cif_value_init_char
+# cif_value_parse_numb
+# cif_value_init_numb
+# cif_value_autoinit_numb
+# cif_value_kind
+# cif_value_as_double
+# cif_value_su_as_double
+# !cif_parse
+# !cif_write
+
+check_PROGRAMS = $(compiled_tests)
+
+TESTS = \
+  $(testdir)/link.test \
+  $(compiled_tests)
+
+XFAIL_TESTS =
+
+# This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
+TESTS_ENVIRONMENT = \
+  CIF_HEADER_DIR="$(top_srcdir)/src" \
+  CIF_LA=libcif.la \
+  testdir="$(testdir)" \
+  CC="$(CC)" \
+  CCLD="$(CCLD)" \
+  LIBTOOL="$(LIBTOOL)"
+
+CLEANFILES += $(testdir)/linktest.c $(testdir)/linktest.lo $(testdir)/linktest
+
+clean_local_targets += clean-local-lt_tests
+
+clean-local-lt_tests:
+	$(RM) -rf $(testdir)/.libs
+
