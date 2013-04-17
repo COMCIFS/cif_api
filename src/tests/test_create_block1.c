@@ -17,14 +17,14 @@ int main(int argc, char *argv[]) {
     cif_t *cif = NULL;
     cif_block_t *block = NULL;
     int result;
-    U_STRING_DECL(block_name, "block", 5);
+    U_STRING_DECL(block_code, "block", 5);
 
-    U_STRING_INIT(block_name, "block", 5);
+    U_STRING_INIT(block_code, "block", 5);
     TESTHEADER(test_name);
     CREATE_CIF(test_name, cif);
 
-    TEST(cif_get_block(cif, block_name, &block), CIF_NOSUCH_BLOCK, test_name, 1);
-    TEST(cif_create_block(cif, block_name, &block), CIF_OK, test_name, 2);
+    TEST(cif_get_block(cif, block_code, &block), CIF_NOSUCH_BLOCK, test_name, 1);
+    TEST(cif_create_block(cif, block_code, &block), CIF_OK, test_name, 2);
     TEST_NOT(block, NULL, test_name, 3);
 
     /* no mechanism for checking the block name */
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     cif_block_free(block);
     block = NULL;
 
-    TEST(cif_get_block(cif, block_name, &block), CIF_OK, test_name, 4);
+    TEST(cif_get_block(cif, block_code, &block), CIF_OK, test_name, 4);
     TEST_NOT(block, NULL, test_name, 4);
 
     DESTROY_CIF(test_name, cif);

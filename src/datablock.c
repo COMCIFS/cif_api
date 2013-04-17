@@ -22,14 +22,14 @@ extern "C" {
 
 int cif_block_create_frame(
         cif_block_t *block,
-        const UChar *name,
+        const UChar *code,
         cif_frame_t **frame
         ) {
     FAILURE_HANDLING;
     cif_frame_t *temp;
     struct cif_s *cif;
 
-    /* validate and normalize the frame name */
+    /* validate and normalize the frame code */
     if ((block == NULL) || (block->block_id >= 0)) return CIF_INVALID_HANDLE;
 
     cif = block->cif;
@@ -46,16 +46,16 @@ int cif_block_create_frame(
 
         /* the frame's pointer members must all be initialized, in case it ends up being passed to frame_free() */
         temp->cif = cif;
-        temp->name_orig = NULL;
+        temp->code_orig = NULL;
         /* as long as we're at it, initialize the block id, too */
         temp->block_id = block->id;
 
-        result = cif_normalize_name(name, -1, &(temp->name), CIF_INVALID_FRAMENAME);
+        result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_FRAMECODE);
         if (result != CIF_OK) {
             SET_RESULT(result);
         } else {
-            temp->name_orig = cif_u_strdup(name);
-            if (temp->name_orig != NULL) {
+            temp->code_orig = cif_u_strdup(code);
+            if (temp->code_orig != NULL) {
                 if(BEGIN(cif->db) == SQLITE_OK) {
                     if(sqlite3_exec(cif->db, "insert into container values (null)", NULL, NULL, NULL) == SQLITE_OK) {
                         temp->id = sqlite3_last_insert_rowid(cif->db);
@@ -63,18 +63,18 @@ int cif_block_create_frame(
                         /* Bind the needed parameters to the statement and execute it */
                         if ((sqlite3_bind_int64(cif->create_frame_stmt, 1, temp->id) == SQLITE_OK)
                                 && (sqlite3_bind_int64(cif->create_frame_stmt, 2, block->id) == SQLITE_OK)
-                                && (sqlite3_bind_text16(cif->create_frame_stmt, 3, temp->name, -1,
+                                && (sqlite3_bind_text16(cif->create_frame_stmt, 3, temp->code, -1,
                                         SQLITE_STATIC) == SQLITE_OK)
-                                && (sqlite3_bind_text16(cif->create_frame_stmt, 4, temp->name_orig, -1,
+                                && (sqlite3_bind_text16(cif->create_frame_stmt, 4, temp->code_orig, -1,
                                         SQLITE_STATIC) == SQLITE_OK)) {
                             STEP_HANDLING;
 
                             switch (STEP_STMT(cif, create_frame)) {
                                 case SQLITE_CONSTRAINT:
-                                    /* must be a duplicate frame name */
+                                    /* must be a duplicate frame code */
                                     /* rollback the transaction and clean up, ignoring any further error */
                                     (void) sqlite3_reset(cif->create_frame_stmt);
-                                    FAIL(soft, CIF_DUP_FRAMENAME);
+                                    FAIL(soft, CIF_DUP_FRAMECODE);
                                 case SQLITE_DONE:
                                     if (COMMIT(cif->db) == SQLITE_OK) {
                                         ASSIGN_TEMP_RESULT(frame, temp, cif_container_free);
@@ -91,8 +91,8 @@ int cif_block_create_frame(
                     /* rollback the transaction, ignoring any further error */
                     ROLLBACK(cif->db);
                 } /* else failed to begin a transaction */
-            } /* else failed to dup the original name */
-        } /* else failed to normalize the name */
+            } /* else failed to dup the original code */
+        } /* else failed to normalize the code */
 
         /* free the temporary container object and any resources associated with it */
         (void) cif_container_free(temp);
@@ -103,14 +103,14 @@ int cif_block_create_frame(
 
 int cif_block_get_frame(
         cif_block_t *block,
-        const UChar *name,
+        const UChar *code,
         cif_frame_t **frame
         ) {
     FAILURE_HANDLING;
     cif_frame_t *temp;
     struct cif_s *cif;
 
-    /* validate, and normalize the frame name */
+    /* validate, and normalize the frame code */
     if ((block == NULL) || (block->block_id >= 0))return CIF_INVALID_HANDLE;
 
     cif = block->cif;
@@ -125,26 +125,26 @@ int cif_block_get_frame(
     if (temp != NULL) {
         int result;
 
-        temp->name_orig = NULL;
-        result = cif_normalize_name(name, -1, &(temp->name), CIF_INVALID_FRAMENAME);
+        temp->code_orig = NULL;
+        result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_FRAMECODE);
         if (result != CIF_OK) {
             SET_RESULT(result);
         } else {
             /* Bind the needed parameters to the get frame statement and execute it */
             /* there is a uniqueness constraint on the search key, so at most one row can be returned */
             if ((sqlite3_bind_int64(cif->get_frame_stmt, 1, block->id) == SQLITE_OK)
-                    && (sqlite3_bind_text16(cif->get_frame_stmt, 2, temp->name, -1, SQLITE_STATIC) == SQLITE_OK)) {
+                    && (sqlite3_bind_text16(cif->get_frame_stmt, 2, temp->code, -1, SQLITE_STATIC) == SQLITE_OK)) {
                 STEP_HANDLING;
 
                 switch (STEP_STMT(cif, get_frame)) {
                     case SQLITE_ROW:
                         temp->id = sqlite3_column_int64(cif->get_frame_stmt, 0);
-                        GET_COLUMN_STRING(cif->get_frame_stmt, 1, temp->name_orig, hard_fail);
+                        GET_COLUMN_STRING(cif->get_frame_stmt, 1, temp->code_orig, hard_fail);
                         temp->cif = cif;
                         temp->block_id = block->id;
                         ASSIGN_TEMP_RESULT(frame, temp, cif_container_free);
                         (void) sqlite3_reset(cif->get_frame_stmt);
-                        /* There cannot be any more rows, as the DB enforces per-block frame name uniqueness */
+                        /* There cannot be any more rows, as the DB enforces per-block frame code uniqueness */
                         return CIF_OK;
                     case SQLITE_DONE:
                         FAIL(soft, CIF_NOSUCH_BLOCK);

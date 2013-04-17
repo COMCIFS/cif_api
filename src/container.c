@@ -152,8 +152,8 @@ int cif_container_free(
         ) {
     if (container != NULL) {
         /* don't free the 'cif' pointer */
-        free(container->name);
-        free(container->name_orig);
+        free(container->code);
+        free(container->code_orig);
         free(container);
     }
     return CIF_OK;

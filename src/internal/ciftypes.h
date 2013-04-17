@@ -68,8 +68,8 @@ struct cif_s {
 struct cif_container_s {
     /*@shared@*/ cif_t *cif;
     sqlite_int64 id;
-    /*@only@*/ UChar *name;
-    /*@only@*/ UChar *name_orig;
+    /*@only@*/ UChar *code;
+    /*@only@*/ UChar *code_orig;
     sqlite_int64 block_id;
 };
 

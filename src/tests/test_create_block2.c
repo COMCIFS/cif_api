@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     cif_t *cif = NULL;
     int result;
 #define NUM_PATTERNS 8
-    char name_patterns[NUM_PATTERNS][64] = {
+    char code_patterns[NUM_PATTERNS][64] = {
         "",
         "block with spaces",
         "block\001with\002noprint",
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         "high_\\udaff\\udfff_notchar",
     };
 #define NUM_PAIRS 4
-    char name_pairs[NUM_PAIRS][2][64] = {
+    char code_pairs[NUM_PAIRS][2][64] = {
       { "dupe", "DUpe" },
       { "\\u00c5ngstrom", "\\u00e5ngstrom" },
 /*
@@ -54,21 +54,21 @@ int main(int argc, char *argv[]) {
 
     for (counter = 0; counter < NUM_PATTERNS; counter++) {
         TEST(
-            cif_create_block(cif, TO_U(name_patterns[counter]), NULL),
-            CIF_INVALID_BLOCKNAME,
+            cif_create_block(cif, TO_U(code_patterns[counter]), NULL),
+            CIF_INVALID_BLOCKCODE,
             test_name,
             counter + 1);
     }
 
     for (counter = 0; counter < NUM_PAIRS; counter++) {
         TEST(
-            cif_create_block(cif, TO_U(name_pairs[counter][0]), &block),
+            cif_create_block(cif, TO_U(code_pairs[counter][0]), &block),
             CIF_OK,
             test_name,
             2 * counter + NUM_PATTERNS + 1);
         TEST(
-            cif_create_block(cif, TO_U(name_pairs[counter][1]), NULL),
-            CIF_DUP_BLOCKNAME,
+            cif_create_block(cif, TO_U(code_pairs[counter][1]), NULL),
+            CIF_DUP_BLOCKCODE,
             test_name,
             2 * counter + NUM_PATTERNS + 2);
         if (cif_container_destroy(block) != CIF_OK) return HARD_FAIL;
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     for (counter = 0; counter < CIF_LINE_LENGTH; counter++) buffer[counter] = (UChar) 'a';
     buffer[CIF_LINE_LENGTH - 4] = (UChar) 0;
 
-    TEST(cif_create_block(cif, buffer, NULL), CIF_INVALID_BLOCKNAME, test_name, NUM_PATTERNS + 2 * NUM_PAIRS + 1);
+    TEST(cif_create_block(cif, buffer, NULL), CIF_INVALID_BLOCKCODE, test_name, NUM_PATTERNS + 2 * NUM_PAIRS + 1);
 
     DESTROY_CIF(test_name, cif);
 

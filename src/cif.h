@@ -114,12 +114,12 @@
  * @brief a result code signaling an attempt to cause a CIF to contain blocks with duplicate (by CIF's criteria) block
  *        codes
  */
-#define CIF_DUP_BLOCKNAME      11
+#define CIF_DUP_BLOCKCODE      11
 
 /**
  * @brief a result code signaling an attempt to cause a CIF to contain a block with an invalid block code
  */
-#define CIF_INVALID_BLOCKNAME  12
+#define CIF_INVALID_BLOCKCODE  12
 
 /**
  * @brief a result code signaling an attempt to retrieve a data block from a CIF (by reference to its block code)
@@ -131,12 +131,12 @@
  * @brief a result code signaling an attempt to cause a data block to contain save frames with duplicate (by CIF's
  *        criteria) frame codes
  */
-#define CIF_DUP_FRAMENAME      21
+#define CIF_DUP_FRAMECODE      21
 
 /**
  * @brief a result code signaling an attempt to cause a data block to contain a save frame with an invalid frame code
  */
-#define CIF_INVALID_FRAMENAME  22
+#define CIF_INVALID_FRAMECODE  22
 
 /**
  * @brief a result code signaling an attempt to retrieve a save frame from a data block (by reference to its frame code)
@@ -190,7 +190,7 @@
 
 /**
  * @brief a result code indicating that an attempt was made to add an item to a data block or save frame that already
- *        contains an item of the same name.
+ *        contains an item of the same code.
  *
  * "Same" in this sense is judged with the use of Unicode normalization and case folding.
  */
@@ -362,8 +362,8 @@ extern "C" {
  * @brief Parses a CIF from the specified stream.
  *
  * The data are interpreted as a standalone CIF providing zero or more data blocks to add to the provided or a new
- * managed CIF object.  It is an error for any added blocks to have names that match an existing block's.  If a new
- * CIF object is returned then the caller assumes responsibility for releasing its resources at an appropriate time
+ * managed CIF object.  It is an error for any added blocks to have block codes that match an existing block's.  If a
+ * new CIF object is returned then the caller assumes responsibility for releasing its resources at an appropriate time
  * via @c cif_destroy().
  *
  * @param[in] stream a @c FILE @c * from which to read the raw CIF data; must be a non-NULL pointer to a readable
@@ -444,7 +444,7 @@ int cif_destroy(
  */
 
 /**
- * @brief Creates a new data block bearing the specified name in the specified CIF.
+ * @brief Creates a new data block bearing the specified code in the specified CIF.
  *
  * This function can optionally return a handle on the new block via the @c block argument.  When that option
  * is used, the caller assumes responsibility for cleaning up the provided handle via either @c cif_container_free()
@@ -453,42 +453,42 @@ int cif_destroy(
  * @param[in] cif a handle on the managed CIF object to which a new block should be added; must be non-NULL and
  *        valid.
  *
- * @param[in] name the name (block code) of the block to add, as a NUL-terminated Unicode string; the block code must
+ * @param[in] code the block code of the block to add, as a NUL-terminated Unicode string; the block code must
  *        comply with CIF constraints on block codes.
  *
  * @param[in,out] block if not NULL, then a location where a handle on the new block should be recorded.
  *
  * @return @c CIF_OK on success or an error code on failure, normally one of:
- *        @li @c CIF_INVALID_BLOCKNAME  if the provided block name is invalid
- *        @li @c CIF_DUP_BLOCKNAME if the specified CIF already contains a block having the given name (note that
+ *        @li @c CIF_INVALID_BLOCKCODE  if the provided block code is invalid
+ *        @li @c CIF_DUP_BLOCKCODE if the specified CIF already contains a block having the given code (note that
  *                block codes are compared in a Unicode-normalized and caseless form)
  *        @li @c CIF_ERROR for most other failures
  */
 int cif_create_block(
         /*@in@*/ /*@temp@*/ cif_t *cif,
-        /*@in@*/ /*@temp@*/ const UChar *name,
+        /*@in@*/ /*@temp@*/ const UChar *code,
         /*@out@*/ /*@null@*/ cif_block_t **block
         ) /*@modifies *block@*/;
 
 /**
- * @brief Looks up and optionally returns the data block bearing the specified name, if any, in the specified CIF.
+ * @brief Looks up and optionally returns the data block bearing the specified block code, if any, in the specified CIF.
  *
- * Note that CIF block names (codes) are matched in caseless and Unicode-normalized form.
+ * Note that CIF block codes are matched in caseless and Unicode-normalized form.
  *
- * @param[in] cif a handle on the managed CIF object in which to look up the specified block name; must be non-NULL
+ * @param[in] cif a handle on the managed CIF object in which to look up the specified block code; must be non-NULL
  *         and valid.
  *
- * @param[in] name the block name (code) to look up, as a NUL-terminated Unicode string.
+ * @param[in] code the block code to look up, as a NUL-terminated Unicode string.
  *
- * @param[in,out] block if not NULL on input and a block matching the specified name is found, then a handle on it is
+ * @param[in,out] block if not NULL on input and a block matching the specified code is found, then a handle on it is
  *         written where this parameter points.  The caller assumes responsibility for releasing this handle.
  *       
  * @return @c CIF_OK on a successful lookup (even if @c block is NULL), @c CIF_NOSUCH_BLOCK if there is no data block
- *         bearing the given name in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
+ *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
 int cif_get_block(
         /*@in@*/ /*@temp@*/ cif_t *cif,
-        /*@in@*/ /*@temp@*/ const UChar *name,
+        /*@in@*/ /*@temp@*/ const UChar *code,
         /*@out@*/ /*@null@*/ cif_block_t **block
         ) /*@modifies *block@*/;
 
@@ -515,7 +515,7 @@ int cif_get_block(
 #define cif_block_destroy cif_container_destroy
 
 /**
- * @brief Creates a new save frame bearing the specified name in the specified data block.
+ * @brief Creates a new save frame bearing the specified frame code in the specified data block.
  *
  * This function can optionally return a handle on the new frame via the @c frame argument.  When that option
  * is used, the caller assumes responsibility for cleaning up the provided handle via either @c cif_container_free()
@@ -524,42 +524,42 @@ int cif_get_block(
  * @param[in] block a handle on the managed data block object to which a new block should be added; must be
  *        non-NULL and valid.
  *
- * @param[in] name the name (frame code) of the frame to add, as a NUL-terminated Unicode string; the frame code must
+ * @param[in] cide the frame code of the frame to add, as a NUL-terminated Unicode string; the frame code must
  *        comply with CIF constraints on frame codes.
  *
  * @param[in,out] frame if not NULL, then a location where a handle on the new frame should be recorded.
  *
  * @return @c CIF_OK on success or an error code on failure, normally one of:
- *        @li @c CIF_INVALID_FRAMENAME  if the provided frame name is invalid
- *        @li @c CIF_DUP_FRAMENAME if the specified CIF already contains a frame having the given name (note that
+ *        @li @c CIF_INVALID_FRAMECODE  if the provided frame code is invalid
+ *        @li @c CIF_DUP_FRAMECODE if the specified CIF already contains a frame having the given code (note that
  *                frame codes are compared in a Unicode-normalized and caseless form)
  *        @li @c CIF_ERROR for most other failures
  */
 int cif_block_create_frame(
         /*@in@*/ /*@temp@*/ cif_block_t *block,
-        /*@in@*/ /*@temp@*/ const UChar *name,
+        /*@in@*/ /*@temp@*/ const UChar *code,
         /*@out@*/ /*@null@*/ cif_frame_t **frame
         ) /*@modifies *frame@*/;
 
 /**
- * @brief Looks up and optionally returns the save frame bearing the specified name, if any, in the specified CIF.
+ * @brief Looks up and optionally returns the save frame bearing the specified code, if any, in the specified CIF.
  *
- * Note that CIF frame names (codes) are matched in caseless and Unicode-normalized form.
+ * Note that CIF frame codes are matched in caseless and Unicode-normalized form.
  *
- * @param[in] block a handle on the managed data block object in which to look up the specified block name; must be
+ * @param[in] block a handle on the managed data block object in which to look up the specified frame code; must be
  *         non-NULL and valid.
  *
- * @param[in] name the frame name (code) to look up, as a NUL-terminated Unicode string.
+ * @param[in] code the frame code to look up, as a NUL-terminated Unicode string.
  *
- * @param[in,out] frame if not NULL and a frame matching the specified name is found, then a handle on it is
+ * @param[in,out] frame if not NULL and a frame matching the specified code is found, then a handle on it is
  *         written where this parameter points.  The caller assumes responsibility for releasing this handle.
  *       
  * @return @c CIF_OK on a successful lookup (even if @c frame is NULL), @c CIF_NOSUCH_FRAME if there is no save frame
- *         bearing the given name in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
+ *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
 int cif_block_get_frame(
         /*@in@*/ /*@temp@*/ cif_block_t *block,
-        /*@in@*/ /*@temp@*/ const UChar *name,
+        /*@in@*/ /*@temp@*/ const UChar *code,
         /*@out@*/ /*@null@*/ cif_frame_t **frame
         ) /*@modifies *frame@*/;
 

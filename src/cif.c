@@ -158,7 +158,7 @@ int cif_destroy(cif_t *cif) {
     }
 }
 
-int cif_create_block(cif_t *cif, const UChar *name, cif_block_t **block) {
+int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
     FAILURE_HANDLING;
     cif_block_t *temp;
     int result;
@@ -180,38 +180,38 @@ int cif_create_block(cif_t *cif, const UChar *name, cif_block_t **block) {
          * cif_container_free()
          */
         temp->cif = cif;
-        temp->name = NULL;
-        temp->name_orig = NULL;
+        temp->code = NULL;
+        temp->code_orig = NULL;
         temp->block_id = -1; /* ensure initialized, but this is meaningful only for save frames */
 
-        /* validate and normalize the block name */
-        if ((result = cif_normalize_name(name, -1, &(temp->name), CIF_INVALID_BLOCKNAME)) != CIF_OK) {
+        /* validate and normalize the block code */
+        if ((result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_BLOCKCODE)) != CIF_OK) {
             SET_RESULT(result);
         } else {
-            temp->name_orig = cif_u_strdup(name);
-            if (temp->name_orig != NULL) {
+            temp->code_orig = cif_u_strdup(code);
+            if (temp->code_orig != NULL) {
                 if(BEGIN(cif->db) == SQLITE_OK) {
                     if(DEBUG_WRAP2(sqlite3_exec(cif->db, "insert into container(id) values (null)", NULL, NULL, NULL))
                             == SQLITE_OK) {
                         temp->id = sqlite3_last_insert_rowid(cif->db);
 
 #ifdef DEBUG
-                        u_fprintf(ustderr, "Creating block %S (originally %S)...\n", temp->name, temp->name_orig);
+                        u_fprintf(ustderr, "Creating block %S (originally %S)...\n", temp->code, temp->code_orig);
                         u_fflush(ustderr);
 #endif    
                         /* Bind the needed parameters to the statement and execute it */
                         if ((sqlite3_bind_int64(cif->create_block_stmt, 1, temp->id) == SQLITE_OK)
-                                && (sqlite3_bind_text16(cif->create_block_stmt, 2, temp->name, -1,
+                                && (sqlite3_bind_text16(cif->create_block_stmt, 2, temp->code, -1,
                                         SQLITE_STATIC) == SQLITE_OK)
-                                && (sqlite3_bind_text16(cif->create_block_stmt, 3, temp->name_orig, -1,
+                                && (sqlite3_bind_text16(cif->create_block_stmt, 3, temp->code_orig, -1,
                                         SQLITE_STATIC) == SQLITE_OK)) {
                             STEP_HANDLING;
 
                             switch (STEP_STMT(cif, create_block)) {
                                 case SQLITE_CONSTRAINT:
-                                    /* must be a duplicate block name */
+                                    /* must be a duplicate block code */
                                     /* rollback the transaction and clean up, ignoring any further error */
-                                    FAIL(soft, CIF_DUP_BLOCKNAME);
+                                    FAIL(soft, CIF_DUP_BLOCKCODE);
                                 case SQLITE_DONE:
                                     if (COMMIT(cif->db) == SQLITE_OK) {
                                         ASSIGN_TEMP_RESULT(block, temp, cif_container_free);
@@ -228,7 +228,7 @@ int cif_create_block(cif_t *cif, const UChar *name, cif_block_t **block) {
                     /* rollback the transaction, ignoring any further error */
                     ROLLBACK(cif->db);
                 } /* else failed to begin a transaction */
-            } /* else failed to dup the original name */
+            } /* else failed to dup the original code */
         }
         /* free the container object and any resources associated with it */
         (void) cif_container_free(temp);
@@ -237,7 +237,7 @@ int cif_create_block(cif_t *cif, const UChar *name, cif_block_t **block) {
     FAILURE_TERMINUS;
 }
 
-int cif_get_block(cif_t *cif, const UChar *name, cif_block_t **block) {
+int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
     FAILURE_HANDLING;
     cif_block_t *temp;
 
@@ -253,22 +253,22 @@ int cif_get_block(cif_t *cif, const UChar *name, cif_block_t **block) {
     if (temp != NULL) {
         int result;
 
-        temp->name_orig = NULL;
+        temp->code_orig = NULL;
         temp->block_id = -1; /* ensure initialized, but this is meaningful only for save frames */
-        result = cif_normalize_name(name, -1, &(temp->name), CIF_INVALID_BLOCKNAME);
+        result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_BLOCKCODE);
         if (result != CIF_OK) {
             SET_RESULT(result);
         } else {
             /* Bind the needed parameters to the create block statement and execute it */
             /* there is a uniqueness constraint on the search key, so at most one row can be returned */
-            if (sqlite3_bind_text16(cif->get_block_stmt, 1, temp->name, -1, SQLITE_STATIC) == SQLITE_OK) {
+            if (sqlite3_bind_text16(cif->get_block_stmt, 1, temp->code, -1, SQLITE_STATIC) == SQLITE_OK) {
                 STEP_HANDLING;
 
                 switch (STEP_STMT(cif, get_block)) {
                     case SQLITE_ROW:
                         temp->cif = cif;
                         temp->id = sqlite3_column_int64(cif->get_block_stmt, 0);
-                        GET_COLUMN_STRING(cif->get_block_stmt, 1, temp->name_orig, hard_fail);
+                        GET_COLUMN_STRING(cif->get_block_stmt, 1, temp->code_orig, hard_fail);
                         sqlite3_reset(cif->get_block_stmt);
                         ASSIGN_TEMP_RESULT(block, temp, cif_container_free);
                         return CIF_OK;
