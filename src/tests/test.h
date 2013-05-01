@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <unicode/ustring.h>
+#include <unicode/ustdio.h>
+#include <sqlite3.h>
 #include "../cif.h"
 
 /*
@@ -17,8 +19,17 @@
 #define SKIP      77
 #define HARD_FAIL 99
 
+static UFILE *ustderr = NULL;
+
+#define INIT_USTDERR do { if (ustderr == NULL) ustderr = u_finit(stderr, NULL, NULL); } while (0)
+
 #define TESTHEADER(name) do { \
   fprintf(stderr, "\n-- %s --\n", (name)); \
+} while (0)
+
+#define RETURN(code) do { \
+  sqlite3_shutdown(); \
+  return (code); \
 } while (0)
 
 /*
@@ -26,7 +37,8 @@
  */
 #define FAIL(ret, name, code, sense, compare) do { \
   int _ret = (ret); \
-  fprintf(stderr, "%s(%d): ... failed with code %d " sense " %d.\n", (name), _ret, (code), (compare)); \
+  fprintf(stderr, "%s(%d): ... failed with code %d " sense " %d at line %d in " __FILE__ ".\n", \
+          (name), _ret, (code), (compare), __LINE__); \
   return (ret); \
 } while (0)
 
@@ -54,6 +66,20 @@
   fprintf(stderr, "  subtest %d passed\n", _code); \
 } while (0)
 
+#define TEST_STRINGLIST_MATCH(expected, observed, ordered, subtest) do { \
+    UChar **exp = (expected); \
+    UChar **obs = (observed); \
+    int ord = (ordered); \
+    int st = (subtest); \
+    UChar **e; \
+    for (e = exp; *e != NULL; e += 1) { \
+        int found; \
+        if (ord != 0) { \
+            /* TODO: incomplete */ u_strcmp(*e, *(obs + (e - exp))); \
+        } \
+    } \
+} while (0)
+
 #define TO_UNICODE(s, buffer, buf_len) ( \
     u_unescape((s), buffer, buf_len), \
     buffer \
@@ -66,7 +92,7 @@
 #define CREATE_CIF(n, cif) do { \
     const char *_test_name = (n); \
     int _result; \
-    fprintf(stdout, "%s: Creating a managed CIF...\n", _test_name); \
+    fprintf(stderr, "%s: Creating a managed CIF...\n", _test_name); \
     _result = cif_create(&cif); \
     if (_result != CIF_OK) { \
         fprintf(stderr, "error: %s: ... failed with code %d.\n", _test_name, _result); \
@@ -83,9 +109,9 @@
 #define DESTROY_CIF(n, cif) do { \
     const char *_test_name = (n); \
     int _result; \
-    fprintf(stdout, "%s: Destroying a managed CIF...\n", _test_name); \
+    fprintf(stderr, "%s: Destroying a managed CIF...\n", _test_name); \
     _result = cif_destroy(cif); \
-    if (result != CIF_OK) { \
+    if (_result != CIF_OK) { \
         fprintf(stderr, "warning: %s: ... failed with code %d.\n", _test_name, _result); \
     } \
 } while (0)
@@ -98,7 +124,7 @@
     const char *_test_name = (n); \
     int _result; \
     UChar *_code = (code); \
-    fprintf(stdout, "%s: Creating a managed data block...\n", _test_name); \
+    fprintf(stderr, "%s: Creating a managed data block...\n", _test_name); \
     _result = cif_create_block((cif), _code, &block); \
     if (_result != CIF_OK) { \
         fprintf(stderr, "error: %s: ... failed with code %d.\n", _test_name, _result); \
@@ -115,9 +141,41 @@
 #define DESTROY_BLOCK(n, block) do { \
     const char *_test_name = (n); \
     int _result; \
-    fprintf(stdout, "%s: Destroying a managed data block...\n", _test_name); \
+    fprintf(stderr, "%s: Destroying a managed data block...\n", _test_name); \
     _result = cif_container_destroy(block); \
-    if (result != CIF_OK) { \
+    if (_result != CIF_OK) { \
+        fprintf(stderr, "warning: %s: ... failed with code %d.\n", _test_name, _result); \
+    } \
+} while (0)
+
+/*
+ * Creates a new save frame bearing the specified code in the specified block, recording a handle on it
+ * in 'frame', which must therefore be an lvalue.  Generates a hard failure if unsuccessful.
+ */
+#define CREATE_FRAME(n, block, code, frame) do { \
+    const char *_test_name = (n); \
+    int _result; \
+    UChar *_code = (code); \
+    fprintf(stderr, "%s: Creating a managed save frame...\n", _test_name); \
+    _result = cif_block_create_frame((block), _code, &frame); \
+    if (_result != CIF_OK) { \
+        fprintf(stderr, "error: %s: ... failed with code %d.\n", _test_name, _result); \
+        return HARD_FAIL; \
+    } else if (frame == NULL) { \
+        fprintf(stderr, "error: %s: ... did not set the frame pointer.\n", _test_name); \
+        return HARD_FAIL; \
+    } \
+} while (0)
+
+/*
+ * Destroys the specified managed save frame, or emits a warning if it fails to do so
+ */
+#define DESTROY_FRAME(n, frame) do { \
+    const char *_test_name = (n); \
+    int _result; \
+    fprintf(stderr, "%s: Destroying a managed save frame...\n", _test_name); \
+    _result = cif_container_destroy(frame); \
+    if (_result != CIF_OK) { \
         fprintf(stderr, "warning: %s: ... failed with code %d.\n", _test_name, _result); \
     } \
 } while (0)

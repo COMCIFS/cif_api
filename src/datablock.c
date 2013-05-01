@@ -48,11 +48,11 @@ int cif_block_create_frame(
     if (temp != NULL) {
         int result;
 
-        /* the frame's pointer members must all be initialized, in case it ends up being passed to frame_free() */
+        /* the frame object must be initialized in case it ends up being passed to cif_container_free() */
         temp->cif = cif;
-        temp->code_orig = NULL;
-        /* as long as we're at it, initialize the block id, too */
         temp->block_id = block->id;
+        temp->code = NULL;
+        temp->code_orig = NULL;
 
         result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_FRAMECODE);
 
@@ -90,7 +90,7 @@ int cif_block_create_frame(
                                     FAIL(soft, CIF_DUP_FRAMECODE);
                                 case SQLITE_DONE:
                                     if (COMMIT(cif->db) == SQLITE_OK) {
-                                        ASSIGN_TEMP_RESULT(frame, temp, cif_container_free);
+                                        if (frame != NULL) *frame = temp;
                                         return CIF_OK;
                                     }
                                     /* else drop out the bottom */
@@ -157,7 +157,7 @@ int cif_block_get_frame(
                         GET_COLUMN_STRING(cif->get_frame_stmt, 1, temp->code_orig, hard_fail);
                         temp->cif = cif;
                         temp->block_id = block->id;
-                        ASSIGN_TEMP_RESULT(frame, temp, cif_container_free);
+                        if (frame != NULL) *frame = temp;
                         (void) sqlite3_reset(cif->get_frame_stmt);
                         /* There cannot be any more rows, as the DB enforces per-block frame code uniqueness */
                         return CIF_OK;
@@ -175,6 +175,102 @@ int cif_block_get_frame(
         FAILURE_HANDLER(soft):
         /* free the container object */
         cif_container_free(temp);
+    }
+
+    FAILURE_TERMINUS;
+}
+
+int cif_block_get_all_frames(cif_block_t *block, cif_frame_t ***frames) {
+    FAILURE_HANDLING;
+    struct frame_el {
+        cif_frame_t frame; /* must be first */
+        struct frame_el *next;
+    } *head = NULL;
+    struct frame_el **next_frame_p = &head;
+    struct frame_el *next_frame;
+    cif_t *cif;
+
+    if (block == NULL) return CIF_INVALID_HANDLE;
+
+    cif = block->cif;
+
+    /*
+     * Create any needed prepared statements, or prepare the existing ones for
+     * re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, get_all_frames, GET_ALL_FRAMES_SQL);
+
+    if (sqlite3_bind_int64(cif->get_all_frames_stmt, 1, block->id) == SQLITE_OK) {
+        STEP_HANDLING;
+        int result;
+        size_t frame_count = 0;
+        cif_frame_t **temp_frames;
+
+        while (IS_HARD_ERROR(STEP_STMT(cif, get_all_frames), result) == 0) {
+            switch (result) {
+                default:
+                    /* ignore the error code: */
+                    DEBUG_WRAP(cif->db, sqlite3_reset(cif->get_all_frames_stmt));
+                    DEFAULT_FAIL(soft);
+                case SQLITE_ROW:
+                    *next_frame_p = (struct frame_el *) malloc(sizeof(struct frame_el));
+                    if (*next_frame_p == NULL) {
+                        DEFAULT_FAIL(soft);
+                    } else {
+                        cif_frame_t *temp = &((*next_frame_p)->frame);
+
+                        /* handle the linked-list next pointer */
+                        next_frame_p = &((*next_frame_p)->next);
+                        *next_frame_p = NULL;
+
+                        /* initialize the new frame with defaults, in case it gets passed to cif_container_free() */
+                        temp->cif = cif;
+                        temp->code = NULL;
+                        temp->code_orig = NULL;
+                        temp->block_id = block->id;
+
+                        /* read the results into the current frame object */
+                        temp->id = sqlite3_column_int64(cif->get_all_frames_stmt, 0);
+                        GET_COLUMN_STRING(cif->get_all_frames_stmt, 1, temp->code, HANDLER_LABEL(hard));
+                        GET_COLUMN_STRING(cif->get_all_frames_stmt, 2, temp->code_orig, HANDLER_LABEL(hard));
+
+                        /* maintain a count of blocks read */
+                        frame_count += 1;
+                    }
+                    break;
+                case SQLITE_DONE:
+                    /* aggregate the results into the needed form, and return it */
+                    temp_frames = (cif_frame_t **) malloc((frame_count + 1) * sizeof(cif_frame_t *));
+                    if (temp_frames == NULL) {
+                        DEFAULT_FAIL(soft);
+                    } else {
+                        size_t frame_index = 0;
+
+                        for (next_frame = head;
+                                frame_index < frame_count;
+                                frame_index += 1, next_frame = next_frame->next) {
+                            if (next_frame == NULL) {
+                                free(temp_frames);
+                                FAIL(soft, CIF_INTERNAL_ERROR);
+                            }
+                            temp_frames[frame_index] = &(next_frame->frame);
+                        }
+                        temp_frames[frame_count] = NULL;
+                        *frames = temp_frames;
+                        return CIF_OK;
+                    }
+            }
+        }
+    }
+
+    FAILURE_HANDLER(hard):
+    DROP_STMT(cif, get_all_frames);
+
+    FAILURE_HANDLER(soft):
+    while (head != NULL) {
+        next_frame = head->next;
+        cif_frame_free(&(head->frame));
+        head = next_frame;
     }
 
     FAILURE_TERMINUS;

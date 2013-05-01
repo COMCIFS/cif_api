@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
     cif_block_t *block = NULL;
     int result;
     U_STRING_DECL(block_code, "block", 5);
+    UChar *code;
 
     U_STRING_INIT(block_code, "block", 5);
     TESTHEADER(test_name);
@@ -27,14 +28,16 @@ int main(int argc, char *argv[]) {
     TEST(cif_create_block(cif, block_code, &block), CIF_OK, test_name, 2);
     TEST_NOT(block, NULL, test_name, 3);
 
-    /* no mechanism for checking the block name */
+    TEST(cif_container_get_code(block, &code), CIF_OK, test_name, 4);
+    TEST(u_strcmp(block_code, code), 0, test_name, 5);
 
     /* not under test: */
     cif_block_free(block);
     block = NULL;
 
-    TEST(cif_get_block(cif, block_code, &block), CIF_OK, test_name, 4);
-    TEST_NOT(block, NULL, test_name, 4);
+    TEST(cif_get_block(cif, block_code, &block), CIF_OK, test_name, 6);
+    TEST_NOT(block, NULL, test_name, 7);
+    cif_block_free(block);
 
     DESTROY_CIF(test_name, cif);
 

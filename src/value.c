@@ -420,16 +420,16 @@ static void cif_table_init(struct table_value_s *table_value) {
  * Frees the components of a character-type value, but not the value object itself
  */
 static void cif_char_value_clean(struct char_value_s *char_value) {
-    free(char_value->text);
+    CLEAN_PTR(char_value->text);
 }
 
 /*
  * Frees the components of a number-type value, but not the value object itself
  */
 static void cif_numb_value_clean(struct numb_value_s *numb_value) {
-    free(numb_value->text);
-    free(numb_value->digits);
-    free(numb_value->su_digits);
+    CLEAN_PTR(numb_value->text);
+    CLEAN_PTR(numb_value->digits);
+    CLEAN_PTR(numb_value->su_digits);
 }
 
 /*
@@ -440,7 +440,7 @@ static void cif_list_value_clean(struct list_value_s *list_value) {
         list_value->size -= 1;
         (void) cif_value_free(list_value->elements[list_value->size]);
     }
-    free(list_value->elements);
+    CLEAN_PTR(list_value->elements);
     list_value->capacity = 0;
 }
 
@@ -453,7 +453,7 @@ static void cif_table_value_clean(struct table_value_s *table_value) {
 
     HASH_ITER(hh, table_value->map.head, entry, temp) {
         HASH_DEL(table_value->map.head, entry);
-        free(entry->key);
+        CLEAN_PTR(entry->key);
         (void) cif_value_free((cif_value_t *) entry);
     }
 }
@@ -647,7 +647,7 @@ static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf) {
             FAILURE_HANDLER(element):
             while (size > 0) {
                 size -= 1;
-                (void) cif_value_free(elements[size]);
+                cif_value_free(elements[size]);
             }
             free(elements);
         }
@@ -698,13 +698,13 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
     }
 
     FAILURE_HANDLER(hash):
-    (void) cif_value_free(&(entry->as_value));
+    cif_value_free(&(entry->as_value));
 
     FAILURE_HANDLER(value):
     free(key);
 
     FAILURE_HANDLER(key):
-    (void) cif_value_clean(&temp);
+    cif_value_clean(&temp);
 
     FAILURE_TERMINUS;
 }
@@ -1104,7 +1104,7 @@ int cif_value_clean(union cif_value_u *value) {
 
 int cif_value_free(union cif_value_u *value) {
     if (value != NULL) {
-        (void) cif_value_clean(value);
+        cif_value_clean(value);
         free(value);
     }
 

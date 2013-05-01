@@ -239,6 +239,7 @@ EXTRA_DIST = \
   misc/cif_schema.sql \
   misc/footer.html \
   misc/main.dox \
+  misc/third_party_lib.supp \
   uthash/LICENSE \
   uthash/utarray.h \
   uthash/uthash.h \

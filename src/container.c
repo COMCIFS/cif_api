@@ -18,6 +18,13 @@
 #include "internal/sql.h"
 
 /*
+ * The SQLite error message emitted when an attempt is made to cause one
+ * container to contain more than one scalar loop, as expressed in the
+ * database schema.
+ */
+static const char scalar_errmsg[22] = "duplicate scalar loop";
+
+/*
  * A common back-end for retrieving the loop of a given item in a given
  * container.  Relies on the caller to provide a normalized and valid item
  * name and a pre-allocated loop structure.  Does not validate the container
@@ -71,8 +78,8 @@ static int cif_container_get_item_loop_internal (
             case SQLITE_DONE:
                 FAIL(soft, CIF_NOSUCH_ITEM);
             case SQLITE_ROW:
-                GET_COLUMN_STRING(cif->get_item_loop_stmt, 2, loop->category, soft_fail);
-                loop->loop_num = sqlite3_column_int(cif->get_item_loop_stmt, 1);
+                GET_COLUMN_STRING(cif->get_item_loop_stmt, 1, loop->category, soft_fail);
+                loop->loop_num = sqlite3_column_int(cif->get_item_loop_stmt, 0);
 
                 /* verify that there was only one result row */
                 switch (STEP_STMT(cif, get_item_loop)) {
@@ -183,11 +190,25 @@ int cif_container_destroy(
     }
 }
 
+/* does not touch the database */
+int cif_container_get_code(
+        cif_container_t *container,
+        UChar **code) {
+    UChar *temp = cif_u_strdup(container->code_orig);
+
+    if (temp != NULL) {
+        *code = temp;
+        return CIF_OK;
+    } else {
+        return CIF_ERROR;
+    }
+}
+
 /* safe to be called by anyone */
 int cif_container_create_loop(
         cif_container_t *container,
         const UChar *category,
-        const UChar *names[],
+        UChar *names[],
         cif_loop_t **loop
         ) {
     FAILURE_HANDLING;
@@ -195,8 +216,12 @@ int cif_container_create_loop(
     cif_t *cif;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
+    if (names == NULL)     return CIF_ARGUMENT_ERROR;
+    if (*names == NULL)    return CIF_NULL_LOOP;
 
     cif = container->cif;
+
+    TRACELINE;
 
     /*
      * Create any needed prepared statements, or prepare the existing one(s)
@@ -206,70 +231,112 @@ int cif_container_create_loop(
     PREPARE_STMT(cif, get_loopnum, GET_LOOPNUM_SQL);
     PREPARE_STMT(cif, add_loopitem, ADD_LOOPITEM_SQL);
 
+    TRACELINE;
+
     temp = (cif_loop_t *) malloc(sizeof(cif_loop_t));
     if (temp != NULL) {
+
         temp->category = cif_u_strdup(category);
         if ((category == NULL) || (temp->category != NULL)) {
             NESTTX_HANDLING;
+
+            TRACELINE;
+
             /* begin a transaction */
             if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
                 STEP_HANDLING;
+                int result;
 
                 /* create the base loop entity and extract the container-specific loop number */
                 if ((sqlite3_bind_int64(cif->create_loop_stmt, 1, container->id) == SQLITE_OK)
                         && (sqlite3_bind_text16(cif->create_loop_stmt, 2, category, -1, SQLITE_STATIC) == SQLITE_OK)
-                        && (STEP_STMT(cif, create_loop) == SQLITE_DONE)) {
-                    if ((sqlite3_bind_int64(cif->get_loopnum_stmt, 1, container->id) == SQLITE_OK)
-                            && (STEP_STMT(cif, get_loopnum) == SQLITE_ROW)) {
-                        temp->loop_num = sqlite3_column_int(cif->get_loopnum_stmt, 1);
+                        && (IS_HARD_ERROR(STEP_STMT(cif, create_loop), result) == 0)) {
+                    TRACELINE;
+                    /* 'result' is expected to be SQLITE_DONE on success */
+                    switch (result) {
+                        default:
+                            /* Error code ignored, but it should reiterate the code recorded in 'result': */
+                            sqlite3_reset(cif->create_loop_stmt);
+                            DEFAULT_FAIL(soft);
+                        case SQLITE_CONSTRAINT:
+                            /*
+                             * The statement must be reset before the error message is retrieved, else only the generic message
+                             * associated with the error code is obtained, not the message emitted by raise() (when that's
+                             * applicable).  [SQLite 3.6.20]
+                             */
+                            /* Error code ignored, but it should reiterate SQLITE_COINSTRAINT: */
+                            sqlite3_reset(cif->create_loop_stmt);
+                            if (strcmp(DEBUG_MSG("sqlite3 error message", sqlite3_errmsg(cif->db)), scalar_errmsg) == 0) {
+                                /* duplicate scalar loop */
+                                FAIL(soft, CIF_RESERVED_LOOP);
+                            } else {
+                                /* apparently, the container id does not refer to an existing container */
+                                FAIL(soft, CIF_INVALID_HANDLE);
+                            }
+                        case SQLITE_DONE:
+                            if ((sqlite3_bind_int64(cif->get_loopnum_stmt, 1, container->id) == SQLITE_OK)
+                                    && (STEP_STMT(cif, get_loopnum) == SQLITE_ROW)) {
+                                int t;
 
-                        /* Assign the specified item names to the new loop */
-                        if ((sqlite3_reset(cif->get_loopnum_stmt) == SQLITE_OK)
-                                && (sqlite3_bind_int64(cif->add_loopitem_stmt, 1, container->id) == SQLITE_OK)
-                                && (sqlite3_bind_int(cif->add_loopitem_stmt, 2, temp->loop_num) == SQLITE_OK)) {
-                            const UChar **name_orig_p;
-    
-                            for (name_orig_p = names; *name_orig_p; name_orig_p++) {
-                                UChar *name;
-                                int result;
+                                TRACELINE;
 
-                                /* validate and normalize the name; bind the normalized and original names */
-                                result = cif_normalize_item_name(*name_orig_p, -1, &name, CIF_INVALID_ITEMNAME);
-                                if (result != CIF_OK) {
-                                    FAIL(soft, result);
-                                } else if ((sqlite3_bind_text16(cif->add_loopitem_stmt, 3, name, -1, free) != SQLITE_OK)
-                                        || (sqlite3_bind_text16(cif->add_loopitem_stmt, 4, *name_orig_p,
-                                                -1, SQLITE_STATIC) != SQLITE_OK)) {
-                                    /* name is free()d by sqlite3_bind_text16, even on error */
-                                    DEFAULT_FAIL(hard);
-                                }
-    
-                                /* execute the statement */
-                                switch (STEP_STMT(cif, add_loopitem)) {
-                                    case SQLITE_DONE:
-                                        /* successful completion */
-                                        break;
-                                    case SQLITE_CONSTRAINT:
-                                        if (sqlite3_reset(cif->add_loopitem_stmt) == SQLITE_OK) {
-                                            FAIL(soft, CIF_DUP_ITEMNAME);
+                                temp->loop_num = sqlite3_column_int(cif->get_loopnum_stmt, 0);
+
+                                TRACELINE;
+
+                                /* Assign the specified item names to the new loop */
+                                if ((IS_HARD_ERROR(sqlite3_reset(cif->get_loopnum_stmt), t) == 0)
+                                        && (sqlite3_bind_int64(cif->add_loopitem_stmt, 1, container->id) == SQLITE_OK)
+                                        && (sqlite3_bind_int(cif->add_loopitem_stmt, 2, temp->loop_num) == SQLITE_OK)) {
+                                    const UChar **name_orig_p;
+
+                                    TRACELINE;
+
+                                    for (name_orig_p = names; *name_orig_p; name_orig_p++) {
+                                        UChar *name;
+
+                                        /* validate and normalize the name; bind the normalized and original names */
+                                        result = cif_normalize_item_name(*name_orig_p, -1, &name, CIF_INVALID_ITEMNAME);
+
+                                        TRACELINE;
+
+                                        if (result != CIF_OK) {
+                                            FAIL(soft, result);
+                                        } else if ((sqlite3_bind_text16(cif->add_loopitem_stmt, 3, name, -1, free) != SQLITE_OK)
+                                                || (sqlite3_bind_text16(cif->add_loopitem_stmt, 4, *name_orig_p,
+                                                        -1, SQLITE_STATIC) != SQLITE_OK)) {
+                                            /* name is free()d by sqlite3_bind_text16, even on error */
+                                            DEFAULT_FAIL(hard);
                                         }
-                                        /*@fallthrough@*/
-                                    default:
-                                        DEFAULT_FAIL(hard);
-                                }
-                            } /* end for (each item name) */
-
-                            /* NOTE: zero packets in the new loop at this point */
-   
-                            if (COMMIT_NESTTX(cif->db) == SQLITE_OK) {
-                                temp->container = container;
-                                ASSIGN_TEMP_RESULT(loop, temp, cif_loop_free);
     
-                                /* success return */
-                                return CIF_OK;
+                                        /* execute the statement */
+                                        switch (STEP_STMT(cif, add_loopitem)) {
+                                            case SQLITE_DONE:
+                                                /* successful completion */
+                                                break;
+                                            case SQLITE_CONSTRAINT:
+                                                /* reseting the statement should recapitulate the error code */
+                                                if (sqlite3_reset(cif->add_loopitem_stmt) == SQLITE_CONSTRAINT) {
+                                                    FAIL(soft, CIF_DUP_ITEMNAME);
+                                                } /* else a new error ocurred */
+                                                /* fall through */
+                                            default:
+                                                DEFAULT_FAIL(hard);
+                                        }
+                                    } /* end for (each item name) */
+
+                                    /* NOTE: zero packets in the new loop at this point */
+   
+                                    if (COMMIT_NESTTX(cif->db) == SQLITE_OK) {
+                                        temp->container = container;
+                                        if (loop!= NULL) *loop = temp;
+    
+                                        /* success return */
+                                        return CIF_OK;
+                                    }
+                                }
                             }
                         }
-                    }
                 }
     
                 FAILURE_HANDLER(hard):
@@ -280,6 +347,7 @@ int cif_container_create_loop(
     
                 FAILURE_HANDLER(soft):
                 /* rollback the transaction */
+                TRACELINE;
                 ROLLBACK_NESTTX(cif->db);
             }
         }
@@ -323,11 +391,11 @@ int cif_container_get_category_loop(
                     case SQLITE_DONE:
                         FAIL(soft, CIF_NOSUCH_LOOP);
                     case SQLITE_ROW:
-                        temp->loop_num = sqlite3_column_int(cif->get_cat_loop_stmt, 1);
+                        temp->loop_num = sqlite3_column_int(cif->get_cat_loop_stmt, 0);
                         temp->container = container;
                         switch (STEP_STMT(cif, get_cat_loop)) {
                             case SQLITE_DONE:
-                                ASSIGN_TEMP_RESULT(loop, temp, cif_loop_free);
+                                if (loop != NULL) *loop = temp;
                                 return CIF_OK;
                             case SQLITE_ROW:
                                 (void) sqlite3_reset(cif->get_cat_loop_stmt);
@@ -370,14 +438,103 @@ int cif_container_get_item_loop(
             result = cif_container_get_item_loop_internal(container, name, temp);
             free(name);
             if (result == CIF_OK) {
-                ASSIGN_TEMP_RESULT(loop, temp, cif_loop_free);
+                if (loop != NULL) *loop = temp;
                 return CIF_OK;
             }
 
             SET_RESULT(result);
         }
 
-        (void) cif_loop_free(temp);
+        cif_loop_free(temp);
+    }
+
+    FAILURE_TERMINUS;
+}
+
+int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops) {
+    FAILURE_HANDLING;
+    struct loop_el {
+        cif_loop_t loop; /* must be first */
+        struct loop_el *next;
+    } *head = NULL;
+    struct loop_el **next_loop_p = &head;
+    struct loop_el *next_loop;
+    cif_t *cif;
+
+    if (container == NULL) return CIF_INVALID_HANDLE;
+
+    cif = container->cif;
+
+    /*
+     * Create any needed prepared statements, or prepare the existing one(s)
+     * for re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, get_all_loops, GET_ALL_LOOPS_SQL);
+
+    if (sqlite3_bind_int64(cif->get_all_loops_stmt, 1, container->id) == SQLITE_OK) {
+        STEP_HANDLING;
+        int result;
+        cif_loop_t **temp_loops;
+        size_t loop_count = 0;
+
+        while (IS_HARD_ERROR(STEP_STMT(cif, get_all_loops), result) == 0) {
+            switch (result) {
+                default:
+                    DEBUG_WRAP(cif->db, sqlite3_reset(cif->get_all_loops_stmt));
+                    DEFAULT_FAIL(soft);
+                case SQLITE_ROW:
+                    /* add a new loop object to the linked list */
+                    *next_loop_p = (struct loop_el *) malloc(sizeof(struct loop_el));
+                    if (*next_loop_p == NULL) {
+                        DEFAULT_FAIL(soft);
+                    } else {
+                        cif_loop_t *temp = &((*next_loop_p)->loop);
+
+                        /* handle the linked-list next pointer */
+                        next_loop_p = &((*next_loop_p)->next);
+                        *next_loop_p = NULL;
+
+                        /* initialize the new loop object */
+                        temp->container = container;
+                        temp->loop_num = sqlite3_column_int(cif->get_all_loops_stmt, 0);
+                        GET_COLUMN_STRING(cif->get_all_loops_stmt, 1, temp->category, HANDLER_LABEL(hard));
+                        loop_count += 1;
+                    }
+                    break;
+                case SQLITE_DONE:
+                    /* aggregate the results into the needed form, and return it */
+                    temp_loops = (cif_loop_t **) malloc((loop_count + 1) * sizeof(cif_loop_t *));
+
+                    if (temp_loops == NULL) {
+                        DEFAULT_FAIL(soft);
+                    } else {
+                        size_t loop_index;
+
+                        for (loop_index = 0, next_loop = head;
+                                loop_index < loop_count;
+                                loop_index += 1, next_loop = next_loop->next) {
+                            if (next_loop == NULL) {
+                                free(temp_loops);
+                                FAIL(soft, CIF_INTERNAL_ERROR);
+                            }
+                            temp_loops[loop_index] = &(next_loop->loop);
+                        }
+                        temp_loops[loop_count] = NULL;
+                        *loops = temp_loops;
+                        return CIF_OK;
+                    }
+            }
+        }
+    }
+
+    FAILURE_HANDLER(hard):
+    DROP_STMT(cif, get_all_loops);
+
+    FAILURE_HANDLER(soft):
+    while (head != NULL) {
+        next_loop = head->next;
+        free(head);
+        head = next_loop;
     }
 
     FAILURE_TERMINUS;
@@ -595,8 +752,8 @@ int cif_container_remove_item(
                     (void) ROLLBACK(cif->db);
                     FAIL(soft, CIF_NOSUCH_ITEM);
                 case SQLITE_ROW:
-                    size = sqlite3_column_int(cif->get_loop_size_stmt, 2);
-                    loop_num = sqlite3_column_int(cif->get_loop_size_stmt, 1);
+                    size = sqlite3_column_int(cif->get_loop_size_stmt, 1);
+                    loop_num = sqlite3_column_int(cif->get_loop_size_stmt, 0);
                     (void) sqlite3_reset(cif->get_loop_size_stmt); 
 
                     if (size == 1) {

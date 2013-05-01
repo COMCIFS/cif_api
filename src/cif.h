@@ -63,7 +63,11 @@
  *
  * The library does not guarantee to be able to recognize invalid handles.  If an invalid handle is provided then
  * a @c CIF_ERROR code may be returned instead, or really anything might happen -- generally speaking, library
- * behavior is undefined in these cases. 
+ * behavior is undefined in these cases.
+ *
+ * Where it does detect invalidity, that result may be context dependent.  That is, the handle may be invalid for
+ * the use for which it presented, but valid for different uses.  In particular, this may be the case if a save frame
+ * handle is presented to one of the functions that requires specifically a data block handle.
  */
 #define CIF_INVALID_HANDLE      3
 
@@ -189,6 +193,11 @@
 #define CIF_EMPTY_LOOP         36
 
 /**
+ * @brief a result code indicating that an attempt was made to create a loop devoid of any data names
+ */
+#define CIF_NULL_LOOP          37
+
+/**
  * @brief a result code indicating that an attempt was made to add an item to a data block or save frame that already
  *        contains an item of the same code.
  *
@@ -259,6 +268,107 @@ static const UChar cif_uchar_nul = 0;
  *
  * @{
  */
+
+/**
+ * @brief the type of a callback function to be invoked when a parse error occurs.
+ *
+ * Note that this function receives the location where the error was @em detected , which is not necessarily the
+ * location of the actual error.
+ *
+ * @param[in] code a parse error code indicating the nature of the error
+ * @param[in] line the one-based line number at which the error was detected
+ * @param[in] the one-based column number at which the error was detected
+ * @param[in] if not @c NULL , a NUL-terminated Unicode string containing the specific CIF text being parsed where
+ *         the error was detected
+ *
+ * @return zero if the parse should continue (with implementation-dependent best-effort error recovery), or nonzero
+ *         if the parse should be aborted
+ */
+typedef int (*cif_parse_error_callback_t)(int code, size_t line, size_t column, const UChar *text);
+
+/**
+ * @brief represents a collection of CIF parsing options.
+ *
+ * Unlike most data types defined by the CIF API, the parse options are not opaque.  This reflects the @c struct's
+ * intended use for collecting (only) user-settable option values.
+ */
+struct cif_parse_opts_s {
+
+    /**
+     * @brief if non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead
+     *         of as CIF 1.
+     *
+     * Because the CIF-version code is @em required in CIF 2 but optional in CIF 1, it is most technically
+     * correct to assume CIF 1 when there is no version code.  Nevertheless, if a CIF is known or assumed to otherwise
+     * comply with CIF2, then it is desirable to parse it that way regardless of the absence of a version code.
+     *
+     * CIF streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled.  In that case,
+     * however, CIF 1 streams that (allowably) omit the version code may be parsed incorrectly.
+     */
+    int default_to_cif2;
+
+    /**
+     * @brief if not @c NULL , names the coded character set with which the parser will attempt to interpret plain
+     *         "text" files that do not bear CIF-recognized encoding information.
+     *
+     * Inasmuch as CIF is a text format, it is essential for the parser to interpret it according to the text encoding
+     * with which it was written.  The parser will recognize UTF-8 and UTF-16 (either endianness) for CIFs that begin
+     * with a Unicode byte-order mark (BOM), but the CIF specifications are intentionally vague about the meaning
+     * of the terms "text" and "text file" as they apply to other cases.  The intention seems to be that these terms
+     * are interpreted in a system-dependent manner.
+     *
+     * If no charset is specified via this option (i.e. it is @c NULL ) and no encoding signature is recognized in the
+     * input CIF, then the parser will choose a default text encoding appropriate to the system on which it is running,
+     * and attempt to parse according to that encoding.  How the default encoding is chosen is implementation dependent
+     * in this case.
+     *
+     * If the correct charset of the input CIF is known, then that charset can be specified by its IANA name via this
+     * option.  Implementations may also recognize aliases and / or unregistered charset names.  If it is supported,
+     * the named charset will be used in the event that no encoding signature is detected, bypassing the library's
+     * usual method for choosing a default charset.  This allows a CIF written in a localized encoding to be parsed
+     * correctly on a system with a different default locale.  It should be noted, however, that such a CIF can
+     * reasonably be considered erroneous (on the system where it is being parsed) on account of its encoding.
+     */
+    char *default_charset_name;
+
+    /**
+     * @brief if non-zero, directs the parser @em not to fall back to UTF-8 in the event that Unicode characters
+     *         with code points greater than U+007F are detected in localized text input.
+     *
+     * Per the CIF 2 specifications, if no CIF-recognized encoding signature is present in a CIF, and that CIF
+     * contains encoded characters whose Unicode code points exceed U+007F, then the CIF must be encoded in UTF-8.  Whether
+     * a file in fact contains such characters is a tricky question, however, which can be answered reliably only if the true
+     * encoding is known, and then only by pre-scanning the entire input.  Rather than perform an expensive pre-scan, the
+     * library's integrated CIF parser by default takes an heuristic, optimistic approach: it assumes a system- and
+     * implementation-dependent default text encoding (as influenced by @c default_charset_name), and attempts to parse the
+     * input according to that encoding.  If that encoding is not UTF-8 and a character whose Unicode code point exceeds
+     * U+007F is encountered, then the initial encoding assumption is supposed wrong, and the parser switches to UTF-8.
+     * 
+     * That default approach strikes a reasonable balance for compliant CIFs (including CIF1 CIFs, which will not contain
+     * any characters that would trigger the UTF-8 switch), but it may misinterpret CIFs that fail to conform to CIF
+     * specifications in certain relatively benign, encoding-related ways.  Enabling this option will accommodate some such
+     * inputs by preventing the parser from falling back to UTF-8.
+     *
+     * Note that falling back to UTF-8 may require re-parsing the input from the beginning, which can be very
+     * expensive.  Moreover, switching to UTF-8 @em will produce incorrect results for at least one character if the
+     * true encoding is not, in fact, UTF-8.  Therefore, it is advisable to enable this option and set
+     * @c default_charset_name if the input CIF bears no encoding signature, but its correct encoding is known with certainty.
+     */
+    int suppress_utf8_fallback;
+
+    /**
+     * @brief a callback function by which a client application can be notified about parse errors, optionally
+     *         interrupting the parse
+     *
+     * If not @c NULL, this function will be called by the parser whenever it encounters an error in the input CIF.
+     * The parse will be terminated immediately with an error if this function returns non-zero; other than that, it
+     * serves informational purposes only.  The parser will normally attempt to recover from errors and resume
+     * parsing.
+     */
+    cif_parse_error_callback_t error_callback;
+
+    /* TODO: others? */
+};
 
 /**
  * @brief an opaque handle on a managed CIF.
@@ -369,6 +479,9 @@ extern "C" {
  * @param[in] stream a @c FILE @c * from which to read the raw CIF data; must be a non-NULL pointer to a readable
  *         stream, which will typically be read to its end
  *
+ * @param[in] options a pointer to a @c struct @c cif_parse_opts_s object describing options to use while parsing, or
+ *         @c NULL to use default values for all options
+ *
  * @param[in,out] cif controls the disposition of the parsed data.  If NULL, then the parsed data are discarded, else
  *         they added to the CIF to which this pointer refers, creating a new one for the purpose if the pointer
  *         dereferences to a NULL pointer.
@@ -380,6 +493,7 @@ extern "C" {
  */
 int cif_parse(
         /*@in@*/ /*@temp@*/ FILE *stream,
+        /*@in@*/ /*@temp@*/ struct cif_parse_opts_s *options,
         /*@out@*/ /*@null@*/ cif_t **cif
         ) /*@modifies *cif@*/;
 
@@ -493,6 +607,23 @@ int cif_get_block(
         ) /*@modifies *block@*/;
 
 /**
+ * @brief Provides a null-terminated array of data block handles, one for each block in the specified CIF.
+ *
+ * The caller takes responsibility for cleaning up the provided block handles and the dynamic array containing them.
+ *
+ * @param[in] cif a handle on the managed CIF object from which to draw block handles; must be non-NULL and valid.
+ *
+ * @param[in,out] blocks a pointer to the location where a pointer to the resulting array of block handles should be
+ *         recorded.  Must not be NULL.
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_get_all_blocks(
+        /*@in@*/ /*@temp@*/ cif_t *cif,
+        /*@out@*/ cif_block_t ***blocks
+        );
+
+/**
  * @}
  *
  * @defgroup block_funcs Data block specific functions
@@ -524,7 +655,7 @@ int cif_get_block(
  * @param[in] block a handle on the managed data block object to which a new block should be added; must be
  *        non-NULL and valid.
  *
- * @param[in] cide the frame code of the frame to add, as a NUL-terminated Unicode string; the frame code must
+ * @param[in] code the frame code of the frame to add, as a NUL-terminated Unicode string; the frame code must
  *        comply with CIF constraints on frame codes.
  *
  * @param[in,out] frame if not NULL, then a location where a handle on the new frame should be recorded.
@@ -562,6 +693,24 @@ int cif_block_get_frame(
         /*@in@*/ /*@temp@*/ const UChar *code,
         /*@out@*/ /*@null@*/ cif_frame_t **frame
         ) /*@modifies *frame@*/;
+
+/**
+ * @brief Provides a null-terminated array of save frame handles, one for each frame in the specified data block.
+ *
+ * The caller takes responsibility for cleaning up the provided frame handles.
+ *
+ * @param[in] block a handle on the managed data block object from which to draw save frame handles; must be non-NULL and
+ *         valid.
+ *
+ * @param[in,out] frames a pointer to the location where a pointer to the resulting array of frame handles should be
+ *         recorded.  Must not be NULL.
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_block_get_all_frames(
+        /*@in@*/ /*@temp@*/ cif_block_t *block,
+        /*@out@*/ cif_frame_t ***frames
+        );
 
 /**
  * @}
@@ -621,6 +770,23 @@ int cif_container_destroy(
         );
 
 /**
+ * @brief Retrieves the identifying code (block code or frame code) of the specified container.
+ *
+ * Responsibility for cleaning up the block or frame codes retrieved via this function belongs to the caller.
+ *
+ * @param[in] container a handle on the container whose code is requested
+ *
+ * @param[in,out] code a pointer to the location where a pointer to a NUL-terminated Unicode string containing the
+ *         requested code should be recorded
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_container_get_code(
+        /*@in@*/ /*@temp@*/ cif_container_t *container,
+        /*@in@*/ /*@temp@*/ UChar **code
+        );
+
+/**
  * @brief Creates a new loop in the specified container, and optionally returns a handle on it.
  *
  * There must be at least one item name, and all item names given must initially be absent from the container.  All item
@@ -641,6 +807,7 @@ int cif_container_destroy(
  * @param[in,out] loop if not NULL, points to the location where a handle on the newly-created loop should be recorded.
  *
  * @return Returns @c CIF_OK on success, or an error code on failure, among them:
+ *        @li @c CIF_NULL_LOOP if an empty list of item names is specified
  *        @li @c CIF_INVALID_ITEMNAME if one or more of the provided item names does not satisfy CIF's criteria
  *        @li @c CIF_DUP_ITEMNAME if one or more of the item names is already present in the target container
  *        @li @c CIF_ERROR in most other failure cases
@@ -648,7 +815,7 @@ int cif_container_destroy(
 int cif_container_create_loop(
         /*@in@*/ /*@temp@*/ cif_container_t *container,
         /*@in@*/ /*@temp@*/ const UChar *category,
-        /*@in@*/ /*@temp@*/ const UChar *names[],
+        /*@in@*/ /*@temp@*/ UChar *names[],
         /*@out@*/ /*@null@*/ cif_loop_t **loop
         ) /*@modifies *loop@*/;
 
@@ -704,6 +871,23 @@ int cif_container_get_item_loop(
         /*@in@*/ /*@temp@*/ const UChar *item_name,
         /*@out@*/ /*@null@*/ cif_loop_t **loop
         ) /*@modifies *loop@*/;
+
+/**
+ * @brief Provides a null-terminated array of loop handles, one for each loop in the specified container.
+ *
+ * The caller takes responsibility for cleaning up the provided loop handles and the array containing them.
+ *
+ * @param[in] container a handle on the managed container object for which to draw loop handles; must be non-NULL and valid.
+ *
+ * @param[in,out] loops a pointer to the location where a pointer to the resulting array of loop handles should be
+ *         recorded.  Must not be NULL.
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_container_get_all_loops(
+        /*@in@*/ /*@temp@*/ cif_container_t *container,
+        /*@out@*/ /*@null@*/ cif_loop_t ***loops
+        );
 
 /**
  * @brief Looks up an item by name in a data block or save frame, and optionally returns (one of) its value(s)

@@ -6,23 +6,27 @@
 ## All rights reserved.
 ##
 
+VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes --suppressions=$(top_srcdir)/misc/third_party_lib.supp
+# --error-exitcode=<number>
+
 compiled_tests = \
     $(testdir)/test_create \
     $(testdir)/test_create_block1 \
     $(testdir)/test_create_block2 \
     $(testdir)/test_get_block \
-    $(testdir)/test_block_create_frame1
-# cif_block_get_frame
-# cif_container_free
-# cif_container_destroy
-# cif_container_create_loop
+    $(testdir)/test_block_create_frame1 \
+    $(testdir)/test_block_create_frame2 \
+    $(testdir)/test_block_get_frame \
+    $(testdir)/test_container_create_loop1 \
+    $(testdir)/test_container_create_loop2
+# cif_get_all_blocks
+# cif_block_get_all_frames
 # cif_container_get_category_loop
 # cif_container_get_item_loop
+# cif_container_get_all_loops
 # cif_container_get_value
 # cif_container_set_value
 # cif_container_remove_item
-# cif_loop_free
-# cif_loop_destroy
 # cif_loop_get_names
 # cif_loop_add_item
 # cif_loop_add_packet
@@ -37,10 +41,10 @@ compiled_tests = \
 # cif_packet_get_item
 # cif_packet_set_item
 # cif_packet_remove_item
-# cif_packet_free
+# cif_container_destroy
+# cif_loop_destroy
 # cif_value_create
 # cif_value_clean
-# cif_value_free
 # cif_value_clone
 # cif_value_init_char
 # cif_value_parse_numb
@@ -49,6 +53,9 @@ compiled_tests = \
 # cif_value_kind
 # cif_value_as_double
 # cif_value_su_as_double
+# cif_loop_free
+# cif_packet_free
+# cif_value_free
 # !cif_parse
 # !cif_write
 

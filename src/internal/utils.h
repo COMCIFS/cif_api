@@ -87,14 +87,38 @@ extern UFILE *ustderr;
   _debug_ptr \
 )
 
+/*
+ * In a debugging build, emits the current file and line number to stderr
+ */
 #define TRACELINE fprintf(stderr, __FILE__ " line %d\n", __LINE__)
+
+/*
+ * In a debugging build, emits the file and line number, the lead string, and the specified message, and
+ * evaluates to the message.
+ * Argument 'msg' may be evaluated more than once.
+ */
+#define DEBUG_MSG(lead, msg) (fprintf(stderr, __FILE__ " line %d, %s: %s\n", __LINE__, (lead), (msg)), (msg))
 
 #else  /* !DEBUG */
 #define DEBUG_WRAP(c,f) (f)
 #define DEBUG_WRAP2(f)  (f)
 #define TRACELINE
 #define INIT_USTDERR
+#define DEBUG_MSG(lead, msg) (msg)
 #endif /* !DEBUG */
+
+/*
+ * Frees and nullifies the specified pointer, which must be a pointer lvalue
+ * (of any referrent type).  The argument may be NULL; otherwise it must be a
+ * valid pointer suitable to be passed to free().
+ *
+ * Because this macro sets the argument to NULL, it is safe to invoke it
+ * multiple times on the same argument.
+ */
+#define CLEAN_PTR(ptr) do { \
+    free(ptr); \
+    ptr = NULL; \
+} while (0)
 
 /*
  * Sets up failure handling for the containing function.  Must appear only
@@ -163,16 +187,6 @@ extern UFILE *ustderr;
 #define SUCCESS_TERMINUS FAILURE_TERMINUS
 
 /*
- * Assigns a temporary object (pointer) to the target of the specified
- * destination pointer if the destination pointer is not NULL; otherwise,
- * frees the temporary object.  The 'dest' parameter may be evaluated multiple
- * times.
- */
-#define ASSIGN_TEMP_RESULT(dest, src, freefn) do { \
-  if ((dest) != NULL) { *(dest) = (src); } else { (void) freefn(src); } \
-} while(0)
-
-/*
  * Transaction management macros.  The argument to each should be an sqlite3
  * connection pointer.
  */
@@ -192,6 +206,24 @@ extern UFILE *ustderr;
 #define ROLLBACK_NESTTX(db) ((_top_tx == 0) ? ROLLBACK_TO(db) : ROLLBACK(db))
 
 /*
+ * A macro expression evaluating to zero if the specified error code
+ * reflects a transient or data-related condition, or nonzero otherwise.
+ *
+ * code: the int error code; evaluated once only
+ * t: an int temporary lvalue; its contents will be overwritten with the
+ *     result of evaluating the 'code' argument
+ */
+#define IS_HARD_ERROR(code, t) ( \
+  t = (code), \
+  ((t != SQLITE_OK) \
+          && (t != SQLITE_ROW) \
+          && (t != SQLITE_DONE) \
+          && ((t & 0xff) != SQLITE_CONSTRAINT) \
+          && ((t & 0xff) != SQLITE_BUSY) \
+          && ((t & 0xff) != SQLITE_LOCKED)) \
+)
+
+/*
  * Releases any resources associated with the named prepared statement of the
  * specified CIF, and clears the pointer to it.  Any error is ignored.
  *
@@ -203,7 +235,7 @@ extern UFILE *ustderr;
  */
 #define DROP_STMT(c, stmt_name) do { \
     cif_t *d_cif = (c); \
-    DEBUG_WRAP(d_cif->db, sqlite3_finalize(d_cif->stmt_name##_stmt)); \
+    sqlite3_finalize(d_cif->stmt_name##_stmt); \
     d_cif->stmt_name##_stmt = NULL; \
 } while (0)
 
@@ -223,8 +255,9 @@ extern UFILE *ustderr;
  */
 #define PREPARE_STMT(c, stmt_name, sql) do { \
     cif_t *p_cif = (c); \
+    int _t; \
     if ((p_cif->stmt_name##_stmt == NULL) \
-            || (DEBUG_WRAP(p_cif->db, sqlite3_reset(p_cif->stmt_name##_stmt)) != SQLITE_OK) \
+            || (IS_HARD_ERROR(DEBUG_WRAP(p_cif->db, sqlite3_reset(p_cif->stmt_name##_stmt)), _t) != 0) \
             || (DEBUG_WRAP(p_cif->db, sqlite3_clear_bindings(p_cif->stmt_name##_stmt)) != SQLITE_OK)) { \
         DROP_STMT(p_cif, stmt_name); \
         if (DEBUG_WRAP(p_cif->db, sqlite3_prepare_v2(p_cif->db, sql, -1, &(p_cif->stmt_name##_stmt), NULL)) != SQLITE_OK) { \

@@ -90,14 +90,17 @@ int cif_create(cif_t **cif) {
                         /* The database is set up; now initialize the other fields of the cif object */
                         INIT_STMT(temp, create_block);
                         INIT_STMT(temp, get_block);
+                        INIT_STMT(temp, get_all_blocks);
                         INIT_STMT(temp, create_frame);
                         INIT_STMT(temp, get_frame);
+                        INIT_STMT(temp, get_all_frames);
                         INIT_STMT(temp, destroy_container);
                         INIT_STMT(temp, create_loop);
                         INIT_STMT(temp, get_loopnum);
                         INIT_STMT(temp, add_loopitem);
                         INIT_STMT(temp, get_cat_loop);
                         INIT_STMT(temp, get_item_loop);
+                        INIT_STMT(temp, get_all_loops);
                         INIT_STMT(temp, get_value);
                         INIT_STMT(temp, set_all_values);
                         INIT_STMT(temp, get_loop_size);
@@ -195,10 +198,6 @@ int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
                             == SQLITE_OK) {
                         temp->id = sqlite3_last_insert_rowid(cif->db);
 
-#ifdef DEBUG
-                        u_fprintf(ustderr, "Creating block %S (originally %S)...\n", temp->code, temp->code_orig);
-                        u_fflush(ustderr);
-#endif    
                         /* Bind the needed parameters to the statement and execute it */
                         if ((sqlite3_bind_int64(cif->create_block_stmt, 1, temp->id) == SQLITE_OK)
                                 && (sqlite3_bind_text16(cif->create_block_stmt, 2, temp->code, -1,
@@ -214,7 +213,7 @@ int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
                                     FAIL(soft, CIF_DUP_BLOCKCODE);
                                 case SQLITE_DONE:
                                     if (COMMIT(cif->db) == SQLITE_OK) {
-                                        ASSIGN_TEMP_RESULT(block, temp, cif_container_free);
+                                        if (block != NULL) *block = temp;
                                         return CIF_OK;
                                     }
                                     /* else drop out the bottom */
@@ -269,8 +268,9 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
                         temp->cif = cif;
                         temp->id = sqlite3_column_int64(cif->get_block_stmt, 0);
                         GET_COLUMN_STRING(cif->get_block_stmt, 1, temp->code_orig, hard_fail);
+                        /* ignore any error here: */
                         sqlite3_reset(cif->get_block_stmt);
-                        ASSIGN_TEMP_RESULT(block, temp, cif_container_free);
+                        *block =  temp;
                         return CIF_OK;
                     case SQLITE_DONE:
                         FAIL(soft, CIF_NOSUCH_BLOCK);
@@ -285,6 +285,96 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
         FAILURE_HANDLER(soft):
         /* free the container object */
         cif_container_free(temp);
+    }
+
+    FAILURE_TERMINUS;
+}
+
+int cif_get_all_blocks(cif_t *cif, cif_block_t ***blocks) {
+    FAILURE_HANDLING;
+    STEP_HANDLING;
+    struct block_el {
+        cif_block_t block;  /* must be first */
+        struct block_el *next;
+    } *head = NULL;
+    struct block_el **next_block_p = &head;
+    struct block_el *next_block;
+    cif_block_t **temp_blocks;
+    size_t block_count = 0;
+    int result;
+
+    if (cif == NULL) return CIF_INVALID_HANDLE;
+
+    /*
+     * Create any needed prepared statements, or prepare the existing ones for
+     * re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, get_all_blocks, GET_ALL_BLOCKS_SQL);
+
+    while (IS_HARD_ERROR(STEP_STMT(cif, get_all_blocks), result) == 0) {
+        switch (result) {
+            default:
+                /* ignore the error code: */
+                DEBUG_WRAP(cif->db, sqlite3_reset(cif->get_all_blocks_stmt));
+                DEFAULT_FAIL(soft);
+            case SQLITE_ROW:
+                *next_block_p = (struct block_el *) malloc(sizeof(struct block_el));
+                if (*next_block_p == NULL) {
+                    DEFAULT_FAIL(soft);
+                } else {
+                    cif_block_t *temp = &((*next_block_p)->block);
+
+                    /* handle the linked-list next pointer */
+                    next_block_p = &((*next_block_p)->next);
+                    *next_block_p = NULL;
+
+                    /* initialize the new block with defaults, in case it gets passed to cif_container_free() */
+                    temp->cif = cif;
+                    temp->code = NULL;
+                    temp->code_orig = NULL;
+                    temp->block_id = -1;
+
+                    /* read results into the current block object */
+                    temp->id = sqlite3_column_int64(cif->get_all_blocks_stmt, 0);
+                    GET_COLUMN_STRING(cif->get_all_blocks_stmt, 1, temp->code, HANDLER_LABEL(hard));
+                    GET_COLUMN_STRING(cif->get_all_blocks_stmt, 2, temp->code_orig, HANDLER_LABEL(hard));
+
+                    /* maintain a count of blocks read */
+                    block_count += 1;
+                }
+                break;
+            case SQLITE_DONE:
+                /* aggregate the results into the needed form, and return it */
+                temp_blocks = (cif_block_t **) malloc((block_count + 1) * sizeof(cif_block_t *));
+                if (temp_blocks == NULL) {
+                    DEFAULT_FAIL(soft);
+                } else {
+                    size_t block_index = 0;
+
+                    for (next_block = head;
+                            block_index < block_count;
+                            block_index += 1, next_block = next_block->next) {
+                        if (next_block == NULL) {
+                            free(temp_blocks);
+                            FAIL(soft, CIF_INTERNAL_ERROR);
+                        }
+                        temp_blocks[block_index] = &(next_block->block);
+                    }
+                    temp_blocks[block_count] = NULL;
+                    *blocks = temp_blocks;
+                    return CIF_OK;
+                }
+        }
+    }
+
+    FAILURE_HANDLER(hard):
+    DROP_STMT(cif, get_all_blocks);
+
+    FAILURE_HANDLER(soft):
+    while (head != NULL) {
+        next_block = head->next;
+        cif_block_free(&(head->block));
+        head = next_block;
     }
 
     FAILURE_TERMINUS;

@@ -19,13 +19,17 @@
 
 #define GET_BLOCK_SQL "select container_id as id, name_orig from data_block where name = ?"
 
+#define GET_ALL_BLOCKS_SQL "select container_id as id, name, name_orig from data_block"
+
 #define CREATE_FRAME_SQL "insert into save_frame(container_id, data_block_id, name, name_orig) values (?, ?, ?, ?)"
 
 #define GET_FRAME_SQL "select container_id as id, name_orig from save_frame where data_block_id = ? and name = ?"
 
+#define GET_ALL_FRAMES_SQL "select container_id as id, name, name_orig from save_frame where data_block_id = ?"
+
 #define DESTROY_CONTAINER_SQL "delete from container where id = ?"
 
-#define CREATE_LOOP_SQL "insert into loop (container_id, category, loop_num) values (?, ?, NULL)"
+#define CREATE_LOOP_SQL "insert into unnumbered_loop (container_id, category) values (?, ?)"
 
 #define DESTROY_LOOP_SQL "delete from loop where container_id = ? and loop_num = ?"
 
@@ -38,6 +42,8 @@
 #define GET_ITEM_LOOP_SQL "select l.loop_num, l.category from loop l " \
         "join loop_item li on l.container_id = li.container_id and l.loop_num = li.loop_num " \
         "where li.container_id = ? and li.name = ?"
+
+#define GET_ALL_LOOPS_SQL "select loop_num, category from loop where container_id = ?"
 
 #define GET_VALUE_SQL "select kind, val, val_text, val_digits, su_digits, scale " \
         "from item_value where container_id = ? and name = ?"
@@ -79,7 +85,8 @@
     "kind, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 /*
- * Note: no dedicated stmt in the cif struct for these statements:
+ * Note: there is no dedicated stmt in the cif struct corresponding to this SQL; a new statement is needed for each
+ * loop iterated to allow multiple iterations to proceed simultaneously
  */
 #define GET_LOOP_VALUES_SQL \
     "select iv.row_num, name, iv.kind, iv.val, iv.val_text, iv.val_digits, iv.su_digits, iv.scale " \

@@ -34,7 +34,8 @@ int main(int argc, char *argv[]) {
  * NOTE: this pair should normalize to equal strings, but some versions of ICU
  * don't case-fold it properly.  Version 3.6, in particular, fails to fold
  * U+1E9E to to "ss", the full case-folding result specified in Unicode's
- * CaseFolding.txt table.
+ * CaseFolding.txt table.  This is perhaps reflective of the version of Unicode
+ * supported.
  *    { "v\\u00ca\\u0338\\u0328ry_Me\\u00dfy", "Ve\\u0328\\u0338\\u0302ry_me\\u1e9ey" },
  */
       { "v\\u00ca\\u0338\\u0328ry_Me\\u00dfy", "Ve\\u0328\\u0338\\u0302ry_mesSy" },

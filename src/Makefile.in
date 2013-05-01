@@ -89,7 +89,11 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_create_block1$(EXEEXT) \
 	$(testdir)/test_create_block2$(EXEEXT) \
 	$(testdir)/test_get_block$(EXEEXT) \
-	$(testdir)/test_block_create_frame1$(EXEEXT)
+	$(testdir)/test_block_create_frame1$(EXEEXT) \
+	$(testdir)/test_block_create_frame2$(EXEEXT) \
+	$(testdir)/test_block_get_frame$(EXEEXT) \
+	$(testdir)/test_container_create_loop1$(EXEEXT) \
+	$(testdir)/test_container_create_loop2$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -97,6 +101,30 @@ __testdir__test_block_create_frame1_OBJECTS =  \
 __testdir__test_block_create_frame1_LDADD = $(LDADD)
 __testdir__test_block_create_frame1_DEPENDENCIES = libcif.la
 am__dirstamp = $(am__leading_dot)dirstamp
+__testdir__test_block_create_frame2_SOURCES =  \
+	$(testdir)/test_block_create_frame2.c
+__testdir__test_block_create_frame2_OBJECTS =  \
+	test_block_create_frame2.$(OBJEXT)
+__testdir__test_block_create_frame2_LDADD = $(LDADD)
+__testdir__test_block_create_frame2_DEPENDENCIES = libcif.la
+__testdir__test_block_get_frame_SOURCES =  \
+	$(testdir)/test_block_get_frame.c
+__testdir__test_block_get_frame_OBJECTS =  \
+	test_block_get_frame.$(OBJEXT)
+__testdir__test_block_get_frame_LDADD = $(LDADD)
+__testdir__test_block_get_frame_DEPENDENCIES = libcif.la
+__testdir__test_container_create_loop1_SOURCES =  \
+	$(testdir)/test_container_create_loop1.c
+__testdir__test_container_create_loop1_OBJECTS =  \
+	test_container_create_loop1.$(OBJEXT)
+__testdir__test_container_create_loop1_LDADD = $(LDADD)
+__testdir__test_container_create_loop1_DEPENDENCIES = libcif.la
+__testdir__test_container_create_loop2_SOURCES =  \
+	$(testdir)/test_container_create_loop2.c
+__testdir__test_container_create_loop2_OBJECTS =  \
+	test_container_create_loop2.$(OBJEXT)
+__testdir__test_container_create_loop2_LDADD = $(LDADD)
+__testdir__test_container_create_loop2_DEPENDENCIES = libcif.la
 __testdir__test_create_SOURCES = $(testdir)/test_create.c
 __testdir__test_create_OBJECTS = test_create.$(OBJEXT)
 __testdir__test_create_LDADD = $(LDADD)
@@ -129,12 +157,20 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
-	$(testdir)/test_block_create_frame1.c $(testdir)/test_create.c \
-	$(testdir)/test_create_block1.c \
+	$(testdir)/test_block_create_frame1.c \
+	$(testdir)/test_block_create_frame2.c \
+	$(testdir)/test_block_get_frame.c \
+	$(testdir)/test_container_create_loop1.c \
+	$(testdir)/test_container_create_loop2.c \
+	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
 	$(testdir)/test_create_block2.c $(testdir)/test_get_block.c
 DIST_SOURCES = $(libcif_la_SOURCES) \
-	$(testdir)/test_block_create_frame1.c $(testdir)/test_create.c \
-	$(testdir)/test_create_block1.c \
+	$(testdir)/test_block_create_frame1.c \
+	$(testdir)/test_block_create_frame2.c \
+	$(testdir)/test_block_get_frame.c \
+	$(testdir)/test_container_create_loop1.c \
+	$(testdir)/test_container_create_loop2.c \
+	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
 	$(testdir)/test_create_block2.c $(testdir)/test_get_block.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
@@ -151,7 +187,10 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@
+
+# For valgrind tests:
+# TODO: find a cleaner way to do this
+CFLAGS = @CFLAGS@ -O
 COUNT_LINES = @COUNT_LINES@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -275,12 +314,18 @@ CLEANFILES = $(testdir)/linktest.c $(testdir)/linktest.lo \
 DISTCLEANFILES = $(BUILT_SOURCES)
 testdir = tests
 clean_local_targets = clean-local-lt_tests
+VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes --suppressions=$(top_srcdir)/misc/third_party_lib.supp
+# --error-exitcode=<number>
 compiled_tests = \
     $(testdir)/test_create \
     $(testdir)/test_create_block1 \
     $(testdir)/test_create_block2 \
     $(testdir)/test_get_block \
-    $(testdir)/test_block_create_frame1
+    $(testdir)/test_block_create_frame1 \
+    $(testdir)/test_block_create_frame2 \
+    $(testdir)/test_block_get_frame \
+    $(testdir)/test_container_create_loop1 \
+    $(testdir)/test_container_create_loop2
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -414,6 +459,18 @@ $(testdir)/$(am__dirstamp):
 $(testdir)/test_block_create_frame1$(EXEEXT): $(__testdir__test_block_create_frame1_OBJECTS) $(__testdir__test_block_create_frame1_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_block_create_frame1$(EXEEXT)
 	$(LINK) $(__testdir__test_block_create_frame1_OBJECTS) $(__testdir__test_block_create_frame1_LDADD) $(LIBS)
+$(testdir)/test_block_create_frame2$(EXEEXT): $(__testdir__test_block_create_frame2_OBJECTS) $(__testdir__test_block_create_frame2_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_block_create_frame2$(EXEEXT)
+	$(LINK) $(__testdir__test_block_create_frame2_OBJECTS) $(__testdir__test_block_create_frame2_LDADD) $(LIBS)
+$(testdir)/test_block_get_frame$(EXEEXT): $(__testdir__test_block_get_frame_OBJECTS) $(__testdir__test_block_get_frame_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_block_get_frame$(EXEEXT)
+	$(LINK) $(__testdir__test_block_get_frame_OBJECTS) $(__testdir__test_block_get_frame_LDADD) $(LIBS)
+$(testdir)/test_container_create_loop1$(EXEEXT): $(__testdir__test_container_create_loop1_OBJECTS) $(__testdir__test_container_create_loop1_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_container_create_loop1$(EXEEXT)
+	$(LINK) $(__testdir__test_container_create_loop1_OBJECTS) $(__testdir__test_container_create_loop1_LDADD) $(LIBS)
+$(testdir)/test_container_create_loop2$(EXEEXT): $(__testdir__test_container_create_loop2_OBJECTS) $(__testdir__test_container_create_loop2_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_container_create_loop2$(EXEEXT)
+	$(LINK) $(__testdir__test_container_create_loop2_OBJECTS) $(__testdir__test_container_create_loop2_LDADD) $(LIBS)
 $(testdir)/test_create$(EXEEXT): $(__testdir__test_create_OBJECTS) $(__testdir__test_create_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_create$(EXEEXT)
 	$(LINK) $(__testdir__test_create_OBJECTS) $(__testdir__test_create_LDADD) $(LIBS)
@@ -442,6 +499,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/packet.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pktitr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_get_frame.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_create_loop1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_create_loop2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create_block1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create_block2.Po@am__quote@
@@ -483,6 +544,62 @@ test_block_create_frame1.obj: $(testdir)/test_block_create_frame1.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_block_create_frame1.c' object='test_block_create_frame1.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_block_create_frame1.obj `if test -f '$(testdir)/test_block_create_frame1.c'; then $(CYGPATH_W) '$(testdir)/test_block_create_frame1.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_block_create_frame1.c'; fi`
+
+test_block_create_frame2.o: $(testdir)/test_block_create_frame2.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_create_frame2.o -MD -MP -MF $(DEPDIR)/test_block_create_frame2.Tpo -c -o test_block_create_frame2.o `test -f '$(testdir)/test_block_create_frame2.c' || echo '$(srcdir)/'`$(testdir)/test_block_create_frame2.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_block_create_frame2.Tpo $(DEPDIR)/test_block_create_frame2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_block_create_frame2.c' object='test_block_create_frame2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_block_create_frame2.o `test -f '$(testdir)/test_block_create_frame2.c' || echo '$(srcdir)/'`$(testdir)/test_block_create_frame2.c
+
+test_block_create_frame2.obj: $(testdir)/test_block_create_frame2.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_create_frame2.obj -MD -MP -MF $(DEPDIR)/test_block_create_frame2.Tpo -c -o test_block_create_frame2.obj `if test -f '$(testdir)/test_block_create_frame2.c'; then $(CYGPATH_W) '$(testdir)/test_block_create_frame2.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_block_create_frame2.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_block_create_frame2.Tpo $(DEPDIR)/test_block_create_frame2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_block_create_frame2.c' object='test_block_create_frame2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_block_create_frame2.obj `if test -f '$(testdir)/test_block_create_frame2.c'; then $(CYGPATH_W) '$(testdir)/test_block_create_frame2.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_block_create_frame2.c'; fi`
+
+test_block_get_frame.o: $(testdir)/test_block_get_frame.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_get_frame.o -MD -MP -MF $(DEPDIR)/test_block_get_frame.Tpo -c -o test_block_get_frame.o `test -f '$(testdir)/test_block_get_frame.c' || echo '$(srcdir)/'`$(testdir)/test_block_get_frame.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_block_get_frame.Tpo $(DEPDIR)/test_block_get_frame.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_block_get_frame.c' object='test_block_get_frame.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_block_get_frame.o `test -f '$(testdir)/test_block_get_frame.c' || echo '$(srcdir)/'`$(testdir)/test_block_get_frame.c
+
+test_block_get_frame.obj: $(testdir)/test_block_get_frame.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_get_frame.obj -MD -MP -MF $(DEPDIR)/test_block_get_frame.Tpo -c -o test_block_get_frame.obj `if test -f '$(testdir)/test_block_get_frame.c'; then $(CYGPATH_W) '$(testdir)/test_block_get_frame.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_block_get_frame.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_block_get_frame.Tpo $(DEPDIR)/test_block_get_frame.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_block_get_frame.c' object='test_block_get_frame.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_block_get_frame.obj `if test -f '$(testdir)/test_block_get_frame.c'; then $(CYGPATH_W) '$(testdir)/test_block_get_frame.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_block_get_frame.c'; fi`
+
+test_container_create_loop1.o: $(testdir)/test_container_create_loop1.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_create_loop1.o -MD -MP -MF $(DEPDIR)/test_container_create_loop1.Tpo -c -o test_container_create_loop1.o `test -f '$(testdir)/test_container_create_loop1.c' || echo '$(srcdir)/'`$(testdir)/test_container_create_loop1.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_create_loop1.Tpo $(DEPDIR)/test_container_create_loop1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_create_loop1.c' object='test_container_create_loop1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_create_loop1.o `test -f '$(testdir)/test_container_create_loop1.c' || echo '$(srcdir)/'`$(testdir)/test_container_create_loop1.c
+
+test_container_create_loop1.obj: $(testdir)/test_container_create_loop1.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_create_loop1.obj -MD -MP -MF $(DEPDIR)/test_container_create_loop1.Tpo -c -o test_container_create_loop1.obj `if test -f '$(testdir)/test_container_create_loop1.c'; then $(CYGPATH_W) '$(testdir)/test_container_create_loop1.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_create_loop1.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_create_loop1.Tpo $(DEPDIR)/test_container_create_loop1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_create_loop1.c' object='test_container_create_loop1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_create_loop1.obj `if test -f '$(testdir)/test_container_create_loop1.c'; then $(CYGPATH_W) '$(testdir)/test_container_create_loop1.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_create_loop1.c'; fi`
+
+test_container_create_loop2.o: $(testdir)/test_container_create_loop2.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_create_loop2.o -MD -MP -MF $(DEPDIR)/test_container_create_loop2.Tpo -c -o test_container_create_loop2.o `test -f '$(testdir)/test_container_create_loop2.c' || echo '$(srcdir)/'`$(testdir)/test_container_create_loop2.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_create_loop2.Tpo $(DEPDIR)/test_container_create_loop2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_create_loop2.c' object='test_container_create_loop2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_create_loop2.o `test -f '$(testdir)/test_container_create_loop2.c' || echo '$(srcdir)/'`$(testdir)/test_container_create_loop2.c
+
+test_container_create_loop2.obj: $(testdir)/test_container_create_loop2.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_create_loop2.obj -MD -MP -MF $(DEPDIR)/test_container_create_loop2.Tpo -c -o test_container_create_loop2.obj `if test -f '$(testdir)/test_container_create_loop2.c'; then $(CYGPATH_W) '$(testdir)/test_container_create_loop2.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_create_loop2.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_create_loop2.Tpo $(DEPDIR)/test_container_create_loop2.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_create_loop2.c' object='test_container_create_loop2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_create_loop2.obj `if test -f '$(testdir)/test_container_create_loop2.c'; then $(CYGPATH_W) '$(testdir)/test_container_create_loop2.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_create_loop2.c'; fi`
 
 test_create.o: $(testdir)/test_create.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_create.o -MD -MP -MF $(DEPDIR)/test_create.Tpo -c -o test_create.o `test -f '$(testdir)/test_create.c' || echo '$(srcdir)/'`$(testdir)/test_create.c

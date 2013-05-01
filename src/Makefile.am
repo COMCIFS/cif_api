@@ -40,6 +40,10 @@ LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
 
 EXTRA_DIST = notes.txt style.txt
 
+# For valgrind tests:
+# TODO: find a cleaner way to do this
+CFLAGS += -O
+
 AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS)
 
 BUILT_SOURCES = internal/schema.h

@@ -17,12 +17,12 @@ extern "C" {
 #endif
 
 /*
- * Parses a CIF from the specified stream, file descriptor, or path.  If the
- * 'cif' argument is non-NULL then a handle for the parsed CIF is written to
- * its referrent.  Otherwise, the parsed result is discarded, but the return
- * code still indicates whether parsing was successful.
+ * Parses a CIF from the specified stream.  If the 'cif' argument is non-NULL
+ * then a handle for the parsed CIF is written to its referrent.  Otherwise,
+ * the parsed results are discarded, but the return code still indicates whether
+ * parsing was successful.
  */
-int cif_parse(FILE *stream, cif_t **cif) {
+int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cif) {
     /* TODO */
     return CIF_NOT_SUPPORTED;
 }

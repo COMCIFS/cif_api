@@ -45,7 +45,6 @@ create table container (
   next_loop_num integer not null default 0
 );
 
-
 --
 -- Represents a container that is a data block, rather than a save frame.  All
 -- data blocks in the database must have distinct, nonempty names
@@ -100,7 +99,7 @@ create table loop (
   loop_num integer not null,
   category varchar(80),
  
-  primary key (container_id, loop_num), 
+  primary key (container_id, loop_num),
   foreign key (container_id)
     references container(id)
     on delete cascade
@@ -134,14 +133,26 @@ create trigger tr2_loop
   end;
 
 --
--- Apply monotonically increasing loop numbers in each container
+-- This view merely provides a place to hang an "instead of" trigger
+-- facilitating automatic generation of loop numbers within each container.
+-- If loops are inserted only via this view, then loop numbers are
+-- guaranteed to increase monotonically within each container.
 --
-create trigger t3_loop
-  before insert on loop
-  when NEW.loop_num is null
+create view unnumbered_loop as
+  select container_id, category
+  from loop;
+
+create trigger tr1_unnumbered_loop
+  instead of insert on unnumbered_loop
   begin
-    update NEW
-      set loop_num = (select next_loop_num from container where id = NEW.container_id);
+--  Substitute a different insert statement with a non-null loop number
+    insert into loop(container_id, loop_num, category)
+      values (NEW.container_id,
+--      The following evaluates to NULL if there is no container with the given
+--      id; that's no problem, because in that case the insertion was already
+--      going to fail
+        (select next_loop_num from container where id = NEW.container_id),
+        NEW.category);
     update container
       set next_loop_num = next_loop_num + 1
       where id = NEW.container_id;

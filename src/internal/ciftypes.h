@@ -40,14 +40,17 @@ struct cif_s {
    /*@only@*/ sqlite3 *db;
    /*@only@*/ /*@null@*/ sqlite3_stmt *create_block_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_block_stmt;
+   /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_blocks_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *create_frame_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_frame_stmt;
+   /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_frames_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *destroy_container_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *create_loop_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_loopnum_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *add_loopitem_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_cat_loop_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_item_loop_stmt;
+   /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_loops_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_value_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *set_all_values_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_loop_size_stmt;
