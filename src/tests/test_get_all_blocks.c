@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
         int counter;
 
         /* Build a hash table of the expected block codes */
-        subtest = 15;
+        subtest = 17;
         for (counter = 0; codes[counter] != NULL; counter += 1) {
             struct set_el *el = (struct set_el *) malloc(sizeof(struct set_el));
 

@@ -66,20 +66,6 @@ static UFILE *ustderr = NULL;
   fprintf(stderr, "  subtest %d passed\n", _code); \
 } while (0)
 
-#define TEST_STRINGLIST_MATCH(expected, observed, ordered, subtest) do { \
-    UChar **exp = (expected); \
-    UChar **obs = (observed); \
-    int ord = (ordered); \
-    int st = (subtest); \
-    UChar **e; \
-    for (e = exp; *e != NULL; e += 1) { \
-        int found; \
-        if (ord != 0) { \
-            /* TODO: incomplete */ u_strcmp(*e, *(obs + (e - exp))); \
-        } \
-    } \
-} while (0)
-
 #define TO_UNICODE(s, buffer, buf_len) ( \
     u_unescape((s), buffer, buf_len), \
     buffer \
