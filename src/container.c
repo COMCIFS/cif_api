@@ -329,7 +329,7 @@ int cif_container_create_loop(
    
                                     if (COMMIT_NESTTX(cif->db) == SQLITE_OK) {
                                         temp->container = container;
-                                        if (loop!= NULL) *loop = temp;
+                                        ASSIGN_TEMP_PTR(temp, loop, cif_loop_free);
     
                                         /* success return */
                                         return CIF_OK;
@@ -395,7 +395,7 @@ int cif_container_get_category_loop(
                         temp->container = container;
                         switch (STEP_STMT(cif, get_cat_loop)) {
                             case SQLITE_DONE:
-                                if (loop != NULL) *loop = temp;
+                                ASSIGN_TEMP_PTR(temp, loop, cif_loop_free);
                                 return CIF_OK;
                             case SQLITE_ROW:
                                 (void) sqlite3_reset(cif->get_cat_loop_stmt);

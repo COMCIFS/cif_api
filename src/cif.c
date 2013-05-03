@@ -213,7 +213,7 @@ int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
                                     FAIL(soft, CIF_DUP_BLOCKCODE);
                                 case SQLITE_DONE:
                                     if (COMMIT(cif->db) == SQLITE_OK) {
-                                        if (block != NULL) *block = temp;
+                                        ASSIGN_TEMP_PTR(temp, block, cif_container_free);
                                         return CIF_OK;
                                     }
                                     /* else drop out the bottom */
@@ -270,7 +270,7 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
                         GET_COLUMN_STRING(cif->get_block_stmt, 1, temp->code_orig, hard_fail);
                         /* ignore any error here: */
                         sqlite3_reset(cif->get_block_stmt);
-                        *block =  temp;
+                        ASSIGN_TEMP_PTR(temp, block, cif_container_free);
                         return CIF_OK;
                     case SQLITE_DONE:
                         FAIL(soft, CIF_NOSUCH_BLOCK);

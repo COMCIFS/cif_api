@@ -90,7 +90,7 @@ int cif_block_create_frame(
                                     FAIL(soft, CIF_DUP_FRAMECODE);
                                 case SQLITE_DONE:
                                     if (COMMIT(cif->db) == SQLITE_OK) {
-                                        if (frame != NULL) *frame = temp;
+                                        ASSIGN_TEMP_PTR(temp, frame, cif_container_free);
                                         return CIF_OK;
                                     }
                                     /* else drop out the bottom */
@@ -110,7 +110,7 @@ int cif_block_create_frame(
         } /* else failed to normalize the code */
 
         /* free the temporary container object and any resources associated with it */
-        (void) cif_container_free(temp);
+        cif_container_free(temp);
     }
 
     FAILURE_TERMINUS;
@@ -157,7 +157,7 @@ int cif_block_get_frame(
                         GET_COLUMN_STRING(cif->get_frame_stmt, 1, temp->code_orig, hard_fail);
                         temp->cif = cif;
                         temp->block_id = block->id;
-                        if (frame != NULL) *frame = temp;
+                        ASSIGN_TEMP_PTR(temp, frame, cif_container_free);
                         (void) sqlite3_reset(cif->get_frame_stmt);
                         /* There cannot be any more rows, as the DB enforces per-block frame code uniqueness */
                         return CIF_OK;

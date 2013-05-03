@@ -121,6 +121,23 @@ extern UFILE *ustderr;
 } while (0)
 
 /*
+ * Records the specified pointer value at the specified location, or calls the
+ * specified function to clean it up if the location is NULL
+ *
+ * temp: the pointer to assign
+ * dest_p: a pointer to the target location
+ * free_fn: the name of a one-arg function to which 'temp' can be passed, as
+ *         necessary, to clean it up
+ */
+#define ASSIGN_TEMP_PTR(temp, dest_p, free_fn) do { \
+    if (dest_p == NULL) { \
+        free_fn(temp); \
+    } else { \
+        *dest_p = temp; \
+    } \
+} while (0)
+
+/*
  * Sets up failure handling for the containing function.  Must appear only
  * where variable declarations are allowed.  Not necessarily atomic.  Must
  * not be used more than once in the same scope.
