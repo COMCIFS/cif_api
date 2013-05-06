@@ -10,6 +10,7 @@
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include <sqlite3.h>
+#include "uthash.h"
 #include "../cif.h"
 
 /*
@@ -18,6 +19,10 @@
 #define SUCCESS    0
 #define SKIP      77
 #define HARD_FAIL 99
+
+struct set_el {
+    UT_hash_handle hh;
+};
 
 static UFILE *ustderr = NULL;
 

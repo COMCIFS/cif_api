@@ -93,12 +93,12 @@ int cif_loop_get_names(
             if ((sqlite3_bind_int64(cif->get_loop_names_stmt, 1, container->id) == SQLITE_OK)
                     && (sqlite3_bind_int64(cif->get_loop_names_stmt, 2, loop->loop_num) == SQLITE_OK)) {
                 STEP_HANDLING;
+                int name_count = 0;
                 string_element_t *name_list = NULL;
                 string_element_t *next_name;
                 string_element_t *temp_name;
 
                 while (CIF_TRUE) {
-                    int name_count = 0;
                     UChar **temp_names;
  
                     /* read the names and copy them into application space */
@@ -107,16 +107,19 @@ int cif_loop_get_names(
                             next_name = (string_element_t *) malloc(sizeof(string_element_t));
 
                             if (next_name != NULL) {
-                                GET_COLUMN_STRING(cif->get_loop_names_stmt, 1, next_name->string, name_fail);
+                                GET_COLUMN_STRING(cif->get_loop_names_stmt, 0, next_name->string, name_fail);
                                 LL_PREPEND(name_list, next_name);  /* prepending is O(1), appending would be O(n) */
                                 name_count += 1;
                                 continue;
-                            } /* else go on to cleanup/fail */
+                            } /* else fall through; go on to cleanup/fail */
+                        default:
+                            /* ignore any error: */
+                            sqlite3_reset(cif->get_loop_names_stmt);
                             break;
                         case SQLITE_DONE:
                             temp_names = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
-                            if (temp_names) {
-                                (void) ROLLBACK(cif->db);  /* no changes should have been made anyway */
+                            if (temp_names != NULL) {
+                                ROLLBACK(cif->db);  /* no changes should have been made anyway */
 
                                 temp_names[name_count] = NULL;
                                 LL_FOREACH_SAFE(name_list, next_name, temp_name) {
@@ -129,6 +132,7 @@ int cif_loop_get_names(
                                 *item_names = temp_names;
                                 return CIF_OK;
                             } /* else drop out the bottom and fail */
+                            break;
                     }
 
                     name_fail:

@@ -13,10 +13,6 @@
 #include "test.h"
 #include "uthash.h"
 
-struct set_el {
-    UT_hash_handle hh;
-};
-
 int main(int argc, char *argv[]) {
     char test_name[80] = "test_block_get_all_frames";
     cif_t *cif = NULL;

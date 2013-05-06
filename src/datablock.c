@@ -158,7 +158,7 @@ int cif_block_get_frame(
                         temp->cif = cif;
                         temp->block_id = block->id;
                         ASSIGN_TEMP_PTR(temp, frame, cif_container_free);
-                        (void) sqlite3_reset(cif->get_frame_stmt);
+                        sqlite3_reset(cif->get_frame_stmt);
                         /* There cannot be any more rows, as the DB enforces per-block frame code uniqueness */
                         return CIF_OK;
                     case SQLITE_DONE:

@@ -58,7 +58,7 @@ static int cif_container_get_item_loop_internal (
         cif_loop_t *loop
         ) {
     FAILURE_HANDLING;
-    /*@temp@*/ cif_t *cif = container->cif;
+    cif_t *cif = container->cif;
 
     /*
      * Create any needed prepared statements or prepare the existing one(s)
@@ -407,7 +407,7 @@ int cif_container_get_category_loop(
         }
 
         soft_fail:
-        (void) cif_loop_free(temp);
+        cif_loop_free(temp);
     }
 
     FAILURE_TERMINUS;
@@ -438,7 +438,7 @@ int cif_container_get_item_loop(
             result = cif_container_get_item_loop_internal(container, name, temp);
             free(name);
             if (result == CIF_OK) {
-                if (loop != NULL) *loop = temp;
+                ASSIGN_TEMP_PTR(temp, loop, cif_loop_free);
                 return CIF_OK;
             }
 

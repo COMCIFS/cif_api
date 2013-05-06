@@ -72,7 +72,7 @@
 
 #define REMOVE_ITEM_SQL "delete from loop_item where container_id = ? and name = ?"
 
-#define GET_LOOP_NAMES_SQL "select name from loop_item where container_id = ? and loop_num = ?"
+#define GET_LOOP_NAMES_SQL "select name_orig from loop_item where container_id = ? and loop_num = ?"
 
 #define CHECK_ITEM_LOOP_SQL "select 1 from loop_item where container_id = ? and name = ? and loop_num = ?"
 

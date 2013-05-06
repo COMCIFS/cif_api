@@ -1,7 +1,7 @@
 /*
  * test_container_create_loop1.c
  *
- * Tests general function of the CIF API's cif_block_create_frame() function.
+ * Tests general function of the CIF API's cif_container_create_loop() function.
  *
  * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
  */

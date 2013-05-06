@@ -832,12 +832,12 @@ int cif_container_create_loop(
  * @param[in,out] loop if not NULL, the location where a handle on the discovered loop, if any, should be written; in
  *         that case, the caller is responsible for cleaning up the returned handle
  *
- * @return Returns a status code indicating the nature of the result:
+ * @return a status code indicating the nature of the result:
  *         @li @c CIF_OK if a single matching loop was found; only in this case can a handle be returned
+ *         @li @c CIF_INVALID_CATEGORY if the specified category name is invalid (primarily, if it is NULL)
  *         @li @c CIF_NOSUCH_LOOP if no loop having the specified category is found
  *         @li @c CIF_CAT_NOT_UNIQUE if multiple loops having the specified category are found
  *         @li @c CIF_ERROR in most other cases
- *         The return code does not depend on whether @c loop is NULL.
  */
 int cif_container_get_category_loop(
         /*@in@*/ /*@temp@*/ cif_container_t *container,

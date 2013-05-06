@@ -174,6 +174,7 @@ struct list_element_s {
 struct entry_s {
     cif_value_t as_value; /* not a pointer; MUST BE FIRST */
     UChar *key;
+    UChar *key_orig;
     UT_hash_handle hh;
 };
 
