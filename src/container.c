@@ -432,7 +432,9 @@ int cif_container_get_item_loop(
         temp->category = NULL;
 
         result = cif_normalize_item_name(item_name, -1, &name, CIF_INVALID_ITEMNAME);
-        if (result != CIF_OK) {
+        if (result == CIF_INVALID_ITEMNAME) {
+            SET_RESULT(CIF_NOSUCH_ITEM);
+        } else if (result != CIF_OK) {
             SET_RESULT(result);
         } else {
             result = cif_container_get_item_loop_internal(container, name, temp);
