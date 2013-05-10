@@ -18,17 +18,22 @@
 #undef uthash_fatal
 #define uthash_fatal(msg) DEFAULT_FAIL(soft)
 
+/* TODO: can item->key be removed? */
+
 static int cif_map_clean(cif_map_t *map) {
-    if (map) {
+    if (map != NULL) {
         struct entry_s *entry;
         struct entry_s *temp;
 
         /* these hash operations do not use uthash_fatal(): */
         HASH_ITER(hh, map->head, entry, temp) {
             HASH_DEL(map->head, entry);
-            (void) cif_value_clean(&(entry->as_value));
-            if (map->is_standalone != 0) {
+            cif_value_clean(&(entry->as_value));
+            if (entry->key != entry->key_orig) {
                 free(entry->key);
+            }
+            if (map->is_standalone != 0) {
+                free(entry->key_orig);
             }
             free(entry);
         }
@@ -37,10 +42,7 @@ static int cif_map_clean(cif_map_t *map) {
     return CIF_OK;
 }
 
-static int cif_map_get_names(
-        cif_map_t *map,
-        UChar ***names
-        ) {
+static int cif_map_get_keys(cif_map_t *map, UChar ***names) {
     FAILURE_HANDLING;
     size_t name_count = (size_t) HASH_COUNT(map->head);
     UChar **temp = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
@@ -51,7 +53,7 @@ static int cif_map_get_names(
         UChar **next = temp;
 
         HASH_ITER(hh, map->head, item, temp_item) {
-            *next = item->key;
+            *next = item->key_orig;
             next += 1;
         }
         *next = NULL;
@@ -74,13 +76,13 @@ static int convert_to_standalone(cif_map_t *map) {
         return CIF_OK;
     } else {
         /*
-         * Item name copies are initially recorded in a temporary array to avoid modifying the map until
+         * Item key copies are initially recorded in a temporary array to avoid modifying the map until
          * complete success is certain.
          */
         size_t item_count = (size_t) HASH_COUNT(map->head);
-        UChar **name_copies = (UChar **) malloc(sizeof(UChar *) * item_count);
+        UChar **key_copies = (UChar **) malloc(sizeof(UChar *) * item_count);
 
-        if (name_copies != NULL) {
+        if (key_copies != NULL) {
             size_t next = 0;
             struct entry_s *item;
             struct entry_s *temp;
@@ -88,9 +90,9 @@ static int convert_to_standalone(cif_map_t *map) {
             /* Copy the names */
             HASH_ITER(hh, map->head, item, temp) {
                 if (next >= item_count) FAIL(soft, CIF_INTERNAL_ERROR);
-                name_copies[next] = cif_u_strdup(item->key);
+                key_copies[next] = cif_u_strdup(item->key_orig);
 
-                if (name_copies[next] != NULL) {
+                if (key_copies[next] != NULL) {
                     next += 1;
                 } else {
                     DEFAULT_FAIL(soft);
@@ -101,91 +103,107 @@ static int convert_to_standalone(cif_map_t *map) {
             next = 0;
             HASH_ITER(hh, map->head, item, temp) {
                 if (next >= item_count) FAIL(soft, CIF_INTERNAL_ERROR);
-                item->key = name_copies[next++];
+                item->key_orig = key_copies[next++];
             }
 
             /* success */
             map->is_standalone = 1;
-            free(name_copies);
+            free(key_copies);
             return CIF_OK;
 
             FAILURE_HANDLER(soft):
-            /* next points one past the last name copy that was allocated */
+            /* next points one past the last name copy that was successfully allocated */
             while (next > 0) {
-                free(name_copies[--next]);
+                free(key_copies[--next]);
             }
-            free(name_copies);
+            free(key_copies);
         }
     }
 
     FAILURE_TERMINUS;
 }
 
-static int cif_map_set_item(
-        cif_map_t *map,
-        const UChar *name, 
-        cif_value_t *value,
-        int invalidity_code
-        ) {
+static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value, int invalidity_code) {
     /*
-     * In the event that the specified name is new to the given map and the map is not already standalone,
+     * In the event that the specified key is new to the given map and the map is not already standalone,
      * a necessary side effect of this function is to convert the map to standalone.  This follows from the need
-     * to normalize the name and store the normalized form, and from the fact that it isn't viable to mix owned and
-     * shared item names in the same map.
+     * to normalize the key and store the normalized form, and from the fact that it isn't viable to mix owned and
+     * shared item keys in the same map.
      */
     FAILURE_HANDLING;
-    UChar *name_norm;
+    UChar *key_norm;
     int result;
 
-    result = (*map->normalizer)(name, -1, &name_norm, invalidity_code);
+    result = (*map->normalizer)(key, -1, &key_norm, invalidity_code);
     if (result != CIF_OK) {
         SET_RESULT(result);
     } else {
-        size_t name_bytes = (size_t) U_BYTES(name_norm);
+        /* must ensure key_norm is freed or kept */
+        size_t key_bytes = (size_t) U_BYTES(key_norm);
         struct entry_s *item;
+        int different_key;
 
-        HASH_FIND(hh, map->head, name_norm, name_bytes, item);
-        if (item) {
-            /* There is an existing item for the given name */
+        HASH_FIND(hh, map->head, key_norm, key_bytes, item);
+        different_key = ((item == NULL) || (u_strcmp(key, item->key_orig) != 0));
+        if ((different_key == 0) || (convert_to_standalone(map) == CIF_OK)) {
+            if (item != NULL) {
+                /* There is an existing item for the given key */
+                UChar *key_orig = ((different_key == 0) ? item->key_orig : cif_u_strdup(key));
 
-            /*
-             * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger assertions
-             * about aliasing than otherwise it could do (for otherwise, there is a need to cast &item to
-             * (cif_value_t **)).  This allows for stronger optimizations on the whole file.
-             */
-            cif_value_t *existing_value = &(item->as_value);
+                if (key_orig != NULL) {
+                    /*
+                     * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger
+                     * assertions about aliasing than otherwise it could do (for otherwise, there is a need to cast
+                     * &item to (cif_value_t **)).  This allows for stronger optimizations on the whole file.
+                     */
+                    cif_value_t *existing_value = &(item->as_value);
 
-            /* replace the old value with a clone of the new */
-            if ((cif_value_clean(existing_value) == CIF_OK)
-                    && (cif_value_clone(value, &existing_value) == CIF_OK)) {
-                free(name_norm);
-                return CIF_OK;
-            }
+                    /* replace the old value with a clone of the new */
+                    if ((cif_value_clean(existing_value) == CIF_OK)
+                            && (cif_value_clone(value, &existing_value) == CIF_OK)) {
+                        if (key_orig != item->key_orig) {
+                            free(item->key_orig);
+                            item->key_orig = key_orig;
+                        }
+                        free(key_norm);
+                        return CIF_OK;
+                    }
 
-        } else if (convert_to_standalone(map) == CIF_OK) {
-            /* This will be a new item for the map */
-
-            item = (struct entry_s *) malloc(sizeof(struct entry_s));
-            if (item) {
-                /*
-                 * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger
-                 * assertions about aliasing than otherwise it could do (see above):
-                 */
-                cif_value_t *new_value = &(item->as_value);
-
-                if (cif_value_clone(value, &new_value) == CIF_OK) {
-                    item->key = name_norm;
-                    HASH_ADD_KEYPTR(hh, map->head, item->key, name_bytes, item);
-                    return CIF_OK;
+                    if (key_orig != item->key_orig) {
+                        free(key_orig);
+                    }
                 }
+            } else {
+                /* This will be a new item for the map */
 
-                /* referenced by the HASH_ADD_KEYPTR macro: */
-                FAILURE_HANDLER(soft):
-                free(item);
+                item = (struct entry_s *) malloc(sizeof(struct entry_s));
+                if (item != NULL) {
+                    UChar *key_copy = cif_u_strdup(key);
+
+                    if (key_copy != NULL) {
+                        /*
+                         * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger
+                         * assertions about aliasing than otherwise it could do (see above):
+                         */
+                        cif_value_t *new_value = &(item->as_value);
+
+                        if (cif_value_clone(value, &new_value) == CIF_OK) {
+                            item->key = key_norm;
+                            item->key_orig = key_copy;
+                            HASH_ADD_KEYPTR(hh, map->head, item->key, key_bytes, item);
+                            return CIF_OK;
+                        }
+
+                        /* referenced by the HASH_ADD_KEYPTR macro: */
+                        FAILURE_HANDLER(soft):
+                        free(key_copy);
+                    }
+
+                    free(item);
+                }
             }
         }
-
-        free(name_norm);
+        free(key_norm);
     }
 
     FAILURE_TERMINUS;
@@ -197,40 +215,38 @@ static int cif_map_set_item(
  * case, CIF_OK is returned if the named item was initially present; otherwise,
  * CIF_NOSUCH_ITEM is returned.
  */
-static int cif_map_retrieve_item(
-        cif_map_t *map, 
-        const UChar *name, 
-        cif_value_t **value, 
-        int do_remove) {
+static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_t **value, int do_remove) {
     FAILURE_HANDLING;
-    UChar *name_norm;
+    UChar *key_norm;
     int result;
 
-    result = (*map->normalizer)(name, -1, &name_norm, CIF_INVALID_ITEMNAME);
+    result = (*map->normalizer)(key, -1, &key_norm, CIF_INVALID_ITEMNAME);
     if (result != CIF_OK) {
         SET_RESULT(result);
     } else {
         struct entry_s *item = NULL;
 
-        HASH_FIND(hh, map->head, name_norm, U_BYTES(name_norm), item);
-        free(name_norm);
+        HASH_FIND(hh, map->head, key_norm, U_BYTES(key_norm), item);
+        free(key_norm);
 
-        if (item) {
+        if (item == NULL) {
+            SET_RESULT(CIF_NOSUCH_ITEM);
+        } else {
             if (do_remove != 0) {
                 HASH_DEL(map->head, item);
                 if (map->is_standalone != 0) {
-                    free(item->key);
+                    free(item->key_orig);
                 }
+                free(item->key);
             }
+
             if (value != NULL) {
                 *value = &(item->as_value);
-            } else if (do_remove) {
-                (void) cif_value_free(&(item->as_value));
+            } else if (do_remove != 0) {
+                cif_value_free(&(item->as_value));
             }
 
             return CIF_OK;
-        } else {
-            SET_RESULT(CIF_NOSUCH_ITEM);
         }
     }
 
@@ -242,60 +258,38 @@ extern "C" {
 #endif
 
 int cif_packet_free(cif_packet_t *packet) {
-    if (packet) {
-        (void) cif_map_clean(&(packet->map));
+    if (packet != NULL) {
+        cif_map_clean(&(packet->map));
         free(packet);
     }
     return CIF_OK;
 }
 
-int cif_packet_get_names(
-        cif_packet_t *packet,
-        UChar ***names
-        ) {
-    return cif_map_get_names(&(packet->map), names);
+int cif_packet_get_names(cif_packet_t *packet, UChar ***names) {
+    return cif_map_get_keys(&(packet->map), names);
 }
 
-int cif_packet_set_item(
-        cif_packet_t *packet,
-        const UChar *name, 
-        cif_value_t *value
-        ) {
+int cif_packet_set_item(cif_packet_t *packet, const UChar *name, cif_value_t *value) {
     return cif_map_set_item(&(packet->map), name, value, CIF_INVALID_ITEMNAME);
 }
 
-int cif_packet_get_item(
-        cif_packet_t *packet, 
-        const UChar *name, 
-        cif_value_t **value
-        ) {
+int cif_packet_get_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
     return cif_map_retrieve_item(&(packet->map), name, value, 0);
 }
 
-int cif_packet_remove_item(
-        cif_packet_t *packet, 
-        const UChar *name, 
-        cif_value_t **value
-        ) {
+int cif_packet_remove_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
     return cif_map_retrieve_item(&(packet->map), name, value, 1);
 }
 
-int cif_value_get_keys(
-        cif_value_t *table,
-        UChar ***keys
-        ) {
+int cif_value_get_keys(cif_value_t *table, UChar ***keys) {
     if (table->kind == CIF_TABLE_KIND) {
-        return cif_map_get_names(&(table->as_table.map), keys);
+        return cif_map_get_keys(&(table->as_table.map), keys);
     } else {
         return CIF_ARGUMENT_ERROR;
     }
 }
 
-int cif_value_set_item_by_key(
-        cif_value_t *table,
-        const UChar *key, 
-        cif_value_t *item
-        ) {
+int cif_value_set_item_by_key(cif_value_t *table, const UChar *key, cif_value_t *item) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_set_item(&(table->as_table.map), key, item, CIF_ARGUMENT_ERROR);
     } else {
@@ -303,11 +297,7 @@ int cif_value_set_item_by_key(
     }
 }
 
-int cif_value_get_item_by_key(
-        cif_value_t *table, 
-        const UChar *name, 
-        cif_value_t **value
-        ) {
+int cif_value_get_item_by_key(cif_value_t *table, const UChar *name, cif_value_t **value) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_retrieve_item(&(table->as_table.map), name, value, 0);
     } else {
@@ -315,11 +305,7 @@ int cif_value_get_item_by_key(
     }
 }
 
-int cif_value_remove_item_by_key(
-        cif_value_t *table, 
-        const UChar *name, 
-        cif_value_t **value
-        ) {
+int cif_value_remove_item_by_key(cif_value_t *table, const UChar *name, cif_value_t **value) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_retrieve_item(&(table->as_table.map), name, value, 1);
     } else {
