@@ -45,6 +45,7 @@ struct cif_s {
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_frame_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_frames_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *destroy_container_stmt;
+   /*@only@*/ /*@null@*/ sqlite3_stmt *validate_container_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *create_loop_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_loopnum_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *add_loopitem_stmt;

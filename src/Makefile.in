@@ -97,7 +97,8 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_container_create_loop1$(EXEEXT) \
 	$(testdir)/test_container_create_loop2$(EXEEXT) \
 	$(testdir)/test_container_get_category_loop$(EXEEXT) \
-	$(testdir)/test_container_get_item_loop$(EXEEXT)
+	$(testdir)/test_container_get_item_loop$(EXEEXT) \
+	$(testdir)/test_container_get_all_loops$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -135,6 +136,12 @@ __testdir__test_container_create_loop2_OBJECTS =  \
 	test_container_create_loop2.$(OBJEXT)
 __testdir__test_container_create_loop2_LDADD = $(LDADD)
 __testdir__test_container_create_loop2_DEPENDENCIES = libcif.la
+__testdir__test_container_get_all_loops_SOURCES =  \
+	$(testdir)/test_container_get_all_loops.c
+__testdir__test_container_get_all_loops_OBJECTS =  \
+	test_container_get_all_loops.$(OBJEXT)
+__testdir__test_container_get_all_loops_LDADD = $(LDADD)
+__testdir__test_container_get_all_loops_DEPENDENCIES = libcif.la
 __testdir__test_container_get_category_loop_SOURCES =  \
 	$(testdir)/test_container_get_category_loop.c
 __testdir__test_container_get_category_loop_OBJECTS =  \
@@ -191,6 +198,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_block_get_frame.c \
 	$(testdir)/test_container_create_loop1.c \
 	$(testdir)/test_container_create_loop2.c \
+	$(testdir)/test_container_get_all_loops.c \
 	$(testdir)/test_container_get_category_loop.c \
 	$(testdir)/test_container_get_item_loop.c \
 	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
@@ -203,6 +211,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_block_get_frame.c \
 	$(testdir)/test_container_create_loop1.c \
 	$(testdir)/test_container_create_loop2.c \
+	$(testdir)/test_container_get_all_loops.c \
 	$(testdir)/test_container_get_category_loop.c \
 	$(testdir)/test_container_get_item_loop.c \
 	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
@@ -365,7 +374,8 @@ compiled_tests = \
     $(testdir)/test_container_create_loop1 \
     $(testdir)/test_container_create_loop2 \
     $(testdir)/test_container_get_category_loop \
-    $(testdir)/test_container_get_item_loop
+    $(testdir)/test_container_get_item_loop \
+    $(testdir)/test_container_get_all_loops
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -514,6 +524,9 @@ $(testdir)/test_container_create_loop1$(EXEEXT): $(__testdir__test_container_cre
 $(testdir)/test_container_create_loop2$(EXEEXT): $(__testdir__test_container_create_loop2_OBJECTS) $(__testdir__test_container_create_loop2_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_container_create_loop2$(EXEEXT)
 	$(LINK) $(__testdir__test_container_create_loop2_OBJECTS) $(__testdir__test_container_create_loop2_LDADD) $(LIBS)
+$(testdir)/test_container_get_all_loops$(EXEEXT): $(__testdir__test_container_get_all_loops_OBJECTS) $(__testdir__test_container_get_all_loops_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_container_get_all_loops$(EXEEXT)
+	$(LINK) $(__testdir__test_container_get_all_loops_OBJECTS) $(__testdir__test_container_get_all_loops_LDADD) $(LIBS)
 $(testdir)/test_container_get_category_loop$(EXEEXT): $(__testdir__test_container_get_category_loop_OBJECTS) $(__testdir__test_container_get_category_loop_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_container_get_category_loop$(EXEEXT)
 	$(LINK) $(__testdir__test_container_get_category_loop_OBJECTS) $(__testdir__test_container_get_category_loop_LDADD) $(LIBS)
@@ -556,6 +569,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_get_frame.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_create_loop1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_create_loop2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_all_loops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_category_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_item_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create.Po@am__quote@
@@ -670,6 +684,20 @@ test_container_create_loop2.obj: $(testdir)/test_container_create_loop2.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_create_loop2.c' object='test_container_create_loop2.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_create_loop2.obj `if test -f '$(testdir)/test_container_create_loop2.c'; then $(CYGPATH_W) '$(testdir)/test_container_create_loop2.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_create_loop2.c'; fi`
+
+test_container_get_all_loops.o: $(testdir)/test_container_get_all_loops.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_all_loops.o -MD -MP -MF $(DEPDIR)/test_container_get_all_loops.Tpo -c -o test_container_get_all_loops.o `test -f '$(testdir)/test_container_get_all_loops.c' || echo '$(srcdir)/'`$(testdir)/test_container_get_all_loops.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_get_all_loops.Tpo $(DEPDIR)/test_container_get_all_loops.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_get_all_loops.c' object='test_container_get_all_loops.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_all_loops.o `test -f '$(testdir)/test_container_get_all_loops.c' || echo '$(srcdir)/'`$(testdir)/test_container_get_all_loops.c
+
+test_container_get_all_loops.obj: $(testdir)/test_container_get_all_loops.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_all_loops.obj -MD -MP -MF $(DEPDIR)/test_container_get_all_loops.Tpo -c -o test_container_get_all_loops.obj `if test -f '$(testdir)/test_container_get_all_loops.c'; then $(CYGPATH_W) '$(testdir)/test_container_get_all_loops.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_get_all_loops.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_get_all_loops.Tpo $(DEPDIR)/test_container_get_all_loops.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_get_all_loops.c' object='test_container_get_all_loops.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_all_loops.obj `if test -f '$(testdir)/test_container_get_all_loops.c'; then $(CYGPATH_W) '$(testdir)/test_container_get_all_loops.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_get_all_loops.c'; fi`
 
 test_container_get_category_loop.o: $(testdir)/test_container_get_category_loop.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_category_loop.o -MD -MP -MF $(DEPDIR)/test_container_get_category_loop.Tpo -c -o test_container_get_category_loop.o `test -f '$(testdir)/test_container_get_category_loop.c' || echo '$(srcdir)/'`$(testdir)/test_container_get_category_loop.c

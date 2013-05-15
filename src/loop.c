@@ -69,25 +69,30 @@ int cif_loop_destroy(
     FAILURE_TERMINUS;
 }
 
-/* not safe to be called by other library functions */
+/* safe to be called by anyone */
 int cif_loop_get_names(
         cif_loop_t *loop,
         UChar ***item_names
         ) {
     FAILURE_HANDLING;
+
+    if (loop == NULL) return CIF_INVALID_HANDLE;
+
     cif_container_t *container = loop->container;
     cif_t *cif = container->cif;
 
     if (item_names == NULL) {
         SET_RESULT(CIF_ARGUMENT_ERROR);
     } else {
+        NESTTX_HANDLING;
+
         /*
          * Create any needed prepared statements, or prepare the existing one(s)
          * for re-use, exiting this function with an error on failure.
          */
         PREPARE_STMT(cif, get_loop_names, GET_LOOP_NAMES_SQL);
 
-        if (BEGIN(cif->db) == SQLITE_OK) {
+        if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
 
             /* retrieve the names */
             if ((sqlite3_bind_int64(cif->get_loop_names_stmt, 1, container->id) == SQLITE_OK)
@@ -119,7 +124,7 @@ int cif_loop_get_names(
                         case SQLITE_DONE:
                             temp_names = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
                             if (temp_names != NULL) {
-                                ROLLBACK(cif->db);  /* no changes should have been made anyway */
+                                ROLLBACK_NESTTX(cif->db);  /* no changes should have been made anyway */
 
                                 temp_names[name_count] = NULL;
                                 LL_FOREACH_SAFE(name_list, next_name, temp_name) {
@@ -142,12 +147,12 @@ int cif_loop_get_names(
                         free(next_name->string);
                         free(next_name);
                     }
-                    ROLLBACK(cif->db);
+                    ROLLBACK_NESTTX(cif->db);
                     DEFAULT_FAIL(soft);
                 }
             }
 
-            ROLLBACK(cif->db);
+            ROLLBACK_NESTTX(cif->db);
         }
 
         DROP_STMT(cif, get_loop_names);

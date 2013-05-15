@@ -27,6 +27,8 @@
 
 #define GET_ALL_FRAMES_SQL "select container_id as id, name, name_orig from save_frame where data_block_id = ?"
 
+#define VALIDATE_CONTAINER_SQL "select 1 from container where id = ?"
+
 #define DESTROY_CONTAINER_SQL "delete from container where id = ?"
 
 #define CREATE_LOOP_SQL "insert into unnumbered_loop (container_id, category) values (?, ?)"

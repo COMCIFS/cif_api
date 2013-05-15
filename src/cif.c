@@ -95,6 +95,7 @@ int cif_create(cif_t **cif) {
                         INIT_STMT(temp, get_frame);
                         INIT_STMT(temp, get_all_frames);
                         INIT_STMT(temp, destroy_container);
+                        INIT_STMT(temp, validate_container);
                         INIT_STMT(temp, create_loop);
                         INIT_STMT(temp, get_loopnum);
                         INIT_STMT(temp, add_loopitem);
