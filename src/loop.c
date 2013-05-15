@@ -70,10 +70,7 @@ int cif_loop_destroy(
 }
 
 /* safe to be called by anyone */
-int cif_loop_get_names(
-        cif_loop_t *loop,
-        UChar ***item_names
-        ) {
+int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
     FAILURE_HANDLING;
 
     if (loop == NULL) return CIF_INVALID_HANDLE;
@@ -112,7 +109,7 @@ int cif_loop_get_names(
                             next_name = (string_element_t *) malloc(sizeof(string_element_t));
 
                             if (next_name != NULL) {
-                                GET_COLUMN_STRING(cif->get_loop_names_stmt, 0, next_name->string, name_fail);
+                                GET_COLUMN_STRING(cif->get_loop_names_stmt, 0, next_name->string, HANDLER_LABEL(name));
                                 LL_PREPEND(name_list, next_name);  /* prepending is O(1), appending would be O(n) */
                                 name_count += 1;
                                 continue;
@@ -122,6 +119,7 @@ int cif_loop_get_names(
                             sqlite3_reset(cif->get_loop_names_stmt);
                             break;
                         case SQLITE_DONE:
+                            if (name_count <= 0) FAIL(name, CIF_INVALID_HANDLE);
                             temp_names = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
                             if (temp_names != NULL) {
                                 ROLLBACK_NESTTX(cif->db);  /* no changes should have been made anyway */
@@ -140,7 +138,7 @@ int cif_loop_get_names(
                             break;
                     }
 
-                    name_fail:
+                    FAILURE_HANDLER(name):
                     /* release resources and roll back before reporting the failure */
                     LL_FOREACH_SAFE(name_list, next_name, temp_name) {
                         LL_DELETE(name_list, next_name);
