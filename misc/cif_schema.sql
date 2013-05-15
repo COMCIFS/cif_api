@@ -145,7 +145,7 @@ create view unnumbered_loop as
 create trigger tr1_unnumbered_loop
   instead of insert on unnumbered_loop
   begin
---  Substitute a different insert statement with a non-null loop number
+--  Substitute an insert statement on loop, with a non-null loop number
     insert into loop(container_id, loop_num, category)
       values (NEW.container_id,
 --      The following evaluates to NULL if there is no container with the given
@@ -263,7 +263,7 @@ create table item_value (
   check (case when (val_text is null) then (kind not in (0, 1)) else (kind in (0, 1)) end),
   check (case when (kind = 1) then (scale is not null)
         and (length(val_digits) > 0) and (val_digits not glob '*[!0-9]*')
-        and ((su_digits is null) or ((su_digits not glob '*[!0-9]*') and (su_digits glob '*[1-9]*')))
+        and ((su_digits is null) or ((length(su_digits) > 0) and (su_digits not glob '*[!0-9]*')))
     else coalesce(val_digits, su_digits, scale) is null end)
 );
 
@@ -272,7 +272,7 @@ create table item_value (
 --
 create trigger tr1_item_value
   before insert on item_value
-  when NEW.row_num > 0
+  when NEW.row_num > 1
   begin
     select ifnull(nullif('', l.category), raise(ABORT, 'Attempted to create multiple values for a scalar'))
       from loop l
@@ -286,7 +286,7 @@ create trigger tr1_item_value
 --
 create trigger tr2_item_value
   before update of row_num on item_value
-  when (OLD.row_num = 0) and (NEW.row_num <> 0)
+  when (OLD.row_num = 1) and (NEW.row_num <> 1)
   begin
     select ifnull(nullif('', l.category), raise(ABORT, 'Attempted to create multiple values for a scalar'))
       from loop l
