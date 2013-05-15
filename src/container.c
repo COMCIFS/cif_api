@@ -649,7 +649,11 @@ int cif_container_set_all_values(
     FAILURE_TERMINUS;
 }
 
-int cif_container_get_value(cif_container_t *container, const UChar *name, cif_value_t **val) {
+int cif_container_get_value(
+        cif_container_t *container,
+        const UChar *name,
+        cif_value_t **val
+        ) {
     FAILURE_HANDLING;
     cif_t *cif = container->cif;
     UChar *name_norm;
@@ -677,7 +681,7 @@ int cif_container_get_value(cif_container_t *container, const UChar *name, cif_v
                     FAIL(soft, CIF_NOSUCH_ITEM);
                 case SQLITE_ROW:
                     /* a value was found */
-                    if (val != NULL) {
+                    while (val != NULL) {
                         /* load the value from the DB */
                         cif_value_t *temp = (cif_value_t *) malloc(sizeof(cif_value_t));
 
@@ -685,26 +689,30 @@ int cif_container_get_value(cif_container_t *container, const UChar *name, cif_v
                             GET_VALUE_PROPS(cif->get_value_stmt, 0, temp, inner);
 
                             /* hand the value off to the caller */
-                            *val = temp;
-
-                            /* check whether there are any more values */ 
-                            switch (STEP_STMT(cif, get_value)) {
-                                case SQLITE_ROW:
-                                    sqlite3_reset(cif->get_value_stmt);
-                                    FAIL(soft, CIF_AMBIGUOUS_ITEM);
-                                case SQLITE_DONE:
-                                    return CIF_OK;
-                                /* default: the statement will be dropped, below */
+                            if (*val == NULL) {
+                                *val = temp;
+                                break;
+                            } else if ((cif_value_clean(*val) == CIF_OK) 
+                                    && (cif_value_clone(temp, val) == CIF_OK)) {
+                                free(temp);
+                                break;
                             }
-
-                            break; /* from the containing switch */
 
                             FAILURE_HANDLER(inner):
                             free(temp);
                         }
 
-                        sqlite3_reset(cif->get_value_stmt);
+                        (void) sqlite3_reset(cif->get_value_stmt);
                         DEFAULT_FAIL(soft);
+                    }
+                   
+                    /* check whether there are any more values */ 
+                    switch (STEP_STMT(cif, get_value)) {
+                        case SQLITE_ROW:
+                            (void) sqlite3_reset(cif->get_value_stmt);
+                            FAIL(soft, CIF_AMBIGUOUS_ITEM);
+                        case SQLITE_DONE:
+                            return CIF_OK;
                     }
             }
         }
