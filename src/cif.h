@@ -904,9 +904,6 @@ int cif_container_get_all_loops(
  * @param[in] item_name the name of the item to look up, as a NUL-terminated Unicode string; must not be NULL
  *
  * @param[in,out] val if non-NULL then the location where a pointer to (one of) the item's value(s) should be written.
- *         If a non-NULL pointer is already at the referenced location then its contents are cleaned as if by
- *         @c cif_value_clean() and then overwritten; otherwise a new value object is created and a pointer to it
- *         provided.
  *
  * @return Returns a result code as described above, or @c CIF_ERROR if an error occurs
  */
