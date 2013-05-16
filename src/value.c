@@ -1058,13 +1058,20 @@ int cif_value_create(cif_kind_t kind, cif_value_t **value) {
                 if (cif_value_init_numb(temp, 0.0, 0.0, 0, 1) != CIF_OK) DEFAULT_FAIL(soft);
                 break;
             case CIF_LIST_KIND:
+                temp->kind = CIF_UNK_KIND; /* lest the init function try to clean up */
                 cif_list_init(&(temp->as_list));   /* no additional resource allocation here */
                 break;
             case CIF_TABLE_KIND:
+                temp->kind = CIF_UNK_KIND; /* lest the init function try to clean up */
                 cif_table_init(&(temp->as_table)); /* no additional resource allocation here */
                 break;
-            default:
+            case CIF_NA_KIND:
+                /* fall through */
+            case CIF_UNK_KIND:
+                temp->kind = kind;
                 break;
+            default:
+                FAIL(soft, CIF_ARGUMENT_ERROR);
         }
 
         *value = temp;

@@ -24,7 +24,17 @@ compiled_tests = \
     $(testdir)/test_container_get_category_loop \
     $(testdir)/test_container_get_item_loop \
     $(testdir)/test_container_get_all_loops \
-    $(testdir)/test_loop_get_names
+    $(testdir)/test_loop_get_names \
+    $(testdir)/test_value_create
+# cif_value_clean
+# cif_value_clone
+# cif_value_init_char
+# cif_value_parse_numb
+# cif_value_init_numb
+# cif_value_autoinit_numb
+# cif_value_kind
+# cif_value_as_double
+# cif_value_su_as_double
 # cif_container_get_value
 # cif_container_set_value
 # cif_container_remove_item
@@ -43,16 +53,6 @@ compiled_tests = \
 # cif_packet_remove_item
 # cif_container_destroy
 # cif_loop_destroy
-# cif_value_create
-# cif_value_clean
-# cif_value_clone
-# cif_value_init_char
-# cif_value_parse_numb
-# cif_value_init_numb
-# cif_value_autoinit_numb
-# cif_value_kind
-# cif_value_as_double
-# cif_value_su_as_double
 # cif_loop_free
 # cif_packet_free
 # cif_value_free
