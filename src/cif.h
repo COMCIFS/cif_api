@@ -1406,6 +1406,8 @@ int cif_value_clone(
  *
  * Any previous contents of the provided value object are first cleaned as if by @c cif_value_clean().  Responsibility
  * for the provided string passes to the value object; it should not subsequently be managed directly by the caller.
+ * Note that this implies that the text must be dynamically allocated.  The value object will become sensitive to text
+ * changes performed afterward via the @c text pointer.
  *
  * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
  *
