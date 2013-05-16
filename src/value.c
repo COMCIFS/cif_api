@@ -1359,14 +1359,38 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
 }
 
 int cif_value_init_char(cif_value_t *value, UChar *text) {
-    int clean_result = cif_value_clean(value);
-
-    if (clean_result == CIF_OK) {
-        value->as_char.text = text;
-        value->kind = CIF_CHAR_KIND;
-        return CIF_OK;
+    if (text == NULL) {
+        return CIF_ARGUMENT_ERROR;
     } else {
-        return clean_result;
+        int clean_result = cif_value_clean(value);
+
+        if (clean_result == CIF_OK) {
+            value->as_char.text = text;
+            value->kind = CIF_CHAR_KIND;
+            return CIF_OK;
+        } else {
+            return clean_result;
+        }
+    }
+}
+
+int cif_value_copy_char(cif_value_t *value, UChar *text) {
+    if (text == NULL) {
+        return CIF_ARGUMENT_ERROR;
+    } else {
+        UChar *copy = cif_u_strdup(text);
+
+        if (copy == NULL) {
+            return CIF_ERROR;
+        } else {
+            int result = cif_value_init_char(value, copy);
+
+            if (result != CIF_OK) {
+                free(copy);
+            }
+
+            return result;
+        }
     }
 }
 

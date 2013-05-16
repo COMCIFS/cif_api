@@ -1421,6 +1421,25 @@ int cif_value_init_char(
         );
 
 /**
+ * @brief (Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with a copy of the specified text.
+ *
+ * This function performs the same job as @c cif_value_init_char(), except that it makes a copy of the value text.
+ * Responsibility for the @c text argument does not change, and the value object does not become sensitive to change
+ * via the @c text pointer.  Unlike @c cif_value_init_char(), this function is suitable for for initialization text
+ * that resides on the stack (e.g. in a local array variable) or in read-only memory.
+ *
+ * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
+ *
+ * @param[in] text the new text content for the specified value object; must not be NULL
+ *
+ * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_value_copy_char(
+        /*@in@*/ /*@temp@*/ cif_value_t *value,
+        /*@in@*/ /*@keep@*/ UChar *text
+        );
+
+/**
  * @brief Parses the specified Unicode string to produce a floating-point number and its standard uncertainty,
  *         recording them in the provided value object.
  *
