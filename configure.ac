@@ -38,6 +38,8 @@ AC_ARG_ENABLE([debug],
            [AC_MSG_ERROR([Unrecognized value '$[]{enable_debug}' for --enable-debug])]
     )],
   [enable_debug=no])
+AS_IF([test "x$[]{enable_debug}" = xno],
+  [AC_DEFINE([NDEBUG], [1], [Define to any value to disable assertions])])
 
 AC_ARG_ENABLE([doc-rebuild],
   [AS_HELP_STRING([--enable-doc-rebuild],
@@ -79,6 +81,12 @@ AC_ARG_WITH([line-counter],
 # Programs used during the build process
 
 AC_PROG_CC
+
+# Verify that the chosen C compiler supports C89 code
+AS_IF([test "x${ac_cv_prog_cc_c89}" = xno], [
+  AC_MSG_ERROR([The C compiler @<:@$[]CC@:>@ does not support C89 code.])
+  ])
+
 AC_PROG_GREP
 AC_PROG_SED
 AC_PROG_MKDIR_P
@@ -106,11 +114,11 @@ AS_IF([test "x$[]{line_count}" = x3],
   ])
 AC_SUBST([COUNT_LINES])
 
-# Output CFLAGS that define the C language standards that must be supported,
-# if such flags are known.  Although not harmful for production builds, this
-# is intended mainly for development, to ensure that project language
-# requirements are satisfied.  Thus it's no big deal for a production build
-# if we don't know what flags to use.
+# Output C/cpp flags that define the C language standards that must be
+# supported, if such flags are known.  Although not harmful for production
+# builds, this is intended mainly for development, to ensure that project
+# language requirements are satisfied.  Thus it's no big deal for a
+# production build if we don't know what flags to use for this purpose.
 #
 # Note that this is typically different than what we would achieve via macro
 # AC_PROG_CC_C89 -- that ensures an environment that supports all C89-compliant
@@ -119,7 +127,7 @@ AC_SUBST([COUNT_LINES])
 # understand or is permitted to reject.
 AS_CASE([$[]{CC}],
   [gcc*], [C_STD_FLAGS="-std=c89 -pedantic"],
-  [C_STD_FLAGS=""])
+          [C_STD_FLAGS=""])
 AC_SUBST([C_STD_FLAGS])
 
 # Need to use the C_STD_FLAGS in our tests so that they see the same environment
@@ -142,7 +150,12 @@ AS_CASE([$[]{CC}],
   [WARNING_FLAGS=""])
 AC_SUBST([WARNING_FLAGS])
 
+# Headers
+AC_CHECK_HEADERS([fenv.h])
+
 # Libraries
+
+AC_CHECK_LIB([m], [log10])
 
 AC_SEARCH_LIBS([sqlite3_open_v2], [sqlite3], [], [AC_MSG_FAILURE([SQLite3 not found or not recent enough])])
 # TODO: check SQLite version >= 3.6.19 (or otherwise test that it supports and enforces foreign key constraints) */
@@ -156,7 +169,7 @@ AC_SUBST([ICU_LIBS])
 
 # Specific functions
 
-AC_CHECK_FUNCS([strdup])
+AC_CHECK_FUNCS([strdup fegetround])
 
 # We need to determine whether a declaration of strdup() is available, which
 # might not be the case in some C89-compliant environments.  This is a separate
@@ -164,12 +177,25 @@ AC_CHECK_FUNCS([strdup])
 # may suppress the declaration even though the function is in fact available.
 # (For example, options "-std=c89 -pedantic" have that effect on gcc 4.)
 
-AC_CHECK_DECL([strdup], [AC_DEFINE([HAVE_DECL_STRDUP], [1], [Define to 1 if a declaration of strdup() is visible in string.h])])
+AC_CHECK_DECL([strdup],
+  [AC_DEFINE([HAVE_DECL_STRDUP], [1], [Define to 1 if a declaration of strdup() is visible in string.h])])
+
+# Similarly for fegetround
+AC_CHECK_DECL([fegetround],
+  [AC_DEFINE([HAVE_DECL_FEGETROUND], [1], [Define to 1 if a declaration of fegetround[]() is visible in fenv.h])],
+  [],
+  [[#include <fenv.h>]])
 
 # Headers
 
+AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADER([sqlite3.h], [], [AC_MSG_FAILURE([Required header sqlite3.h was not found])])
 AC_CHECK_HEADER([unicode/ustring.h], [], [AC_MSG_FAILURE([Required header unicode/ustring.h was not found])])
+
+# Data types
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_UINTMAX_T
 
 # These output variables are defined for documentary purposes.  The makefiles add
 # them to the CPP flags, but the current configure script always leaves them empty:

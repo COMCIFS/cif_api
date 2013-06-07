@@ -1463,7 +1463,7 @@ int cif_value_parse_numb(
         );
 
 /**
- * @brief (Re-)initializes the given value as a number wth the specified value and uncertainty, with a number of
+ * @brief (Re-)initializes the given value as a number with the specified value and uncertainty, with a number of
  *     significant figures determined by the specified @p scale
  *
  * Any previous contents of the provided value are released, as if by @c cif_value_clean() .
@@ -1472,8 +1472,9 @@ int cif_value_parse_numb(
  * uncertainty (@p su ) is greater than zero.  It is an error for the uncertainty to be less than zero.
  *
  * The @p scale gives the number of significant digits to the right of the decimal point; the value and uncertainty
- * will be rounded or extended to this number of decimal places.  The scale may be less than zero, indicating that some
- * of the digits to the left of the decimal point are insignificant and not to be recorded.  Care is required with this
+ * will be rounded or extended to this number of decimal places.  Any rounding is performed according to the
+ * floating-point rounding mode in effect at that time.  The scale may be less than zero, indicating that some of the
+ * digits to the left of the decimal point are insignificant and not to be recorded.  Care is required with this
  * parameter: if the given su rounds to exactly zero at the specified scale, then the resulting number object is
  * indistinguishable from one representing an exact number.
  *

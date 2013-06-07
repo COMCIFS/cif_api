@@ -42,7 +42,7 @@ EXTRA_DIST = notes.txt style.txt
 
 # For valgrind tests:
 # TODO: find a cleaner way to do this
-CFLAGS += -O
+#CFLAGS += -O
 
 AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS)
 
