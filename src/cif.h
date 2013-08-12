@@ -277,8 +277,8 @@ static const UChar cif_uchar_nul = 0;
  *
  * @param[in] code a parse error code indicating the nature of the error
  * @param[in] line the one-based line number at which the error was detected
- * @param[in] the one-based column number at which the error was detected
- * @param[in] if not @c NULL , a NUL-terminated Unicode string containing the specific CIF text being parsed where
+ * @param[in] column the one-based column number at which the error was detected
+ * @param[in] text if not @c NULL , a NUL-terminated Unicode string containing the specific CIF text being parsed where
  *         the error was detected
  *
  * @return zero if the parse should continue (with implementation-dependent best-effort error recovery), or nonzero
@@ -302,8 +302,8 @@ struct cif_parse_opts_s {
      * correct to assume CIF 1 when there is no version code.  Nevertheless, if a CIF is known or assumed to otherwise
      * comply with CIF2, then it is desirable to parse it that way regardless of the absence of a version code.
      *
-     * CIF streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled.  In that case,
-     * however, CIF 1 streams that (allowably) omit the version code may be parsed incorrectly.
+     * CIF streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled.  In that
+     * case, however, CIF 1 streams that (allowably) omit the version code may be parsed incorrectly.
      */
     int default_to_cif2;
 
@@ -336,23 +336,25 @@ struct cif_parse_opts_s {
      *         with code points greater than U+007F are detected in localized text input.
      *
      * Per the CIF 2 specifications, if no CIF-recognized encoding signature is present in a CIF, and that CIF
-     * contains encoded characters whose Unicode code points exceed U+007F, then the CIF must be encoded in UTF-8.  Whether
-     * a file in fact contains such characters is a tricky question, however, which can be answered reliably only if the true
-     * encoding is known, and then only by pre-scanning the entire input.  Rather than perform an expensive pre-scan, the
-     * library's integrated CIF parser by default takes an heuristic, optimistic approach: it assumes a system- and
-     * implementation-dependent default text encoding (as influenced by @c default_charset_name), and attempts to parse the
-     * input according to that encoding.  If that encoding is not UTF-8 and a character whose Unicode code point exceeds
-     * U+007F is encountered, then the initial encoding assumption is supposed wrong, and the parser switches to UTF-8.
+     * contains encoded characters whose Unicode code points exceed U+007F, then the CIF must be encoded in UTF-8.
+     * Whether a file in fact contains such characters is a tricky question, however, which can be answered reliably
+     * only if the true encoding is known, and then only by pre-scanning the entire input.  Rather than perform an
+     * expensive pre-scan, the library's integrated CIF parser by default takes an heuristic, optimistic approach: it
+     * assumes a system- and implementation-dependent default text encoding (as influenced by @c default_charset_name),
+     * and attempts to parse the input according to that encoding.  If that encoding is not UTF-8 and a character whose
+     * Unicode code point exceeds U+007F is encountered, then the initial encoding assumption is supposed wrong, and
+     * the parser switches to UTF-8.
      * 
-     * That default approach strikes a reasonable balance for compliant CIFs (including CIF1 CIFs, which will not contain
-     * any characters that would trigger the UTF-8 switch), but it may misinterpret CIFs that fail to conform to CIF
-     * specifications in certain relatively benign, encoding-related ways.  Enabling this option will accommodate some such
-     * inputs by preventing the parser from falling back to UTF-8.
+     * That default approach strikes a reasonable balance for compliant CIFs (including CIF1 CIFs, which will not
+     * contain any characters that would trigger the UTF-8 switch), but it may misinterpret CIFs that fail to conform
+     * to CIF specifications in certain relatively benign, encoding-related ways.  Enabling this option will
+     * accommodate some such inputs by preventing the parser from falling back to UTF-8.
      *
      * Note that falling back to UTF-8 may require re-parsing the input from the beginning, which can be very
      * expensive.  Moreover, switching to UTF-8 @em will produce incorrect results for at least one character if the
      * true encoding is not, in fact, UTF-8.  Therefore, it is advisable to enable this option and set
-     * @c default_charset_name if the input CIF bears no encoding signature, but its correct encoding is known with certainty.
+     * @c default_charset_name if the input CIF bears no encoding signature, but its correct encoding is known with
+     * certainty.
      */
     int suppress_utf8_fallback;
 
@@ -469,7 +471,7 @@ extern "C" {
  */
 
 /**
- * @brief Parses a CIF from the specified stream.
+ * @brief Parses a CIF from the specified stream using the library's built-in parser.
  *
  * The data are interpreted as a standalone CIF providing zero or more data blocks to add to the provided or a new
  * managed CIF object.  It is an error for any added blocks to have block codes that match an existing block's.  If a
@@ -1472,7 +1474,7 @@ int cif_value_parse_numb(
  * uncertainty (@p su ) is greater than zero.  It is an error for the uncertainty to be less than zero.
  *
  * The @p scale gives the number of significant digits to the right of the decimal point; the value and uncertainty
- * will be rounded or extended to this number of decimal places.  Any rounding is performed according to the
+ * will be rounded or extended to this number of decimal places as needed.  Any rounding is performed according to the
  * floating-point rounding mode in effect at that time.  The scale may be less than zero, indicating that some of the
  * digits to the left of the decimal point are insignificant and not to be recorded.  Care is required with this
  * parameter: if the given su rounds to exactly zero at the specified scale, then the resulting number object is
