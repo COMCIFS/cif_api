@@ -15,8 +15,8 @@
  * @li an @em implementation of the interface functions and data types.
  *
  * Only the interface portion is intended as a COMCIFS-sanctioned standard; the reference implementation is provided
- * to validate the form and clarify the intent of the interface specifications, though the intent is that it should
- * be sufficiently stable and robust for general use.
+ * to validate the form and clarify the intent of the interface specifications.  Nevertheless, the intent is that the
+ * final form of the reference implementation should be sufficiently stable and robust for general use.
  *
  * This initiative arose from a COMCIFS resolution adopted at the 2011 triennial conference of the International Union
  * of Crystallography (IUCr).  The intent was to create a standard programming interface for interacting with CIF data,
@@ -78,10 +78,10 @@
  *
  * @subsection oo Object Orientation
  * One of the outcomes of using opaque data structures is a generally object-oriented approach to the
- * interface specifications (in plain C).  Each function can be considered a method of some object type, taking a
+ * interface specifications, in plain C.  Each function can be considered a method of some object type, taking a
  * pointer to an instance of that type as its first argument (or a pointer to a pointer in the case of creation
- * functions), and it is primarily via such functions (methods) that users interact with their data.  Nevertheless,
- * the OO aspect of the interface is intentionally thin and incomplete.
+ * functions), and it is primarily via such functions (methods) that users interact with their data.  This OO
+ * character follows from the API design objectives; it is not an independent objective of its own.
  * 
  * @subsection resources Resource Management
  * C programmers will be well aware of resource management issues.  The CIF API does not relieve programmers of all
@@ -124,6 +124,6 @@
  * form NFC.  The procedure is suggested in Unicode's own discussion of the problem, which notes that it has the
  * necessary property that if its output is fed back as input, then the same output is reproduced.  It also has
  * the desired property that any two character sequences that correspond to the same printed text will have the same
- * normalized form under the algorithm (which the case-folding algorithm alone does not ensure).
+ * normalized form under the algorithm, which the case-folding algorithm alone does not ensure.
  */
 
