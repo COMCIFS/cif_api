@@ -77,7 +77,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcif_la_LIBADD =
 am_libcif_la_OBJECTS = cif.lo ciffile.lo container.lo datablock.lo \
-	loop.lo map.lo packet.lo pktitr.lo utils.lo value.lo
+	loop.lo map.lo packet.lo pktitr.lo utils.lo value.lo walker.lo
 am__objects_1 =
 nodist_libcif_la_OBJECTS = $(am__objects_1)
 libcif_la_OBJECTS = $(am_libcif_la_OBJECTS) \
@@ -447,7 +447,9 @@ libcif_la_SOURCES = \
   pktitr.c \
   utils.c \
   value.c \
+  walker.c \
   cif.h \
+  cif_walker.h \
   internal/buffer.h \
   internal/ciftypes.h \
   internal/sql.h \
@@ -648,6 +650,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_init_numb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/value.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/walker.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
