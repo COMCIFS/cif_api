@@ -153,7 +153,7 @@ static int cif_has_whitespace(const UChar *src) {
 static int cif_is_valid_name(const UChar *name, int for_item) {
     return ((name != NULL)
             && ((for_item == 0) ? (*name != 0) : (*name == UCHAR_UNDERSCORE))
-            && (u_strlen(name) <= (int32_t) CIF_LINE_LENGTH - ((for_item == 0) ? 5 : 0))
+            && (u_countChar32(name, -1) <= (int32_t) CIF_LINE_LENGTH - ((for_item == 0) ? 5 : 0))
             && (cif_has_whitespace(name) == 0)
             && (cif_has_disallowed_chars(name) == 0)) ? 1 : 0;
 }
@@ -255,7 +255,7 @@ static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormaliza
 static UChar *cif_fold_case(const UChar *src, int32_t srclen) {
     int32_t src_chars = ((srclen < 0) ? u_strlen(src) : srclen);
 
-    /* initial guess: the folded version will not contain more characters than the unfolded */
+    /* initial guess: the folded version will not contain more code units than the unfolded */
     int32_t buffer_chars = src_chars + 1;
     UChar *buf = (UChar *) malloc(((size_t) buffer_chars) * sizeof(UChar));
 

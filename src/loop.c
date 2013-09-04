@@ -69,6 +69,23 @@ int cif_loop_destroy(
     FAILURE_TERMINUS;
 }
 
+/* does not touch the database */
+int cif_loop_get_category(cif_loop_t *loop, UChar **category) {
+    if (loop->category == NULL) {
+        *category = NULL;
+        return CIF_OK;
+    } else {
+        UChar *temp = cif_u_strdup(loop->category);
+
+        if (temp != NULL) {
+            *category = temp;
+            return CIF_OK;
+        } else {
+            return CIF_ERROR;
+        }
+    }
+}
+
 /* safe to be called by anyone */
 int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
     FAILURE_HANDLING;

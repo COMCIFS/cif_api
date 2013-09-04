@@ -8,7 +8,7 @@
 
 /** 
  * @file  cif.h
- * @brief The CIF API public header file, declaring all data structures, functions, and macros intended for
+ * @brief The primary CIF API public header file, declaring most data structures, functions, and macros intended for
  *        library users to manipulate.
  *
  * @author John C. Bollinger
@@ -233,18 +233,31 @@
 #define CIF_INVALID_PACKET     52
 
 /**
+ * @brief a result code indicating that an attempt was made to parse or write a value in a context that allows
+ *        only values of kinds different from the given value's
+ *
+ * The only context in CIF 2.0 that allows values of some kinds but not others is table indices.
+ */
+#define CIF_DISALLOWED_VALUE   62
+
+/**
  * @brief a result code indicating that a string provided by the user could not be parsed as a number.
  *
  * "Number" here should be interpreted in the CIF sense: an optionally-signed integer or floating-point number in
  * decimal format, with optional signed exponent and optional standard uncertainty.
  */
-#define CIF_INVALID_NUMBER     62
+#define CIF_INVALID_NUMBER     72
 
 /**
  * @brief a result code indicating that a (Unicode) string provided by the user as a table index is not valid for that
  *        use
  */
-#define CIF_INVALID_INDEX      63
+#define CIF_INVALID_INDEX      73
+
+/**
+ * @brief a result code indicating that input or output exceeded the relevant line-length limit
+ */
+#define CIF_OVERLENGTH_LINE   108
 
 /**
  * @}
@@ -993,6 +1006,24 @@ int cif_loop_free(
  */
 int cif_loop_destroy(
         /*@only@*/ cif_loop_t *loop
+        );
+
+/**
+ * @brief Retrieves this loop's category
+ *
+ * Responsibility for cleaning up the category string belongs to the caller.  Note that loops are not required to
+ * have categories assigned, therefore the category returned may be a NULL pointer.
+ *
+ * @param[in] loop a handle on the loop whose item names are requested
+ *
+ * @param[in,out] code a pointer to the location where a pointer to a NUL-terminated Unicode string containing the
+ *         requested category (or NULL) should be recorded
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_loop_get_category(
+        /*@in@*/ /*@temp@*/ cif_loop_t *loop,
+        /*@in@*/ /*@temp@*/ UChar **category
         );
 
 /**

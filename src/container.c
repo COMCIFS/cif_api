@@ -157,7 +157,7 @@ static int cif_container_add_scalar(
         ) {
     FAILURE_HANDLING;
     cif_loop_t *loop;
-    const UChar *names[2] = { NULL, NULL };
+    UChar *names[2] = { NULL, NULL };
     UChar *norm_names[2] = { NULL, NULL };
     UChar null_char = 0;
     int result;
@@ -167,11 +167,13 @@ static int cif_container_add_scalar(
         case CIF_NOSUCH_LOOP:
             /* first create the scalar loop */
             /* FIXME: avoid re-normalizing the name */
+            /* FIXME: assignment discards 'const' qualifier: */
             names[0] = name_orig;
             result = cif_container_create_loop(container, &null_char, names, &loop);
             if (result == CIF_OK) {
                 cif_packet_t *packet;
 
+                /* FIXME: assignment discards 'const' qualifier: */
                 norm_names[0] = item_name;
                 result = cif_packet_create_norm(&packet, norm_names, CIF_FALSE);
                 if (result == CIF_OK) {
@@ -338,7 +340,7 @@ int cif_container_create_loop(
                                 if ((IS_HARD_ERROR(sqlite3_reset(cif->get_loopnum_stmt), t) == 0)
                                         && (sqlite3_bind_int64(cif->add_loopitem_stmt, 1, container->id) == SQLITE_OK)
                                         && (sqlite3_bind_int(cif->add_loopitem_stmt, 2, temp->loop_num) == SQLITE_OK)) {
-                                    const UChar **name_orig_p;
+                                    UChar **name_orig_p;
 
                                     TRACELINE;
 

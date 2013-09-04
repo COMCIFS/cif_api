@@ -34,6 +34,14 @@
 #define CIF_FALSE (1 == 0)
 
 /*
+ * Macros for the boundaries of UTF-16 surrogate code units; use of these macros
+ * assumes ints are wider than 16 bits.
+ */
+#define MIN_LEAD_SURROGATE   0xd800
+#define MIN_TRAIL_SURROGATE  0xdc00
+#define MAX_SURROGATE        0xdfff
+
+/*
  * Framework code for debug messaging wrappers.  No problem with declaring
  * _debug_result as a static global for this purpose.
  */
