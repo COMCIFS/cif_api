@@ -505,10 +505,10 @@ typedef enum {
  *
  * Each structural element of the CIF being traversed will be presented to the appropriate handler function,
  * along with the appropriate context object, if any.  When traversal is performed via the @c cif_walk() function,
- * the context object is the one passed to cif_walk() by its caller.  The handler may perform any action
- * it considers suitable and is expected to return a code influencing the traversal path, one of:
+ * the context object is the one passed to @c cif_walk() by its caller.  The handler may perform any action
+ * it considers suitable, and it is expected to return a code influencing the traversal path, one of:
  * @li @c CIF_TRAVERSE_CONTINUE for the walker to continue on its default path (for instance, to descend to the current element's first child), or
- * @li @c CIF_TRAVERSE_SKIP_CHILDREN for the walker to skip traversal of the current element's children, if any (meaningfully distinct from @c CIF_TRAVERSE_SKIP_CHILDREN only for the *_start callbacks), or
+ * @li @c CIF_TRAVERSE_SKIP_CHILDREN for the walker to skip traversal of the current element's children, if any (meaningfully distinct from @c CIF_TRAVERSE_CONTINUE only for the @c *_start callbacks), or
  * @li @c CIF_TRAVERSE_SKIP_SIBLINGS for the walker to skip the current element's children and all its siblings that have not yet been traversed, or
  * @li @c CIF_TRAVERSE_END for the walker to stop without traversing any more elements
  *
