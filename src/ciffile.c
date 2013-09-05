@@ -113,14 +113,14 @@ int cif_write(FILE *stream, cif_t *cif) {
     }
 }
 
-static int write_cif_start(cif_t *cif, void *context) {
+static int write_cif_start(cif_t *cif UNUSED, void *context) {
     int num_written = u_fprintf(CONTEXT_UFILE(context), "#\\#CIF_2.0\n");
 
     SET_LAST_COLUMN(context, 0);
     return ((num_written > 0) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
-static int write_cif_end(cif_t *cif, void *context) {
+static int write_cif_end(cif_t *cif UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
@@ -136,7 +136,7 @@ static int write_block_start(cif_container_t *block, void *context) {
     return result;
 }
 
-static int write_block_end(cif_container_t *block, void *context) {
+static int write_block_end(cif_container_t *block UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
@@ -152,7 +152,7 @@ static int write_frame_start(cif_container_t *frame, void *context) {
     return result;
 }
 
-static int write_frame_end(cif_container_t *frame, void *context) {
+static int write_frame_end(cif_container_t *frame UNUSED, void *context) {
     SET_LAST_COLUMN(context, 0);  /* anticipates the next line */
     return ((u_fprintf(CONTEXT_UFILE(context), "\nsave_\n") > 6) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
@@ -206,16 +206,16 @@ static int write_loop_start(cif_loop_t *loop, void *context) {
     return result;
 }
 
-static int write_loop_end(cif_loop_t *loop, void *context) {
+static int write_loop_end(cif_loop_t *loop UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
-static int write_packet_start(cif_packet_t *packet, void *context) {
+static int write_packet_start(cif_packet_t *packet UNUSED, void *context UNUSED) {
     /* No particular action */
     return CIF_TRAVERSE_CONTINUE;
 }
 
-static int write_packet_end(cif_packet_t *packet, void *context) {
+static int write_packet_end(cif_packet_t *packet UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
