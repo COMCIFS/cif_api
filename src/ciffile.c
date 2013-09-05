@@ -15,7 +15,6 @@
 #endif
 
 #include "cif.h"
-#include "cif_walker.h"
 #include "internal/utils.h"
 
 #define CIF_NOWRAP    0
@@ -84,7 +83,7 @@ typedef struct {
  * output.
  */
 int cif_write(FILE *stream, cif_t *cif) {
-    cif_walk_handler_t handler = {
+    cif_handler_t handler = {
         write_cif_start,
         write_cif_end,
         write_block_start,
@@ -118,11 +117,11 @@ static int write_cif_start(cif_t *cif, void *context) {
     int num_written = u_fprintf(CONTEXT_UFILE(context), "#\\#CIF_2.0\n");
 
     SET_LAST_COLUMN(context, 0);
-    return ((num_written > 0) ? CIF_WALK_CONTINUE : CIF_ERROR);
+    return ((num_written > 0) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
 static int write_cif_end(cif_t *cif, void *context) {
-    return (write_newline(context) ? CIF_WALK_CONTINUE : CIF_ERROR);
+    return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
 static int write_block_start(cif_container_t *block, void *context) {
@@ -130,7 +129,7 @@ static int write_block_start(cif_container_t *block, void *context) {
     int result = cif_container_get_code(block, &code);
 
     if (result == CIF_OK) {
-        result = ((u_fprintf(CONTEXT_UFILE(context), "\ndata_%S\n", code) > 7) ? CIF_WALK_CONTINUE : CIF_ERROR);
+        result = ((u_fprintf(CONTEXT_UFILE(context), "\ndata_%S\n", code) > 7) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
         SET_LAST_COLUMN(context, 0);
         free(code);
     }
@@ -138,7 +137,7 @@ static int write_block_start(cif_container_t *block, void *context) {
 }
 
 static int write_block_end(cif_container_t *block, void *context) {
-    return (write_newline(context) ? CIF_WALK_CONTINUE : CIF_ERROR);
+    return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
 static int write_frame_start(cif_container_t *frame, void *context) {
@@ -146,7 +145,7 @@ static int write_frame_start(cif_container_t *frame, void *context) {
     int result = cif_container_get_code(frame, &code);
 
     if (result == CIF_OK) {
-        result = ((u_fprintf(CONTEXT_UFILE(context), "\nsave_%S\n", code) > 7) ? CIF_WALK_CONTINUE : CIF_ERROR);
+        result = ((u_fprintf(CONTEXT_UFILE(context), "\nsave_%S\n", code) > 7) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
         SET_LAST_COLUMN(context, 0);
         free(code);
     }
@@ -155,7 +154,7 @@ static int write_frame_start(cif_container_t *frame, void *context) {
 
 static int write_frame_end(cif_container_t *frame, void *context) {
     SET_LAST_COLUMN(context, 0);  /* anticipates the next line */
-    return ((u_fprintf(CONTEXT_UFILE(context), "\nsave_\n") > 6) ? CIF_WALK_CONTINUE : CIF_ERROR);
+    return ((u_fprintf(CONTEXT_UFILE(context), "\nsave_\n") > 6) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
 static int write_loop_start(cif_loop_t *loop, void *context) {
@@ -168,7 +167,7 @@ static int write_loop_start(cif_loop_t *loop, void *context) {
             /* the scalar loop for this container */
             if (write_newline(context)) {
                 SET_WRITE_ITEM_NAMES(context, CIF_TRUE);
-                result = CIF_WALK_CONTINUE;
+                result = CIF_TRAVERSE_CONTINUE;
             } else {
                 result = CIF_ERROR;
             }
@@ -185,9 +184,9 @@ static int write_loop_start(cif_loop_t *loop, void *context) {
                 if (result == CIF_OK) {
                     UChar **next_name;
 
-                    result = CIF_WALK_CONTINUE;
+                    result = CIF_TRAVERSE_CONTINUE;
                     for (next_name = item_names; *next_name != NULL; next_name += 1) {
-                        if (result == CIF_WALK_CONTINUE) {
+                        if (result == CIF_TRAVERSE_CONTINUE) {
                             if (u_fprintf(CONTEXT_UFILE(context), " %S\n", *next_name) < 4) result = CIF_ERROR;
                             SET_LAST_COLUMN(context, 0);
                         }
@@ -208,16 +207,16 @@ static int write_loop_start(cif_loop_t *loop, void *context) {
 }
 
 static int write_loop_end(cif_loop_t *loop, void *context) {
-    return (write_newline(context) ? CIF_WALK_CONTINUE : CIF_ERROR);
+    return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
 static int write_packet_start(cif_packet_t *packet, void *context) {
     /* No particular action */
-    return CIF_WALK_CONTINUE;
+    return CIF_TRAVERSE_CONTINUE;
 }
 
 static int write_packet_end(cif_packet_t *packet, void *context) {
-    return (write_newline(context) ? CIF_WALK_CONTINUE : CIF_ERROR);
+    return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
 static int write_item(UChar *name, cif_value_t *value, void *context) {
@@ -248,7 +247,7 @@ static int write_item(UChar *name, cif_value_t *value, void *context) {
 
     /* output the value in a manner determined by its kind */
     switch (cif_value_kind(value)) {
-        /* these result value computations rely on the fact that CIF_OK == CIF_WALK_CONTINUE == 0 */
+        /* these result value computations rely on the fact that CIF_OK == CIF_TRAVERSE_CONTINUE == 0 */
         case CIF_CHAR_KIND:
             SET_RESULT(write_char(context, value, CIF_TRUE));
             break;
@@ -262,10 +261,10 @@ static int write_item(UChar *name, cif_value_t *value, void *context) {
             SET_RESULT(write_table(context, value));
             break;
         case CIF_NA_KIND:
-            SET_RESULT((write_literal(context, ".", 1, CIF_WRAP) == 1) ? CIF_WALK_CONTINUE : CIF_ERROR);
+            SET_RESULT((write_literal(context, ".", 1, CIF_WRAP) == 1) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
             break;
         case CIF_UNK_KIND:
-            SET_RESULT((write_literal(context, "?", 1, CIF_WRAP) == 1) ? CIF_WALK_CONTINUE : CIF_ERROR);
+            SET_RESULT((write_literal(context, "?", 1, CIF_WRAP) == 1) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
             break;
         default:
             /* unknown kind */

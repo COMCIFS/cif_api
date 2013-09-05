@@ -66,9 +66,7 @@ libcif_la_SOURCES = \
   pktitr.c \
   utils.c \
   value.c \
-  walker.c \
   cif.h \
-  cif_walker.h \
   internal/buffer.h \
   internal/ciftypes.h \
   internal/sql.h \
