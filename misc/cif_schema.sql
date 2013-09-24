@@ -15,7 +15,8 @@
 -- separate databases (but not necessarily separate DBMSs).
 --
 -- This schema relies to some extent on the characteristics of SQLite, especially
--- dynamic typing.
+-- dynamic typing.  SQLite does not enforce limits on values' sizes based on their
+-- declared data types (e.g. varchar(80)).
 --
 -- The text of this schema is processed at build time into a collection of C
 -- string literals.  So that this is feasible without a full-blown SQL parser,
