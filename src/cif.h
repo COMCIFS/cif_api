@@ -115,6 +115,11 @@
 #define CIF_ENVIRONMENT_ERROR   8
 
 /**
+ * @brief A result code indicating a synthetic error injected via a callback to the client
+ */
+#define CIF_CLIENT_ERROR        9
+
+/**
  * @brief a result code signaling an attempt to cause a CIF to contain blocks with duplicate (by CIF's criteria) block
  *        codes
  */
@@ -655,7 +660,8 @@ int cif_destroy(
  * @param[in] code the block code of the block to add, as a NUL-terminated Unicode string; the block code must
  *        comply with CIF constraints on block codes.
  *
- * @param[in,out] block if not NULL, then a location where a handle on the new block should be recorded.
+ * @param[in,out] block if not NULL, then a location where a handle on the new block should be recorded.  A handle is
+ *        recorded only on success.
  *
  * @return @c CIF_OK on success or an error code on failure, normally one of:
  *        @li @c CIF_INVALID_BLOCKCODE  if the provided block code is invalid
@@ -890,6 +896,16 @@ int cif_container_get_code(
         /*@in@*/ /*@temp@*/ cif_container_t *container,
         /*@in@*/ /*@temp@*/ UChar **code
         );
+
+/**
+ * @brief Asserts that the specified container represents a data block, as opposed to a save frame
+ *
+ * @param[in] container a handle on the container that is asserted to be a data block
+ *
+ * @return @c CIF_OK if the container is a data block, @c CIF_ARGUMENT_ERROR if it is a save frame, or @c CIF_ERROR if
+ *         it is @c NULL
+ */
+int cif_container_assert_block(cif_container_t *container);
 
 /**
  * @brief Creates a new loop in the specified container, and optionally returns a handle on it.
@@ -1469,8 +1485,8 @@ int cif_packet_free(
  */
 int cif_value_create(
         cif_kind_t kind,
-        /*@in@*/ cif_value_t **value
-        ) /*@modifies *value@*/;
+        cif_value_t **value
+        );
 
 /**
  * @brief Frees any resources associated with the provided value object without freeing the object itself,
@@ -1523,6 +1539,28 @@ int cif_value_clone(
         /*@in@*/ /*@temp@*/ cif_value_t *value,
         /*@in@*/ /*@temp@*/ cif_value_t **clone
         ) /*@modifies *clone@*/;
+
+/**
+ * @brief Reinitializes the provided value object to a default value of the specified kind
+ *
+ * The value referenced by the provided handle should have been allocated via @c cif_value_create().  Any unneeded
+ * resources it holds are released.  The specified value kind does not need to be the same as the value's present
+ * kind.  Kind-specific default values are documented with @c cif_value_create().
+ *
+ * This function is equivalent to cif_value_clean() when the specified kind is @c CIF_UNK_KIND, and it is less useful
+ * than the character- and number-specific (re)initialization functions for those value kinds.  It is the only
+ * means available to change an existing value to a list, table, or N/A value in-place, however.
+ *
+ * On failure, the value is left in a valid but undefined state.
+ *
+ * @param[in,out] value a handle on the value to reinitialize; must not be @c NULL
+ * @param[in] kind the cif value kind as which the value should be reinitialized
+ *
+ * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_value_init(
+        cif_value_t *value,
+        cif_kind_t kind);
 
 /**
  * @brief (Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with the specified text
@@ -1720,7 +1758,8 @@ double cif_value_su_as_double(
  *
  * It is important to understand that the "text representation" provided by this function is not the same as the
  * CIF format representation in which the same value might be serialized to a CIF file.  Instead, it is the @em parsed
- * text representation, so, among other things, it omits any CIF delimiters.
+ * text representation, so, among other things, it omits any CIF delimiters and might not adhere to CIF line length
+ * limits.
  * 
  * This function is natural for values of kind @c CIF_CHAR_KIND.  It is also fairly natural for values of kind
  * @c CIF_NUMB_KIND, for those carry a text representation with them to allow for undelimited number-like values
@@ -1780,8 +1819,8 @@ int cif_value_get_element_at(cif_value_t *value, size_t index, cif_value_t **ele
 /**
  * @brief Replaces an existing element of a list value with a different value.
  *
- * The provided value is @em copied into the list; responsibility for the original object is not transferred.  The
- * replaced value is freed and discarded, except as described next.
+ * The provided value is @em copied into the list (if not NULL); responsibility for the original object is not
+ * transferred.  The replaced value is freed and discarded, except as described next.
  * 
  * Special case: if the replacement value is the same object as the one currently at the specified position in the
  * list, then this function succeeds without changing anything.
@@ -1791,7 +1830,7 @@ int cif_value_get_element_at(cif_value_t *value, size_t index, cif_value_t **ele
  * @param[in] index the zero-based index of the element to replace; must be less than the number of elements in the
  *         list
  *
- * @param[in] element a pointer to the replacement value
+ * @param[in] element a pointer to the replacement value, or @c NULL to set a @c CIF_UNK_KIND value
  *
  * @return Returns a status code characteristic of the result:
  *         @li @c CIF_ARGUMENT_ERROR if the @c value has kind different from @c CIF_LIST_KIND , otherwise
@@ -1806,15 +1845,15 @@ int cif_value_set_element_at(cif_value_t *value, size_t index, cif_value_t *elem
  * @brief Inserts an element into the specified list value at the specified position, pushing back the elements
  *         (if any) initially at that and following positions.
  *
- * The provided value is @em copied into the list; responsibility for the original object is not transferred.  The
- * list may be extended by inserting at the index one past its last element.
+ * The provided value is @em copied into the list (if not NULL); responsibility for the original object is not
+ * transferred.  The list may be extended by inserting at the index one past its last element.
  *
  * @param[in,out] value a pointer to the list value to modify
  *
  * @param[in] index the zero-based index of the element to replace; must be less than or equal to the number of
  *         elements in the list
  *
- * @param[in] element a pointer to the value to insert
+ * @param[in] element a pointer to the value to insert, or NULL to insert a @c CIF_UNK_KIND value
  *
  * @return Returns a status code characteristic of the result:
  *         @li @c CIF_ARGUMENT_ERROR if the @c value has kind different from @c CIF_LIST_KIND , otherwise
@@ -1884,7 +1923,7 @@ int cif_value_get_keys(
  * @param[in] key the key of the table entry to set or modify, as a NUL-terminated Unicode string; must meet CIF
  *         validity criteria
  *
- * @param[in] item a pointer to the value object to enter into the table
+ * @param[in] item a pointer to the value object to enter into the table, or @c NULL to enter a @c CIF_UNK_KIND value
  *
  * @return Returns a status code characteristic of the result:
  *         @li @c CIF_ARGUMENT_ERROR if the @c value has kind different from @c CIF_TABLE_KIND , otherwise

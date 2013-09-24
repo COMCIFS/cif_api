@@ -1703,6 +1703,49 @@ int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
     FAILURE_TERMINUS;
 }
 
+/*
+ * Note: in addition to its publicly-documented use, this function may be used to initialize value objects allocated on
+ * the stack, provided that their kind is pre-initialized to CIF_UNK_KIND.
+ */
+int cif_value_init(cif_value_t *value, cif_kind_t kind) {
+    if (kind == CIF_NUMB_KIND) {
+        return cif_value_init_numb(value, 0.0, 0.0, 0, 1);
+    } else {
+        int result = cif_value_clean(value);
+
+        if (result == CIF_OK) {
+            switch (kind) {
+                case CIF_CHAR_KIND:
+                    value->as_char.text = (UChar *) malloc(sizeof(UChar));
+                    if (value->as_char.text == NULL) {
+                        result = CIF_ERROR;
+                    } else {
+                        *(value->as_char.text) = 0;
+                        value->kind = CIF_CHAR_KIND;
+                    }
+                    break;
+                case CIF_LIST_KIND:
+                    cif_list_init(&(value->as_list));    /* no resource allocation here */
+                    break;
+                case CIF_TABLE_KIND:
+                    cif_table_init(&(value->as_table));  /* no resource allocation here */
+                    break;
+                case CIF_NA_KIND:
+                    value->kind = CIF_NA_KIND;
+                    break;
+                case CIF_UNK_KIND:
+                    /* do nothing */
+                    break;
+                default:
+                    result = CIF_ARGUMENT_ERROR;
+                    break;
+            }
+        }
+
+        return result;
+    }
+}
+
 buffer_t *cif_value_serialize(cif_value_t *value) {
     buffer_t *buf = cif_buf_create(DEFAULT_SERIALIZATION_CAP);
 
@@ -2181,7 +2224,7 @@ int cif_value_set_element_at(
             return CIF_OK;
         } else {
             /* TODO: check safety in case of failure: */
-            return cif_value_clone(element, &target);
+            return ((element == NULL) ? cif_value_clean(target): cif_value_clone(element, &target));
         }
     }
 }
@@ -2197,7 +2240,7 @@ int cif_value_insert_element_at(
     } else {
         FAILURE_HANDLING;
         cif_value_t *clone = NULL;
-        int result = cif_value_clone(element, &clone);
+        int result = ((element == NULL) ? cif_value_create(CIF_UNK_KIND, &clone) : cif_value_clone(element, &clone));
 
         if (result == CIF_OK) {
             size_t index2;

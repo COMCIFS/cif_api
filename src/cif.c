@@ -172,6 +172,10 @@ int cif_destroy(cif_t *cif) {
 }
 
 int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
+    return cif_create_block_internal(cif, code, 0, block);
+}
+
+int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_block_t **block) {
     FAILURE_HANDLING;
     cif_block_t *temp;
     int result;
@@ -197,8 +201,10 @@ int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
         temp->code_orig = NULL;
         temp->block_id = -1; /* ensure initialized, but this is meaningful only for save frames */
 
-        /* validate and normalize the block code */
-        if ((result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_BLOCKCODE)) != CIF_OK) {
+        /* validate (if non-lenient) and normalize the block code */
+        result = ((lenient == 0) ? cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_BLOCKCODE)
+                                 : cif_normalize_common(code, -1, &(temp->code)));
+        if (result != CIF_OK) {
             SET_RESULT(result);
         } else {
             temp->code_orig = cif_u_strdup(code);
@@ -264,7 +270,7 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
 
         temp->code_orig = NULL;
         temp->block_id = -1; /* ensure initialized, but this is meaningful only for save frames */
-        result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_BLOCKCODE);
+        result = cif_normalize_common(code, -1, &(temp->code));
         if (result != CIF_OK) {
             SET_RESULT(result);
         } else {

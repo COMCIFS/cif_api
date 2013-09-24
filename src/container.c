@@ -256,6 +256,11 @@ int cif_container_get_code(
     }
 }
 
+/* does not touch the database */
+int cif_container_assert_block(cif_container_t *container) {
+    return ((container == NULL) ? CIF_ERROR : (container->block_id < 0) ? CIF_OK : CIF_ARGUMENT_ERROR);
+}
+
 /* safe to be called by anyone */
 int cif_container_create_loop(
         cif_container_t *container,

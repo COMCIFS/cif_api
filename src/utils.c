@@ -72,19 +72,6 @@ static int cif_has_whitespace(/*@temp@*/ const UChar *str) /*@*/;
 static int cif_is_valid_name(/*@temp@*/ const UChar *name, int for_item);
 
 /*
- * Converts (the initial part of) the specified Unicode string to case-folded normalized form
- *
- * src: the string to normalize; assumed non-NULL
- * srclen: the maximum length of the input to normalize; if less than zero then the whole string is normalized up to
- *     the terminating NUL character (which otherwise does not need to be present)
- * normalized: a pointer to a location to record the result; if NULL then the result is discarded, but the return
- *     cide still indicates whether normalization was successful
- *
- * Returns CIF_ERROR if normalization fails or CIF_OK if it succeeds
- */
-static int cif_normalize_common(/*@temp@*/ const UChar *src, int32_t srclen, UChar **normalized);
-
-/*
  * Applies the specified Unicode normalization form to the (initial segment of the) specified string
  *
  * src: the Unicode string to normalize; assumed non-NULL
@@ -158,7 +145,7 @@ static int cif_is_valid_name(const UChar *name, int for_item) {
             && (cif_has_disallowed_chars(name) == 0)) ? 1 : 0;
 }
 
-static int cif_normalize_common(const UChar *src, int32_t srclen, UChar **normalized) {
+int cif_normalize_common(const UChar *src, int32_t srclen, UChar **normalized) {
     UChar *buf = cif_unicode_normalize(src, srclen, UNORM_NFD);
 
     INIT_USTDERR;

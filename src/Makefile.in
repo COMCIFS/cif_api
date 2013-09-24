@@ -77,7 +77,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libcif_la_LIBADD =
 am_libcif_la_OBJECTS = cif.lo ciffile.lo container.lo datablock.lo \
-	loop.lo map.lo packet.lo pktitr.lo utils.lo value.lo
+	loop.lo map.lo packet.lo parser.lo pktitr.lo utils.lo value.lo
 am__objects_1 =
 nodist_libcif_la_OBJECTS = $(am__objects_1)
 libcif_la_OBJECTS = $(am_libcif_la_OBJECTS) \
@@ -444,6 +444,7 @@ libcif_la_SOURCES = \
   loop.c \
   map.c \
   packet.c \
+  parser.c \
   pktitr.c \
   utils.c \
   value.c \
@@ -626,6 +627,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/loop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/packet.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pktitr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame2.Po@am__quote@

@@ -465,6 +465,18 @@ extern "C" {
 #endif
 
 /*
+ * An internal version of cif_create_block() that allows block code validation to be suppressed (when 'lenient' is
+ * nonzero)
+ */
+int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_block_t **block) INTERNAL ;
+
+/*
+ * An internal version of cif_block_create_frame() that allows frame code validation to be suppressed (when 'lenient' is
+ * nonzero)
+ */
+int cif_block_create_frame_internal(cif_block_t *block, const UChar *code, int lenient, cif_frame_t **frame) INTERNAL ;
+
+/*
  * Creates a new packet for the given item names, and records a pointer to it where the given pointer points.  The
  * names are assumed already normalized, as if by cif_normalize_name()
  * 
@@ -542,6 +554,19 @@ int cif_normalize_item_name(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namel
  */
 int cif_normalize_table_index(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namelen,
         /*@in@*/ /*@temp@*/ UChar **normalized_name, int invalidityCode) /*@modifies *normalized_name@*/ INTERNAL;
+
+/*
+ * Converts (the initial part of) the specified Unicode string to case-folded normalized form
+ *
+ * src: the string to normalize; assumed non-NULL
+ * srclen: the maximum length of the input to normalize; if less than zero then the whole string is normalized up to
+ *     the terminating NUL character (which otherwise does not need to be present)
+ * normalized: a pointer to a location to record the result; if NULL then the result is discarded, but the return
+ *     cide still indicates whether normalization was successful
+ *
+ * Returns CIF_ERROR if normalization fails or CIF_OK if it succeeds
+ */
+int cif_normalize_common(/*@temp@*/ const UChar *src, int32_t srclen, UChar **normalized) INTERNAL;
 
 /*
  * Creates and returns a duplicate of the specified Unicode string.  Returns

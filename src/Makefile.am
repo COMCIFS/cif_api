@@ -63,6 +63,7 @@ libcif_la_SOURCES = \
   loop.c \
   map.c \
   packet.c \
+  parser.c \
   pktitr.c \
   utils.c \
   value.c \

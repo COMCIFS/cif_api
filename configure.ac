@@ -169,7 +169,7 @@ AC_SUBST([ICU_LIBS])
 
 # Specific functions
 
-AC_CHECK_FUNCS([strdup fegetround])
+AC_CHECK_FUNCS([strdup fegetround fileno _fileno])
 
 # We need to determine whether a declaration of strdup() is available, which
 # might not be the case in some C89-compliant environments.  This is a separate

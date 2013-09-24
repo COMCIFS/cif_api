@@ -20,11 +20,11 @@
 extern "C" {
 #endif
 
-int cif_block_create_frame(
-        cif_block_t *block,
-        const UChar *code,
-        cif_frame_t **frame
-        ) {
+int cif_block_create_frame(cif_block_t *block, const UChar *code, cif_frame_t **frame) {
+    return cif_block_create_frame_internal(block, code, 0, frame);
+}
+
+int cif_block_create_frame_internal(cif_block_t *block, const UChar *code, int lenient, cif_frame_t **frame) {
     FAILURE_HANDLING;
     cif_frame_t *temp;
     struct cif_s *cif;
@@ -54,7 +54,8 @@ int cif_block_create_frame(
         temp->code = NULL;
         temp->code_orig = NULL;
 
-        result = cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_FRAMECODE);
+        result = ((lenient == 0) ? cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_FRAMECODE)
+                                 : cif_normalize_common(code, -1, &(temp->code)));
 
         TRACELINE;
 
