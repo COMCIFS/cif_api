@@ -923,7 +923,8 @@ int cif_container_assert_block(cif_container_t *container);
  * @param[in] category the loop's category, as a NUL-terminated Unicode string.  May be NULL.
  *
  * @param[in] names an array of pointers to the item names that should appear in the loop, as NUL-terminated Unicode
- *         strings; the end of the list is indicated by a NULL pointer
+ *         strings, with the end of the list indicated by a NULL pointer; ownership of the array and its contents
+ *         does not transfer
  *
  * @param[in,out] loop if not NULL, points to the location where a handle on the newly-created loop should be recorded.
  *
@@ -1379,15 +1380,15 @@ int cif_packet_get_names(
  *         provide any value for the specified data name.
  *
  * The provided value object is copied into the packet; the packet does not assume responsibility for either the
- * specified value object or the specified name.  The copied value can subsequently be obtained via 
- * @c cif_packet_get_item().
+ * specified value object or the specified name.  If the value handle is @c NULL then an explicit unknown-value object is
+ * recorded.  The copied (or created) value can subsequently be obtained via @c cif_packet_get_item().
  *
  * @param[in,out] packet a pointer to the packet to modify
  *
  * @param[in] name the name of the item within the packet to modify, as a NUL-terminated Unicode string; must be
- *         non-NULL and valid for a CIF data name
+ *         non-null and valid for a CIF data name
  *
- * @param[in] value the value object to copy into the packet
+ * @param[in] value the value object to copy into the packet, or @c NULL for an unknown-value value object to be added
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */

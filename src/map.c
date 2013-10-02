@@ -157,10 +157,11 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                      * &item to (cif_value_t **)).  This allows for stronger optimizations on the whole file.
                      */
                     cif_value_t *existing_value = &(item->as_value);
+                    assert(existing_value != NULL);
 
-                    /* replace the old value with a clone of the new */
-                    if ((cif_value_clean(existing_value) == CIF_OK)
-                            && (cif_value_clone(value, &existing_value) == CIF_OK)) {
+                    /* clone the new value onto the old; or else just clean the old */
+                    if (((value == NULL) && (cif_value_clean(existing_value) == CIF_OK))
+                            || (cif_value_clone(value, &existing_value) == CIF_OK)) {
                         if (key_orig != item->key_orig) {
                             free(item->key_orig);
                             item->key_orig = key_orig;
@@ -187,7 +188,7 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                          */
                         cif_value_t *new_value = &(item->as_value);
 
-                        if (cif_value_clone(value, &new_value) == CIF_OK) {
+                        if (((value == NULL) ? cif_value_create(CIF_UNK_KIND, &new_value) : cif_value_clone(value, &new_value)) == CIF_OK) {
                             item->key = key_norm;
                             item->key_orig = key_copy;
                             HASH_ADD_KEYPTR(hh, map->head, item->key, key_bytes, item);
