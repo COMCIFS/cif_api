@@ -355,7 +355,7 @@ struct cif_parse_opts_s {
 
     /**
      * @brief if not @c NULL , names the coded character set with which the parser will attempt to interpret plain
-     *         "text" files that do not bear CIF-recognized encoding information.
+     *         CIF 1.1 "text" files that do not bear CIF-recognized encoding information.
      *
      * Inasmuch as CIF is a text format, it is essential for the parser to interpret it according to the text encoding
      * with which it was written.  The parser will recognize UTF-8 and UTF-16 (either endianness) for CIFs that begin
@@ -378,31 +378,19 @@ struct cif_parse_opts_s {
     char *default_charset_name;
 
     /**
-     * @brief if non-zero, directs the parser @em not to fall back to UTF-8 in the event that Unicode characters
-     *         with code points greater than U+007F are detected in localized text input.
+     * @brief If non-zero and @c default_charset_name is non-NULL then the specified default charset will be used to
+     *         interpret the CIF 1.1 or 2.0 input, regardless of any encoding signature or appearance to the contrary.
      *
-     * Per the CIF 2 specifications, if no CIF-recognized encoding signature is present in a CIF, and that CIF
-     * contains encoded characters whose Unicode code points exceed U+007F, then the CIF must be encoded in UTF-8.
-     * Whether a file in fact contains such characters is a tricky question, however, which can be answered reliably
-     * only if the true encoding is known, and then only by pre-scanning the entire input.  Rather than perform an
-     * expensive pre-scan, the library's integrated CIF parser by default takes an heuristic, optimistic approach: it
-     * assumes a system- and implementation-dependent default text encoding (as influenced by @c default_charset_name),
-     * and attempts to parse the input according to that encoding.  If that encoding is not UTF-8 and a character whose
-     * Unicode code point exceeds U+007F is encountered, then the initial encoding assumption is supposed wrong, and
-     * the parser switches to UTF-8.
-     * 
-     * That default approach strikes a reasonable balance for compliant CIFs (including CIF1 CIFs, which will not
-     * contain any characters that would trigger the UTF-8 switch), but it may misinterpret CIFs that fail to conform
-     * to CIF specifications in certain relatively benign, encoding-related ways.  Enabling this option will
-     * accommodate some such inputs by preventing the parser from falling back to UTF-8.
+     * This option is dangerous.  Enabling it can cause CIF parsing to fail, or in some cases cause CIF contents to
+     * silently be misinterpreted if the specified default charset is not in fact the correct charset for the input.
+     * On the other hand, use of this option is essential for correctly parsing CIF documents whose encoding cannot be
+     * correctly determined or guessed.
      *
-     * Note that falling back to UTF-8 may require re-parsing the input from the beginning, which can be very
-     * expensive.  Moreover, switching to UTF-8 @em will produce incorrect results for at least one character if the
-     * true encoding is not, in fact, UTF-8.  Therefore, it is advisable to enable this option and set
-     * @c default_charset_name if the input CIF bears no encoding signature, but its correct encoding is known with
-     * certainty.
+     * This option can be used to parse CIF 2.0 text that is encoded other than via UTF-8.  Such a file is not valid
+     * CIF 2.0, and therefore will cause an error to be flagged, but if the error is ignored and the specified encoding
+     * is in fact correct for the input then parsing will otherwise proceed normally.
      */
-    int suppress_utf8_fallback;
+    int force_default_charset;
 
     /**
      * @brief a callback function by which a client application can be notified about parse errors, optionally
