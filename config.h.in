@@ -18,11 +18,11 @@
 /* Define to 1 if you have the <fenv.h> header file. */
 #undef HAVE_FENV_H
 
-/* Define to 1 if you have the `fileno' function. */
-#undef HAVE_FILENO
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <io.h> header file. */
+#undef HAVE_IO_H
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
@@ -59,9 +59,6 @@
 
 /* Define to 1 if the system has the type `unsigned long long int'. */
 #undef HAVE_UNSIGNED_LONG_LONG_INT
-
-/* Define to 1 if you have the `_fileno' function. */
-#undef HAVE__FILENO
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */

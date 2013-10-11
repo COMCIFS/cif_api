@@ -7,7 +7,7 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([CIF API], [0.1.0], [John.Bollinger@StJude.org])
+AC_INIT([CIF API], [0.2.0], [John.Bollinger@StJude.org])
 AC_CONFIG_SRCDIR([src/cif.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -169,7 +169,7 @@ AC_SUBST([ICU_LIBS])
 
 # Specific functions
 
-AC_CHECK_FUNCS([strdup fegetround fileno _fileno])
+AC_CHECK_FUNCS([strdup fegetround])
 
 # We need to determine whether a declaration of strdup() is available, which
 # might not be the case in some C89-compliant environments.  This is a separate
@@ -188,7 +188,7 @@ AC_CHECK_DECL([fegetround],
 
 # Headers
 
-AC_CHECK_HEADERS([stdint.h])
+AC_CHECK_HEADERS([io.h stdint.h unistd.h])
 AC_CHECK_HEADER([sqlite3.h], [], [AC_MSG_FAILURE([Required header sqlite3.h was not found])])
 AC_CHECK_HEADER([unicode/ustring.h], [], [AC_MSG_FAILURE([Required header unicode/ustring.h was not found])])
 
