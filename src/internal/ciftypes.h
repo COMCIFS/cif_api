@@ -179,5 +179,25 @@ struct entry_s {
     UT_hash_handle hh;
 };
 
+/*
+ * A node in a singly-linked list of Unicode strings
+ */
+typedef struct string_el {
+    UChar *string;
+    struct string_el *next;
+} string_element_t;
+
+/*
+ * reads characters from the specified source, of a runtime type appropriate for the pointed-to function, into the
+ * specified destination buffer.  Up to 'count' characters are read.
+ *
+ * Returns the number of characters transferred to the destination buffer, or a number less than zero if an error
+ * occurs.
+ *
+ * If 'count' is nonpositive then zero is returned; otherwise, zero is returned only when no more characters are
+ * available from the specified source.
+ */
+typedef ssize_t (*read_chars_t)(void *char_source, UChar *dest, ssize_t count);
+
 #endif /* INTERNAL_CIFTYPES_H */
 

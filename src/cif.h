@@ -324,13 +324,15 @@ static const UChar cif_uchar_nul = 0;
  * @param[in] code a parse error code indicating the nature of the error
  * @param[in] line the one-based line number at which the error was detected
  * @param[in] column the one-based column number at which the error was detected
- * @param[in] text if not @c NULL , a NUL-terminated Unicode string containing the specific CIF text being parsed where
- *         the error was detected
+ * @param[in] text if not @c NULL , a Unicode string -- not necessarily NUL terminated -- containing the specific
+ *         CIF text being parsed where the error was detected
+ * @param[in] length the number of @c UChar code units starting at the one @c text points to that may be relevant
+ *         to the reported error.  Accessing @c text[length] or beyond produces undefined behavior.
  *
  * @return zero if the parse should continue (with implementation-dependent best-effort error recovery), or nonzero
- *         if the parse should be aborted
+ *         if the parse should be aborted, forwarding the return code to the caller of the parser 
  */
-typedef int (*cif_parse_error_callback_t)(int code, size_t line, size_t column, const UChar *text);
+typedef int (*cif_parse_error_callback_t)(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
  * @brief represents a collection of CIF parsing options.
@@ -344,12 +346,13 @@ struct cif_parse_opts_s {
      * @brief if non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead
      *         of as CIF 1.
      *
-     * Because the CIF-version code is @em required in CIF 2 but optional in CIF 1, it is most technically
-     * correct to assume CIF 1 when there is no version code.  Nevertheless, if a CIF is known or assumed to otherwise
-     * comply with CIF2, then it is desirable to parse it that way regardless of the absence of a version code.
+     * Because the CIF-version code is @em required in CIF 2 but optional in CIF 1, it is most correct to assume CIF 1
+     * when there is no version code.  Nevertheless, if a CIF is known or assumed to otherwise comply with CIF2, then
+     * it is desirable to parse it that way regardless of the absence of a version code.
      *
-     * CIF streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled.  In that
-     * case, however, CIF 1 streams that (allowably) omit the version code may be parsed incorrectly.
+     * CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled (albeit
+     * with an error on account of the missing version code).  In that case, however, CIF 1 streams that (allowably)
+     * omit the version code may be parsed incorrectly.
      */
     int default_to_cif2;
 
@@ -357,53 +360,101 @@ struct cif_parse_opts_s {
      * @brief if not @c NULL , names the coded character set with which the parser will attempt to interpret plain
      *         CIF 1.1 "text" files that do not bear CIF-recognized encoding information.
      *
-     * Inasmuch as CIF is a text format, it is essential for the parser to interpret it according to the text encoding
-     * with which it was written.  The parser will recognize UTF-8 and UTF-16 (either endianness) for CIFs that begin
-     * with a Unicode byte-order mark (BOM), but the CIF specifications are intentionally vague about the meaning
-     * of the terms "text" and "text file" as they apply to other cases.  The intention seems to be that these terms
-     * are interpreted in a system-dependent manner.
+     * Inasmuch as CIF 1 is a text format and CIF 2.0 is a text-like format, it is essential for the parser to interpret
+     * them according to the text encodings with which they are written.  Well-formed CIF 2.0 is Unicode text encoded
+     * via UTF-8, but the CIF 1 specifications are intentionally vague about the terms "text" and "text file", intending
+     * them to be interpreted in a system-dependent manner.  Additionally, documents that conform to CIF 2.0 except with
+     * respect to encoding can still be parsed successfully (though an error will be flagged) if the correct encoding
+     * can be determined.
      *
-     * If no charset is specified via this option (i.e. it is @c NULL ) and no encoding signature is recognized in the
-     * input CIF, then the parser will choose a default text encoding appropriate to the system on which it is running,
-     * and attempt to parse according to that encoding.  How the default encoding is chosen is implementation dependent
-     * in this case.
+     * The parser will recognize UTF-8, UTF-16 (either byte order), and UTF-32 (either of two byte orders) for CIFs that
+     * begin with a Unicode byte-order mark (BOM).  In most cases it will recognize UTF-16 and UTF-32 encodings even
+     * without a BOM, as well.  In some cases it may recognize UTF-8 or other encodings when there is no BOM, and
+     * well-formed CIF 2.0 documents will always be recognized as UTF-8 (also wrongly-encoded CIF 2.0 documents may be
+     * interpreted as UTF-8).
      *
-     * If the correct charset of the input CIF is known, then that charset can be specified by its IANA name via this
-     * option.  Implementations may also recognize aliases and / or unregistered charset names.  If it is supported,
-     * the named charset will be used in the event that no encoding signature is detected, bypassing the library's
-     * usual method for choosing a default charset.  This allows a CIF written in a localized encoding to be parsed
-     * correctly on a system with a different default locale.  It should be noted, however, that such a CIF can
+     * If no encoding is specified via this option (i.e. it is @c NULL ) and no encoding signature is recognized in the
+     * input CIF, then the parser will choose a default text encoding for CIF 1.1 documents that is appropriate to the
+     * system on which it is running, and it will attempt to parse according to that encoding.  How the default encoding
+     * is chosen is implementation dependent in this case.
+     *
+     * If the correct encoding of the input CIF is known, however, then that encoding can be specified by its IANA name
+     * via this option.  Implementations may also recognize aliases and / or unregistered encoding names.  If it is
+     * supported, the named encoding will be used in the event that no encoding signature is detected, bypassing the
+     * library's usual method for choosing a default encoding.  This allows a CIF written in a localized encoding to be
+     * parsed correctly on a system with a different default locale.  It should be noted, however, that such a CIF can
      * reasonably be considered erroneous (on the system where it is being parsed) on account of its encoding.
+     *
+     * The names supported by this option are those recognized by ICU's "converter" API as converter / code page names.
      */
-    char *default_charset_name;
+    char *default_encoding_name;
 
     /**
-     * @brief If non-zero and @c default_charset_name is non-NULL then the specified default charset will be used to
-     *         interpret the CIF 1.1 or 2.0 input, regardless of any encoding signature or appearance to the contrary.
+     * @brief If non-zero then the default encoding specified by @c default_encoding_name will be used to interpret the
+     * CIF 1.1 or 2.0 input, regardless of any encoding signature or other appearance to the contrary.
+     *
+     * If @c default_encoding_name is NULL then it represents a system-dependent default encoding.  That's the norm
+     * for CIF 1.1 input anyway, but if @c force_default_encoding is nonzero then the same system-dependent default will
+     * be chosen for CIF 2.0 as well.
      *
      * This option is dangerous.  Enabling it can cause CIF parsing to fail, or in some cases cause CIF contents to
-     * silently be misinterpreted if the specified default charset is not in fact the correct charset for the input.
+     * silently be misinterpreted if the specified default encoding is not in fact the correct encoding for the input.
      * On the other hand, use of this option is essential for correctly parsing CIF documents whose encoding cannot be
-     * correctly determined or guessed.
+     * determined or guessed correctly.
      *
      * This option can be used to parse CIF 2.0 text that is encoded other than via UTF-8.  Such a file is not valid
      * CIF 2.0, and therefore will cause an error to be flagged, but if the error is ignored and the specified encoding
      * is in fact correct for the input then parsing will otherwise proceed normally.
      */
-    int force_default_charset;
+    int force_default_encoding;
 
     /**
-     * @brief a callback function by which a client application can be notified about parse errors, optionally
-     *         interrupting the parse
+     * @brief modifies whether line-folded text fields will be recognized and unfolded during parsing.
+     *
+     * The line-folding protocol for text fields is part of the CIF 2.0 specification, but it is only a common
+     * convention for CIF 1.  By default, therefore, the parser will recognize and unfold line-folded text fields
+     * when it operates in CIF 2.0 mode, but it will pass them through as-is when it operates in CIF 1.0 mode.  This
+     * option influences that behavior: if greater than zero then the parser will unfold line-folded text fields
+     * regardless of CIF version, and if less than zero then it will @em not recognize or unfold line-folded text
+     * fields even in CIF 2 mode.
+     *
+     * Note that where a text field has been both line-folded and prefixed, the line-folding can be recognized only
+     * if line unfolding and text de-prefixing are @em both enabled.
+     */
+    int line_folding_modifier;
+
+    /**
+     * @brief modifies whether prefixed text fields will be recognized de-prefixed during parsing.
+     *
+     * The prefix protocol for text fields is part of the CIF 2.0 specification, but for CIF 1 it is only a local
+     * convention of certain organizations.  By default, therefore, the parser will recognize and de-prefix prefixed
+     * text fields when it operates in CIF 2.0 mode, but it will pass them through as-is when it operates in CIF 1.0
+     * mode. This option influences that behavior: if greater than zero then the parser will de-prefix prefixed text
+     * fields regardless of CIF version, and if less than zero then it will @em not recognize or de-prefix prefixed
+     * text fields even in CIF 2 mode.
+     *
+     * Note that where a text field has been both line-folded and prefixed, the prefixing can be recognized only
+     * if line unfolding and text de-prefixing are @em both enabled.
+     */
+    int text_prefixing_modifier;
+
+    /**
+     * @brief a callback function by which the client application can be notified about parse errors, affording it the
+     *         option to interrupt the parse or allow it to continue.
      *
      * If not @c NULL, this function will be called by the parser whenever it encounters an error in the input CIF.
-     * The parse will be terminated immediately with an error if this function returns non-zero; other than that, it
-     * serves informational purposes only.  The parser will normally attempt to recover from errors and resume
-     * parsing.
+     * The parse will be terminated immediately with an error if this function returns non-zero; otherwise, it
+     * serves informational purposes only.
+     *
+     * If @c NULL, or if parse options are not specified, then the parser will stop at the first error.
      */
     cif_parse_error_callback_t error_callback;
 
-    /* TODO: others? */
+    /**
+     * @brief a pointer to user data to be forwarded to all callback functions invoked by the parser; opaque to the
+     *         parser itself, and may be @c NULL.
+     */
+    void *user_data;
 };
 
 /**
@@ -550,9 +601,12 @@ extern "C" {
  * @brief Parses a CIF from the specified stream using the library's built-in parser.
  *
  * The data are interpreted as a standalone CIF providing zero or more data blocks to add to the provided or a new
- * managed CIF object.  It is an error for any added blocks to have block codes that match an existing block's.  If a
- * new CIF object is returned then the caller assumes responsibility for releasing its resources at an appropriate time
- * via @c cif_destroy().
+ * managed CIF object.  The caller asserts that the new and any pre-existing data are part of the same logical CIF
+ * data set, therefore it constitutes a parse error for any data blocks in the provided CIF to have block codes that
+ * match that of one of the existing blocks.
+ *
+ * If a new CIF object is created via this function then the caller assumes responsibility for releasing its
+ * resources at an appropriate time via @c cif_destroy().
  *
  * @param[in] stream a @c FILE @c * from which to read the raw CIF data; must be a non-NULL pointer to a readable
  *         stream, which will typically be read to its end
@@ -574,6 +628,16 @@ int cif_parse(
         /*@in@*/ /*@temp@*/ struct cif_parse_opts_s *options,
         /*@out@*/ /*@null@*/ cif_t **cif
         ) /*@modifies *cif@*/;
+
+/**
+ * @brief a CIF parse error handler function that ignores all errors
+ */
+int cif_parse_error_ignore(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
+
+/**
+ * @brief a CIF parse error handler function that interrupts the parse on any error, causing @c CIF_ERROR to be returned
+ */
+int cif_parse_error_die(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
  * @brief Formats the CIF data represented by the @c cif handle to the specified output stream.
@@ -1111,7 +1175,7 @@ int cif_loop_destroy(
  *
  * @param[in] loop a handle on the loop whose item names are requested
  *
- * @param[in,out] code a pointer to the location where a pointer to a NUL-terminated Unicode string containing the
+ * @param[in,out] category a pointer to the location where a pointer to a NUL-terminated Unicode string containing the
  *         requested category (or NULL) should be recorded
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure

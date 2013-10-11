@@ -11,6 +11,7 @@
 #endif
 
 #include <stdlib.h>
+#include <assert.h>
 #include "cif.h"
 #include "internal/ciftypes.h"
 #include "internal/utils.h"

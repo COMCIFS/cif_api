@@ -26,6 +26,8 @@
 #define INTERNAL
 #endif
 
+/* simple macros */
+
 /*
  * Macros for the compiler's sense of true and false values (we cannot use _bool
  * because we want to maintain code compatibility with strict C89 compilers).
@@ -40,6 +42,8 @@
 #define MIN_LEAD_SURROGATE   0xd800
 #define MIN_TRAIL_SURROGATE  0xdc00
 #define MAX_SURROGATE        0xdfff
+
+/* debug macros and data */
 
 /*
  * Framework code for debug messaging wrappers.  No problem with declaring
@@ -115,6 +119,8 @@ extern UFILE *ustderr;
 #define DEBUG_MSG(lead, msg) (msg)
 #endif /* !DEBUG */
 
+/* function-like macros */
+
 /*
  * Frees and nullifies the specified pointer, which must be a pointer lvalue
  * (of any referrent type).  The argument may be NULL; otherwise it must be a
@@ -144,6 +150,13 @@ extern UFILE *ustderr;
         *dest_p = temp; \
     } \
 } while (0)
+
+/*
+ * expands to the name of the variable wherein the current failure handler
+ * error code is recorded; in some cases it may be clearer to set this
+ * directly than to use SET_RESULT()
+ */
+#define FAILURE_VARIABLE _error_code
 
 /*
  * Sets up failure handling for the containing function.  Must appear only
@@ -210,6 +223,12 @@ extern UFILE *ustderr;
  * to have been achieved, but a variable result code can be returned.
  */
 #define SUCCESS_TERMINUS FAILURE_TERMINUS
+
+/*
+ * An alias for FAILURE_TERMINUS, for clarity where control flow reaches the
+ * same terminus in both success and failure cases
+ */
+#define GENERAL_TERMINUS FAILURE_TERMINUS
 
 /*
  * Transaction management macros.  The argument to each should be an sqlite3
@@ -453,12 +472,8 @@ extern UFILE *ustderr;
 #define U_BYTES(s) (u_strlen(s) * sizeof(UChar))
 
 /*
- * A node in a singly-linked list of Unicode strings
+ * function headers for private, non-static functions
  */
-typedef struct string_el {
-    UChar *string;
-    struct string_el *next;
-} string_element_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -612,6 +627,13 @@ int cif_container_set_all_values(
 int cif_pktitr_free(
         /*@only@*/ cif_pktitr_t *iterator
         ) INTERNAL;
+
+/*
+ * A common parser back end (potentially) serving multiple front ends that accept CIF data in different
+ * forms.
+ */
+int cif_parse_internal(void *char_source, read_chars_t read_func, cif_t *dest, int version,
+        struct cif_parse_opts_s *options);
 
 #ifdef __cplusplus
 }

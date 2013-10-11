@@ -6,13 +6,17 @@
  * All rights reserved.
  */
 
-#include <stdio.h>
-#include <unicode/ustring.h>
-#include <unicode/ustdio.h>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdio.h>
+#include <limits.h>
+
+#include <unicode/ustring.h>
+#include <unicode/ustdio.h>
+#include <unicode/ucsdet.h>
+#include <unicode/ucnv.h>
 
 #include "cif.h"
 #include "internal/utils.h"
@@ -23,9 +27,43 @@
 #define PREFIX "> "
 #define PREFIX_LENGTH 2
 
+typedef struct {
+    FILE *byte_stream;
+    unsigned char *byte_buffer;
+    size_t buffer_size;
+    unsigned char *buffer_position;
+    unsigned char *buffer_limit;
+    UConverter *converter;
+    /*
+     *   0 if EOF has not yet been detected;
+     * < 0 if EOF has been detected, but data may not all have been converted;
+     * > 1 if EOF has been detected and all data have been converted
+     */
+    int eof_status;
+} uchar_stream_t;
+
+typedef struct {
+    UFILE *file;
+    int write_item_names;
+    int last_column;
+} write_context_t;
+
+/* the true data type of the CIF walker context pointers used by the CIF-writing functions */
+#define CONTEXT_S write_context_t
+#define CONTEXT_T CONTEXT_S *
+#define CONTEXT_INITIALIZE(c, f) do { c.file = f; c.write_item_names = CIF_FALSE; c.last_column = 0; } while (CIF_FALSE)
+#define CONTEXT_UFILE(c) (((CONTEXT_T)(c))->file)
+#define SET_WRITE_ITEM_NAMES(c,v) do { ((CONTEXT_T)(c))->write_item_names = (v); } while (CIF_FALSE)
+#define IS_WRITE_ITEM_NAMES(c) (((CONTEXT_T)(c))->write_item_names)
+#define SET_LAST_COLUMN(c,l) do { ((CONTEXT_T)(c))->last_column = (l); } while (CIF_FALSE)
+#define LAST_COLUMN(c) (((CONTEXT_T)(c))->last_column)
+#define LINE_LENGTH(c) (CIF_LINE_LENGTH)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count);
 
 static int write_cif_start(cif_t *cif, void *context);
 static int write_cif_end(cif_t *cif, void *context);
@@ -50,33 +88,202 @@ static int32_t write_literal(void *context, const char *text, int length, int wr
 static int32_t write_uliteral(void *context, const UChar *text, int length, int wrap);
 static int write_newline(void *context);
 
+/* The CIF parsing options used when none are provided by the caller */
+static struct cif_parse_opts_s DEFAULT_OPTIONS = { 0, NULL, 0, 0, 0, cif_parse_error_die, NULL };
+
+/* The basic magic code identifying many CIFs (including all well-formed CIF 2.0 CIFs): "#\#CIF_" */
+#define MAGIC_LENGTH 7
+static const UChar MAGIC_CODE[MAGIC_LENGTH] = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f };
+
+/* The number of additional characters in a CIF 2.0 magic code that are not covered by the basic magic code */
+#define MAGIC_EXTRA 3
+
+/* A CIF2 magic number in the platform default encoding */
+static const char CIF2_DEFAULT_MAGIC[MAGIC_LENGTH + MAGIC_EXTRA + 1] = "#\\#CIF_2.0";
+
+/* A CIF2 magic number encoded in UTF-8; in many cases, the contents will match CIF2_DEFAULT_MAGIC */
+static const char CIF2_UTF8_MAGIC[MAGIC_LENGTH + MAGIC_EXTRA + 1] = "\x23\x5c\x23\x43\x49\x46\x5f\x32\x2e\x30";
+
+static const char UTF8[6] = "UTF-8";
+
 /*
  * Parses a CIF from the specified stream.  If the 'cif' argument is non-NULL
  * then a handle for the parsed CIF is written to its referrent.  Otherwise,
  * the parsed results are discarded, but the return code still indicates whether
  * parsing was successful.
+ *
+ * Considerations:
+ * (1) cannot rely on seeking or rewinding the stream
+ * (2) cannot use fileno() or an equivalent, because the provided stream may have data already buffered
+ * (3) cannot initially be certain, in general, which encoding is used
+ *
+ * IMPORTANT: The implementation of this function necessarily involves some implementation-defined (but usually
+ * reliable) behavior.  This arises from ICU's reliance on the 'char' data type for binary data (encoded characters),
+ * relative to the implementation freedom C allows for that type, and from the fact that C I/O is ultimately based on
+ * units of type 'unsigned char'.  It is not guaranteed that type 'char' can represent as many distinct values as
+ * 'unsigned char', or that the bit pattern representing an arbitrary 'unsigned char' is also a valid 'char'
+ * representation, or that interpreting an 'unsigned char' bit pattern as a 'char' value results in the same value
+ * that (for example) fgets() would store to its target string when it processes that bit pattern as input.  The
+ * following code nevertheless assumes all those things to be true.
  */
-int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cif) {
-    /* TODO */
-    return CIF_NOT_SUPPORTED;
+#define BUFFER_SIZE  2048
+int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
+    FAILURE_HANDLING;
+    unsigned char buffer[BUFFER_SIZE];
+    size_t count;
+    cif_t *cif;
+    const char *encoding_name;
+    uchar_stream_t ustream;
+    UErrorCode error_code = U_ZERO_ERROR;
+    int cif_version = 0;
+    int result;
+
+    if (options == NULL) {
+        options = &DEFAULT_OPTIONS;
+    }
+
+    if (cifp == NULL) {
+        cif = NULL;
+    } else if ((result = ((*cifp == NULL) ? cif_create(cifp) : CIF_OK)) == CIF_OK) {
+        cif = *cifp;
+    } else {
+        return result;
+    }
+
+    if (options->force_default_encoding != 0) {
+        encoding_name = options->default_encoding_name;
+        count = 0;
+        if (options->default_to_cif2 != 0) {
+            cif_version = -2;
+        }
+    } else {
+        /* attempt to guess the character encoding based on the first few bytes of the stream */
+
+        char *char_buffer = (char *) buffer;
+
+        count = fread(char_buffer, 1, BUFFER_SIZE, stream);  /* returns a short count only if there isn't enough data */
+        if ((count < BUFFER_SIZE) && ferror(stream)) {
+            DEFAULT_FAIL(early);
+        } else if (count == 0) {
+            /* simplest possible case: empty file --> empty CIF */
+            return CIF_OK;
+        } else {
+            int32_t sig_length;
+
+            /* Look for a Unicode signature (a BOM encoded at the beginning of the stream) */
+            encoding_name = ucnv_detectUnicodeSignature(char_buffer, count, &sig_length, &error_code);
+            if (U_FAILURE(error_code)) {
+                /* FIXME: verify that ICU's idea of failure is what we really want here */
+                DEFAULT_FAIL(early);
+            } else if (encoding_name != NULL) {
+                /* a Unicode encoding signature is successfully detected */
+                /* no further action here */
+            } else if ((count >= MAGIC_LENGTH + MAGIC_EXTRA)
+                    && (memcmp(char_buffer, CIF2_UTF8_MAGIC, MAGIC_LENGTH + MAGIC_EXTRA) == 0)) {
+                /* FIXME: should really test whether the magic number is followed by whitespace (which is required) */
+                /* the input carries a CIF2 binary magic number, so choose UTF8 */
+                encoding_name = UTF8;
+                cif_version = 2;
+            } else if ((options->default_to_cif2 != 0) && ((count < MAGIC_LENGTH + MAGIC_EXTRA)
+                    || ((memcmp(char_buffer, CIF2_DEFAULT_MAGIC, MAGIC_LENGTH) != 0)
+                            && (memcmp(char_buffer, CIF2_UTF8_MAGIC, MAGIC_LENGTH) != 0)))) {
+                /*
+                 * There is no CIF magic code expressed in either of the candidate encodings, and the user has opted to
+                 * default to CIF2 in such cases (contrary to the CIF 2 specifications), yet the user has NOT opted
+                 * to override the default encoding of CIF2 (UTF-8)
+                 */
+                encoding_name = UTF8;
+                cif_version = 2;
+            } else {
+                /*
+                 * There is a magic code for a CIF version other than 2.0, or there is no magic code and the caller
+                 * has not opted to treat the input as CIF 2.0 in that case.
+                 */
+                encoding_name = NULL;  /* use the default encoding */
+                cif_version = 1;
+            }
+        }
+    }
+
+    /* encoding identified, or knowingly defaulted */
+
+    ustream.converter = ucnv_open(encoding_name, &error_code); /* FIXME: is any customization needed? */
+    if (U_SUCCESS(error_code)) {
+        ustream.byte_stream = stream;
+        ustream.byte_buffer = buffer;
+        ustream.buffer_size = BUFFER_SIZE;
+        ustream.buffer_position = buffer;
+        ustream.buffer_limit = buffer + count;
+        ustream.eof_status = 0;
+
+        result = cif_parse_internal(&ustream, ustream_read_chars, cif, cif_version, options);
+
+        ucnv_close(ustream.converter);
+
+        return result;
+    }
+
+    FAILURE_HANDLER(early):
+    FAILURE_TERMINUS;
 }
+#undef BUFFER_SIZE
 
-typedef struct {
-    UFILE *file;
-    int write_item_names;
-    int last_column;
-} write_context_t;
+static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count) {
+    uchar_stream_t *ustream = (uchar_stream_t *) char_source;
 
-/* the true data type of the CIF walker context pointers used by the CIF-writing functions */
-#define CONTEXT_S write_context_t
-#define CONTEXT_T CONTEXT_S *
-#define CONTEXT_INITIALIZE(c, f) do { c.file = f; c.write_item_names = CIF_FALSE; c.last_column = 0; } while (CIF_FALSE)
-#define CONTEXT_UFILE(c) (((CONTEXT_T)(c))->file)
-#define SET_WRITE_ITEM_NAMES(c,v) do { ((CONTEXT_T)(c))->write_item_names = (v); } while (CIF_FALSE)
-#define IS_WRITE_ITEM_NAMES(c) (((CONTEXT_T)(c))->write_item_names)
-#define SET_LAST_COLUMN(c,l) do { ((CONTEXT_T)(c))->last_column = (l); } while (CIF_FALSE)
-#define LAST_COLUMN(c) (((CONTEXT_T)(c))->last_column)
-#define LINE_LENGTH(c) (CIF_LINE_LENGTH)
+    if ((count <= 0) || (ustream->eof_status > 0)) {
+        return 0;
+    } else {
+        UErrorCode error_code = U_ZERO_ERROR;
+        UChar *dest_temp = dest;
+        ssize_t num_read;
+
+        do {
+            char *pos;
+
+            if ((ustream->buffer_position >= ustream->buffer_limit) && (ustream->eof_status == 0)) {
+                /* fill the byte buffer; assumes the buffer size is nonzero */
+
+                /* FIXME: replace FILE/fread() with descriptor/read() when the latter is available */
+                size_t bytes_read = fread(ustream->byte_buffer, 1, ustream->buffer_size, ustream->byte_stream);
+
+                if (bytes_read < ustream->buffer_size) {
+                    if (ferror(ustream->byte_stream) != 0) {
+                        /* I/O error */
+                        return -1;
+                    } else {
+                        /* end-of-file encountered */
+                        ustream->eof_status = -1;
+                    }
+                }
+
+                /* record the boundaries of the valid buffered bytes */
+                ustream->buffer_position = ustream->byte_buffer;
+                ustream->buffer_limit = ustream->byte_buffer + bytes_read;
+            }
+
+            /* convert to Unicode via the associated converter */
+            pos = (char *) ustream->buffer_position;
+            ucnv_toUnicode(ustream->converter, &dest_temp, dest + count, (const char **) &pos,
+                    (char *) ustream->buffer_limit, NULL, (ustream->eof_status != 0), &error_code);
+            ustream->buffer_position = (unsigned char *) pos;
+            num_read = (dest_temp - dest);
+
+            /* catch conversion errors and end of data */
+            if (error_code == U_BUFFER_OVERFLOW_ERROR) {
+                break;
+            } else if (U_FAILURE(error_code)) {
+                return -1;
+            } else if (ustream->eof_status != 0) {
+                /* end of the character stream */
+                ustream->eof_status = 1;
+                break;
+            }
+        } while (num_read == 0);
+
+        return num_read;
+    }
+}
 
 /*
  * Formats the CIF data represented by the 'cif' handle to the specified

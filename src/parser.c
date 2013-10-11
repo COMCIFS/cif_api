@@ -17,6 +17,8 @@
  * The CIF parser implemented herein is a predictive recursive descent parser with full error recovery.
  */
 
+/* TODO: error if CIF 2.0 is parsed as other than UTF-8 */
+
 #include <stdio.h>
 #include <assert.h>
 
@@ -35,6 +37,7 @@
 #define SSIZE_T_MAX      (((size_t) -1) / 2)
 #define BUF_SIZE_INITIAL (4 * (CIF_LINE_LENGTH + 2))
 #define BUF_MIN_FILL          (CIF_LINE_LENGTH + 2)
+#define CHAR_TABLE_MAX   160
 
 /* specific character codes */
 /* Note: numeric character codes avoid codepage dependencies associated with use of ordinary char literals */
@@ -45,6 +48,10 @@
 #define SEMI_CHAR     0x3B
 #define QUERY_CHAR    0x3F
 #define BKSL_CHAR     0x5C
+#define CIF1_MAX_CHAR 0x7E
+#define BOM_CHAR      0xFEFF
+#define REPL_CHAR     0xFFFD
+#define REPL1_CHAR    0x2A
 #define EOF_CHAR      0xFFFF
 
 /* character class codes */
@@ -62,19 +69,21 @@
 #define CBRAK_CLASS  11
 #define OCURL_CLASS  12
 #define CCURL_CLASS  13
-#define COLON_CLASS  14
+/* class 14 is available */
 #define DOLLAR_CLASS 15
-#define A_CLASS      16
-#define B_CLASS      17
-#define D_CLASS      18
-#define E_CLASS      19
-#define G_CLASS      20
-#define L_CLASS      21
-#define O_CLASS      22
-#define P_CLASS      23
-#define S_CLASS      24
-#define T_CLASS      25
-#define V_CLASS      26
+#define OBRAK1_CLASS 16
+#define CBRAK1_CLASS 17
+#define A_CLASS      18
+#define B_CLASS      19
+#define D_CLASS      20
+#define E_CLASS      21
+#define G_CLASS      22
+#define L_CLASS      23
+#define O_CLASS      24
+#define P_CLASS      25
+#define S_CLASS      26
+#define T_CLASS      27
+#define V_CLASS      28
 
 /* identifies the numerically-last class code, but does not itself directly represent a class: */
 #define LAST_CLASS   V_CLASS
@@ -89,10 +98,8 @@
 /* data types */
 
 enum token_type {
-    BLOCK_HEAD, FRAME_HEAD, FRAME_TERM, LOOPKW, NAME, OTABLE, CTABLE, OLIST, CLIST, KV_SEP, VALUE, QVALUE, TVALUE, END
+    BLOCK_HEAD, FRAME_HEAD, FRAME_TERM, LOOPKW, NAME, OTABLE, CTABLE, OLIST, CLIST, KEY, TKEY, VALUE, QVALUE, TVALUE, END
 };
-
-typedef ssize_t (*read_chars_t)(void *char_source, UChar *dest, size_t count);
 
 struct scanner_s {
     UChar *buffer;                   /* A character buffer from which to scan characters */
@@ -110,13 +117,20 @@ struct scanner_s {
     size_t line;                     /* The current 1-based input line number */
     unsigned column;                 /* The number of characters so far scanned from the current line */
 
-    unsigned int char_class[160];    /* Character class codes of the first 160 Unicode characters */
+    unsigned int char_class[CHAR_TABLE_MAX];  /* Character class codes of the first Unicode code points */
     unsigned int meta_class[LAST_CLASS + 1];  /* Character metaclass codes for all the character classes */
 
     /* character source */
     read_chars_t read_func;
     void *char_source;
     int at_eof;
+
+    /* cif version */
+    int cif_version;
+
+    /* custom parse options */
+    int line_unfolding;
+    int prefix_removing;
 };
 
 /* static function headers */
@@ -130,7 +144,7 @@ static int parse_list(struct scanner_s *scanner, cif_value_t **listp);
 static int parse_table(struct scanner_s *scanner, cif_value_t **tablep);
 static int parse_value(struct scanner_s *scanner, cif_value_t **valuep);
 
-/* scanner functions */
+/* scanning functions */
 static int next_token(struct scanner_s *scanner);
 static int scan_ws(struct scanner_s *scanner);
 static int scan_to_ws(struct scanner_s *scanner);
@@ -150,10 +164,13 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     (s).line = 1; \
     (s).column = 0; \
     (s).ttype = END; \
-    for (_i =   0; _i <  32;         _i += 1) (s).char_class[_i] = NO_CLASS; \
-    for (_i =  32; _i < 127;         _i += 1) (s).char_class[_i] = GENERAL_CLASS; \
-    for (_i = 128; _i < 160;         _i += 1) (s).char_class[_i] = NO_CLASS; \
-    for (_i =   1; _i <= LAST_CLASS; _i += 1) (s).meta_class[_i] = GENERAL_META; \
+    (s).cif_version = 2; \
+    (s).line_unfolding = 1; \
+    (s).prefix_removing = 1; \
+    for (_i =   0; _i <  32;            _i += 1) (s).char_class[_i] = NO_CLASS; \
+    for (_i =  32; _i < 127;            _i += 1) (s).char_class[_i] = GENERAL_CLASS; \
+    for (_i = 128; _i < CHAR_TABLE_MAX; _i += 1) (s).char_class[_i] = NO_CLASS; \
+    for (_i =   1; _i <= LAST_CLASS;    _i += 1) (s).meta_class[_i] = GENERAL_META; \
     (s).char_class[0x09] =   WS_CLASS; \
     (s).char_class[0x20] =   WS_CLASS; \
     (s).char_class[CR_CHAR] =  EOL_CLASS; \
@@ -202,12 +219,18 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     (s).meta_class[CCURL_CLASS] = CLOSE_META; \
 } while (CIF_FALSE)
 
-#define MAKE_COLON_SPECIAL(s) do { \
-    (s)->char_class[COLON_CHAR] = COLON_CLASS; \
-} while (CIF_FALSE)
-
-#define MAKE_COLON_NORMAL(s) do { \
-    (s)->char_class[COLON_CHAR] = GENERAL_CLASS; \
+/*
+ * Adjusts an initialized scanner for parsing CIF 1 instead of CIF 2.  Should not be applied multiple times to the
+ * same scanner.
+ */
+#define SET_V1(s) do { \
+    (s).cif_version = 1; \
+    (s).line_unfolding -= 1; \
+    (s).prefix_removing -= 1; \
+    (s).char_class[0x5B] =   OBRAK1_CLASS; \
+    (s).char_class[0x5D] =   CBRAK1_CLASS; \
+    (s).char_class[0x7B] =   GENERAL_CLASS; \
+    (s).char_class[0x7D] =   GENERAL_CLASS; \
 } while (CIF_FALSE)
 
 /**
@@ -217,18 +240,52 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
  * @param[in] s a struct scanner_s containing the rules defining the character's class.
  */
 /*
- * There are additional code points that perhaps should be mapped to NO_CLASS: BMP not-a-character code points
+ * There are additional code points that perhaps should be mapped to NO_CLASS in CIF 2: BMP not-a-character code points
  * 0xFDD0 - 0xFDEF, and per-plane not-a-character code points 0x??FFFE and 0x??FFFF except 0xFFFF (which is co-opted
  * as an EOF marker instead).  Also surrogate code units when not part of a surrogate pair.  At this time, however,
  * there appears little benefit to this macro making those comparatively costly distinctions, especially when it
  * cannot do so at all in the case of unpaired surrogates.
  */
-#define CLASS_OF(c, s)  (((c) < 160) ? (s)->char_class[c] : ((c == EOF_CHAR) ? EOF_CLASS : GENERAL_CLASS))
+#define CLASS_OF(c, s)  (((c) < CHAR_TABLE_MAX) ? (s)->char_class[c] : \
+        (((c) == EOF_CHAR) ? EOF_CLASS : (((s)->cif_version >= 2) ? GENERAL_CLASS : NO_CLASS)))
 
-#define GET_MORE_CHARS(s, ev) do { \
-    /* FIXME: consider dropping this macro in favor of calling get_more_chars() directly */ \
-    ev = get_more_chars(s); \
-} while (CIF_FALSE)
+/*
+ * Evaluates the metaclass to which the class of the specified character belongs, with respect to the given scanner
+ */
+#define METACLASS_OF(c, s) ((s)->meta_class[CLASS_OF((c), (s))])
+
+/* Expands to the length, in UChar code units, of the given scanner's current token */
+#define TVALUE_LENGTH(s) ((s)->tvalue_length)
+
+/* Sets the length, in UChar code units, of the given scanner's current token */
+#define TVALUE_SETLENGTH(s, l) do { (s)->tvalue_length = (l); } while (CIF_FALSE)
+
+/* Increments the length, in UChar code units, of the given scanner's current token */
+#define TVALUE_INCLENGTH(s, n) do { (s)->tvalue_length += (n); } while (CIF_FALSE)
+
+/* Expands to a pointer to the first UChar code unit in the given scanner's current token value */
+#define TVALUE_START(s) ((s)->tvalue_start)
+
+/* Sets a pointer to the first UChar code unit in the given scanner's current token value */
+#define TVALUE_SETSTART(s, c) do { (s)->tvalue_start = (c); } while (CIF_FALSE)
+
+/* Increments the given scanner's pointer to its current token value */
+#define TVALUE_INCSTART(s, n) do { (s)->tvalue_start += (n); } while (CIF_FALSE)
+
+/* expands to the value of the given scanner's current line number */
+#define POSN_LINE(s) ((s)->line)
+
+/* increments the given scanner's line number by the specified amount and resets its column number to zero */
+#define POSN_INCLINE(s, n) do { (s)->line += (n); (s)->column = 0; } while (CIF_FALSE)
+
+/* expands to the value of the given scanner's current column number */
+#define POSN_COLUMN(s) ((s)->column)
+
+/* increments the given scanner's column number by the specified amount */
+#define POSN_INCCOLUMN(s, n) do { (s)->column += (n); } while (CIF_FALSE)
+
+/* FIXME: consider dropping this macro in favor of calling get_more_chars() directly */
+#define GET_MORE_CHARS(s, ev) do { ev = get_more_chars(s); } while (CIF_FALSE)
 
 /*
  * Ensures that the buffer of the specified scanner has at least one character available to read; the available
@@ -271,8 +328,8 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 #define CONSUME_TOKEN(s) do { \
     struct scanner_s *_s_ct = (s); \
     _s_ct->text_start = _s_ct->next_char; \
-    _s_ct->tvalue_start = _s_ct->next_char; \
-    _s_ct->tvalue_length = 0; \
+    TVALUE_SETSTART(_s_ct, _s_ct->next_char); \
+    TVALUE_SETLENGTH(_s_ct, 0); \
 } while (CIF_FALSE)
 
 /*
@@ -285,15 +342,15 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 #define REJECT_TOKEN(s, t) do { \
     struct scanner_s *_s_rt = (s); \
     _s_rt->next_char = _s_rt->text_start; \
-    _s_rt->tvalue_start = _s_rt->next_char; \
-    _s_rt->tvalue_length = 0; \
+    TVALUE_SETSTART(_s_rt, _s_rt->next_char); \
+    TVALUE_SETLENGTH(_s_rt, 0); \
     _s_rt->ttype = (t); \
 } while (CIF_FALSE)
 
 /*
  * Pushes back all but the specified number of initial characters of the current token to be scanned again as part of
  * the next token.  The result is undefined if more characters are pushed back than the current token contains.  The
- * length of the token value is adjusted so that the value extends to the new end of the token.
+ * length of the token value is adjusted so that the value extends to the new end of the remainder of the token.
  * s: the scanner in which to push back characters
  * n: the number of characters of the whole token text to keep (not just of the token value, if they differ)
  */
@@ -301,39 +358,161 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     struct scanner_s *_s_pb = (s); \
     int32_t _n = (n); \
     _s_pb->next_char = _s_pb->text_start + _n; \
-    _s_pb->tvalue_length = _s_pb->next_char - _s_pb->tvalue_start; \
+    TVALUE_SETLENGTH(_s_pb, _s_pb->next_char - TVALUE_START(_s_pb)); \
 } while (CIF_FALSE)
+
+/*
+ * Advances the scanner by one code unit, tracking the current column number and watching for input malformations
+ * associated with surrogate pairs: unpaired surrogates and pairs encoding Unicode code values not permitted in
+ * CIF.  Surrogates have to be handled separately from character buffering in order to correctly handle surrogate
+ * pairs that are split across buffer fills.
+ * s: the scanner to manipulate
+ * c: an lvalue in which to return the code unit read; evaluated multiple times
+ * lead_fl: an lvalue of integral type wherein this macro can store state between runs; should evaluate to false
+ *     before this macro's first run
+ * ev: an lvalue in which an error code can be recorded
+ */
+#define SCAN_CHARACTER(s, c, lead_fl, ev) do { \
+    struct scanner_s *_s = (s); \
+    c = *(_s->next_char); \
+    POSN_INCCOLUMN(_s, 1); \
+    ev = CIF_OK; \
+    switch (c & 0xfc00) { \
+        case 0xd800: \
+            lead_fl = CIF_TRUE; \
+            break; \
+        case 0xdc00: \
+            if (lead_fl) { \
+                if (((c & 0xfffe) == 0xdffe) && ((*(_s->next_char - 1) & 0xfc3f) == 0xd83f)) { \
+                    /* TODO: error disallowed supplemental character */ \
+                    /* recover by replacing with the replacement character and wiping out the lead surrogate */ \
+                    memmove(_s->text_start + 1, _s->text_start, (_s->next_char - _s->text_start)); \
+                    *(_s->next_char) = REPL_CHAR; \
+                    c = REPL_CHAR; \
+                    _s->text_start += 1; \
+                    _s->tvalue_start += 1; \
+                    POSN_INCCOLUMN(_s, -1); \
+                } \
+                lead_fl = CIF_FALSE; \
+            } else { \
+                /* TODO: error unpaired trail surrogate */ \
+                /* recover by replacing with the replacement character */ \
+                *(_s->next_char) = REPL_CHAR; \
+                c = REPL_CHAR; \
+            } \
+            break; \
+        default: \
+            if (lead_fl) { \
+                /* TODO: error unpaired lead surrogate preceding the current character */ \
+                /* recover by replacing with the replacement character */ \
+                *(_s->next_char - 1) = REPL_CHAR; \
+                lead_fl = CIF_FALSE; \
+            } \
+            break; \
+    } \
+    _s->next_char += 1; \
+} while (CIF_FALSE)
+
+/*
+ * Expands to the lesser of its arguments.  The arguments may be evaluated more than once.
+ */
+#define MIN(x,y) (((x) < (y)) ? (x) : (y))
 
 /* function implementations */
 
-int cif_parse_internal(FILE *source, cif_t *dest) {
+#define MAGIC_LENGTH 10
+static const UChar CIF1_MAGIC[MAGIC_LENGTH]
+        = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f, 0x31, 0x2e, 0x31 }; /* #\#CIF_1.1 */
+static const UChar CIF2_MAGIC[MAGIC_LENGTH]
+        = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f, 0x32, 0x2e, 0x30 }; /* #\#CIF_2.0 */
+
+/*
+ * a parser error handler function that ignores all errors
+ */
+int cif_parse_error_ignore(int code UNUSED, size_t line UNUSED, size_t column UNUSED, const UChar *text UNUSED,
+        size_t length UNUSED, void *data UNUSED) {
+    return CIF_OK;
+}
+
+/*
+ * a parser error handler function that rejects all erroneous CIFs with error code @c CIF_ERROR
+ */
+int cif_parse_error_die(int code UNUSED, size_t line UNUSED, size_t column UNUSED, const UChar *text UNUSED,
+        size_t length UNUSED, void *data UNUSED) {
+    return CIF_ERROR;
+}
+
+int cif_parse_internal(void *char_source, read_chars_t read_func, cif_t *dest, int version,
+        struct cif_parse_opts_s *options) {
+    FAILURE_HANDLING;
     struct scanner_s scanner;
-    int result;
+
+    if (read_func == NULL) {
+        return CIF_ARGUMENT_ERROR;
+    }
 
     scanner.buffer = (UChar *) malloc(BUF_SIZE_INITIAL * sizeof(UChar));
-    if (scanner.buffer == NULL) {
-        result = CIF_ERROR;
-    } else {
+    scanner.buffer_size = BUF_SIZE_INITIAL;
+    scanner.buffer_limit = 0;
+
+    if (scanner.buffer != NULL) {
+        UChar c;
+
         INIT_SCANNER(scanner);
-        scanner.buffer_size = BUF_SIZE_INITIAL;
-        scanner.buffer_limit = 0;
         scanner.next_char = scanner.buffer;
         scanner.text_start = scanner.buffer;
         scanner.tvalue_start = scanner.buffer;
         scanner.tvalue_length = 0;
+        scanner.char_source = char_source;
+        scanner.read_func = read_func;
+        scanner.line_unfolding += MIN(options->line_folding_modifier, 1);
+        scanner.prefix_removing += MIN(options->text_prefixing_modifier, 1);
 
-        /* TODO: set up character source */
-        /* TODO: handle BOM, if any (?) */
-        /* TODO: handle CIF version comment, if any */
+        NEXT_CHAR(&scanner, c, FAILURE_VARIABLE);
+        if (FAILURE_VARIABLE == CIF_OK) {
 
-        result = parse_cif(&scanner, dest);
-        
+            /* consume an initial BOM, if present */
+            if (c == BOM_CHAR) {
+                CONSUME_TOKEN(&scanner);
+                NEXT_CHAR(&scanner, c, FAILURE_VARIABLE);
+            }
+
+            if (FAILURE_VARIABLE == CIF_OK) {
+                /* If the CIF version is uncertain then use the CIF magic code, if any, to choose */
+                if ((version <= 0) && (CLASS_OF(c, &scanner) == HASH_CLASS)) {
+                    if ((FAILURE_VARIABLE = scan_to_ws(&scanner)) != CIF_OK) {
+                        DEFAULT_FAIL(early);
+                    }
+                    if (TVALUE_LENGTH(&scanner) == MAGIC_LENGTH) {
+                        if (u_strncmp(TVALUE_START(&scanner), CIF2_MAGIC, MAGIC_LENGTH) == 0) {
+                            version = 2;
+                        } else if (u_strncmp(TVALUE_START(&scanner), CIF1_MAGIC, MAGIC_LENGTH - 3) == 0) {
+                            /* recognize magic codes for all CIF versions other than 2.0 as CIF 1 */
+                            version = 1;
+                        } else {
+                            version = (version < 0) ? -version : 1;
+                        }
+                    } else {
+                        version = (version < 0) ? -version : 1;
+                    }
+                }
+                scanner.next_char = scanner.text_start;
+
+                if (version == 1) {
+                    SET_V1(scanner);
+                }
+
+                SET_RESULT(parse_cif(&scanner, dest));
+            }
+        }
+
+        FAILURE_HANDLER(early):
         free(scanner.buffer);
     }
 
     /* TODO: other cleanup ? */
 
-    return result;
+    GENERAL_TERMINUS;
 }
 
 /*
@@ -355,8 +534,8 @@ static int parse_cif(struct scanner_s *scanner, cif_t *cif) {
         if ((result = next_token(scanner)) != CIF_OK) {
             break;
         }
-        token_value = scanner->tvalue_start;
-        token_length = scanner->tvalue_length;
+        token_value = TVALUE_START(scanner);
+        token_length = TVALUE_LENGTH(scanner);
 
         switch (scanner->ttype) {
             case BLOCK_HEAD:
@@ -392,10 +571,6 @@ static int parse_cif(struct scanner_s *scanner, cif_t *cif) {
                 break;
             case END:
                 /* it's more useful to leave the token than to consume it */
-                goto cif_end;
-            case KV_SEP:
-                /* should not happen because we did not use MAKE_COLON_SPECIAL */
-                result = CIF_INTERNAL_ERROR;
                 goto cif_end;
             default:
                 /* TODO: error missing data block header */
@@ -434,12 +609,13 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
         int32_t token_length;
         UChar *token_value;
         UChar *name;
+        enum token_type alt_ttype = QVALUE;
 
         if ((result = next_token(scanner)) != CIF_OK) {
             break;
         }
-        token_value = scanner->tvalue_start;
-        token_length = scanner->tvalue_length;
+        token_value = TVALUE_START(scanner);
+        token_length = TVALUE_LENGTH(scanner);
 
         switch (scanner->ttype) {
             case BLOCK_HEAD:
@@ -535,6 +711,15 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                     free(name);
                 }
                 break;
+            case TKEY:
+                alt_ttype = TVALUE;
+                /* fall through */
+            case KEY:
+                /* TODO: error missing whitespace */
+                /* recover by pushing back the colon */
+                scanner->next_char -= 1;
+                scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+                /* fall through */
             case TVALUE:
             case QVALUE:
             case VALUE:
@@ -559,7 +744,7 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                 /* no special action, just reject the token */
                 result = CIF_OK;
                 goto container_end;
-            default: /* including at least KV_SEP */
+            default:
                 /* should not happen */
                 result = CIF_INTERNAL_ERROR;
                 break;
@@ -577,8 +762,18 @@ static int parse_item(struct scanner_s *scanner, cif_container_t *container, UCh
 
     if (result == CIF_OK) {
         cif_value_t *value = NULL;
+        enum token_type alt_ttype = QVALUE;
     
         switch (scanner->ttype) {
+            case TKEY:
+                alt_ttype = TVALUE;
+                /* fall through */
+            case KEY:
+                /* TODO: error missing whitespace */
+                /* recover by pushing back the colon */
+                scanner->next_char -= 1;
+                scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+                /* fall through */
             case OLIST:  /* opening delimiter of a list value */
             case OTABLE: /* opening delimiter of a table value */
             case TVALUE:
@@ -586,10 +781,6 @@ static int parse_item(struct scanner_s *scanner, cif_container_t *container, UCh
             case VALUE:
                 /* parse the value */
                 result = parse_value(scanner, &value);
-                break;
-            case KV_SEP:
-                /* should not happen because MAKE_COLON_SPECIAL was not used */
-                result = CIF_INTERNAL_ERROR;
                 break;
             default:
                 /* TODO: error missing value */
@@ -619,8 +810,8 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
 
     /* parse the header */
     while (((result = next_token(scanner)) == CIF_OK) && (scanner->ttype == NAME)) {
-        int32_t token_length = scanner->tvalue_length;
-        UChar *token_value = scanner->tvalue_start;
+        int32_t token_length = TVALUE_LENGTH(scanner);
+        UChar *token_value = TVALUE_START(scanner);
 
         *next_namep = (string_element_t *) malloc(sizeof(string_element_t));
         if (*next_namep == NULL) {
@@ -709,8 +900,18 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                     while ((result = next_token(scanner)) == CIF_OK) {
                         UChar *name;
                         cif_value_t *value = NULL;
+                        enum token_type alt_ttype = QVALUE;
 
                         switch (scanner->ttype) {
+                            case TKEY:
+                                alt_ttype = TVALUE;
+                                /* fall through */
+                            case KEY:
+                                /* TODO: error missing whitespace */
+                                /* recover by pushing back the colon */
+                                scanner->next_char -= 1;
+                                scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+                                /* fall through */
                             case OLIST:  /* opening delimiter of a list value */
                             case OTABLE: /* opening delimiter of a table value */
                             case TVALUE:
@@ -750,9 +951,6 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                                 /* recover by dropping it */
                                 CONSUME_TOKEN(scanner);
                                 break;
-                            case KV_SEP: /* FIXME: should KV_SEP really be caught here? */
-                                result = CIF_INTERNAL_ERROR;
-                                goto packets_end;
                             default:
                                 if (next_name != first_name) {
                                     /* TODO: error partial packet */
@@ -827,12 +1025,22 @@ static int parse_list(struct scanner_s *scanner, cif_value_t **listp) {
 
     while (result == CIF_OK) {
         cif_value_t *element = NULL;
+        enum token_type alt_ttype = QVALUE;
 
         if ((result = next_token(scanner)) != CIF_OK) {
             break;
         }
 
         switch (scanner->ttype) {
+            case TKEY:
+                alt_ttype = TVALUE;
+                /* fall through */
+            case KEY:
+                /* TODO: error missing whitespace */
+                /* recover by pushing back the colon */
+                scanner->next_char -= 1;
+                scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+                /* fall through */
             case OLIST:  /* opening delimiter of a list value */
             case OTABLE: /* opening delimiter of a table value */
             case TVALUE:
@@ -852,10 +1060,6 @@ static int parse_list(struct scanner_s *scanner, cif_value_t **listp) {
                         result = CIF_INTERNAL_ERROR;
                         break;
                 }
-                break;
-            case KV_SEP:
-                /* should not happen because MAKE_COLON_SPECIAL was not used */
-                result = CIF_INTERNAL_ERROR;
                 break;
             case CLIST:
                 /* accept the token and end the list */
@@ -883,6 +1087,12 @@ static int parse_list(struct scanner_s *scanner, cif_value_t **listp) {
 }
 
 static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
+    /*
+     * Implementation note: this function is designed to minimize the damage caused by input malformation.  If a key or value is dropped, or if
+     * a key is turned into a value by removing its colon or inserting whitespace before it, then only one table entry is lost.  Furthermore,
+     * this function recognizes and handles unquoted keys, provided that the configured error callback does not abort parsing when notified
+     * of the problem.
+     */
     cif_value_t *table;
     int result;
 
@@ -895,10 +1105,9 @@ static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
     }
 
     while (result == CIF_OK) {
-        /* parse key / separator / value triples */
+        /* parse (key, value) pairs */
         UChar *key = NULL;
         cif_value_t *value = NULL;
-        int unquoted_key = CIF_FALSE;
 
         /* scan the next key, if any */
 
@@ -907,70 +1116,82 @@ static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
         }
         switch (scanner->ttype) {
             case VALUE:
-                if (*(scanner->tvalue_start) == COLON_CHAR) {
-                    /* TODO error missing key */
-                    /* recover by re-scanning the token (later) as a separator, and dropping the subsequent value */
-                    REJECT_TOKEN(scanner, QVALUE);
+                if (*TVALUE_START(scanner) == COLON_CHAR) {
+                    /* TODO error null key */
+                    /* recover by handling it as a NULL (not empty) key */
+                    if (TVALUE_LENGTH(scanner) > 1) {
+                        PUSH_BACK(scanner, 1);
+                    }
+                    CONSUME_TOKEN(scanner);
                     break;
                 } else {
                     size_t index;
-                    unquoted_key = CIF_TRUE;  /* flag that this MAY be an unquoted key */
 
                     /*
                      * an unquoted string is not valid here, but defer reporting the error until we know whether it is
                      * a stray value or an unquoted key.
                      */
-                    for (index = 1; index < scanner->tvalue_length; index += 1) {
-                        if (scanner->tvalue_start[index] == COLON_CHAR) {
-                            /* push back the first colon and all characters following it */
-                            PUSH_BACK(scanner, index);
+                    for (index = 1; index < TVALUE_LENGTH(scanner); index += 1) {
+                        if (TVALUE_START(scanner)[index] == COLON_CHAR) {
+                            /* TODO: error unquoted key */
+                            /* recover by accepting everything before the first colon as a key */
+                            /* push back all characters following the first colon */
+                            PUSH_BACK(scanner, index + 1);
+                            TVALUE_SETLENGTH(scanner, index);
+                            scanner->ttype = KEY;
                         }
                     }
-                    /* even if no colon was present in the token value it might still be an unquoted key */
+                    if (scanner->ttype != KEY) {
+                        /* TODO error missing key */
+                        /* recover by dropping the value and continuing to the next entry */
+                        CONSUME_TOKEN(scanner);
+                        continue;
+                    } /* else fall through */
                 }
                 /* fall through */
-            case QVALUE:  /* this and CTABLE are the only valid token types here */
+            case KEY:  /* this and CTABLE are the only genuinely valid token types here */
                 /* copy the key to a NUL-terminated Unicode string */
-                key = (UChar *) malloc((scanner->tvalue_length + 1) * sizeof(UChar));
+                key = (UChar *) malloc((TVALUE_LENGTH(scanner) + 1) * sizeof(UChar));
                 if (key != NULL) {
-                    u_strncpy(key, scanner->tvalue_start, scanner->tvalue_length);
-                    key[scanner->tvalue_length] = 0;
+                    u_strncpy(key, TVALUE_START(scanner), TVALUE_LENGTH(scanner));
+                    key[TVALUE_LENGTH(scanner)] = 0;
                     CONSUME_TOKEN(scanner);    
                     break;
                 }
                 result = CIF_ERROR;
                 goto table_end;
-            case TVALUE:
-                /* TODO error: disallowed key type */
-                /* recover by attempting to use the text value as a key */
+            case TKEY:
+                /* TODO error invalid key type */
                 /* extract the text value as a NUL-terminated Unicode string */
-                if ((result = decode_text(scanner, scanner->tvalue_start, scanner->tvalue_length, &value)) == CIF_OK) {
-                    CONSUME_TOKEN(scanner);
+                if ((result = decode_text(scanner, TVALUE_START(scanner), TVALUE_LENGTH(scanner), &value)) == CIF_OK) {
                     result = cif_value_get_text(value, &key);
                     cif_value_free(value); /* ignore any error */
+                    CONSUME_TOKEN(scanner);
                     if (result == CIF_OK) {
                         break;
                     }
+                }
+                goto table_end;
+            case QVALUE:
+            case TVALUE:
+                /* TODO error: unexpected value */
+                /* recover by dropping it */
+                CONSUME_TOKEN(scanner);
+                continue;
+            case OLIST:  /* opening delimiter of a list value */
+            case OTABLE: /* opening delimiter of a table value */
+                /* TODO: error unexpected value */
+                /* recover by accepting and dropping the value */
+                if ((result = parse_value(scanner, &value)) == CIF_OK) {
+                    /* token is already consumed by parse_value() */
+                    cif_value_free(value);  /* ignore any error */
+                    continue; 
                 }
                 goto table_end;
             case CTABLE:
                 CONSUME_TOKEN(scanner);
                 result = CIF_OK;
                 goto table_end;
-            case OLIST:  /* opening delimiter of a list value */
-            case OTABLE: /* opening delimiter of a table value */
-                /* TODO: disallowed key type */
-                /* recover by accepting and dropping the value, and consuming the subsequent KV_SEP, if any */
-                if ((result = parse_value(scanner, &value)) == CIF_OK) {
-                    cif_value_free(value);  /* ignore any error */
-                    continue; 
-                }
-                goto table_end;
-            case KV_SEP:
-                /* TODO: error missing key */
-                /* recover by consuming the following value */
-                /* do not consume the token -- it will be scanned again, next */
-                break;
             default:
                 /* TODO: error unterminated table */
                 /* recover by ending the table; the token is left for the calling context to handle */
@@ -978,121 +1199,37 @@ static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
                 goto table_end;
         }
 
-        /* scan the key/value separator */
-
-        /* ensure that the special significance of the colon is activated */
-        MAKE_COLON_SPECIAL(scanner);
-
-        if ((result = next_token(scanner)) != CIF_OK) {
-            /* Clean up the key and the value object as necessary */
-            if (key == NULL) {
-                cif_value_free(value); /* ignore any error */
-            } else if (key != NULL) {
-                /* the previous token cannot be accepted as a key */
-                cif_value_remove_item_by_key(table, key, NULL);  /* frees the value after removing it.
-                                                                    ignore any error. */
-                free(key);
-            }
-            break;
-        } else {
-            if (scanner->ttype == KV_SEP) {
-                /* expected */
-                CONSUME_TOKEN(scanner);
-
-                if (unquoted_key) {
-                    /* TODO error: unquoted table key */
-                    /* recover by accepting the key (already parsed) */
-                }
-
-                /* validate the key and prepare a value object */
-                if (key != NULL) {
-                    /* check for a duplicate key */
-                    result = cif_value_get_item_by_key(table, key, NULL);
-                    if (result == CIF_NOSUCH_ITEM) {
-                        /* the expected result */
-
-                        /* enroll the key in the table with an unknown value */
-                        if ((result = cif_value_set_item_by_key(table, key, NULL)) == CIF_OK) {
-                            /* Record a pointer to the item value.  This provides a reference, not a copy. */
-                            result = cif_value_get_item_by_key(table, key, &value);
-                        }
-                        /* FIXME: handle CIF_INVALID_INDEX (invalid key) */
-                    } else if (result == CIF_OK) {
-                        /* TODO: error duplicate key */
-                        /* recover by discarding the key, then preparing to parse and discard the incoming value */
-                        free(key);
-                        key = NULL;
-                        result = cif_value_create(CIF_UNK_KIND, &value);
-                    } /* else nothing */
-                }
-            } else { /* expected a key/value separator, but got something else */
-                /* Clean up the key and the value object as necessary */
-                if (key == NULL) {
-                    cif_value_free(value); /* ignore any error */
-                } else if (key != NULL) {
-                    /* the previous token cannot be accepted as a key */
-                    cif_value_remove_item_by_key(table, key, NULL);  /* frees the value after removing it.
-                                                                        ignore any error. */
-                    free(key);
-                }
-
-                /* determine what kind of error to report and how to proceed */
-                switch (scanner->ttype) {
-                    case TVALUE:
-                    case QVALUE:
-                    case VALUE:
-                    case OLIST:  /* opening delimiter of a list value */
-                    case OTABLE: /* opening delimiter of a table value */
-                        /* TODO error extra value (preceding token) */
-                        /* recover by dropping the previous token and continuing */
-                        continue;
-                    case CTABLE:
-                        /* TODO: error extra value at end of table (preceding token) */
-                        /* recover by dropping the previous token and ending the table */
-                        CONSUME_TOKEN(scanner);
-                        result = CIF_OK;
-                        goto table_end;
-                    default:
-                        /* TODO: error unterminated table */
-                        /* recover by closing the table and letting the calling context handle the token */
-                        result = CIF_OK;
-                        goto table_end;
-                }
-                /* not reached */
-                assert(CIF_FALSE);
-            } /* end if scanner->ttype */
-        }
-
         /* scan the value */
 
-        if (result == CIF_OK) {
-            assert(value != NULL);
+        /* obtain a value object into which to scan the value, so as to avoid copying the scanned value after the fact */
+        if ((key != NULL)
+                && (((result = cif_value_set_item_by_key(table, key, NULL)) != CIF_OK) 
+                        || ((result = cif_value_get_item_by_key(table, key, &value)) != CIF_OK))) {
+            break;
+        }
 
-            if ((result = next_token(scanner)) == CIF_OK) {
-                switch (scanner->ttype) {
-                    case OLIST:  /* opening delimiter of a list value */
-                    case OTABLE: /* opening delimiter of a table value */
-                    case TVALUE:
-                    case QVALUE:
-                    case VALUE:
-                        /* parse the incoming value into the existing value object */
-                        result = parse_value(scanner, &value);
-                        break;
-                    default:
-                        /* TODO: error missing value */
-                        /* recover by using an unknown value (already set) */
-                        /* do not consume the token yet */
-                        break;
-                }
-            }
-
-            /* free the value if and only if it does not belong to the table */
-            if (key == NULL) {
-                cif_value_free(value); /* ignore any error */
+        if ((result = next_token(scanner)) == CIF_OK) {
+            switch (scanner->ttype) {
+                case OLIST:  /* opening delimiter of a list value */
+                case OTABLE: /* opening delimiter of a table value */
+                case TVALUE:
+                case QVALUE:
+                case VALUE:
+                    /* parse the incoming value into the existing value object */
+                    result = parse_value(scanner, &value);
+                    break;
+                default:
+                    /* TODO: error missing value */
+                    /* recover by using an unknown value (already set) */
+                    /* do not consume the token here */
+                    break;
             }
         }
 
-        if (key != NULL) {
+        if (key == NULL) {
+            cif_value_free(value); /* ignore any error */
+        } else {
+            /* the value belongs to the table */
             free(key);
         }
     } /* while */
@@ -1112,8 +1249,8 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
 
         /* build a value object or modify the provided one, as appropriate */
         if ((value != NULL) || ((result = cif_value_create(CIF_UNK_KIND, &value)) == CIF_OK)) {
-            UChar *token_value = scanner->tvalue_start;
-            size_t token_length = scanner->tvalue_length;
+            UChar *token_value = TVALUE_START(scanner);
+            size_t token_length = TVALUE_LENGTH(scanner);
 
             switch (scanner->ttype) {
                 case OLIST: /* opening delimiter of a list value */
@@ -1226,7 +1363,8 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                 int32_t prefix_length;
                 int folded;
 
-                if (*text == SEMI_CHAR) { /* text beginning with a semicolon is neither prefixed nor folded */
+                if ((*text == SEMI_CHAR) || ((scanner->line_unfolding <= 0) && (scanner->prefix_removing <= 0))) {
+                    /* text beginning with a semicolon is neither prefixed nor folded */
                     prefix_length = 0;
                     folded = CIF_FALSE;
                 } else {
@@ -1263,11 +1401,11 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
                     end_of_line:
                     /* analyze the results of the scan of the first line */
-                    prefix_length = prefix_length + 1 - backslash_count;
+                    prefix_length = ((scanner->prefix_removing > 0) ? (prefix_length + 1 - backslash_count) : 0);
                     if (!nonws && ((backslash_count == 1)
                             || ((backslash_count == 2) && (prefix_length > 0) && (text[prefix_length] == BKSL_CHAR)))) {
                         /* prefixed or folded or both */
-                        folded = ((prefix_length == 0) || (backslash_count == 2));
+                        folded = (((prefix_length == 0) || (backslash_count == 2)) && (scanner->line_unfolding > 0));
 
                         /* discard the text already copied to the buffer */
                         buf_pos = buffer;
@@ -1275,6 +1413,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                         /* neither prefixed nor folded */
                         prefix_length = 0;
                         folded = CIF_FALSE;
+                        /* keep the buffered text */
                     }
                 }
 
@@ -1348,23 +1487,21 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
 /*
  * Ensures that the provided scanner has the next available token identified and classified.
- *
- * The MAKE_COLON_SPECIAL macro activates recognition of KV_SEP tokens during (only) the next execution of this function
  */
 static int next_token(struct scanner_s *scanner) {
     int result = CIF_OK;
     int last_ttype = scanner->ttype;
 
     /* any token may follow these without intervening whitespace: */
-    int after_ws = ((last_ttype == END) || (last_ttype == OLIST) || (last_ttype == OTABLE) || (last_ttype == KV_SEP));
+    int after_ws = ((last_ttype == END) || (last_ttype == OLIST) || (last_ttype == OTABLE) || (last_ttype == KEY) || (last_ttype == TKEY));
 
     while (scanner->text_start >= scanner->next_char) { /* else there is already a token waiting */
         enum token_type ttype;
         UChar c;
         int clazz;
 
-        scanner->tvalue_start = scanner->text_start;
-        scanner->tvalue_length = 0;
+        TVALUE_SETSTART(scanner, scanner->text_start);
+        TVALUE_SETLENGTH(scanner, 0);
         NEXT_CHAR(scanner, c, result);
         if (result != CIF_OK) {
             break;
@@ -1372,7 +1509,7 @@ static int next_token(struct scanner_s *scanner) {
 
         /* Require whitespace separation between most tokens, but not between keys and values (where it is forbidden) */
         clazz = CLASS_OF(c, scanner);
-        if (!after_ws && (clazz != COLON_CLASS)) {
+        if (!after_ws) {
             switch (scanner->meta_class[clazz]) {
                 case WS_META:
                 case CLOSE_META:
@@ -1416,19 +1553,26 @@ static int next_token(struct scanner_s *scanner) {
                 break;
             case OBRAK_CLASS:
                 ttype = OLIST;
-                scanner->tvalue_length = 1;
+                TVALUE_SETLENGTH(scanner, 1);
                 break;
             case CBRAK_CLASS:
                 ttype = CLIST;
-                scanner->tvalue_length = 1;
+                TVALUE_SETLENGTH(scanner, 1);
+                break;
+            case OBRAK1_CLASS:
+            case CBRAK1_CLASS:
+                /* TODO error: disallowed start char for a ws-delimited value */
+                /* recover by scanning it as the start of a ws-delimited value anyway */
+                result = scan_unquoted(scanner);
+                ttype = VALUE;
                 break;
             case OCURL_CLASS:
                 ttype = OTABLE;
-                scanner->tvalue_length = 1;
+                TVALUE_SETLENGTH(scanner, 1);
                 break;
             case CCURL_CLASS:
                 ttype = CTABLE;
-                scanner->tvalue_length = 1;
+                TVALUE_SETLENGTH(scanner, 1);
                 break;
             case QUOTE_CLASS:
                 result = scan_delim_string(scanner);
@@ -1440,33 +1584,41 @@ static int next_token(struct scanner_s *scanner) {
                     PEEK_CHAR(scanner, c, result);
 
                     if (result == CIF_OK) {
-                        if (CLASS_OF(c, scanner) == COLON_CLASS) {
+                        if (c == COLON_CHAR) {
+                            /* can only happen in CIF 2 mode, for in CIF 1 mode the character after a closing quote is always whitespace */
                             scanner->next_char += 1;
-                            ttype = KV_SEP;
+                            ttype = KEY;
                         } else {
                             ttype = QVALUE;
                         }
 
                         /* either way, the logical token value starts after the opening quote */
-                        scanner->tvalue_start += 1;
+                        TVALUE_INCSTART(scanner, 1);
                     }
                 }
                 break;
             case SEMI_CLASS:
-                if (scanner->column == 1) {  /* semicolon was in column 1 */
-                    result = scan_text(scanner);
-                    scanner->tvalue_start += 1;
-                    ttype = TVALUE;
+                if (POSN_COLUMN(scanner) == 1) {  /* semicolon was in column 1 */
+                    if ((result = scan_text(scanner)) == CIF_OK) {
+                        TVALUE_INCSTART(scanner, 1);
+                        ttype = TVALUE;
+
+                        if (scanner->cif_version >= 2) {
+                            /* peek ahead at the next character to see whether this looks like a (bogus) table key */
+                            PEEK_CHAR(scanner, c, result);
+
+                            if (result == CIF_OK) {
+                                if (c == COLON_CHAR) {
+                                    scanner->next_char += 1;
+                                    ttype = TKEY;
+                                }
+                            }
+                        }
+                    }
                 } else {
                     result = scan_unquoted(scanner);
                     ttype = VALUE;
                 }
-                break;
-            case COLON_CLASS:
-                /* note: whether any character has class COLON_CLASS depends on context */
-                ttype = KV_SEP;
-                scanner->tvalue_length = 1;
-                MAKE_COLON_NORMAL(scanner);
                 break;
             case DOLLAR_CLASS:
                 /* TODO: error frame reference */
@@ -1486,7 +1638,7 @@ static int next_token(struct scanner_s *scanner) {
                  * It's a bit verbose, but straightforward.
                  */
 
-                UChar *token = scanner->tvalue_start;
+                UChar *token = TVALUE_START(scanner);
                 size_t token_length = scanner->tvalue_length;
 
                 if ((token_length > 4) && (CLASS_OF(token[4], scanner) == UNDERSC_CLASS)) {
@@ -1501,24 +1653,24 @@ static int next_token(struct scanner_s *scanner) {
                             CONSUME_TOKEN(scanner);
                         } else {
                             ttype = BLOCK_HEAD;
-                            scanner->tvalue_start += 5;
-                            scanner->tvalue_length -= 5;
+                            TVALUE_INCSTART(scanner, 5);
+                            TVALUE_INCLENGTH(scanner, -5);
                         }
                     } else if (  (CLASS_OF(*token, scanner) == S_CLASS)
                             && (CLASS_OF(token[1], scanner) == A_CLASS)
                             && (CLASS_OF(token[2], scanner) == V_CLASS)
                             && (CLASS_OF(token[3], scanner) == E_CLASS)) {
                         ttype = ((token_length == 5) ? FRAME_TERM : FRAME_HEAD);
-                        scanner->tvalue_start += 5;
-                        scanner->tvalue_length -= 5;
+                        TVALUE_INCSTART(scanner, 5);
+                        TVALUE_INCLENGTH(scanner, - 5);
                     } else if ((token_length == 5)
                             && (CLASS_OF(token[2], scanner) == O_CLASS)
                             && (CLASS_OF(token[3], scanner) == P_CLASS)) {
                         if (         (CLASS_OF(*token, scanner) == L_CLASS)
                                 && (CLASS_OF(token[1], scanner) == O_CLASS)) {
                             ttype = LOOPKW;
-                            scanner->tvalue_start += 5;
-                            scanner->tvalue_length -= 5;
+                            TVALUE_INCSTART(scanner, 5);
+                            TVALUE_INCLENGTH(scanner, - 5);
                         } else if (  (CLASS_OF(*token, scanner) == S_CLASS)
                                 && (CLASS_OF(token[1], scanner) == T_CLASS)) {
                             /* TODO: error 'stop' reserved word */
@@ -1541,7 +1693,6 @@ static int next_token(struct scanner_s *scanner) {
         } /* endif result == CIF_OK */
     } /* end while */
 
-    MAKE_COLON_NORMAL(scanner);
     return result;
 }
 
@@ -1558,11 +1709,11 @@ static int scan_ws(struct scanner_s *scanner) {
             switch (CLASS_OF(c, scanner)) {
                 case WS_CLASS:
                     /* increment the column number; c is assumed to not be a surrogate code value */
-                    scanner->column += 1;
+                    POSN_INCCOLUMN(scanner, 1);
                     sol = 0;
                     break;
                 case EOL_CLASS:
-                    if (scanner->column > CIF_LINE_LENGTH) {
+                    if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) {
                         /* TODO: error long line */
                         /* recover by accepting it as-is */
                     }
@@ -1573,8 +1724,7 @@ static int scan_ws(struct scanner_s *scanner) {
                      * sol code 0x9 == 1001b indicates that the last two characters were CR and LF.  In that case
                      * the line number was incremented for the CR, and should not be incremented again for the LF.
                      */
-                    scanner->line += ((sol == 0x9) ? 0 : 1);
-                    scanner->column = 0;
+                    POSN_INCLINE(scanner, ((sol == 0x9) ? 0 : 1));
                     break;
                 default:
                     goto end_of_token;
@@ -1588,7 +1738,7 @@ static int scan_ws(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    scanner->tvalue_length = (scanner->next_char - scanner->tvalue_start);
+    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
 
@@ -1601,16 +1751,16 @@ static int scan_to_ws(struct scanner_s *scanner) {
 
         for (; scanner->next_char < top; scanner->next_char += 1) {
             UChar c = *(scanner->next_char);
-            int surrogate_mask;
 
-            if (scanner->meta_class[CLASS_OF(c, scanner)] == WS_META) {
+            if (METACLASS_OF(c, scanner) == WS_META) {
                 goto end_of_token;
             }
 
-            /* increment the column number, provided that c is not the trailing surrogate of a surrogate pair */
-            surrogate_mask = c & 0xfc00;
-            scanner->column += ((lead_surrogate && (surrogate_mask == 0xdc00)) ? 0 : 1);
-            lead_surrogate = (surrogate_mask == 0xd800);
+            /* Validate the character and advance the scanner position, incrementing the column number as appropriate */
+            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
         }
 
         GET_MORE_CHARS(scanner, result);
@@ -1620,7 +1770,7 @@ static int scan_to_ws(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    scanner->tvalue_length = (scanner->next_char - scanner->tvalue_start);
+    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
 
@@ -1633,7 +1783,6 @@ static int scan_to_eol(struct scanner_s *scanner) {
 
         for (; scanner->next_char < top; scanner->next_char += 1) {
             UChar c = *(scanner->next_char);
-            int surrogate_mask;
 
             switch (CLASS_OF(c, scanner)) {
                 case EOL_CLASS:
@@ -1641,10 +1790,11 @@ static int scan_to_eol(struct scanner_s *scanner) {
                     goto end_of_token;
             }
 
-            /* increment the column number, provided that c is not the trailing surrogate of a surrogate pair */
-            surrogate_mask = c & 0xfc00;
-            scanner->column += ((lead_surrogate && (surrogate_mask == 0xdc00)) ? 0 : 1);
-            lead_surrogate = (surrogate_mask == 0xd800);
+            /* Validate the character and advance the scanner position, incrementing the column number as appropriate */
+            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
         }
 
         GET_MORE_CHARS(scanner, result);
@@ -1654,7 +1804,7 @@ static int scan_to_eol(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    scanner->tvalue_length = (scanner->next_char - scanner->tvalue_start);
+    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
 
@@ -1667,9 +1817,8 @@ static int scan_unquoted(struct scanner_s *scanner) {
 
         for (; scanner->next_char < top; scanner->next_char += 1) {
             UChar c = *(scanner->next_char);
-            int surrogate_mask;
 
-            switch (scanner->meta_class[CLASS_OF(c, scanner)]) {
+            switch (METACLASS_OF(c, scanner)) {
                 case OPEN_META:
                     /* TODO: error missing whitespace between values */
                     /* fall through */
@@ -1678,10 +1827,11 @@ static int scan_unquoted(struct scanner_s *scanner) {
                     goto end_of_token;
             }
 
-            /* increment the column number, provided that c is not the trailing surrogate of a surrogate pair */
-            surrogate_mask = c & 0xfc00;
-            scanner->column += ((lead_surrogate && (surrogate_mask == 0xdc00)) ? 0 : 1);
-            lead_surrogate = (surrogate_mask == 0xd800);
+            /* Validate the character and advance the scanner position, incrementing the column number as appropriate */
+            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
         }
 
         GET_MORE_CHARS(scanner, result);
@@ -1691,7 +1841,7 @@ static int scan_unquoted(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    scanner->tvalue_length = (scanner->next_char - scanner->tvalue_start);
+    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
 
@@ -1711,15 +1861,25 @@ static int scan_delim_string(struct scanner_s *scanner) {
         int result;
 
         while (scanner->next_char < top) {
-            UChar c = *(scanner->next_char++);
-            int surrogate_mask;
+            UChar c;
 
-            /* increment the column number, provided that c is not the trailing surrogate of a surrogate pair */
-            surrogate_mask = c & 0xfc00;
-            scanner->column += ((lead_surrogate && (surrogate_mask == 0xdc00)) ? 0 : 1);
-            lead_surrogate = (surrogate_mask == 0xd800);
+            /* Read and validate the next character, incrementing the column number as appropriate */
+            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
 
             if (c == delim) {
+                if (scanner->cif_version < 2) {
+                    /* look ahead for whitespace */
+                    PEEK_CHAR(scanner, c, result);
+                    if (result != CIF_OK) {
+                        return result;
+                    } else if (METACLASS_OF(c, scanner) != WS_META) {
+                        /* the current character is part of the value */
+                        continue;
+                    }
+                }
                 delim_size = 1;
                 goto end_of_token;
             } else {
@@ -1740,10 +1900,11 @@ static int scan_delim_string(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    scanner->tvalue_start = scanner->text_start + 1;
-    scanner->tvalue_length = (scanner->next_char - scanner->tvalue_start) - delim_size;
+    TVALUE_INCSTART(scanner, 1);
+    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)) - delim_size);
     return CIF_OK;
 }
+
 
 /*
  * Scans a text block.  Sets the token parameters to mark the block contents, exclusive of delimiters, assuming the
@@ -1759,13 +1920,13 @@ static int scan_text(struct scanner_s *scanner) {
         int result;
 
         while (scanner->next_char < top) {
-            UChar c = *(scanner->next_char++);
-            int surrogate_mask;
+            UChar c;
 
-            /* increment the column number, provided that c is not the trailing surrogate of a surrogate pair */
-            surrogate_mask = c & 0xfc00;
-            scanner->column += ((lead_surrogate && (surrogate_mask == 0xdc00)) ? 0 : 1);
-            lead_surrogate = (surrogate_mask == 0xd800);
+            /* Read and validate the next character, incrementing the column number as appropriate */
+            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
 
             switch (CLASS_OF(c, scanner)) {
                 case SEMI_CLASS:
@@ -1776,7 +1937,7 @@ static int scan_text(struct scanner_s *scanner) {
                     }
                     break;
                 case EOL_CLASS:
-                    if (scanner->column > CIF_LINE_LENGTH) {
+                    if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) {
                         /* TODO: error long line */
                         /* recover by accepting it as-is */
                     }
@@ -1787,8 +1948,7 @@ static int scan_text(struct scanner_s *scanner) {
                      * sol code 0x9 == 1001b indicates that the last two characters were CR and LF.  In that case
                      * the line number was incremented for the CR, and should not be incremented again for the LF.
                      */
-                    scanner->line += ((sol == 0x9) ? 0 : 1);
-                    scanner->column = 0;
+                    POSN_INCLINE(scanner, ((sol == 0x9) ? 0 : 1));
                     break;
                 case EOF_CLASS:
                     /* TODO: error unterminated text block */
@@ -1807,8 +1967,8 @@ static int scan_text(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    scanner->tvalue_start =  scanner->text_start + 1;
-    scanner->tvalue_length = (scanner->next_char - scanner->tvalue_start) - delim_size;
+    TVALUE_INCSTART(scanner, 1);
+    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)) - delim_size);
     return CIF_OK;
 }
 
@@ -1830,13 +1990,13 @@ static int get_more_chars(struct scanner_s *scanner) {
         /* the buffer is empty; reset it to the beginning */
         assert(scanner->next_char == scanner->text_start);
         scanner->text_start = scanner->buffer;
-        scanner->tvalue_start = scanner->buffer;
+        TVALUE_SETSTART(scanner, scanner->buffer);
         scanner->next_char = scanner->buffer;
         scanner->buffer_limit = 0;
     } else if (scanner->buffer_size < (scanner->buffer_limit + BUF_MIN_FILL)) {
         /* need to make room at the top of the buffer */
         size_t current_chars = chars_read - chars_consumed;
-        size_t tvalue_diff = scanner->tvalue_start - scanner->text_start;
+        size_t tvalue_diff = TVALUE_START(scanner) - scanner->text_start;
 
         if (current_chars * 2 <= scanner->buffer_size) {
             /* move the current data to the front of the buffer */
@@ -1861,7 +2021,7 @@ static int get_more_chars(struct scanner_s *scanner) {
 
         /* either way, update scanner state to reflect the changes */
         scanner->text_start = scanner->buffer;
-        scanner->tvalue_start = scanner->buffer + tvalue_diff;
+        TVALUE_SETSTART(scanner, scanner->buffer + tvalue_diff);
         scanner->next_char = scanner->buffer + current_chars;
         scanner->buffer_limit = current_chars;
     }
@@ -1878,6 +2038,27 @@ static int get_more_chars(struct scanner_s *scanner) {
         scanner->at_eof = CIF_TRUE;
         return CIF_OK;
     } else {
+        UChar *start = scanner->buffer + scanner->buffer_limit;
+        UChar *end = start + nread;
+
+        for (; start < end; start += 1) {
+            if ((*start < CHAR_TABLE_MAX) ? (scanner->char_class[*start] == NO_CLASS)
+                    : ((*start > 0xFFFD) || (*start == 0xFEFF) || ((*start >= 0xFDD0) && (*start <= 0xFDEF)))) {
+                /* TODO: error disallowed BMP character */
+                /* recover by replacing with a replacement char */
+                *start = ((scanner->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR);
+            }
+        }
+
+        if (scanner->cif_version < 2) {
+            for (start = scanner->buffer + scanner->buffer_limit; start < end; start += 1) {
+                if (*start > CIF1_MAX_CHAR) {
+                    /* TODO: error disallowed CIF 1 character */
+                    /* recover by accepting the character */
+                }
+            }
+        }
+
         scanner->buffer_limit += nread;
         return CIF_OK;
     }
