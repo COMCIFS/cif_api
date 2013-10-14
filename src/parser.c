@@ -133,6 +133,17 @@ struct scanner_s {
     int prefix_removing;
 };
 
+/* static data */
+
+static const UChar eol_chars[3] { LF_CHAR, CR_CHAR, 0 };
+
+#define MAGIC_LENGTH 10
+static const UChar CIF1_MAGIC[MAGIC_LENGTH]
+        = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f, 0x31, 0x2e, 0x31 }; /* #\#CIF_1.1 */
+static const UChar CIF2_MAGIC[MAGIC_LENGTH]
+        = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f, 0x32, 0x2e, 0x30 }; /* #\#CIF_2.0 */
+
+
 /* static function headers */
 
 /* grammar productions */
@@ -404,7 +415,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
         default: \
             if (lead_fl) { \
                 /* TODO: error unpaired lead surrogate preceding the current character */ \
-                /* recover by replacing with the replacement character */ \
+                /* recover by replacing the surrogate with the replacement character */ \
                 *(_s->next_char - 1) = REPL_CHAR; \
                 lead_fl = CIF_FALSE; \
             } \
@@ -419,12 +430,6 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 #define MIN(x,y) (((x) < (y)) ? (x) : (y))
 
 /* function implementations */
-
-#define MAGIC_LENGTH 10
-static const UChar CIF1_MAGIC[MAGIC_LENGTH]
-        = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f, 0x31, 0x2e, 0x31 }; /* #\#CIF_1.1 */
-static const UChar CIF2_MAGIC[MAGIC_LENGTH]
-        = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f, 0x32, 0x2e, 0x30 }; /* #\#CIF_2.0 */
 
 /*
  * a parser error handler function that ignores all errors
@@ -1328,8 +1333,8 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
 
 
 /*
- * Decodes the contents of a text block by un-prefixing and unfolding lines as appropriate, and records the
- * result in a CIF value object.
+ * Decodes the contents of a text block by un-prefixing and unfolding lines as appropriate, and standardizing line
+ * terminators to a single newline character.  Records the result in a CIF value object.
  *
  * If dest points to a non-NULL value handle then the associated value object is modified
  * (on success) to be of kind CIF_CHAR_KIND, holding the parsed text.  Otherwise, a new value
@@ -1381,21 +1386,26 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                         *(buf_pos++) = c;
 
                         /* update statistics */
-                        if (c == BKSL_CHAR) {
-                            prefix_length = (in_pos - text) - 1; /* the number of characters preceding this one */
-                            backslash_count += 1;                /* the total number of backslashes on this line */
-                            nonws = CIF_FALSE;                   /* reset the nonws flag */
-                        } else {
-                            switch(CLASS_OF(c, scanner)) {
-                                case EOL_CLASS:
-                                    goto end_of_line;
-                                case WS_CLASS:
-                                    /* nothing */
-                                    break;
-                                default:
+                        switch (c) {
+                            case BKSL_CHAR:
+                                prefix_length = (in_pos - text) - 1; /* the number of characters preceding this one */
+                                backslash_count += 1;                /* the total number of backslashes on this line */
+                                nonws = CIF_FALSE;                   /* reset the nonws flag */
+                                break;
+                            case CR_CHAR:
+                                /* convert CR and CR LF to LF */
+                                *(buf_pos - 1) = LF_CHAR;
+                                if ((in_pos < in_limit) && (*in_pos == LF_CHAR)) {
+                                    in_pos += 1;
+                                }
+                                /* fall through */
+                            case LF_CHAR:
+                                goto end_of_line;
+                            default:
+                                if (CLASS_OF(c, scanner) != WS_CLASS) {
                                     nonws = CIF_TRUE;
-                                    break;
-                            }
+                                }
+                                break;
                         }
                     }
 
@@ -1418,16 +1428,38 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                 }
 
                 if (!folded && (prefix_length == 0)) {
-                    /* copy the rest of the text verbatim */
-                    u_strncpy(buf_pos, in_pos, text_length - (in_pos - text));
-                    buffer[text_length] = 0;
+                    /* copy the rest of the text, performing line terminator conversion as appropriate */
+                    UChar *in_start = in_pos;
+                    int32_t length;
+
+                    while (in_pos < in_limit) {
+                        UChar c = *in_pos;
+
+                        if (c == CR_CHAR) {
+                            length = in_pos++ - in_start;
+                            u_strncpy(buf_pos, in_start, length);
+                            buf_pos += length;
+                            *(buf_pos++) = LF_CHAR;
+                            if ((in_pos < in_limit) && (*in_pos == LF_CHAR)) {
+                                in_pos += 1;
+                            }
+                            in_start = in_pos;
+                        } else {
+                            in_pos += 1;
+                        }
+                    }
+
+                    length = in_limit - in_start;
+                    u_strncpy(buf_pos, in_start, length);
+                    buf_pos[length] = 0;
                 } else {
+
                     /* process the text line-by-line, confirming and consuming prefixes and unfolding as appropriate */
                     while (in_pos < in_limit) { /* each line */
                         UChar *buf_temp = NULL;
 
                         /* consume the prefix, if any */
-                        if (u_strncmp(text, in_pos, prefix_length) == 0) {
+                        if (((in_limit - in_pos) <= prefix_length) && (u_strncmp(text, in_pos, prefix_length) == 0)) {
                             in_pos += prefix_length;
                         } else {
                             /* TODO: error missing prefix */
@@ -1443,13 +1475,26 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
                             /* handle line folding where appropriate */
                             if ((c == BKSL_CHAR) && folded) {
+                                /* buf_temp tracks the position of the backslash in the output buffer */
                                 buf_temp = buf_pos - 1;
                             } else {
                                 int class = CLASS_OF(c, scanner);
 
                                 if (class == EOL_CLASS) {
+                                    /* convert CR and CR LF to LF */
+                                    if (c == CR_CHAR) {
+                                        *(buf_pos - 1) = LF_CHAR;
+                                        if ((in_pos < in_limit) && (*in_pos == LF_CHAR)) {
+                                            in_pos += 1;
+                                        }
+                                    }
+
                                     /* if appropriate, rewind the output buffer to achieve line folding */
-                                    if (buf_temp != NULL) buf_pos = buf_temp;
+                                    if (buf_temp != NULL) {
+                                        buf_pos = buf_temp;
+                                        buf_temp = NULL;
+                                    }
+
                                     break;
                                 } else if (class != WS_CLASS) {
                                     buf_temp = NULL;
@@ -1616,6 +1661,7 @@ static int next_token(struct scanner_s *scanner) {
                         }
                     }
                 } else {
+                    /* exactly as the default case, but we can't fall through */
                     result = scan_unquoted(scanner);
                     ttype = VALUE;
                 }
@@ -1853,8 +1899,8 @@ static int scan_unquoted(struct scanner_s *scanner) {
  */
 static int scan_delim_string(struct scanner_s *scanner) {
     UChar delim = *(scanner->text_start);
-    int delim_size = 0;
     int lead_surrogate = CIF_FALSE;
+    int delim_size;
 
     for (;;) {
         UChar *top = scanner->buffer + scanner->buffer_limit;
@@ -1888,6 +1934,7 @@ static int scan_delim_string(struct scanner_s *scanner) {
                     case EOF_CLASS:
                         /* handle error: unterminated quoted string */
                         /* recover by assuming a trailing close-quote */
+                        delim_size = 0;
                         goto end_of_token;
                 }
             }
@@ -1998,11 +2045,18 @@ static int get_more_chars(struct scanner_s *scanner) {
         size_t current_chars = chars_read - chars_consumed;
         size_t tvalue_diff = TVALUE_START(scanner) - scanner->text_start;
 
-        if (current_chars * 2 <= scanner->buffer_size) {
-            /* move the current data to the front of the buffer */
+        if (current_chars * 2 < scanner->buffer_size) {
+            /* The current data occupy less than half the buffer; move them to the front of the buffer */
             memmove(scanner->buffer, scanner->text_start, current_chars * sizeof(UChar));
         } else {
-            /* extend the buffer */
+            /*
+             * extend the buffer ( == allocate a new one and copy what's needed from the old )
+             *
+             * malloc() is chosen over realloc() here because it is expected that in-place extension will rarely be
+             * possible, and in most other cases it will be unnecessary to copy the full contents of the original
+             * buffer.  Moreover, this affords the opportunity to relocate the valid buffered data to the beginning
+             * of the new buffer without unneeded overhead.
+             */
             size_t new_size = scanner->buffer_size * 2;
             UChar *new_buffer = (UChar *) malloc(new_size * sizeof(UChar));
 
