@@ -216,7 +216,8 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
         ustream.buffer_limit = buffer + count;
         ustream.eof_status = 0;
 
-        result = cif_parse_internal(&ustream, ustream_read_chars, cif, cif_version, options);
+        result = cif_parse_internal(&ustream, ustream_read_chars, cif, cif_version,
+                strcmp("UTF-8", ucnv_getName(ustream.converter, &error_code)), options);
 
         ucnv_close(ustream.converter);
 

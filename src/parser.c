@@ -17,8 +17,6 @@
  * The CIF parser implemented herein is a predictive recursive descent parser with full error recovery.
  */
 
-/* TODO: error if CIF 2.0 is parsed as other than UTF-8 */
-
 #include <stdio.h>
 #include <assert.h>
 
@@ -98,7 +96,8 @@
 /* data types */
 
 enum token_type {
-    BLOCK_HEAD, FRAME_HEAD, FRAME_TERM, LOOPKW, NAME, OTABLE, CTABLE, OLIST, CLIST, KEY, TKEY, VALUE, QVALUE, TVALUE, END
+    BLOCK_HEAD, FRAME_HEAD, FRAME_TERM, LOOPKW, NAME, OTABLE, CTABLE, OLIST, CLIST, KEY, TKEY, VALUE, QVALUE, TVALUE,
+    END
 };
 
 struct scanner_s {
@@ -135,7 +134,7 @@ struct scanner_s {
 
 /* static data */
 
-static const UChar eol_chars[3] { LF_CHAR, CR_CHAR, 0 };
+static const UChar eol_chars[3] = { LF_CHAR, CR_CHAR, 0 };
 
 #define MAGIC_LENGTH 10
 static const UChar CIF1_MAGIC[MAGIC_LENGTH]
@@ -447,7 +446,7 @@ int cif_parse_error_die(int code UNUSED, size_t line UNUSED, size_t column UNUSE
     return CIF_ERROR;
 }
 
-int cif_parse_internal(void *char_source, read_chars_t read_func, cif_t *dest, int version,
+int cif_parse_internal(void *char_source, read_chars_t read_func, cif_t *dest, int version, int not_utf8,
         struct cif_parse_opts_s *options) {
     FAILURE_HANDLING;
     struct scanner_s scanner;
@@ -484,27 +483,32 @@ int cif_parse_internal(void *char_source, read_chars_t read_func, cif_t *dest, i
 
             if (FAILURE_VARIABLE == CIF_OK) {
                 /* If the CIF version is uncertain then use the CIF magic code, if any, to choose */
-                if ((version <= 0) && (CLASS_OF(c, &scanner) == HASH_CLASS)) {
-                    if ((FAILURE_VARIABLE = scan_to_ws(&scanner)) != CIF_OK) {
-                        DEFAULT_FAIL(early);
-                    }
-                    if (TVALUE_LENGTH(&scanner) == MAGIC_LENGTH) {
-                        if (u_strncmp(TVALUE_START(&scanner), CIF2_MAGIC, MAGIC_LENGTH) == 0) {
-                            version = 2;
-                        } else if (u_strncmp(TVALUE_START(&scanner), CIF1_MAGIC, MAGIC_LENGTH - 3) == 0) {
-                            /* recognize magic codes for all CIF versions other than 2.0 as CIF 1 */
-                            version = 1;
-                        } else {
-                            version = (version < 0) ? -version : 1;
+                if (version <= 0) {
+                    if (CLASS_OF(c, &scanner) == HASH_CLASS) {
+                        if ((FAILURE_VARIABLE = scan_to_ws(&scanner)) != CIF_OK) {
+                            DEFAULT_FAIL(early);
                         }
-                    } else {
-                        version = (version < 0) ? -version : 1;
+                        if (TVALUE_LENGTH(&scanner) == MAGIC_LENGTH) {
+                            if (u_strncmp(TVALUE_START(&scanner), CIF2_MAGIC, MAGIC_LENGTH) == 0) {
+                                version = 2;
+                                goto reset_scanner;
+                            } else if (u_strncmp(TVALUE_START(&scanner), CIF1_MAGIC, MAGIC_LENGTH - 3) == 0) {
+                                /* recognize magic codes for all CIF versions other than 2.0 as CIF 1 */
+                                version = 1;
+                                goto reset_scanner;
+                            }
+                        }
                     }
+                    version = (version < 0) ? -version : 1;
                 }
+                reset_scanner:
                 scanner.next_char = scanner.text_start;
 
                 if (version == 1) {
                     SET_V1(scanner);
+                } else if ((version == 2) && (not_utf8 != 0)) {
+                    /* TODO: error CIF2 not UTF-8 */
+                    /* recover by ignoring the problem */
                 }
 
                 SET_RESULT(parse_cif(&scanner, dest));
