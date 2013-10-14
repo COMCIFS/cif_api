@@ -424,7 +424,7 @@ struct cif_parse_opts_s {
     int line_folding_modifier;
 
     /**
-     * @brief modifies whether prefixed text fields will be recognized de-prefixed during parsing.
+     * @brief modifies whether prefixed text fields will be recognized and de-prefixed during parsing.
      *
      * The prefix protocol for text fields is part of the CIF 2.0 specification, but for CIF 1 it is only a local
      * convention of certain organizations.  By default, therefore, the parser will recognize and de-prefix prefixed
