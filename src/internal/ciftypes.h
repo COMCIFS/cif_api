@@ -4,6 +4,9 @@
  * Copyright (C) 2013 John C. Bollinger
  *
  * All rights reserved.
+ *
+ * This is an internal CIF API header file, intended for use only in building the CIF API library.  It is not needed
+ * to build client applications, and it is intended to *not* be installed on target systems.
  */
 
 #ifndef INTERNAL_CIFTYPES_H
@@ -13,6 +16,48 @@
 #include <sqlite3.h>
 #include "uthash.h"
 #include "../cif.h"
+
+/* The number of entries in the scanner's character class table */
+#define CHAR_TABLE_MAX   160
+
+/* A replacement character for use with CIF2 */
+#define REPL_CHAR     0xFFFD
+/* A replacement character for use with CIF1 ('*') */
+#define REPL1_CHAR    0x2A
+
+/* scanner character class codes */
+/* code NO_CLASS must have value 0; the values of other codes may be changed as desired */
+#define NO_CLASS      0
+#define GENERAL_CLASS 1
+#define WS_CLASS      2
+#define EOL_CLASS     3
+#define EOF_CLASS     4
+#define HASH_CLASS    5
+#define UNDERSC_CLASS 6
+#define QUOTE_CLASS   7
+#define SEMI_CLASS    9
+#define OBRAK_CLASS  10
+#define CBRAK_CLASS  11
+#define OCURL_CLASS  12
+#define CCURL_CLASS  13
+/* class 14 is available */
+#define DOLLAR_CLASS 15
+#define OBRAK1_CLASS 16
+#define CBRAK1_CLASS 17
+#define A_CLASS      18
+#define B_CLASS      19
+#define D_CLASS      20
+#define E_CLASS      21
+#define G_CLASS      22
+#define L_CLASS      23
+#define O_CLASS      24
+#define P_CLASS      25
+#define S_CLASS      26
+#define T_CLASS      27
+#define V_CLASS      28
+
+/* identifies the numerically-last class code, but does not itself directly represent a class */
+#define LAST_CLASS   V_CLASS
 
 /*
  * A pointer to a function that normalizes names given in Unicode string form.  The specific nature and purpose of the
@@ -192,12 +237,59 @@ typedef struct string_el {
  * specified destination buffer.  Up to 'count' characters are read.
  *
  * Returns the number of characters transferred to the destination buffer, or a number less than zero if an error
- * occurs.
+ * occurs. In the event of a negative return code, a suggested CIF return code to pass to the caller is recorded
+ * where 'error_code' points.
  *
  * If 'count' is nonpositive then zero is returned; otherwise, zero is returned only when no more characters are
  * available from the specified source.
  */
-typedef ssize_t (*read_chars_t)(void *char_source, UChar *dest, ssize_t count);
+typedef ssize_t (*read_chars_f)(void *char_source, UChar *dest, ssize_t count, int *error_code);
+
+/* parser semantic token types */
+enum token_type {
+    BLOCK_HEAD, FRAME_HEAD, FRAME_TERM, LOOPKW, NAME, OTABLE, CTABLE, OLIST, CLIST, KEY, TKEY, VALUE, QVALUE, TVALUE,
+    END
+};
+
+/*
+ * Tracks state of the built-in CIF scanner as it progresses through a CIF
+ */
+struct scanner_s {
+    UChar *buffer;          /* A character buffer from which to scan characters */
+    size_t buffer_size;     /* The total size of the buffer */
+    size_t buffer_limit;    /* The size of the initial segment of the buffer containing valid characters */
+    UChar *next_char;       /* A pointer into the buffer to the next character to be scanned */
+
+    enum token_type ttype;  /* The grammatic category of the most recent token parsed */
+    UChar *text_start;      /* The start position of the text from which the current token, if any, was parsed.
+                               This may differ from tvalue_start in some cases, such as for tokens representing
+                               delimited values. */
+    UChar *tvalue_start;    /* The start position of the value of the current token, if any */
+    size_t tvalue_length;   /* The length of the value of the current token, if any */
+
+    size_t line;            /* The current 1-based input line number */
+    unsigned column;        /* The number of characters so far scanned from the current line */
+
+    /* character classification tables */
+    unsigned int char_class[CHAR_TABLE_MAX];
+    unsigned int meta_class[LAST_CLASS + 1];
+
+    /* character source */
+    read_chars_f read_func;
+    void *char_source;
+    int at_eof;
+
+    /* cif version */
+    int cif_version;
+
+    /* custom parse options */
+    int line_unfolding;
+    int prefix_removing;
+
+    /* user callback support */
+    cif_parse_error_callback_t error_callback;
+    void *user_data;
+};
 
 #endif /* INTERNAL_CIFTYPES_H */
 

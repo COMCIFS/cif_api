@@ -27,6 +27,11 @@
 #define PREFIX "> "
 #define PREFIX_LENGTH 2
 
+/*
+ * Expands to the lesser of its arguments.  The arguments may be evaluated more than once.
+ */
+#define MIN(x,y) (((x) < (y)) ? (x) : (y))
+
 typedef struct {
     FILE *byte_stream;
     unsigned char *byte_buffer;
@@ -40,6 +45,7 @@ typedef struct {
      * > 1 if EOF has been detected and all data have been converted
      */
     int eof_status;
+    int last_error;
 } uchar_stream_t;
 
 typedef struct {
@@ -63,7 +69,9 @@ typedef struct {
 extern "C" {
 #endif
 
-static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count);
+static void ustream_to_unicode_callback(const void *context, UConverterToUnicodeArgs *args, const char *codeUnits,
+        int32_t length, UConverterCallbackReason reason, UErrorCode *error_code);
+static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count, int *error_code);
 
 static int write_cif_start(cif_t *cif, void *context);
 static int write_cif_end(cif_t *cif, void *context);
@@ -136,6 +144,7 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
     uchar_stream_t ustream;
     UErrorCode error_code = U_ZERO_ERROR;
     int cif_version = 0;
+    struct scanner_s scanner;
     int result;
 
     if (options == NULL) {
@@ -207,17 +216,32 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
 
     /* encoding identified, or knowingly defaulted */
 
-    ustream.converter = ucnv_open(encoding_name, &error_code); /* FIXME: is any customization needed? */
+    ustream.converter = ucnv_open(encoding_name, &error_code); /* FIXME: is any other customization needed? */
     if (U_SUCCESS(error_code)) {
-        ustream.byte_stream = stream;
-        ustream.byte_buffer = buffer;
-        ustream.buffer_size = BUFFER_SIZE;
-        ustream.buffer_position = buffer;
-        ustream.buffer_limit = buffer + count;
-        ustream.eof_status = 0;
+        /* FIXME: this test is probably too simplistic: */
+        int is_utf8 = strcmp("UTF-8", ucnv_getName(ustream.converter, &error_code));
 
-        result = cif_parse_internal(&ustream, ustream_read_chars, cif, cif_version,
-                strcmp("UTF-8", ucnv_getName(ustream.converter, &error_code)), options);
+        ucnv_setToUCallBack(ustream.converter, ustream_to_unicode_callback, &scanner, NULL, NULL, &error_code);
+
+        if (U_FAILURE(error_code)) {
+            result = CIF_ERROR;
+        } else {
+            ustream.byte_stream = stream;
+            ustream.byte_buffer = buffer;
+            ustream.buffer_size = BUFFER_SIZE;
+            ustream.buffer_position = buffer;
+            ustream.buffer_limit = buffer + count;
+            ustream.eof_status = 0;
+            ustream.last_error = 0; /* this is a _user_ error code, not necessarily a CIF code */
+
+            scanner.char_source = &ustream;
+            scanner.read_func = ustream_read_chars;
+            scanner.cif_version = cif_version;
+            scanner.line_unfolding += MIN(options->line_folding_modifier, 1);
+            scanner.prefix_removing += MIN(options->text_prefixing_modifier, 1);
+
+            result = cif_parse_internal(&scanner, is_utf8, cif);
+        }
 
         ucnv_close(ustream.converter);
 
@@ -229,13 +253,13 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
 }
 #undef BUFFER_SIZE
 
-static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count) {
+static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count, int *error_code) {
     uchar_stream_t *ustream = (uchar_stream_t *) char_source;
 
     if ((count <= 0) || (ustream->eof_status > 0)) {
         return 0;
     } else {
-        UErrorCode error_code = U_ZERO_ERROR;
+        UErrorCode icu_error_code = U_ZERO_ERROR;
         UChar *dest_temp = dest;
         ssize_t num_read;
 
@@ -266,14 +290,16 @@ static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count)
             /* convert to Unicode via the associated converter */
             pos = (char *) ustream->buffer_position;
             ucnv_toUnicode(ustream->converter, &dest_temp, dest + count, (const char **) &pos,
-                    (char *) ustream->buffer_limit, NULL, (ustream->eof_status != 0), &error_code);
+                    (char *) ustream->buffer_limit, NULL, (ustream->eof_status != 0), &icu_error_code);
             ustream->buffer_position = (unsigned char *) pos;
             num_read = (dest_temp - dest);
 
             /* catch conversion errors and end of data */
-            if (error_code == U_BUFFER_OVERFLOW_ERROR) {
+            if (icu_error_code == U_BUFFER_OVERFLOW_ERROR) {
                 break;
-            } else if (U_FAILURE(error_code)) {
+            } else if (U_FAILURE(icu_error_code)) {
+                /* usually set via a callback from the converter; */
+                *error_code = ((ustream->last_error == 0) ? CIF_ERROR : ustream->last_error);
                 return -1;
             } else if (ustream->eof_status != 0) {
                 /* end of the character stream */
@@ -285,6 +311,29 @@ static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count)
         return num_read;
     }
 }
+
+/*
+ * An ICU converter callback for the to-Unicode direction that wraps a CIF API error callback
+ */
+static void ustream_to_unicode_callback(const void *context, UConverterToUnicodeArgs *args, const char *codeUnits,
+        int32_t length, UConverterCallbackReason reason, UErrorCode *error_code) {
+    struct scanner_s *scanner = (struct scanner_s *) context;
+    uchar_stream_t *ustream = (uchar_stream_t *) scanner->char_source;
+
+    if (reason <= UCNV_IRREGULAR) {
+        ustream->last_error = scanner->error_callback(
+                ((reason == UCNV_UNASSIGNED) ? CIF_UNMAPPED_CHAR : CIF_INVALID_CHAR), scanner->line, scanner->column,
+                NULL, 0, scanner->user_data);
+        if (ustream->last_error == 0) {
+            /* Clear the ICU error and output a substitution character */
+            *error_code = U_ZERO_ERROR;
+            ucnv_toUWriteCodePoint(args->converter, ((scanner->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR),
+                    &args->target, args->targetLimit, &args->offsets, 0, error_code);
+            /* if a new error is generated by the above call then it will be propagated outward from ICU */
+        }
+    } /* else it's a lifecycle signal, which we can safely ignore */
+}
+
 
 /*
  * Formats the CIF data represented by the 'cif' handle to the specified

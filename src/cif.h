@@ -255,9 +255,23 @@
 
 /**
  * @brief a result code indicating that a (Unicode) string provided by the user as a table index is not valid for that
- *        use
+ *         use.
  */
 #define CIF_INVALID_INDEX      73
+
+/**
+ * @brief a result code indicating that an invalid code sequence has been detected during I/O: in a source character
+ *         representation is not a valid code sequence in the encoding with which it is believed to comply.  This
+ *         includes those code sequences ICU describes as "illegal" as well as those it describes as "irregular".
+ */
+#define CIF_INVALID_CHAR      102
+
+/**
+ * @brief a result code indicating that I/O fidelity cannot be maintained on account of there being no representation
+ *         for a source character in the target form.  Recovery normally involves mapping the source character to a
+ *         substitution character.
+ */
+#define CIF_UNMAPPED_CHAR     103
 
 /**
  * @brief a result code indicating that input or output exceeded the relevant line-length limit

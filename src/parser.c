@@ -35,7 +35,6 @@
 #define SSIZE_T_MAX      (((size_t) -1) / 2)
 #define BUF_SIZE_INITIAL (4 * (CIF_LINE_LENGTH + 2))
 #define BUF_MIN_FILL          (CIF_LINE_LENGTH + 2)
-#define CHAR_TABLE_MAX   160
 
 /* specific character codes */
 /* Note: numeric character codes avoid codepage dependencies associated with use of ordinary char literals */
@@ -48,43 +47,7 @@
 #define BKSL_CHAR     0x5C
 #define CIF1_MAX_CHAR 0x7E
 #define BOM_CHAR      0xFEFF
-#define REPL_CHAR     0xFFFD
-#define REPL1_CHAR    0x2A
 #define EOF_CHAR      0xFFFF
-
-/* character class codes */
-/* code NO_CLASS must have value 0; the values of other codes may be changed as desired */
-#define NO_CLASS      0
-#define GENERAL_CLASS 1
-#define WS_CLASS      2
-#define EOL_CLASS     3
-#define EOF_CLASS     4
-#define HASH_CLASS    5
-#define UNDERSC_CLASS 6
-#define QUOTE_CLASS   7
-#define SEMI_CLASS    9
-#define OBRAK_CLASS  10
-#define CBRAK_CLASS  11
-#define OCURL_CLASS  12
-#define CCURL_CLASS  13
-/* class 14 is available */
-#define DOLLAR_CLASS 15
-#define OBRAK1_CLASS 16
-#define CBRAK1_CLASS 17
-#define A_CLASS      18
-#define B_CLASS      19
-#define D_CLASS      20
-#define E_CLASS      21
-#define G_CLASS      22
-#define L_CLASS      23
-#define O_CLASS      24
-#define P_CLASS      25
-#define S_CLASS      26
-#define T_CLASS      27
-#define V_CLASS      28
-
-/* identifies the numerically-last class code, but does not itself directly represent a class: */
-#define LAST_CLASS   V_CLASS
 
 /* character metaclass codes */
 #define NO_META       0
@@ -92,45 +55,6 @@
 #define WS_META       2
 #define OPEN_META     3
 #define CLOSE_META    4
-
-/* data types */
-
-enum token_type {
-    BLOCK_HEAD, FRAME_HEAD, FRAME_TERM, LOOPKW, NAME, OTABLE, CTABLE, OLIST, CLIST, KEY, TKEY, VALUE, QVALUE, TVALUE,
-    END
-};
-
-struct scanner_s {
-    UChar *buffer;                   /* A character buffer from which to scan characters */
-    size_t buffer_size;              /* The total size of the buffer */
-    size_t buffer_limit;             /* The size of the initial segment of the buffer containing valid characters */
-    UChar *next_char;                /* A pointer into the buffer to the next character to be scanned */
-
-    enum token_type ttype;           /* The grammatic category of the most recent token parsed */
-    UChar *text_start;               /* The start position of the text from which the current token, if any, was parsed.
-                                        This may differ from tvalue_start in some cases, such as for tokens representing
-                                        delimited values. */
-    UChar *tvalue_start;             /* The start position of the value of the current token, if any */
-    size_t tvalue_length;            /* The length of the value of the current token, if any */
-
-    size_t line;                     /* The current 1-based input line number */
-    unsigned column;                 /* The number of characters so far scanned from the current line */
-
-    unsigned int char_class[CHAR_TABLE_MAX];  /* Character class codes of the first Unicode code points */
-    unsigned int meta_class[LAST_CLASS + 1];  /* Character metaclass codes for all the character classes */
-
-    /* character source */
-    read_chars_t read_func;
-    void *char_source;
-    int at_eof;
-
-    /* cif version */
-    int cif_version;
-
-    /* custom parse options */
-    int line_unfolding;
-    int prefix_removing;
-};
 
 /* static data */
 
@@ -170,63 +94,64 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 /* function-like macros */
 
 #define INIT_SCANNER(s) do { \
+    struct scanner_s *_s = (s); \
     int _i; \
-    (s).line = 1; \
-    (s).column = 0; \
-    (s).ttype = END; \
-    (s).cif_version = 2; \
-    (s).line_unfolding = 1; \
-    (s).prefix_removing = 1; \
-    for (_i =   0; _i <  32;            _i += 1) (s).char_class[_i] = NO_CLASS; \
-    for (_i =  32; _i < 127;            _i += 1) (s).char_class[_i] = GENERAL_CLASS; \
-    for (_i = 128; _i < CHAR_TABLE_MAX; _i += 1) (s).char_class[_i] = NO_CLASS; \
-    for (_i =   1; _i <= LAST_CLASS;    _i += 1) (s).meta_class[_i] = GENERAL_META; \
-    (s).char_class[0x09] =   WS_CLASS; \
-    (s).char_class[0x20] =   WS_CLASS; \
-    (s).char_class[CR_CHAR] =  EOL_CLASS; \
-    (s).char_class[LF_CHAR] =  EOL_CLASS; \
-    (s).char_class[0x23] =   HASH_CLASS; \
-    (s).char_class[0x95] =   UNDERSC_CLASS; \
-    (s).char_class[0x22] =   QUOTE_CLASS; \
-    (s).char_class[0x27] =   QUOTE_CLASS; \
-    (s).char_class[SEMI_CHAR] = SEMI_CLASS; \
-    (s).char_class[0x5B] =   OBRAK_CLASS; \
-    (s).char_class[0x5D] =   CBRAK_CLASS; \
-    (s).char_class[0x7B] =   OCURL_CLASS; \
-    (s).char_class[0x7D] =   CCURL_CLASS; \
-    (s).char_class[COLON_CHAR] = GENERAL_CLASS; \
-    (s).char_class[0x24] =   DOLLAR_CLASS; \
-    (s).char_class[0x41] =   A_CLASS; \
-    (s).char_class[0x61] =   A_CLASS; \
-    (s).char_class[0x42] =   B_CLASS; \
-    (s).char_class[0x62] =   B_CLASS; \
-    (s).char_class[0x44] =   D_CLASS; \
-    (s).char_class[0x64] =   D_CLASS; \
-    (s).char_class[0x45] =   E_CLASS; \
-    (s).char_class[0x65] =   E_CLASS; \
-    (s).char_class[0x47] =   G_CLASS; \
-    (s).char_class[0x67] =   G_CLASS; \
-    (s).char_class[0x4C] =   L_CLASS; \
-    (s).char_class[0x6C] =   L_CLASS; \
-    (s).char_class[0x4F] =   O_CLASS; \
-    (s).char_class[0x6F] =   O_CLASS; \
-    (s).char_class[0x50] =   P_CLASS; \
-    (s).char_class[0x70] =   P_CLASS; \
-    (s).char_class[0x53] =   S_CLASS; \
-    (s).char_class[0x73] =   S_CLASS; \
-    (s).char_class[0x54] =   T_CLASS; \
-    (s).char_class[0x74] =   T_CLASS; \
-    (s).char_class[0x56] =   V_CLASS; \
-    (s).char_class[0x76] =   V_CLASS; \
-    (s).char_class[0x7F] =   NO_CLASS; \
-    (s).meta_class[NO_CLASS] =  NO_META; \
-    (s).meta_class[WS_CLASS] =  WS_META; \
-    (s).meta_class[EOL_CLASS] = WS_META; \
-    (s).meta_class[EOF_CLASS] = WS_META; \
-    (s).meta_class[OBRAK_CLASS] = OPEN_META; \
-    (s).meta_class[OCURL_CLASS] = OPEN_META; \
-    (s).meta_class[CBRAK_CLASS] = CLOSE_META; \
-    (s).meta_class[CCURL_CLASS] = CLOSE_META; \
+    _s->line = 1; \
+    _s->column = 0; \
+    _s->ttype = END; \
+    _s->cif_version = 2; \
+    _s->line_unfolding = 1; \
+    _s->prefix_removing = 1; \
+    for (_i =   0; _i <  32;            _i += 1) _s->char_class[_i] = NO_CLASS; \
+    for (_i =  32; _i < 127;            _i += 1) _s->char_class[_i] = GENERAL_CLASS; \
+    for (_i = 128; _i < CHAR_TABLE_MAX; _i += 1) _s->char_class[_i] = NO_CLASS; \
+    for (_i =   1; _i <= LAST_CLASS;    _i += 1) _s->meta_class[_i] = GENERAL_META; \
+    _s->char_class[0x09] =   WS_CLASS; \
+    _s->char_class[0x20] =   WS_CLASS; \
+    _s->char_class[CR_CHAR] =  EOL_CLASS; \
+    _s->char_class[LF_CHAR] =  EOL_CLASS; \
+    _s->char_class[0x23] =   HASH_CLASS; \
+    _s->char_class[0x95] =   UNDERSC_CLASS; \
+    _s->char_class[0x22] =   QUOTE_CLASS; \
+    _s->char_class[0x27] =   QUOTE_CLASS; \
+    _s->char_class[SEMI_CHAR] = SEMI_CLASS; \
+    _s->char_class[0x5B] =   OBRAK_CLASS; \
+    _s->char_class[0x5D] =   CBRAK_CLASS; \
+    _s->char_class[0x7B] =   OCURL_CLASS; \
+    _s->char_class[0x7D] =   CCURL_CLASS; \
+    _s->char_class[COLON_CHAR] = GENERAL_CLASS; \
+    _s->char_class[0x24] =   DOLLAR_CLASS; \
+    _s->char_class[0x41] =   A_CLASS; \
+    _s->char_class[0x61] =   A_CLASS; \
+    _s->char_class[0x42] =   B_CLASS; \
+    _s->char_class[0x62] =   B_CLASS; \
+    _s->char_class[0x44] =   D_CLASS; \
+    _s->char_class[0x64] =   D_CLASS; \
+    _s->char_class[0x45] =   E_CLASS; \
+    _s->char_class[0x65] =   E_CLASS; \
+    _s->char_class[0x47] =   G_CLASS; \
+    _s->char_class[0x67] =   G_CLASS; \
+    _s->char_class[0x4C] =   L_CLASS; \
+    _s->char_class[0x6C] =   L_CLASS; \
+    _s->char_class[0x4F] =   O_CLASS; \
+    _s->char_class[0x6F] =   O_CLASS; \
+    _s->char_class[0x50] =   P_CLASS; \
+    _s->char_class[0x70] =   P_CLASS; \
+    _s->char_class[0x53] =   S_CLASS; \
+    _s->char_class[0x73] =   S_CLASS; \
+    _s->char_class[0x54] =   T_CLASS; \
+    _s->char_class[0x74] =   T_CLASS; \
+    _s->char_class[0x56] =   V_CLASS; \
+    _s->char_class[0x76] =   V_CLASS; \
+    _s->char_class[0x7F] =   NO_CLASS; \
+    _s->meta_class[NO_CLASS] =  NO_META; \
+    _s->meta_class[WS_CLASS] =  WS_META; \
+    _s->meta_class[EOL_CLASS] = WS_META; \
+    _s->meta_class[EOF_CLASS] = WS_META; \
+    _s->meta_class[OBRAK_CLASS] = OPEN_META; \
+    _s->meta_class[OCURL_CLASS] = OPEN_META; \
+    _s->meta_class[CBRAK_CLASS] = CLOSE_META; \
+    _s->meta_class[CCURL_CLASS] = CLOSE_META; \
 } while (CIF_FALSE)
 
 /*
@@ -234,13 +159,14 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
  * same scanner.
  */
 #define SET_V1(s) do { \
-    (s).cif_version = 1; \
-    (s).line_unfolding -= 1; \
-    (s).prefix_removing -= 1; \
-    (s).char_class[0x5B] =   OBRAK1_CLASS; \
-    (s).char_class[0x5D] =   CBRAK1_CLASS; \
-    (s).char_class[0x7B] =   GENERAL_CLASS; \
-    (s).char_class[0x7D] =   GENERAL_CLASS; \
+    struct scanner_s *_s = (s); \
+    _s->cif_version = 1; \
+    _s->line_unfolding -= 1; \
+    _s->prefix_removing -= 1; \
+    _s->char_class[0x5B] =   OBRAK1_CLASS; \
+    _s->char_class[0x5D] =   CBRAK1_CLASS; \
+    _s->char_class[0x7B] =   GENERAL_CLASS; \
+    _s->char_class[0x7D] =   GENERAL_CLASS; \
 } while (CIF_FALSE)
 
 /**
@@ -377,56 +303,47 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
  * CIF.  Surrogates have to be handled separately from character buffering in order to correctly handle surrogate
  * pairs that are split across buffer fills.
  * s: the scanner to manipulate
- * c: an lvalue in which to return the code unit read; evaluated multiple times
+ * c: an lvalue in which the next code unit scanned will be returned
  * lead_fl: an lvalue of integral type wherein this macro can store state between runs; should evaluate to false
  *     before this macro's first run
  * ev: an lvalue in which an error code can be recorded
  */
-#define SCAN_CHARACTER(s, c, lead_fl, ev) do { \
+#define SCAN_UCHAR(s, c, lead_fl, ev) do { \
     struct scanner_s *_s = (s); \
+    int _surrogate_mask; \
     c = *(_s->next_char); \
     POSN_INCCOLUMN(_s, 1); \
     ev = CIF_OK; \
-    switch (c & 0xfc00) { \
-        case 0xd800: \
-            lead_fl = CIF_TRUE; \
-            break; \
-        case 0xdc00: \
-            if (lead_fl) { \
-                if (((c & 0xfffe) == 0xdffe) && ((*(_s->next_char - 1) & 0xfc3f) == 0xd83f)) { \
-                    /* TODO: error disallowed supplemental character */ \
-                    /* recover by replacing with the replacement character and wiping out the lead surrogate */ \
-                    memmove(_s->text_start + 1, _s->text_start, (_s->next_char - _s->text_start)); \
-                    *(_s->next_char) = REPL_CHAR; \
-                    c = REPL_CHAR; \
-                    _s->text_start += 1; \
-                    _s->tvalue_start += 1; \
-                    POSN_INCCOLUMN(_s, -1); \
-                } \
-                lead_fl = CIF_FALSE; \
-            } else { \
-                /* TODO: error unpaired trail surrogate */ \
-                /* recover by replacing with the replacement character */ \
-                *(_s->next_char) = REPL_CHAR; \
-                c = REPL_CHAR; \
+    _surrogate_mask = (c & 0xfc00); \
+    if (_surrogate_mask == 0xdc00) { /* a trail surrogate */ \
+        if (lead_fl) { \
+            if (((c & 0xfffe) == 0xdffe) && ((*(_s->next_char - 1) & 0xfc3f) == 0xd83f)) { \
+                /* TODO: error disallowed supplemental character */ \
+                /* recover by replacing with the replacement character and wiping out the lead surrogate */ \
+                memmove(_s->text_start + 1, _s->text_start, (_s->next_char - _s->text_start)); \
+                c = ((_s->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR); \
+                *(_s->next_char) = c; \
+                _s->text_start += 1; \
+                _s->tvalue_start += 1; \
             } \
-            break; \
-        default: \
-            if (lead_fl) { \
-                /* TODO: error unpaired lead surrogate preceding the current character */ \
-                /* recover by replacing the surrogate with the replacement character */ \
-                *(_s->next_char - 1) = REPL_CHAR; \
-                lead_fl = CIF_FALSE; \
-            } \
-            break; \
+            POSN_INCCOLUMN(_s, -1); \
+            lead_fl = CIF_FALSE; \
+        } else { \
+            /* TODO: error unpaired trail surrogate */ \
+            /* recover by replacing with the replacement character */ \
+            c = ((_s->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR); \
+            *(_s->next_char) = c; \
+        } \
+    } else { \
+        if (lead_fl) { \
+            /* TODO: error unpaired lead surrogate preceding the current character */ \
+            /* recover by replacing the surrogate with the replacement character */ \
+            *(_s->next_char - 1) = ((_s->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR); \
+        } \
+        lead_fl = (_surrogate_mask == 0xd800); \
     } \
     _s->next_char += 1; \
 } while (CIF_FALSE)
-
-/*
- * Expands to the lesser of its arguments.  The arguments may be evaluated more than once.
- */
-#define MIN(x,y) (((x) < (y)) ? (x) : (y))
 
 /* function implementations */
 
@@ -446,77 +363,68 @@ int cif_parse_error_die(int code UNUSED, size_t line UNUSED, size_t column UNUSE
     return CIF_ERROR;
 }
 
-int cif_parse_internal(void *char_source, read_chars_t read_func, cif_t *dest, int version, int not_utf8,
-        struct cif_parse_opts_s *options) {
+int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
     FAILURE_HANDLING;
-    struct scanner_s scanner;
 
-    if (read_func == NULL) {
-        return CIF_ARGUMENT_ERROR;
-    }
+    scanner->buffer = (UChar *) malloc(BUF_SIZE_INITIAL * sizeof(UChar));
+    scanner->buffer_size = BUF_SIZE_INITIAL;
+    scanner->buffer_limit = 0;
 
-    scanner.buffer = (UChar *) malloc(BUF_SIZE_INITIAL * sizeof(UChar));
-    scanner.buffer_size = BUF_SIZE_INITIAL;
-    scanner.buffer_limit = 0;
-
-    if (scanner.buffer != NULL) {
+    if (scanner->buffer != NULL) {
         UChar c;
 
         INIT_SCANNER(scanner);
-        scanner.next_char = scanner.buffer;
-        scanner.text_start = scanner.buffer;
-        scanner.tvalue_start = scanner.buffer;
-        scanner.tvalue_length = 0;
-        scanner.char_source = char_source;
-        scanner.read_func = read_func;
-        scanner.line_unfolding += MIN(options->line_folding_modifier, 1);
-        scanner.prefix_removing += MIN(options->text_prefixing_modifier, 1);
+        scanner->next_char = scanner->buffer;
+        scanner->text_start = scanner->buffer;
+        scanner->tvalue_start = scanner->buffer;
+        scanner->tvalue_length = 0;
 
-        NEXT_CHAR(&scanner, c, FAILURE_VARIABLE);
+        NEXT_CHAR(scanner, c, FAILURE_VARIABLE);
         if (FAILURE_VARIABLE == CIF_OK) {
 
-            /* consume an initial BOM, if present */
+            /* consume an initial BOM, if present, regardless of the actual source encoding */
+            /* NOTE: assumes that the character decoder, if any, does not also consume an initial BOM */
             if (c == BOM_CHAR) {
-                CONSUME_TOKEN(&scanner);
-                NEXT_CHAR(&scanner, c, FAILURE_VARIABLE);
+                CONSUME_TOKEN(scanner);
+                NEXT_CHAR(scanner, c, FAILURE_VARIABLE);
             }
 
             if (FAILURE_VARIABLE == CIF_OK) {
                 /* If the CIF version is uncertain then use the CIF magic code, if any, to choose */
-                if (version <= 0) {
-                    if (CLASS_OF(c, &scanner) == HASH_CLASS) {
-                        if ((FAILURE_VARIABLE = scan_to_ws(&scanner)) != CIF_OK) {
+                if (scanner->cif_version <= 0) {
+                    if (CLASS_OF(c, scanner) == HASH_CLASS) {
+                        if ((FAILURE_VARIABLE = scan_to_ws(scanner)) != CIF_OK) {
                             DEFAULT_FAIL(early);
                         }
-                        if (TVALUE_LENGTH(&scanner) == MAGIC_LENGTH) {
-                            if (u_strncmp(TVALUE_START(&scanner), CIF2_MAGIC, MAGIC_LENGTH) == 0) {
-                                version = 2;
+                        if (TVALUE_LENGTH(scanner) == MAGIC_LENGTH) {
+                            if (u_strncmp(TVALUE_START(scanner), CIF2_MAGIC, MAGIC_LENGTH) == 0) {
+                                scanner->cif_version = 2;
                                 goto reset_scanner;
-                            } else if (u_strncmp(TVALUE_START(&scanner), CIF1_MAGIC, MAGIC_LENGTH - 3) == 0) {
+                            } else if (u_strncmp(TVALUE_START(scanner), CIF1_MAGIC, MAGIC_LENGTH - 3) == 0) {
                                 /* recognize magic codes for all CIF versions other than 2.0 as CIF 1 */
-                                version = 1;
+                                scanner->cif_version = 1;
                                 goto reset_scanner;
                             }
                         }
                     }
-                    version = (version < 0) ? -version : 1;
+                    scanner->cif_version = (scanner->cif_version < 0) ? -scanner->cif_version : 1;
                 }
                 reset_scanner:
-                scanner.next_char = scanner.text_start;
+                scanner->next_char = scanner->text_start;
 
-                if (version == 1) {
+                if (scanner->cif_version == 1) {
                     SET_V1(scanner);
-                } else if ((version == 2) && (not_utf8 != 0)) {
+                } else if ((scanner->cif_version == 2) && (not_utf8 != 0)) {
                     /* TODO: error CIF2 not UTF-8 */
                     /* recover by ignoring the problem */
                 }
 
-                SET_RESULT(parse_cif(&scanner, dest));
+                SET_RESULT(parse_cif(scanner, dest));
             }
         }
 
         FAILURE_HANDLER(early):
-        free(scanner.buffer);
+        free(scanner->buffer);
     }
 
     /* TODO: other cleanup ? */
@@ -1634,7 +1542,10 @@ static int next_token(struct scanner_s *scanner) {
 
                     if (result == CIF_OK) {
                         if (c == COLON_CHAR) {
-                            /* can only happen in CIF 2 mode, for in CIF 1 mode the character after a closing quote is always whitespace */
+                            /*
+                             * can only happen in CIF 2 mode, for in CIF 1 mode the character after a closing quote is
+                             * always whitespace 
+                             */
                             scanner->next_char += 1;
                             ttype = KEY;
                         } else {
@@ -1799,17 +1710,15 @@ static int scan_to_ws(struct scanner_s *scanner) {
         UChar *top = scanner->buffer + scanner->buffer_limit;
         int result;
 
-        for (; scanner->next_char < top; scanner->next_char += 1) {
-            UChar c = *(scanner->next_char);
+        while (scanner->next_char < top) {
+            UChar c;
 
-            if (METACLASS_OF(c, scanner) == WS_META) {
-                goto end_of_token;
-            }
-
-            /* Validate the character and advance the scanner position, incrementing the column number as appropriate */
-            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            /* Scan and validate the next code unit, incrementing the column number as appropriate */
+            SCAN_UCHAR(scanner, c, lead_surrogate, result);
             if (result != CIF_OK) {
                 return result;
+            } else if (METACLASS_OF(c, scanner) == WS_META) {
+                goto end_of_token;
             }
         }
 
@@ -1831,19 +1740,18 @@ static int scan_to_eol(struct scanner_s *scanner) {
         UChar *top = scanner->buffer + scanner->buffer_limit;
         int result;
 
-        for (; scanner->next_char < top; scanner->next_char += 1) {
-            UChar c = *(scanner->next_char);
+        while (scanner->next_char < top) {
+            UChar c;
 
+            /* Scan and validate the next code unit, incrementing the column number as appropriate */
+            SCAN_UCHAR(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
             switch (CLASS_OF(c, scanner)) {
                 case EOL_CLASS:
                 case EOF_CLASS:
                     goto end_of_token;
-            }
-
-            /* Validate the character and advance the scanner position, incrementing the column number as appropriate */
-            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
-            if (result != CIF_OK) {
-                return result;
             }
         }
 
@@ -1865,9 +1773,14 @@ static int scan_unquoted(struct scanner_s *scanner) {
         UChar *top = scanner->buffer + scanner->buffer_limit;
         int result;
 
-        for (; scanner->next_char < top; scanner->next_char += 1) {
-            UChar c = *(scanner->next_char);
+        while (scanner->next_char < top) {
+            UChar c;
 
+            /* Scan and validate the next code unit, incrementing the column number as appropriate */
+            SCAN_UCHAR(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
             switch (METACLASS_OF(c, scanner)) {
                 case OPEN_META:
                     /* TODO: error missing whitespace between values */
@@ -1875,12 +1788,6 @@ static int scan_unquoted(struct scanner_s *scanner) {
                 case CLOSE_META:
                 case WS_META:
                     goto end_of_token;
-            }
-
-            /* Validate the character and advance the scanner position, incrementing the column number as appropriate */
-            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
-            if (result != CIF_OK) {
-                return result;
             }
         }
 
@@ -1913,8 +1820,8 @@ static int scan_delim_string(struct scanner_s *scanner) {
         while (scanner->next_char < top) {
             UChar c;
 
-            /* Read and validate the next character, incrementing the column number as appropriate */
-            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            /* Scan and validate the next code unit, incrementing the column number as appropriate */
+            SCAN_UCHAR(scanner, c, lead_surrogate, result);
             if (result != CIF_OK) {
                 return result;
             }
@@ -1936,7 +1843,7 @@ static int scan_delim_string(struct scanner_s *scanner) {
                 switch (CLASS_OF(c, scanner)) {
                     case EOL_CLASS:
                     case EOF_CLASS:
-                        /* handle error: unterminated quoted string */
+                        /* TODO error: unterminated quoted string */
                         /* recover by assuming a trailing close-quote */
                         delim_size = 0;
                         goto end_of_token;
@@ -1973,8 +1880,8 @@ static int scan_text(struct scanner_s *scanner) {
         while (scanner->next_char < top) {
             UChar c;
 
-            /* Read and validate the next character, incrementing the column number as appropriate */
-            SCAN_CHARACTER(scanner, c, lead_surrogate, result);
+            /* Scan and validate the next code unit, incrementing the column number as appropriate */
+            SCAN_UCHAR(scanner, c, lead_surrogate, result);
             if (result != CIF_OK) {
                 return result;
             }
@@ -2034,6 +1941,7 @@ static int get_more_chars(struct scanner_s *scanner) {
     size_t chars_read = scanner->next_char - scanner->buffer;
     size_t chars_consumed = scanner->text_start - scanner->buffer;
     ssize_t nread;
+    int read_error;
 
     assert(chars_read < SSIZE_T_MAX);
     assert(chars_consumed < chars_read);
@@ -2086,10 +1994,10 @@ static int get_more_chars(struct scanner_s *scanner) {
 
     /* once EOF has been detected, don't attempt to read from the character source any more */
     nread = scanner->at_eof ? 0 : scanner->read_func(scanner->char_source, scanner->buffer + scanner->buffer_limit,
-                scanner->buffer_size - scanner->buffer_limit);
+                scanner->buffer_size - scanner->buffer_limit, &read_error);
 
     if (nread < 0) {
-        return CIF_ERROR;
+        return read_error;
     } else if (nread == 0) {
         scanner->buffer[scanner->buffer_limit] = EOF_CHAR;
         scanner->buffer_limit += 1;

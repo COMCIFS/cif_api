@@ -632,22 +632,15 @@ int cif_pktitr_free(
  * A common parser back end (potentially) serving multiple front ends that accept CIF data in different
  * forms.
  *
- * @param[in,out] char_source a pointer to a character source appropriate for use with the provided @c read_func
- *         character reading function
- * @param[in] read_func a pointer to function that reads characters from a suitable character source into a buffer
- *         of @c UChar code units
+ * @param[in,out] scanner a pointer to a scanner structure initialized with character source properties, user options,
+ *         and an initial CIF version assertion / evaluation
+ * @param[in] not_utf8 if non-zero, indicates that the characters provided by the scanner's character source are known 
+ *         to be derived from an encoded byte sequence via an encoding different from UTF-8
  * @param[in,out] dest a pointer to a @c cif_t object to update with the CIF data read from the provided source.  May
  *         be NULL, in which case a semantic-free syntax check of the provided character stream is performed without
  *         recording anything
- * @param[in] version if positive, the CIF version with which the provided data are expected to comply; if less than
- *         zero, then minus the CIF version to which the data are expected to comply in the absence of a leading
- *         version comment; zero means the same as -1
- * @param[in] not_utf8 if non-zero, indicates that the characters provided by @c char_source via @c read_func are
- *         derived from an encoded byte sequence via an encoding different from UTF-8
- * @param[in] options a pointer to a parse options structure providing options affecting the requested parse operation
  */
-int cif_parse_internal(void *char_source, read_chars_t read_func, cif_t *dest, int version, int not_utf8,
-        struct cif_parse_opts_s *options);
+int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest);
 
 #ifdef __cplusplus
 }
