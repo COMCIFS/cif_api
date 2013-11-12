@@ -130,6 +130,8 @@ static int parse_item(struct scanner_s *scanner, cif_container_t *container, UCh
 static int parse_loop(struct scanner_s *scanner, cif_container_t *container);
 static int parse_loop_header(struct scanner_s *scanner, cif_container_t *container, string_element_t **name_list_head,
         int *name_countp);
+static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, string_element_t *first_name,
+        UChar *names[]);
 static int parse_list(struct scanner_s *scanner, cif_value_t **listp);
 static int parse_table(struct scanner_s *scanner, cif_value_t **tablep);
 static int parse_value(struct scanner_s *scanner, cif_value_t **valuep);
@@ -1003,13 +1005,15 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                 result = CIF_ERROR;
                 goto loop_end;
             } else {
-                /* dummy_loop is a static adapter; of its elements, it owns only 'category' */
-                cif_loop_t dummy_loop = { container, -1, NULL, names };
-
                 string_element_t *next_name;
-                cif_packet_t *packet;
                 int name_index = 0;
-                
+               
+                /* dummy_loop is a static adapter; of its elements, it owns only 'category' */
+                cif_loop_t dummy_loop = { NULL, -1, NULL, NULL };
+
+                dummy_loop.container = container;
+                dummy_loop.names = names; 
+
                 /* prepare for the loop body */
 
                 name_index = 0;
@@ -1021,12 +1025,12 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                 names[name_index] = NULL;
 
                 if (scanner->skip_depth <= 0) {  /* this loop is not being skipped */
-                    result = OPTIONAL_CALL(scanner->handler->handle_loop_start, (dummy_loop, scanner->user_data), CIF_OK);
+                    result = OPTIONAL_CALL(scanner->handler->handle_loop_start, (&dummy_loop, scanner->user_data), CIF_OK);
                     switch (result) {
                         case CIF_TRAVERSE_CONTINUE:
                             if (container != NULL) {
                                 /* create the loop */
-                                switch (result = cif_container_create_loop(container, dummy_loop->container, names,
+                                switch (result = cif_container_create_loop(container, dummy_loop.category, names,
                                         &loop)) {
                                     case CIF_NULL_LOOP:  /* tolerable */
                                     case CIF_OK:         /* expected */
@@ -1053,11 +1057,11 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                 }  /* else loop == NULL from its initialization */
 
                 /* read packets */
-                result = parse_loop_packets(scanner, loop, first_name);
+                result = parse_loop_packets(scanner, loop, first_name, names);
 
                 loop_body_end:
-                if (dummy_loop->category != NULL) {
-                    free(dummy_loop->category);
+                if (dummy_loop.category != NULL) {
+                    free(dummy_loop.category);
                 }
                 free(names);
                 /* elements of names belong to the linked list; they are freed later */
@@ -1142,7 +1146,7 @@ static int parse_loop_header(struct scanner_s *scanner, cif_container_t *contain
                 }
 
                 next_namep = &((*next_namep)->next);
-                name_count += 1;
+                *name_countp += 1;
             }
         }
 
@@ -1152,7 +1156,9 @@ static int parse_loop_header(struct scanner_s *scanner, cif_container_t *contain
     return result;
 }
 
-static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, string_element_t *first_name)  {
+static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, string_element_t *first_name,
+        UChar *names[]) {
+    cif_packet_t *packet;
     int result = cif_packet_create(&packet, names);
 
     /* read packets */
@@ -2524,6 +2530,7 @@ static int get_more_chars(struct scanner_s *scanner) {
     } else {
         UChar *start = scanner->buffer + scanner->buffer_limit;
         UChar *end = start + nread;
+        int result;
 
         for (; start < end; start += 1) {
             if ((*start < CHAR_TABLE_MAX) ? (scanner->char_class[*start] == NO_CLASS)
