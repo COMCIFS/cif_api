@@ -11,6 +11,9 @@ EXTRA_DIST = \
   dox-html \
   dox-man \
   README \
+  extras/README \
+  extras/cif_parser.y \
+  extras/cif_scanner.l \
   misc/cif_schema.sql \
   misc/footer.html \
   misc/main.dox \
