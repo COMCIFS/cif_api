@@ -1,0 +1,23 @@
+Extra CIF-related Files
+
+cif_parser.y
+------------
+This file provides a CIF 2.0 grammar suitable for use with the GNU Bison parser generator.  It does rely on a few
+bison-specific features -- notably, to produce a reentrant parser -- but it should be relatively easy to adapt it to
+any other YACC-inspired parser generator.  The generated parser defines no error recovery strategy and no semantic
+actions, and it does not test name uniqueness, loop packet completeness, or line-length limits; it is intended
+primarily for illustrative and demonstration purposes.
+
+
+cif_scanner.l
+-------------
+This file provides the definition of a CIF 2.0 lexical analyzer complementing the grammar in cif_parser.y.  It must
+be processed with the Flex scanner generator, as it uses flex-specific features -- notably, to produce a reentrant
+scanner.  It might be possible to modify it for use with traditional 'lex' or other lex-like scanner generators.  The
+generated scanner does not assign semantic values to tokens, so in its current form it serves only illustrative and
+demonstration purposes.
+
+
+The scanner and parser have been only lightly tested.  They are specific to CIF 2.0, and would require modifications
+(mostly to the scanner) to properly handle other versions of CIF.
+
