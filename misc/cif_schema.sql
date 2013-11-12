@@ -16,7 +16,8 @@
 --
 -- This schema relies to some extent on the characteristics of SQLite, especially
 -- dynamic typing.  SQLite does not enforce limits on values' sizes based on their
--- declared data types (e.g. varchar(80)).
+-- declared data types (e.g. varchar(80)), nor does it automatically coerce values
+-- to the nominal type declared for the column in which they are stored.
 --
 -- The text of this schema is processed at build time into a collection of C
 -- string literals.  So that this is feasible without a full-blown SQL parser,
@@ -95,6 +96,8 @@ create index ix1_save_frame
 -- packets.  The CIF (or other) category to which the data in the loop are
 -- expected to belong can also be recorded here, if it is known.
 --
+-- loop numbers are required to be non-negative
+--
 create table loop (
   container_id integer not null,
   loop_num integer not null,
@@ -103,7 +106,8 @@ create table loop (
   primary key (container_id, loop_num),
   foreign key (container_id)
     references container(id)
-    on delete cascade
+    on delete cascade,
+  check (loop_num >= 0)
 );
 
 create index ix1_loop
@@ -126,7 +130,7 @@ create trigger tr1_loop
 --
 create trigger tr2_loop
   before update of category on loop
-  when (NEW.category = '') and (OLD.category <> '')
+  when (NEW.category = '') and (OLD.category is not '')
   begin
     select raise(ABORT, 'duplicate scalar loop')
       from loop

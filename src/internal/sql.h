@@ -37,6 +37,8 @@
 
 #define GET_LOOPNUM_SQL "select max(loop_num) from loop where container_id = ?"
 
+#define SET_CATEGORY_SQL "update loop set category = ? where container_id = ? and loop_num = ?"
+
 #define ADD_LOOPITEM_SQL "insert into loop_item(container_id, loop_num, name, name_orig) values (?, ?, ?, ?)"
 
 #define GET_CAT_LOOP_SQL "select loop_num from loop where container_id = ? and category = ?"
@@ -46,6 +48,11 @@
         "where li.container_id = ? and li.name = ?"
 
 #define GET_ALL_LOOPS_SQL "select loop_num, category from loop where container_id = ?"
+
+#define PRUNE_ALL_SQL "delete from loop l where not exists " \
+        "(select 1 from loop_item li where li.container_id = l.container_id and li.loop_num = l.loop_num)"
+
+#define PRUNE_SQL PRUNE_ALL_SQL " and l.container_id = ?"
 
 #define GET_VALUE_SQL "select kind, val, val_text, val_digits, su_digits, scale " \
         "from item_value where container_id = ? and name = ?"

@@ -22,11 +22,66 @@
 extern "C" {
 #endif
 
+static int dup_ustrings(UChar ***dest, UChar *src[]);
+
+static int dup_ustrings(UChar ***dest, UChar *src[]) {
+    if (src == NULL) {
+        *dest = NULL;
+        return CIF_OK;
+    } else {
+        FAILURE_HANDLING;
+        size_t string_count = 0;
+        UChar **dest_temp;
+        UChar **counter;
+
+        /* count the strings (including if there are zero of them) */
+        for (counter = src; *counter != NULL; counter += 1) {
+            string_count += 1;
+        }
+
+        /* allocate space for the string pointers and a sentinel */
+        dest_temp = (UChar **) malloc((string_count + 1) * sizeof(UChar *));
+        if (dest_temp != NULL) {
+            /* dupe all the individual strings */
+            for (counter = dest_temp; *src != NULL; src += 1, counter += 1) {
+                *counter = cif_u_strdup(*src);
+                if (*counter == NULL) {
+                    DEFAULT_FAIL(soft);
+                }
+            }
+
+            /* terminate the array */
+            *counter = NULL;
+
+            /* success */
+            *dest = dest_temp;
+            return CIF_OK;
+
+            FAILURE_HANDLER(soft):
+            /* memory allocation failure for one of the member strings */
+            while (counter > dest_temp) {
+                free(--counter);
+            }
+
+            free(dest_temp);
+        }
+
+        FAILURE_TERMINUS;
+    }
+}
+
 /* safe to be called by anyone */
 int cif_loop_free(
         cif_loop_t *loop
         ) {
     if (loop->category != NULL) free(loop->category);
+    if (loop->names != NULL) {
+        UChar **namep;
+        for (namep = loop->names; *namep != NULL; namep += 1) {
+            free(*namep);
+        }
+        free(loop->names);
+    }
     free(loop);
     return CIF_OK;
 }
@@ -37,7 +92,13 @@ int cif_loop_destroy(
         ) {
     FAILURE_HANDLING;
     cif_container_t *container = loop->container;
-    cif_t *cif = container->cif;
+    cif_t *cif;
+
+    if (container == NULL) {
+        return CIF_INVALID_HANDLE;
+    } else {
+        cif = container->cif;
+    }
 
     /*
      * Create any needed prepared statements, or prepare the existing one(s)
@@ -86,19 +147,77 @@ int cif_loop_get_category(cif_loop_t *loop, UChar **category) {
     }
 }
 
+int cif_loop_set_category(cif_loop_t *loop, const UChar *category) {
+    UChar *category_temp = cif_u_strdup(category);
+
+    if (category_temp == NULL) {
+        return CIF_ERROR;
+    } else {
+        cif_container_t *container = loop->container;
+
+        if (container == NULL) {
+            /* an unattached loop, such as may be synthesized temporarily during CIF parsing */
+            if (loop->category != NULL) {
+                free(loop->category);
+            }
+            loop->category = category_temp;
+
+            return CIF_OK;
+        } else {
+            cif_t *cif = container->cif;
+
+            if (cif == NULL) {
+                return CIF_ERROR;
+            } else {
+                FAILURE_HANDLING;
+                STEP_HANDLING;
+
+                /*
+                 * Create any needed prepared statements, or prepare the existing one(s)
+                 * for re-use, exiting this function with an error on failure.
+                 */
+                PREPARE_STMT(cif, set_loop_category, SET_CATEGORY_SQL);
+
+                /* set the category */
+                if ((sqlite3_bind_int64(cif->set_loop_category_stmt, 2, container->id) == SQLITE_OK)
+                        && (sqlite3_bind_int64(cif->set_loop_category_stmt, 3, loop->loop_num) == SQLITE_OK)
+                        && (sqlite3_bind_text16(cif->set_loop_category_stmt, 1, category_temp, -1, SQLITE_STATIC)
+                                == SQLITE_OK)
+                        && (STEP_STMT(cif, set_loop_category) == SQLITE_DONE)) {
+                    /* FIXME: could verify that exactly one row was modified */
+                    if (loop->category != NULL) {
+                        free(loop->category);
+                    }
+                    loop->category = category_temp;
+
+                    return CIF_OK;
+                }
+
+                /* failed -- clean up */
+                DROP_STMT(cif, get_loop_names);
+                free(category_temp);
+
+                FAILURE_TERMINUS;
+            }
+        }
+    }
+}
+
 /* safe to be called by anyone */
 int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
-    FAILURE_HANDLING;
-
-    if (loop == NULL) return CIF_INVALID_HANDLE;
-
     cif_container_t *container = loop->container;
-    cif_t *cif = container->cif;
 
     if (item_names == NULL) {
-        SET_RESULT(CIF_ARGUMENT_ERROR);
+        return CIF_ARGUMENT_ERROR;
+    } else if (loop->loop_num < 0) {
+        /* return the cached names, if any */
+        return dup_ustrings(item_names, loop->names);
+    } else if (container == NULL) {
+        return CIF_INVALID_HANDLE;
     } else {
+        FAILURE_HANDLING;
         NESTTX_HANDLING;
+        cif_t *cif = container->cif;
 
         /*
          * Create any needed prepared statements, or prepare the existing one(s)
@@ -171,10 +290,10 @@ int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
         }
 
         DROP_STMT(cif, get_loop_names);
-    }
 
-    FAILURE_HANDLER(soft):
-    FAILURE_TERMINUS;
+        FAILURE_HANDLER(soft):
+        FAILURE_TERMINUS;
+    }
 }
 
 /* safe to be called by anyone */
@@ -192,8 +311,14 @@ int cif_loop_add_item(
         SET_RESULT(result);
     } else {
         cif_container_t *container = loop->container;
-        cif_t *cif = container->cif;
+        cif_t *cif;
         NESTTX_HANDLING;
+
+        if (container == NULL) {
+            FAIL(soft, CIF_INVALID_HANDLE);
+        } else {
+            cif = container->cif;
+        }
 
         /*
          * Create any needed prepared statements, or prepare the existing one(s)
@@ -245,9 +370,15 @@ int cif_loop_add_packet(
     FAILURE_HANDLING;
     NESTTX_HANDLING;
     cif_container_t *container = loop->container;
-    cif_t *cif = container->cif;
+    cif_t *cif;
 
-    if (!packet->map.head) return CIF_INVALID_PACKET;
+    if (container == NULL) {
+        return CIF_INVALID_HANDLE;
+    } else if (!packet->map.head) {
+        return CIF_INVALID_PACKET;
+    } else {
+        cif = container->cif;
+    }
 
     /*
      * Create any needed prepared statements, or prepare the existing one(s)
@@ -357,10 +488,16 @@ int cif_loop_get_packets(
         ) {
     FAILURE_HANDLING;
     cif_container_t *container = loop->container;
-    cif_t *cif = container->cif;
+    cif_t *cif;
     cif_pktitr_t *temp_it;
 
-    if (iterator == NULL) return CIF_ARGUMENT_ERROR;
+    if (container == NULL) {
+        return CIF_INVALID_HANDLE;
+    } else if (iterator == NULL) {
+        return CIF_ARGUMENT_ERROR;
+    } else {
+        cif = container->cif;
+    }
 
     temp_it = (cif_pktitr_t *) malloc(sizeof(cif_pktitr_t));
     if (temp_it) {
@@ -390,6 +527,7 @@ int cif_loop_get_packets(
                 if ((sqlite3_bind_int64(temp_it->stmt, 1, container->id) == SQLITE_OK)
                         && (sqlite3_bind_int(temp_it->stmt, 2, loop->loop_num) == SQLITE_OK)) {
                     if (BEGIN(cif->db) == SQLITE_OK) {
+                        /* intentionally not using STEP_STMT(): */
                         switch (sqlite3_step(temp_it->stmt)) {
                             case SQLITE_ROW:
                                 temp_it->previous_row_num = -1;

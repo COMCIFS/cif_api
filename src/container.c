@@ -119,6 +119,7 @@ static int cif_container_get_item_loop_internal (
     /* Assign the container and category now to be sure that they have sensible values in the case of an error */
     loop->container = container;
     loop->category = NULL;
+    loop->names = NULL;
 
     if ((sqlite3_bind_text16(cif->get_item_loop_stmt, 2, name, -1, SQLITE_STATIC) == SQLITE_OK)
            && (sqlite3_bind_int64(cif->get_item_loop_stmt, 1, container->id) == SQLITE_OK)) {
@@ -298,6 +299,7 @@ int cif_container_create_loop(
             NESTTX_HANDLING;
 
             TRACELINE;
+            temp->names = NULL;
 
             /* begin a transaction */
             if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
@@ -440,6 +442,7 @@ int cif_container_get_category_loop(
     if (temp != NULL) {
         temp->category = cif_u_strdup(category);
         if (temp->category != NULL) {
+            temp->names = NULL;
             if ((sqlite3_bind_int64(cif->get_cat_loop_stmt, 1, container->id) == SQLITE_OK)
                     && (sqlite3_bind_text16(cif->get_cat_loop_stmt, 2, category, -1, SQLITE_STATIC) == SQLITE_OK)) {
                 STEP_HANDLING;
@@ -487,6 +490,7 @@ int cif_container_get_item_loop(
 
         temp->container = container;
         temp->category = NULL;
+        temp->names = NULL;
 
         result = cif_normalize_item_name(item_name, -1, &name, CIF_INVALID_ITEMNAME);
         if (result == CIF_INVALID_ITEMNAME) {
@@ -561,6 +565,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
                                 /* initialize the new loop object */
                                 temp->container = container;
                                 temp->loop_num = sqlite3_column_int(cif->get_all_loops_stmt, 0);
+                                temp->names = NULL;
                                 GET_COLUMN_STRING(cif->get_all_loops_stmt, 1, temp->category, HANDLER_LABEL(hard));
                                 loop_count += 1;
                             }
@@ -606,6 +611,32 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
 
         ROLLBACK_NESTTX(cif->db);
     }
+
+    FAILURE_TERMINUS;
+}
+
+int cif_container_prune(cif_container_t *container) {
+    FAILURE_HANDLING;
+    cif_t *cif = container->cif;
+
+    /*
+     * Create any needed prepared statements, or prepare the existing one(s)
+     * for re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, prune_container, PRUNE_SQL);
+    if (sqlite3_bind_int64(cif->prune_container_stmt, 1, container->id) == SQLITE_OK) {
+        STEP_HANDLING;
+
+        switch (STEP_STMT(cif, prune_container)) {
+            case SQLITE_DONE:
+                return CIF_OK;
+            case SQLITE_MISUSE:
+                FAIL(soft, CIF_MISUSE);
+        }
+    }
+
+    FAILURE_HANDLER(soft):
+    DROP_STMT(cif, prune_container);
 
     FAILURE_TERMINUS;
 }

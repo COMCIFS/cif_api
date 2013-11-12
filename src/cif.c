@@ -38,11 +38,10 @@ static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *conte
 static int walk_item(UChar *name, cif_value_t *value, cif_handler_t *handler, void *context);
 
 /*
- * A callback function used by cif_create() at runtime to detect whether foreign key support is available
+ * An SQLite callback function used by cif_create() at runtime to detect whether foreign key support is available
  * and successfully enabled:
  */
-static int cif_create_callback(void *context, /*@unused@*/ int n_columns UNUSED, char **column_texts,
-        /*@unused@*/ char **column_names UNUSED) {
+static int cif_create_callback(void *context, int n_columns UNUSED, char **column_texts, char **column_names UNUSED) {
     *((int *) context) = (((*column_texts != NULL) && (**column_texts == '1')) ? 1 : 0);
     return 0;
 }
@@ -107,10 +106,12 @@ int cif_create(cif_t **cif) {
                         INIT_STMT(temp, validate_container);
                         INIT_STMT(temp, create_loop);
                         INIT_STMT(temp, get_loopnum);
+                        INIT_STMT(temp, set_loop_category);
                         INIT_STMT(temp, add_loopitem);
                         INIT_STMT(temp, get_cat_loop);
                         INIT_STMT(temp, get_item_loop);
                         INIT_STMT(temp, get_all_loops);
+                        INIT_STMT(temp, prune_container);
                         INIT_STMT(temp, get_value);
                         INIT_STMT(temp, set_all_values);
                         INIT_STMT(temp, get_loop_size);
@@ -426,7 +427,7 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
                                 handle_blocks = CIF_FALSE;
                                 break;
                             case CIF_TRAVERSE_CONTINUE:
-                            case CIF_TRAVERSE_SKIP_CHILDREN:
+                            case CIF_TRAVERSE_SKIP_CURRENT:
                                 break;
                         }
                     }
@@ -440,7 +441,7 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
                     /* translate valid walk directions to CIF_OK for return from this function */
                     switch (result) {
                         case CIF_TRAVERSE_CONTINUE:
-                        case CIF_TRAVERSE_SKIP_CHILDREN:
+                        case CIF_TRAVERSE_SKIP_CURRENT:
                         case CIF_TRAVERSE_SKIP_SIBLINGS:
                         case CIF_TRAVERSE_END:
                             return CIF_OK;
@@ -449,7 +450,7 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
             }
 
             break;
-        case CIF_TRAVERSE_SKIP_CHILDREN:
+        case CIF_TRAVERSE_SKIP_CURRENT:
         case CIF_TRAVERSE_SKIP_SIBLINGS:
         case CIF_TRAVERSE_END:
             /* valid start handler responses instructing us to return CIF_OK without doing anything further */
@@ -483,7 +484,7 @@ static int walk_block(cif_container_t *block, cif_handler_t *handler, void *cont
                     result = walk_frame(*current_frame, handler, context);
                     switch (result) {
                         case CIF_TRAVERSE_CONTINUE:
-                        case CIF_TRAVERSE_SKIP_CHILDREN:
+                        case CIF_TRAVERSE_SKIP_CURRENT:
                             break;
                         case CIF_TRAVERSE_END:
                         default:
@@ -509,7 +510,7 @@ static int walk_block(cif_container_t *block, cif_handler_t *handler, void *cont
         result = walk_loops(block, handler, context);
         switch (result) {
             case CIF_TRAVERSE_CONTINUE:
-            case CIF_TRAVERSE_SKIP_CHILDREN:
+            case CIF_TRAVERSE_SKIP_CURRENT:
                 return HANDLER_RESULT(block_end, (block, context), CIF_TRAVERSE_CONTINUE);
             case CIF_TRAVERSE_SKIP_SIBLINGS:
                 return CIF_TRAVERSE_CONTINUE;
@@ -530,7 +531,7 @@ static int walk_frame(cif_container_t *frame, cif_handler_t *handler, void *cont
         result = walk_loops(frame, handler, context);
         switch (result) {
             case CIF_TRAVERSE_CONTINUE:
-            case CIF_TRAVERSE_SKIP_CHILDREN:
+            case CIF_TRAVERSE_SKIP_CURRENT:
                 return HANDLER_RESULT(frame_end, (frame, context), CIF_TRAVERSE_CONTINUE);
             case CIF_TRAVERSE_SKIP_SIBLINGS:
                 return CIF_TRAVERSE_CONTINUE;
@@ -553,7 +554,7 @@ static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *
             if (handle_loops) {
                 result = walk_loop(*current_loop, handler, context);
                 switch (result) {
-                    case CIF_TRAVERSE_SKIP_CHILDREN:
+                    case CIF_TRAVERSE_SKIP_CURRENT:
                     case CIF_TRAVERSE_CONTINUE:
                         break;
                     default:
@@ -590,7 +591,7 @@ static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context) {
 
                 switch (packet_result) {
                     case CIF_TRAVERSE_CONTINUE:
-                    case CIF_TRAVERSE_SKIP_CHILDREN:
+                    case CIF_TRAVERSE_SKIP_CURRENT:
                         break;
                     case CIF_TRAVERSE_SKIP_SIBLINGS:
                         return CIF_TRAVERSE_CONTINUE;
@@ -622,7 +623,7 @@ static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *conte
             item_result = walk_item(item->key, &(item->as_value), handler, context);
             switch (item_result) {
                 case CIF_TRAVERSE_CONTINUE:
-                case CIF_TRAVERSE_SKIP_CHILDREN:
+                case CIF_TRAVERSE_SKIP_CURRENT:
                     break;
                 case CIF_TRAVERSE_SKIP_SIBLINGS:
                     return CIF_TRAVERSE_CONTINUE;

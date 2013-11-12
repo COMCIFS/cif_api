@@ -93,10 +93,12 @@ struct cif_s {
    /*@only@*/ /*@null@*/ sqlite3_stmt *validate_container_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *create_loop_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_loopnum_stmt;
+   /*@only@*/ /*@null@*/ sqlite3_stmt *set_loop_category_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *add_loopitem_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_cat_loop_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_item_loop_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_loops_stmt;
+   /*@only@*/ /*@null@*/ sqlite3_stmt *prune_container_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_value_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *set_all_values_stmt;
    /*@only@*/ /*@null@*/ sqlite3_stmt *get_loop_size_stmt;
@@ -125,9 +127,10 @@ struct cif_container_s {
 /* loops */
 
 struct cif_loop_s {
-  /*@shared@*/ cif_container_t *container;
-  int loop_num;
-  /*@only@*/ /*@null@*/ UChar *category;
+    /*@shared@*/ cif_container_t *container;
+    int loop_num;
+    /*@only@*/ /*@null@*/ UChar *category;
+    UChar **names;
 };
 
 /* loop packets */
@@ -228,8 +231,8 @@ struct entry_s {
  * A node in a singly-linked list of Unicode strings
  */
 typedef struct string_el {
-    UChar *string;
     struct string_el *next;
+    UChar *string;
 } string_element_t;
 
 /*
@@ -248,7 +251,7 @@ typedef ssize_t (*read_chars_f)(void *char_source, UChar *dest, ssize_t count, i
 /* parser semantic token types */
 enum token_type {
     BLOCK_HEAD, FRAME_HEAD, FRAME_TERM, LOOPKW, NAME, OTABLE, CTABLE, OLIST, CLIST, KEY, TKEY, VALUE, QVALUE, TVALUE,
-    END
+    END, ERROR
 };
 
 /*
@@ -275,8 +278,8 @@ struct scanner_s {
     unsigned int meta_class[LAST_CLASS + 1];
 
     /* character source */
-    read_chars_f read_func;
     void *char_source;
+    read_chars_f read_func;
     int at_eof;
 
     /* cif version */
@@ -287,8 +290,25 @@ struct scanner_s {
     int prefix_removing;
 
     /* user callback support */
+    cif_handler_t *handler;
     cif_parse_error_callback_t error_callback;
+    cif_whitespace_callback_t whitespace_callback;
     void *user_data;
+
+    /*
+     * Used internally to supports navigational control via caller-provided CIF handlers.
+     *
+     * skip_depth == 0 means all elements parsed will be handled normally
+     * skip_depth == 1 means the current element's children will be skipped (and maybe the current element itself,
+     *     depending on when this depth is assigned)
+     * skip_depth == 2 means the current element's children and subsequent siblings will be skipped (and maybe the
+     *     current element itself, depending on when this depth is assigned)
+     * skip_depth == 3 means the current element's children and subsequent siblings will be skipped, as well as any
+     *     of its parent's siblings that have not yet been parsed; should only be encountered when the current element
+     *     is itself being skipped.
+     * etc.
+     */
+    int skip_depth;
 };
 
 #endif /* INTERNAL_CIFTYPES_H */

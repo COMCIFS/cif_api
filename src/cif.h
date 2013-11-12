@@ -36,11 +36,11 @@
  * @{
  */
 
-/** @brief a result code indicating successful completion of the requested operation */
+/** @brief A result code indicating successful completion of the requested operation */
 #define CIF_OK                  0
 
 /**
- * @brief a result code indicating that the requested operation completed successfully, but subsequent repetitions of
+ * @brief A result code indicating that the requested operation completed successfully, but subsequent repetitions of
  *        the same operation can be expected to fail
  *
  * This code is used mainly by packet iterators to signal the user when the last available packet is returned.
@@ -48,7 +48,7 @@
 #define CIF_FINISHED            1
 
 /**
- * @brief a result code indicating that the requested operation failed because an error occurred in one of the
+ * @brief A result code indicating that the requested operation failed because an error occurred in one of the
  *        underlying libraries
  *
  * This is the library's general-purpose error code for faults that it cannot more specifically diagnose.  Pretty much
@@ -59,7 +59,7 @@
 #define CIF_ERROR               2
 
 /**
- * @brief a result code returned on a best-effort basis to indicate that a user-provided object handle is invalid.
+ * @brief A result code returned on a best-effort basis to indicate that a user-provided object handle is invalid.
  *
  * The library does not guarantee to be able to recognize invalid handles.  If an invalid handle is provided then
  * a @c CIF_ERROR code may be returned instead, or really anything might happen -- generally speaking, library
@@ -72,7 +72,7 @@
 #define CIF_INVALID_HANDLE      3
 
 /**
- * @brief a result code indicating that an internal error or inconsistency was encountered
+ * @brief A result code indicating that an internal error or inconsistency was encountered
  *
  * If this code is emitted then it means a bug in the library has been triggered.  (If for no other reason than that
  * this is the wrong code to return if an internal bug has @em not been triggered.)
@@ -80,7 +80,7 @@
 #define CIF_INTERNAL_ERROR      4
 
 /**
- * @brief a result code indicating generally that one or more arguments to the function do not satisfy the function's
+ * @brief A result code indicating generally that one or more arguments to the function do not satisfy the function's
  *        requirements.
  *
  * This is a fallback code -- a more specific code will be emitted when one is available.
@@ -88,7 +88,7 @@
 #define CIF_ARGUMENT_ERROR      5
 
 /**
- * @brief a result code indicating that although the function was called with with substantially valid arguments, the
+ * @brief A result code indicating that although the function was called with with substantially valid arguments, the
  *        context or conditions do not allow the call.
  *
  * This code is returned, for example, if @c cif_pktitr_remove_packet() is passed a packet iterator that has not yet
@@ -97,7 +97,7 @@
 #define CIF_MISUSE              6
 
 /**
- * @brief a result code indicating that an optional feature was invoked and the library implementation in use does not
+ * @brief A result code indicating that an optional feature was invoked and the library implementation in use does not
  *        support it.
  *
  * There are very few optional features defined at this point, so this code should rarely, if even, be seen.
@@ -120,47 +120,47 @@
 #define CIF_CLIENT_ERROR        9
 
 /**
- * @brief a result code signaling an attempt to cause a CIF to contain blocks with duplicate (by CIF's criteria) block
+ * @brief A result code signaling an attempt to cause a CIF to contain blocks with duplicate (by CIF's criteria) block
  *        codes
  */
 #define CIF_DUP_BLOCKCODE      11
 
 /**
- * @brief a result code signaling an attempt to cause a CIF to contain a block with an invalid block code
+ * @brief A result code signaling an attempt to cause a CIF to contain a block with an invalid block code
  */
 #define CIF_INVALID_BLOCKCODE  12
 
 /**
- * @brief a result code signaling an attempt to retrieve a data block from a CIF (by reference to its block code)
+ * @brief A result code signaling an attempt to retrieve a data block from a CIF (by reference to its block code)
  *        when that CIF does not contain a block bearing that code
  */
 #define CIF_NOSUCH_BLOCK       13
 
 /**
- * @brief a result code signaling an attempt to cause a data block to contain save frames with duplicate (by CIF's
+ * @brief A result code signaling an attempt to cause a data block to contain save frames with duplicate (by CIF's
  *        criteria) frame codes
  */
 #define CIF_DUP_FRAMECODE      21
 
 /**
- * @brief a result code signaling an attempt to cause a data block to contain a save frame with an invalid frame code
+ * @brief A result code signaling an attempt to cause a data block to contain a save frame with an invalid frame code
  */
 #define CIF_INVALID_FRAMECODE  22
 
 /**
- * @brief a result code signaling an attempt to retrieve a save frame from a data block (by reference to its frame code)
+ * @brief A result code signaling an attempt to retrieve a save frame from a data block (by reference to its frame code)
  *        when that block does not contain a frame bearing that code
  */
 #define CIF_NOSUCH_FRAME       23
 
 /**
- * @brief a result code signaling an attempt to retrieve a loop from a save frame or data block by category, when
+ * @brief A result code signaling an attempt to retrieve a loop from a save frame or data block by category, when
  *        there is more than one loop tagged with the specified category
  */
 #define CIF_CAT_NOT_UNIQUE     31
 
 /**
- * @brief a result code signaling an attempt to retrieve a loop from a save frame or data block by category, when
+ * @brief A result code signaling an attempt to retrieve a loop from a save frame or data block by category, when
  *        the requested category is invalid.
  *
  * The main invalid category is NULL (as opposed to the empty category name), which is invalid only for retrieval, not
@@ -169,7 +169,7 @@
 #define CIF_INVALID_CATEGORY   32
 
 /**
- * @brief a result code signaling an attempt to retrieve a loop from a save frame or data block by category, when
+ * @brief A result code signaling an attempt to retrieve a loop from a save frame or data block by category, when
  *        the container does not contain any loop tagged with the specified category.
  *
  * This code is related to loop references by @em category.  Contrast with @c CIF_NOSUCH_ITEM .
@@ -177,7 +177,7 @@
 #define CIF_NOSUCH_LOOP        33
 
 /**
- * @brief a result code signaling an attempt to manipulate a loop having special significance to the library in a
+ * @brief A result code signaling an attempt to manipulate a loop having special significance to the library in a
  *        manner that is not allowed
  *
  * The only reserved loops in this version of the library are those that hold items that do not / should not appear
@@ -187,23 +187,24 @@
 #define CIF_RESERVED_LOOP      34
 
 /**
- * @brief a result code indicating that an attempt was made to add an item value to a different loop than the one
+ * @brief A result code indicating that an attempt was made to add an item value to a different loop than the one
  *        containing the item.
  */
 #define CIF_WRONG_LOOP         35
 
 /**
- * @brief a result code indicating that a packet iterator was requested for a loop that contains no packets.
+ * @brief A result code indicating that a packet iterator was requested for a loop that contains no packets, or that
+ *         a packet-less loop was encountered furing parsing.
  */
 #define CIF_EMPTY_LOOP         36
 
 /**
- * @brief a result code indicating that an attempt was made to create a loop devoid of any data names
+ * @brief A result code indicating that an attempt was made to create a loop devoid of any data names
  */
 #define CIF_NULL_LOOP          37
 
 /**
- * @brief a result code indicating that an attempt was made to add an item to a data block or save frame that already
+ * @brief A result code indicating that an attempt was made to add an item to a data block or save frame that already
  *        contains an item of the same code.
  *
  * "Same" in this sense is judged with the use of Unicode normalization and case folding.
@@ -211,26 +212,26 @@
 #define CIF_DUP_ITEMNAME       41
 
 /**
- * @brief a result code indicating that an attempt was made to add an item with an invalid data name to a CIF.
+ * @brief A result code indicating that an attempt was made to add an item with an invalid data name to a CIF.
  *
  * Note that attempts to @em retrieve items by invalid name, on the other hand, simply return @c CIF_NOSUCH_ITEM
  */
 #define CIF_INVALID_ITEMNAME   42
 
 /**
- * @brief a result code indicating that an attempt to retrieve an item by name failed as a result of no item bearing
+ * @brief A result code indicating that an attempt to retrieve an item by name failed as a result of no item bearing
  *        that data name being present in the target container
  */
 #define CIF_NOSUCH_ITEM        43
 
 /**
- * @brief a result code indicating that an attempt to retrieve a presumed scalar has instead returned one of multiple
+ * @brief A result code indicating that an attempt to retrieve a presumed scalar has instead returned one of multiple
  *        values found.
  */
 #define CIF_AMBIGUOUS_ITEM     44
 
 /**
- * @brief a result code indicating that the requested operation could not be performed because a packet object provided
+ * @brief A result code indicating that the requested operation could not be performed because a packet object provided
  *        by the user was invalid.
  *
  * For example, the packet might have been empty in a context where that is not allowed.
@@ -238,7 +239,13 @@
 #define CIF_INVALID_PACKET     52
 
 /**
- * @brief a result code indicating that an attempt was made to parse or write a value in a context that allows
+ * @brief A result code indicating that during parsing, the last packet in a loop construct contained fewer values than
+ *         the associated loop header had data names
+ */
+#define CIF_PARTIAL_PACKET     53
+
+/**
+ * @brief A result code indicating that an attempt was made to parse or write a value in a context that allows
  *        only values of kinds different from the given value's
  *
  * The only context in CIF 2.0 that allows values of some kinds but not others is table indices.
@@ -246,7 +253,7 @@
 #define CIF_DISALLOWED_VALUE   62
 
 /**
- * @brief a result code indicating that a string provided by the user could not be parsed as a number.
+ * @brief A result code indicating that a string provided by the user could not be parsed as a number.
  *
  * "Number" here should be interpreted in the CIF sense: an optionally-signed integer or floating-point number in
  * decimal format, with optional signed exponent and optional standard uncertainty.
@@ -254,50 +261,177 @@
 #define CIF_INVALID_NUMBER     72
 
 /**
- * @brief a result code indicating that a (Unicode) string provided by the user as a table index is not valid for that
+ * @brief A result code indicating that a (Unicode) string provided by the user as a table index is not valid for that
  *         use.
  */
 #define CIF_INVALID_INDEX      73
 
 /**
- * @brief a result code indicating that an invalid code sequence has been detected during I/O: in a source character
- *         representation is not a valid code sequence in the encoding with which it is believed to comply.  This
+ * @brief A result code indicating that a bare value encountered while parsing CIF starts with a character that is not
+ *         allowed for that purpose
+ *
+ * This error is recognized where the start character does not cause the "value" to be interpreted as something else
+ * altogether, such as a data name or a comment.  In CIF 2.0 parsing mode, only the dollar sign (as the first character
+ * of something that could be a value) will trigger this error; in CIF 1.1 mode, the opening and closing square
+ * brackets will also trigger it.
+ */
+#define CIF_INVALID_BARE_VALUE 74
+
+/**
+ * @brief A result code indicating that an invalid code sequence has been detected during I/O: in a source character
+ *         representation is not a valid code sequence in the encoding with which it is being interpreted.  This
  *         includes those code sequences ICU describes as "illegal" as well as those it describes as "irregular".
  */
 #define CIF_INVALID_CHAR      102
 
 /**
- * @brief a result code indicating that I/O fidelity cannot be maintained on account of there being no representation
+ * @brief A result code indicating that I/O fidelity cannot be maintained on account of there being no representation
  *         for a source character in the target form.  Recovery normally involves mapping the source character to a
  *         substitution character.
  */
 #define CIF_UNMAPPED_CHAR     103
 
 /**
- * @brief a result code indicating that input or output exceeded the relevant line-length limit
+ * @brief A result code indicating that a well-formed code sequence encountered during I/O decodes to a character that
+ * is not allowed to appear in CIF.  Recovery normally involves replacing the character with a substitution character.
+ */
+#define CIF_DISALLOWED_CHAR   104
+
+/**
+ * @brief A result code indicating that required whitespace was missing during CIF parsing.  Recovery generally
+ *         involves assuming the missing whitespace, which is fine as long as the reason for the error is not some
+ *         previous, unobserved error such as an omitted opening table delimiter.
+ */
+#define CIF_MISSING_SPACE     105
+
+/**
+ * @brief A result code indicating that an in-line quoted string started on the current line but was not closed before
+ *         the end of the line.
+ */
+#define CIF_MISSING_ENDQUOTE  106
+
+/**
+ * @brief A result code indicating that a text field remained open when the end of the input was reached.
+ *
+ * If the closing delimiter of a text field is omitted then havoc ensues -- likely the entire remainder of the file
+ * is parsed incorrectly -- possibly all as a single (unterminated) text field.
+ */
+#define CIF_UNCLOSED_TEXT    107
+
+/**
+ * @brief A result code indicating that input or output exceeded the relevant line-length limit
  */
 #define CIF_OVERLENGTH_LINE   108
 
 /**
- * @brief a return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should continue
- *        along its normal path
+ * @brief A result code indicating that input is being parsed according to CIF-2 syntax, but being decoded according to
+ *         a different encoding form than UTF-8
+ */
+#define CIF_WRONG_ENCODING    110
+
+/**
+ * @brief A result code indicating that during CIF parsing, something other than whitespace was encountered before the
+ *         first block header
+ */
+#define CIF_NO_BLOCK_HEADER   113
+
+/**
+ * @brief A result code indicating that during CIF parsing, a data block header or save frame header was encountered
+ *         while a save frame was being parsed, thus indicating that a save frame terminator must have been omitted
+ */
+#define CIF_NO_FRAME_TERM     123
+
+/**
+ * @brief A result code indicating that during CIF parsing, a save frame terminator was encountered while no save frame
+ *         was being parsed
+ */
+#define CIF_UNEXPECTED_TERM   124
+
+/**
+ * @brief A result code indicating that during CIF parsing, the end of input was encountered while parsing a save
+ *         frame.  This can indicate that the input was truncated or that the frame terminator was omitted.
+ */
+#define CIF_EOF_IN_FRAME      126
+
+/**
+ * @brief A result code indicating that an unquoted reserved word was encountered during CIF parsing
+ */
+#define CIF_RESERVED_WORD     132
+
+/**
+ * @brief A result code indicating that during CIF parsing, no data value was encountered where one was expected.
+ */
+#define CIF_MISSING_VALUE     133
+
+/**
+ * @brief A result code indicating that during CIF parsing, a data value was encountered where one was not expected.
+ *         Typically this means that either the associated tag was omitted or the value itself was duplicated
+ */
+#define CIF_UNEXPECTED_VALUE  134
+
+/**
+ * @brief A result code indicating that during CIF parsing, a closing list or table delimiter was encountered outside
+ *         the scope of any value.
+ */
+#define CIF_UNEXPECTED_DELIM  135
+
+/**
+ * @brief A result code indicating that during CIF parsing, a putative list or table value was encountered without a
+ *         closing delimiter
+ *
+ * Alternatively, it is also conceivable that the previously-parsed opening delimiter was meant to be part of a value,
+ * but was not so interpreted on account of the value being unquoted.
+ */
+#define CIF_MISSING_DELIM     136
+
+/**
+ * @brief A result code indicating that during parsing of a table value, an entry with no key was encountered
+ *
+ * Note that "no key" is different from "zero-length key" or "blank key"; the latter two are permitted.
+ */
+#define CIF_MISSING_KEY       137
+
+/**
+ * @brief A result code indicating that during parsing of a table value, an unquoted key was encountered
+ *
+ * The parser distinguishes this case from the "missing key" case by the presence of a colon in the bare string.
+ */
+#define CIF_UNQUOTED_KEY      138
+
+/**
+ * @brief A result code indicating that during parsing of a table value, an unquoted key was encountered
+ *
+ * The parser distinguishes this case from the "missing key" case by the presence of a colon in the bare string.
+ */
+#define CIF_MISQUOTED_KEY     139
+
+/**
+ * @brief A result code indicating that during parsing, a text field putatively employing the text prefix protocol
+ *         contained a line that did not begin with the prefix
+ */
+#define CIF_MISSING_PREFIX    141
+
+/**
+ * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should continue
+ *        along its normal path; has the same value as CIF_OK
  */
 #define CIF_TRAVERSE_CONTINUE       0
 
 /**
- * @brief a return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should bypass
- *        untraversed children of the current element, and thereafter proceed along the normal path
+ * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should bypass
+ *        the current element, or at least any untraversed children, and thereafter proceed along the normal path
  */
-#define CIF_TRAVERSE_SKIP_CHILDREN -1
+#define CIF_TRAVERSE_SKIP_CURRENT  -1
 
 /**
- * @brief a return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should bypass
- *        untraversed children and siblings of the current element, and thereafter proceed along the normal path
+ * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should bypass
+ *        the current element, or at least any untraversed children, and any untraversed siblings, and thereafter
+ *        proceed along the normal path
  */
 #define CIF_TRAVERSE_SKIP_SIBLINGS -2
 
 /**
- * @brief a return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should stop
+ * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should stop
  *        immediately
  */
 #define CIF_TRAVERSE_END           -3
@@ -310,7 +444,7 @@
  */
 
 /**
- * @brief the category code with which the library tags the unique loop (if any) in each data block or save
+ * @brief The category code with which the library tags the unique loop (if any) in each data block or save
  *        frame that contains items not associated with an explicit CIF @c loop_ construct
  *
  * @hideinitializer
@@ -318,7 +452,7 @@
 #define CIF_SCALARS (&cif_uchar_nul)
 
 /**
- * @brief a static Unicode NUL character; a pointer to this variable constitutes an empty Unicode string.
+ * @brief A static Unicode NUL character; a pointer to this variable constitutes an empty Unicode string.
  */
 static const UChar cif_uchar_nul = 0;
 
@@ -330,7 +464,147 @@ static const UChar cif_uchar_nul = 0;
  */
 
 /**
- * @brief the type of a callback function to be invoked when a parse error occurs.
+ * @brief An opaque handle on a managed CIF.
+ */
+typedef struct cif_s cif_t;
+
+/**
+ * @brief An opaque handle on a managed CIF data block or save frame.
+ *
+ * From a structural perspective, save frames and data blocks are distinguished only by nesting level: data blocks are
+ * (the only meaningful) top-level components of whole CIFs, whereas save frames are nested inside data blocks.  They
+ * are otherwise exactly the same with respect to contents and allowed operations, and @c cif_container_t models
+ * that commonality.
+ */
+typedef struct cif_container_s cif_container_t;
+
+/**
+ * @brief Equivalent to and interchangeable with @c cif_container_t, but helpful for bookkeeping to track those
+ *         containers that are supposed to be data blocks
+ */
+typedef struct cif_container_s cif_block_t;
+
+/**
+ * @brief Equivalent to and interchangeable with @c cif_container_t, but helpful for bookkeeping to track those
+ *         containers that are supposed to be save frames
+ */
+typedef struct cif_container_s cif_frame_t;
+
+/**
+ * @brief An opaque handle on a managed CIF loop
+ */
+typedef struct cif_loop_s cif_loop_t;
+
+/**
+ * @brief An opaque data structure representing a CIF loop packet.
+ *
+ * This is not a "handle" in the sense of some of the other opaque data types, as instances have no direct connection
+ * to a managed CIF.
+ */
+typedef struct cif_packet_s cif_packet_t;
+
+/**
+ * @brief An opaque data structure encapsulating the state of an iteration through the packets of a loop in an
+ *         managed CIF
+ */
+typedef struct cif_pktitr_s cif_pktitr_t;
+
+/**
+ * @brief The type of all data value objects
+ */
+typedef union cif_value_u cif_value_t;
+
+/**
+ * @brief The type used for codes representing the dynamic kind of the data in a @c cif_value_t object
+ */
+typedef enum { 
+    /**
+     * @brief The kind code representing a character (Unicode string) data value
+     */
+    CIF_CHAR_KIND, 
+
+    /**
+     * @brief The kind code representing a numeric or presumed-numeric data value
+     */
+    CIF_NUMB_KIND, 
+
+    /**
+     * @brief The kind code representing a CIF 2.0 list data value
+     */
+    CIF_LIST_KIND, 
+
+    /**
+     * @brief The kind code representing a CIF 2.0 table data value
+     */
+    CIF_TABLE_KIND, 
+
+    /**
+     * @brief The kind code representing the not-applicable data value
+     */
+    CIF_NA_KIND, 
+
+    /**
+     * @brief The kind code representing the unknown/unspecified data value
+     */
+    CIF_UNK_KIND
+} cif_kind_t;
+
+/**
+ * @brief A set of functions definining a handler interface for directing and taking appropriate action in response
+ *     to a traversal of a CIF.
+ *
+ * Each structural element of the CIF being traversed will be presented to the appropriate handler function,
+ * along with the appropriate context object, if any.  When traversal is performed via the @c cif_walk() function,
+ * the context object is the one passed to @c cif_walk() by its caller.  The handler may perform any action
+ * it considers suitable, and it is expected to return a code influencing the traversal path, one of:
+ * @li @c CIF_TRAVERSE_CONTINUE for the walker to continue on its default path (for instance, to descend to the current element's first child), or
+ * @li @c CIF_TRAVERSE_SKIP_CURRENT for the walker to skip traversal of the current element's children, if any, and the current element itself if possible (meaningfully distinct from @c CIF_TRAVERSE_CONTINUE only for the @c *_start callbacks), or
+ * @li @c CIF_TRAVERSE_SKIP_SIBLINGS for the walker to skip the current element if possible, its children, and all its siblings that have not yet been traversed, or
+ * @li @c CIF_TRAVERSE_END for the walker to stop without traversing any more elements
+ *
+ * A handler function may, alternatively, return a CIF API error code, which has the effect of CIF_TRAVERSE_END plus
+ * additional semantics specific to the traversal function (@c cif_walk() forwards the code to its caller as its
+ * return value).
+ */
+typedef struct {
+
+    /** @brief A handler function for the beginning of a top-level CIF object */
+    int (*handle_cif_start)(cif_t *cif, void *context);
+
+    /** @brief A handler function for the end of a top-level CIF object */
+    int (*handle_cif_end)(cif_t *cif, void *context);
+
+    /** @brief A handler function for the beginning of a data block */
+    int (*handle_block_start)(cif_container_t *block, void *context);
+
+    /** @brief A handler function for the end of a data block */
+    int (*handle_block_end)(cif_container_t *block, void *context);
+
+    /** @brief A handler function for the beginning of a save frame */
+    int (*handle_frame_start)(cif_container_t *frame, void *context);
+
+    /** @brief A handler function for the end of a save frame */
+    int (*handle_frame_end)(cif_container_t *frame, void *context);
+
+    /** @brief A handler function for the beginning of a loop */
+    int (*handle_loop_start)(cif_loop_t *loop, void *context);
+
+    /** @brief A handler function for the end of a loop */
+    int (*handle_loop_end)(cif_loop_t *loop, void *context);
+
+    /** @brief A handler function for the beginning of a loop packet */
+    int (*handle_packet_start)(cif_packet_t *packet, void *context);
+
+    /** @brief A handler function for the end of a loop packet */
+    int (*handle_packet_end)(cif_packet_t *packet, void *context);
+
+    /** @brief A handler function for data items (there are not separate beginning and end callbacks) */
+    int (*handle_item)(UChar *name, cif_value_t *value, void *context);
+
+} cif_handler_t;
+
+/**
+ * @brief The type of a callback function to be invoked when a parse error occurs.
  *
  * Note that this function receives the location where the error was @em detected , which is not necessarily the
  * location of the actual error.
@@ -342,6 +616,7 @@ static const UChar cif_uchar_nul = 0;
  *         CIF text being parsed where the error was detected
  * @param[in] length the number of @c UChar code units starting at the one @c text points to that may be relevant
  *         to the reported error.  Accessing @c text[length] or beyond produces undefined behavior.
+ * @param[in,out] data a pointer to the user data object provided by the parser caller
  *
  * @return zero if the parse should continue (with implementation-dependent best-effort error recovery), or nonzero
  *         if the parse should be aborted, forwarding the return code to the caller of the parser 
@@ -349,7 +624,34 @@ static const UChar cif_uchar_nul = 0;
 typedef int (*cif_parse_error_callback_t)(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
- * @brief represents a collection of CIF parsing options.
+ * @brief The type of a callback function by which a client application can be notified of whitespace encountered
+ *     during CIF parsing.
+ *
+ * CIF whitespace appearing outside any data value is not semantically significant from a CIF perspective, but it may
+ * be useful to the calling application.  An application interested in being notified about whitespace as it is parsed
+ * can register a callback function of this type with the parser.  Unlike a CIF handler or an error callback, whitespace
+ * callbacks cannot directly influence CIF traversal or interrupt parsing, but they have access to the same user data
+ * object that all other callbacks receive.
+ *
+ * The pointer @p ws and all subsequent values through @p ws @c + @p length are guaranteed to be valid pointer values
+ * for comparison and arithmetic.  The result of dereferencing @p ws @c + @p length is undefined.
+ *
+ * Whitespace is generally reported in multi-character blocks, which may span lines, but the reported whitespace
+ * sequences are not guaranteed to be maximal.  Physical runs of whitespace in the input CIF may be split across more
+ * than one callback call.
+ * 
+ * @param[in] line the one-based line number of the start of the whitespace
+ * @param[in] column the one-based column number of the first character of the whitespace run
+ * @param[in] ws a pointer to the start of the whitespace sequence, which is @em not necessarily NUL-terminated
+ * @param[in] length the number of characters in the whitespace sequence.  ( @p ws + @p length ) is guaranteed to be a
+ *         valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether
+ *         incrementing it results in a valid pointer value is undefined.
+ * @param[in,out] data a pointer to the user data object provided by the parser caller
+ */
+typedef void (*cif_whitespace_callback_t)(size_t line, size_t column, const UChar *ws, size_t length, void *data);
+
+/**
+ * @brief Represents a collection of CIF parsing options.
  *
  * Unlike most data types defined by the CIF API, the parse options are not opaque.  This reflects the @c struct's
  * intended use for collecting (only) user-settable option values.
@@ -357,7 +659,7 @@ typedef int (*cif_parse_error_callback_t)(int code, size_t line, size_t column, 
 struct cif_parse_opts_s {
 
     /**
-     * @brief if non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead
+     * @brief If non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead
      *         of as CIF 1.
      *
      * Because the CIF-version code is @em required in CIF 2 but optional in CIF 1, it is most correct to assume CIF 1
@@ -371,7 +673,7 @@ struct cif_parse_opts_s {
     int default_to_cif2;
 
     /**
-     * @brief if not @c NULL , names the coded character set with which the parser will attempt to interpret plain
+     * @brief If not @c NULL , names the coded character set with which the parser will attempt to interpret plain
      *         CIF 1.1 "text" files that do not bear CIF-recognized encoding information.
      *
      * Inasmuch as CIF 1 is a text format and CIF 2.0 is a text-like format, it is essential for the parser to interpret
@@ -423,7 +725,7 @@ struct cif_parse_opts_s {
     int force_default_encoding;
 
     /**
-     * @brief modifies whether line-folded text fields will be recognized and unfolded during parsing.
+     * @brief Modifies whether line-folded text fields will be recognized and unfolded during parsing.
      *
      * The line-folding protocol for text fields is part of the CIF 2.0 specification, but it is only a common
      * convention for CIF 1.  By default, therefore, the parser will recognize and unfold line-folded text fields
@@ -438,7 +740,7 @@ struct cif_parse_opts_s {
     int line_folding_modifier;
 
     /**
-     * @brief modifies whether prefixed text fields will be recognized and de-prefixed during parsing.
+     * @brief Modifies whether prefixed text fields will be recognized and de-prefixed during parsing.
      *
      * The prefix protocol for text fields is part of the CIF 2.0 specification, but for CIF 1 it is only a local
      * convention of certain organizations.  By default, therefore, the parser will recognize and de-prefix prefixed
@@ -453,151 +755,50 @@ struct cif_parse_opts_s {
     int text_prefixing_modifier;
 
     /**
-     * @brief a callback function by which the client application can be notified about parse errors, affording it the
+     * @brief A set of handler functions by which the application can be notified of details of the parse progress as
+     *         they occur, and through which it can influence the data recorded; may be @c NULL.
+     *
+     * If not itself NULL, then any non-null handler functions in the cif_handler_t to which this option points will
+     * be invoked by the parser at appropriate times as it traverses the input CIF text.  The handlers' return codes
+     * @c CIF_TRAVERSE_SKIP_CURRENT and @c CIF_TRAVERSE_SKIP_SIBLINGS are interpreted as directing which data to record
+     * in the target CIF, if indeed the user has provided one.  (The parser cannot altogether skip parsing any part
+     * of the input if it must identify the end of that part and there resume normal operation.)  Handler callbacks are
+     * not invoked for skipped entities.  Handlers may modify the CIF under construction, subject to the inherent
+     * limitations of the CIF in fact being incompletely constructed when they are called.
+     */
+    cif_handler_t *handler;
+
+    /**
+     * @brief A callback function by which the client application can be notified about whitespace encountered outside
+     *         data values
+     *
+     * If not @c NULL, this function will be called by the parser whenever it encounters a run of insignificant
+     * whitespace (including comments) in the input CIF.  Whitespace is insignificant if it serves only to separate
+     * other elements appearing in the CIF.  The parser does not guarantee to collect @em maximal whitespace runs;
+     * it may at times split consecutive whitespace into multiple runs, performing a callback for each one.
+     */
+    cif_whitespace_callback_t whitespace_callback;
+
+    /**
+     * @brief A callback function by which the client application can be notified about parse errors, affording it the
      *         option to interrupt the parse or allow it to continue.
      *
      * If not @c NULL, this function will be called by the parser whenever it encounters an error in the input CIF.
-     * The parse will be terminated immediately with an error if this function returns non-zero; otherwise, it
-     * serves informational purposes only.
+     * The parse will be aborted immediately with an error if this function returns non-zero; otherwise, it
+     * serves informational purposes only.  Two pre-built error callbacks are provided: @c cif_parse_error_ignore()
+     * and @c cif_parse_error_die().
      *
-     * If @c NULL, or if parse options are not specified, then the parser will stop at the first error.
+     * If @c NULL, or if parse options are not specified, then the parser will operate as if the error handler were
+     * @c cif_parse_error_die().
      */
     cif_parse_error_callback_t error_callback;
 
     /**
-     * @brief a pointer to user data to be forwarded to all callback functions invoked by the parser; opaque to the
+     * @brief A pointer to user data to be forwarded to all callback functions invoked by the parser; opaque to the
      *         parser itself, and may be @c NULL.
      */
     void *user_data;
 };
-
-/**
- * @brief an opaque handle on a managed CIF.
- */
-typedef struct cif_s cif_t;
-
-/**
- * @brief an opaque handle on a managed CIF data block or save frame.
- *
- * From a structural perspective, save frames and data blocks are distinguished only by nesting level: data blocks are
- * (the only meaningful) top-level components of whole CIFs, whereas save frames are nested inside data blocks.  They
- * are otherwise exactly the same with respect to contents and allowed operations, and @c cif_container_t models
- * that commonality.
- */
-typedef struct cif_container_s cif_container_t;
-
-/**
- * @brief equivalent to and interchangeable with @c cif_container_t, but helpful for bookkeeping to track those
- *         containers that are supposed to be data blocks
- */
-typedef struct cif_container_s cif_block_t;
-
-/**
- * @brief equivalent to and interchangeable with @c cif_container_t, but helpful for bookkeeping to track those
- *         containers that are supposed to be save frames
- */
-typedef struct cif_container_s cif_frame_t;
-
-/**
- * @brief an opaque handle on a managed CIF loop
- */
-typedef struct cif_loop_s cif_loop_t;
-
-/**
- * @brief an opaque data structure representing a CIF loop packet.
- *
- * This is not a "handle" in the sense of some of the other opaque data types, as instances have no direct connection
- * to a managed CIF.
- */
-typedef struct cif_packet_s cif_packet_t;
-
-/**
- * @brief an opaque data structure encapsulating the state of an iteration through the packets of a loop in an
- *         managed CIF
- */
-typedef struct cif_pktitr_s cif_pktitr_t;
-
-/**
- * @brief the type of all data value objects
- */
-typedef union cif_value_u cif_value_t;
-
-/**
- * @brief the type used for codes representing the dynamic kind of the data in a @c cif_value_t object
- */
-typedef enum { 
-    /**
-     * @brief the kind code representing a character (Unicode string) data value
-     */
-    CIF_CHAR_KIND, 
-
-    /**
-     * @brief the kind code representing a numeric or presumed-numeric data value
-     */
-    CIF_NUMB_KIND, 
-
-    /**
-     * @brief the kind code representing a CIF 2.0 list data value
-     */
-    CIF_LIST_KIND, 
-
-    /**
-     * @brief the kind code representing a CIF 2.0 table data value
-     */
-    CIF_TABLE_KIND, 
-
-    /**
-     * @brief the kind code representing the not-applicable data value
-     */
-    CIF_NA_KIND, 
-
-    /**
-     * @brief the kind code representing the unknown/unspecified data value
-     */
-    CIF_UNK_KIND
-} cif_kind_t;
-
-/**
- * @brief a set of functions definining a handler interface for directing and taking appropriate action in response
- *     to a traversal of a CIF.
- *
- * Each structural element of the CIF being traversed will be presented to the appropriate handler function,
- * along with the appropriate context object, if any.  When traversal is performed via the @c cif_walk() function,
- * the context object is the one passed to @c cif_walk() by its caller.  The handler may perform any action
- * it considers suitable, and it is expected to return a code influencing the traversal path, one of:
- * @li @c CIF_TRAVERSE_CONTINUE for the walker to continue on its default path (for instance, to descend to the current element's first child), or
- * @li @c CIF_TRAVERSE_SKIP_CHILDREN for the walker to skip traversal of the current element's children, if any (meaningfully distinct from @c CIF_TRAVERSE_CONTINUE only for the @c *_start callbacks), or
- * @li @c CIF_TRAVERSE_SKIP_SIBLINGS for the walker to skip the current element's children and all its siblings that have not yet been traversed, or
- * @li @c CIF_TRAVERSE_END for the walker to stop without traversing any more elements
- *
- * A handler function may, alternatively, return a CIF API error code, which has the effect of CIF_TRAVERSE_END plus
- * additional semantics specific to the traversal function (@c cif_walk() forwards the code to its caller as its
- * return value).
- */
-typedef struct {
-    /** @brief a handler function for the beginning of a top-level CIF object */
-    int (*handle_cif_start)(cif_t *cif, void *context);
-    /** @brief a handler function for the end of a top-level CIF object */
-    int (*handle_cif_end)(cif_t *cif, void *context);
-    /** @brief a handler function for the beginning of a data block */
-    int (*handle_block_start)(cif_container_t *block, void *context);
-    /** @brief a handler function for the end of a data block */
-    int (*handle_block_end)(cif_container_t *block, void *context);
-    /** @brief a handler function for the beginning of a save frame */
-    int (*handle_frame_start)(cif_container_t *frame, void *context);
-    /** @brief a handler function for the end of a save frame */
-    int (*handle_frame_end)(cif_container_t *frame, void *context);
-    /** @brief a handler function for the beginning of a loop */
-    int (*handle_loop_start)(cif_loop_t *loop, void *context);
-    /** @brief a handler function for the end of a loop */
-    int (*handle_loop_end)(cif_loop_t *loop, void *context);
-    /** @brief a handler function for the beginning of a loop packet */
-    int (*handle_packet_start)(cif_packet_t *packet, void *context);
-    /** @brief a handler function for the end of a loop packet */
-    int (*handle_packet_end)(cif_packet_t *packet, void *context);
-    /** @brief a handler function for data items (there are not separate beginning and end callbacks) */
-    int (*handle_item)(UChar *name, cif_value_t *value, void *context);
-} cif_handler_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -622,6 +823,26 @@ extern "C" {
  * If a new CIF object is created via this function then the caller assumes responsibility for releasing its
  * resources at an appropriate time via @c cif_destroy().
  *
+ * @b CIF @b handler @b callbacks.  The parse options allow the caller to register a variety of callback functions by
+ * which the parse can be tracked and influenced.  Most of these are wrapped together in the @c handler option, by
+ * which a @c cif_handler_t object can be provided.  Handler functions belonging to such a handlerwill be called when
+ * appropriate during CIF parsing, and the returned navigational signals direct which parts of the input data are
+ * included in the in-memory CIF rpresentation, if any, constructed by the parse.  To some extent, the CIF can be
+ * modified during parse time, too; for example, loop categories may be assigned via callback.
+ *
+ * @b Error @b handler @b callback.  The parse options also afford the caller an opportunity to specify an error-handler
+ * callback.  The provided function will be invoked whenever any error is detected in the CIF input, and any return
+ * code other than @c CIF_OK will be immediately returned to the @c cif_parse() caller, aborting the remainder of the
+ * parse.  This feature can be used to record or display information about the errors encountered, and / or to
+ * selectively ignore some errors (invoking the built-in recovery approach).  Two pre-built error callbacks are
+ * provided: @c cif_parse_error_ignore() and @c cif_parse_error_die().  If no error handler is specified by the caller
+ * then @c cif_parse_error_die() is used.
+ *
+ * @b Syntax-only @b mode.  If the @a cif argument is NULL then the parse is performed in syntax-only mode.  Errors
+ * in CIF syntax will be detected as normal, but some semantic errors, such as duplicate data names, frame codes, or
+ * block codes will not be detected.  Also, the handles provided to CIF handler functions during the parse may be NULL
+ * or may yield less information in this mode.
+ *
  * @param[in] stream a @c FILE @c * from which to read the raw CIF data; must be a non-NULL pointer to a readable
  *         stream, which will typically be read to its end
  *
@@ -644,12 +865,12 @@ int cif_parse(
         ) /*@modifies *cif@*/;
 
 /**
- * @brief a CIF parse error handler function that ignores all errors
+ * @brief A CIF parse error handler function that ignores all errors
  */
 int cif_parse_error_ignore(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
- * @brief a CIF parse error handler function that interrupts the parse on any error, causing @c CIF_ERROR to be returned
+ * @brief A CIF parse error handler function that interrupts the parse on any error, returning @c code
  */
 int cif_parse_error_die(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
@@ -788,7 +1009,7 @@ int cif_get_all_blocks(
  * along the route.  Order is block -> [frame ->] loop -> packet -> item, with save frames are traversed before loops
  * belonging to the same data block.  Handler callbacks can influence the walker's path via their return values,
  * instructing it to continue as normal (@c CIF_TRAVERSE_CONTINUE), to avoid traversing the children of the current
- * element (@c CIF_TRAVERSE_SKIP_CHILDREN), to avoid traversing subsequent siblings of the current element
+ * element (@c CIF_TRAVERSE_SKIP_CURRENT), to avoid traversing subsequent siblings of the current element
  * (@c CIF_TRAVERSE_SKIP_SIBLINGS), or to terminate the walk altogether (@c CIF_TRAVERSE_END).  For the purposes of
  * this function, loops are not considered "siblings" of save frames belonging to the same data block.
  *
@@ -809,14 +1030,14 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context);
  */
 
 /**
- * @brief an alias for @c cif_container_free
+ * @brief An alias for @c cif_container_free
  *
  * @hideinitializer
  */
 #define cif_block_free cif_container_free
 
 /**
- * @brief an alias for @c cif_container_destroy
+ * @brief An alias for @c cif_container_destroy
  *
  * @hideinitializer
  */
@@ -898,14 +1119,14 @@ int cif_block_get_all_frames(
  */
 
 /**
- * @brief an alias for @c cif_container_free
+ * @brief An alias for @c cif_container_free
  *
  * @hideinitializer
  */
 #define cif_frame_free cif_container_free
 
 /**
- * @brief an alias for @c cif_container_destroy
+ * @brief An alias for @c cif_container_destroy
  *
  * @hideinitializer
  */
@@ -1078,6 +1299,23 @@ int cif_container_get_all_loops(
         );
 
 /**
+ * @brief Removes all data-less loops from the specified container
+ *
+ * The @c cif_container_create_loop() function creates loops that initially contain no data (which is intended to be
+ * a transitory state), and it is possible via the packet iterator interface to remove all packets from a previously
+ * non-empty loop.  The CIF data model does not accommodate loops without data, so by whatever path they are introduced
+ * empty loops must be removed or filled inorder to achieve a valid CIF.  This convenience function serves that
+ * purpose by efficiently removing all empty loops belonging directly to the specified container.
+ *
+ * @param[in] container a handle on the data block or save frame from which to prune empty loops
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_container_prune(
+        cif_container_t *container
+        );
+
+/**
  * @brief Looks up an item by name in a data block or save frame, and optionally returns (one of) its value(s)
  *
  * The return value indicates whether the item is present with a single value (@c CIF_OK), present with multiple
@@ -1182,7 +1420,7 @@ int cif_loop_destroy(
         );
 
 /**
- * @brief Retrieves this loop's category
+ * @brief Retrieves the specified loop's category.
  *
  * Responsibility for cleaning up the category string belongs to the caller.  Note that loops are not required to
  * have categories assigned, therefore the category returned may be a NULL pointer.
@@ -1197,6 +1435,20 @@ int cif_loop_destroy(
 int cif_loop_get_category(
         /*@in@*/ /*@temp@*/ cif_loop_t *loop,
         /*@in@*/ /*@temp@*/ UChar **category
+        );
+
+/**
+ * @brief Sets the specified loop's category.
+ *
+ * @param[in,out] loop a handle on the loop whose category is to be set
+ *
+ * @param[in] category the category string to set as a NUL-terminated Unicode string; does not need to be unique and
+ *         may be NULL, but must not be a zero-length string.  Ownership of this string is not transferred by passing
+ *         it to this function.
+ */
+int cif_loop_set_category(
+        cif_loop_t *loop,
+        const UChar *category
         );
 
 /**
