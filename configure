@@ -12742,7 +12742,7 @@ fi
 # TODO: check SQLite version >= 3.6.19 (or otherwise test that it supports and enforces foreign key constraints) */
 
 if which pkg-config; then
-  ICU_LIBS=`pkg-config --libs icu` || { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
+  ICU_LIBS=`pkg-config --libs icu`" -licuio" || { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 { { $as_echo "$as_me:$LINENO: error: No pkg-config information for icu
 See \`config.log' for more details." >&5
@@ -12757,12 +12757,6 @@ See \`config.log' for more details." >&5
 $as_echo "$as_me: error: pkg-config not found
 See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }; }
-fi
-
-if test "x${enable_debug}" = xyes; then
-
-    ICU_LIBS="-licuio ${ICU_LIBS}"
-
 fi
 
 

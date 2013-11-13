@@ -69,9 +69,6 @@ int main(int argc, char *argv[]) {
     /* attempt to retrieve the data names again */
     TEST(cif_loop_get_names(loop1, *names), CIF_INVALID_HANDLE, test_name, 8);
 
-    /* attempt to retrieve data names via a NULL loop handle */
-    TEST(cif_loop_get_names(NULL, *names), CIF_INVALID_HANDLE, test_name, 8);
-
     /* Final cleanup */
     DESTROY_CIF(test_name, cif);
 

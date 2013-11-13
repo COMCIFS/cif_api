@@ -160,11 +160,9 @@ AC_CHECK_LIB([m], [log10])
 AC_SEARCH_LIBS([sqlite3_open_v2], [sqlite3], [], [AC_MSG_FAILURE([SQLite3 not found or not recent enough])])
 # TODO: check SQLite version >= 3.6.19 (or otherwise test that it supports and enforces foreign key constraints) */
 
-AS_IF([which pkg-config], [ICU_LIBS=`pkg-config --libs icu` || AC_MSG_FAILURE([No pkg-config information for icu])],
-                          [AC_MSG_FAILURE([pkg-config not found])])
-AS_IF([test "x$[]{enable_debug}" = xyes], [
-    ICU_LIBS="-licuio $[]{ICU_LIBS}"
-  ])
+AS_IF([which pkg-config], 
+      [ICU_LIBS=`pkg-config --libs icu`" -licuio" || AC_MSG_FAILURE([No pkg-config information for icu])],
+      [AC_MSG_FAILURE([pkg-config not found])])
 AC_SUBST([ICU_LIBS])
 
 # Specific functions

@@ -75,7 +75,8 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libcif_la_LIBADD =
+am__DEPENDENCIES_1 =
+libcif_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libcif_la_OBJECTS = cif.lo ciffile.lo container.lo datablock.lo \
 	loop.lo map.lo packet.lo parser.lo pktitr.lo utils.lo value.lo
 am__objects_1 =
@@ -456,7 +457,8 @@ libcif_la_SOURCES = \
   internal/value.h
 
 nodist_libcif_la_SOURCES = $(BUILT_SOURCES)
-libcif_la_LDFLAGS = $(LIB_VERSION_FLAGS) $(ICU_LIBS)
+libcif_la_LIBADD = $(ICU_LIBS)
+libcif_la_LDFLAGS = $(LIB_VERSION_FLAGS)
 LDADD = libcif.la
 
 # A sed script that processes a slightly-restricted dialect of SQL into a

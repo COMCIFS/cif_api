@@ -15,6 +15,7 @@ EXTRA_DIST = \
   extras/cif_parser.y \
   extras/cif_scanner.l \
   misc/cif_schema.sql \
+  misc/dox.css \
   misc/footer.html \
   misc/main.dox \
   misc/third_party_lib.supp \

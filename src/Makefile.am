@@ -74,7 +74,8 @@ libcif_la_SOURCES = \
   internal/utils.h \
   internal/value.h
 nodist_libcif_la_SOURCES = $(BUILT_SOURCES)
-libcif_la_LDFLAGS = $(LIB_VERSION_FLAGS) $(ICU_LIBS)
+libcif_la_LIBADD = $(ICU_LIBS)
+libcif_la_LDFLAGS = $(LIB_VERSION_FLAGS)
 
 LDADD = libcif.la
 
