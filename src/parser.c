@@ -7,13 +7,13 @@
  */
 
 /**
- * @page parsing CIF Parsing
+ * @page parsing CIF parsing
  * @tableofcontents
- * The CIF API provides a flexible CIF parser for CIF 2.0, flexible enough to parse CIF 1.1 documents as well.  Inasmuch
+ * The CIF API provides a parser for CIF 2.0, flexible enough to parse CIF 1.1 documents as well.  Inasmuch
  * as most CIFs conforming to the less formal conventions predating the CIF 1.1 specification can be successfully parsed
  * as CIF 1.1, the parser will handle substantially all CIFs conforming to any current or historic CIF specification.
  *
- * @section versions CIF Versions
+ * @section versions CIF versions
  * To date there have been two formal specifications for the CIF file format, v1.1 and v2.0, and a body of less formal
  * practice predating both.  Each specification so far has introduced incompatibilities with preceding practice, so
  * correct parsing depends on correctly identifying the version of CIF with which a given document is intended to
@@ -61,7 +61,135 @@
  * assist in sorting this out, CIF 2.0 requires an appropriate version comment to be used in well-formed documents
  * (itself a minor incompatibility).
  *
- * TODO: parsing details
+ * @section parsing-details The CIF API parsing interface
+ * The main interface provided for CIF parsing is the @c cif_parse() function, which reads CIF text from a standard C
+ * byte stream, checks and interprets the syntax, and optionally records the parsed results in an in-memory CIF object.
+ * A variety of options and extension points are available via the @c options argument to the parse function, currently
+ * falling into two broad categories:
+ * @li options controlling the CIF dialect to be parsed, and
+ * @li callback functions by which the caller can obtain dynamic information about the progress of the parse, and
+ *         exert influence on parsing behavior
+ *
+ * These afford a great deal of parsing flexibility, some dimensions of which are explored in the following sections.
+ *
+ * @subsection basic-parsing Basic parsing
+ * Historically, a majority of CIF 1.1 parsers have operated by parsing the input into some kind of in-memory
+ * representation of the overall CIF, possibly, but not necessarily, independent of the original file.  The
+ * @c cif_parse() function operates in this way when its third argument points to a location for a CIF handle: @code
+ * void traditional(FILE *in) {
+ *     cif_t *cif = NULL;
+ *
+ *     cif_parse(in, NULL, &cif);
+ *     // results are available via 'cif' if anything was successfully parsed
+ *     cif_destroy(cif);  // safe even if 'cif' is still NULL
+ * }
+ * @endcode
+ *
+ * By default, however, the parser stops at the first error it encounters.  Inasmuch as very many CIFs contain at least
+ * minor errors, it may be desirable to instruct the parser to attempt to push past all or certain kinds of errors,
+ * extracting a best-guess interpretation of the remainder of the input.  Such behavior can be obtained by providing an
+ * error-handling callback function of type matching @c cif_parse_error_callback_t .  Such a function serves not only
+ * to control which errors are bypassed, but also, if so written, to pass on details of each error to the caller.  For
+ * example, this code counts the number of CIF syntax and semantic errors in the input CIF: @code
+ * int record_error(int error_code, size_t line, size_t column, const UChar *text, size_t length, void *data) {
+ *     ((int *) data) += 1;
+ *     return CIF_OK;
+ * }
+ * void count_errors(FILE *in) {
+ *     cif_t *cif = NULL;
+ *     int num_errors = 0;
+ *     struct cif_parse_opts_s *opts = NULL;
+ *
+ *     cif_parse_options_create(&opts);
+ *     opts->error_callback = record_error;
+ *     opts->user_data = &num_errors;
+ *     cif_parse(in, opts, &cif);
+ *     free(opts);
+ *     // the parsed results are available via 'cif'
+ *     // the number of errors is available in 'num_errors'
+ *     // ...
+ *     cif_destroy(cif);
+ * }
+ * @endcode
+ * 
+ * For convenience, the CIF API provides two default error handler callback functions, @c cif_parse_error_die() and
+ * @c cif_parse_error_ignore().  As their names imply, the former causes the parse to be aborted on any error, whereas
+ * the latter causes all errors to silently be ignored.
+ *
+ * @subsection parser-callbacks Parser callbacks
+ * Parsing a CIF from an external representation is in many ways analogous to performing a depth-first traversal of a
+ * a pre-parsed instance of the CIF data model, as the @c cif_walk() function does.  In view of this similarity, a @c
+ * cif_handler_t object such as is used with @c cif_walk() can be provided among the parse options to facilitate
+ * caller monitoring and control of the parse process.  The handler callbacks can probe and to some
+ * extent modify the CIF as it is parsed, including by instructing the parser to ignore (but not altogether skip)
+ * some portions of the input.  This facility has applications from parse-time data selection to validation and beyond;
+ * for example, here is a naive approach to assigning loop categories based on loop data names: @code
+ * int assign_loop_category(cif_loop_t *loop, void *context) {
+ *     UChar **names;
+ *     UChar *name0;
+ *     UChar *dot_location;
+ *     const UChar unicode_point = 0x2E;
+ *
+ *     // We can rely on at least one data name
+ *     cif_loop_get_names(loop, &names);
+ *     name0 = cif_u_strdup(names[0]);
+ *     // Assumes the name contains a decimal point (Unicode code point U+002E), and
+ *     // takes the category as everything preceding it.  Ignores case sensitivity considerations.
+ *     dot_location = u_strchr(names[0] + 1, unicode_point);
+ *     *dot_location = 0;
+ *     cif_loop_set_category(loop, name0);
+ *     free(name0);
+ * }
+ *
+ * void parse_with_categories(FILE *in) {
+ *     cif_t *cif = NULL;
+ *     struct cif_parse_opts_s *opts = NULL;
+ *     cif_handler_t handler = { NULL, NULL, NULL, NULL, NULL, NULL, assign_loop_category, NULL, NULL, NULL, NULL };
+ *
+ *     cif_parse_options_create(&opts);
+ *     opts->handler = &handler;
+ *     cif_parse(in, opts, &cif);
+ *     free(opts);
+ *     // the parsed results are available via 'cif'
+ *     // ...
+ *     cif_destroy(cif);
+ * }
+ * @endcode
+ *
+ * Note that the parser traverses its input and issues callbacks in document order from start to end, so unlike
+ * @c cif_walk(), it does not guarantee to traverse all of a data block's save frames before any of its data.
+ *
+ * @subsubsection validation CIF validation
+ * The CIF API does not provide specific support for CIF validation because validation is is dependent on the DDL of
+ * the dictionary to which a CIF purports to comply, whereas the CIF API is generic, not specific to any particular
+ * DDL or dictionary.  To the extent that some validations can be performed during parsing, however, callback functions
+ * provide a suitable means to engage such validation.
+ *
+ * @subsubsection comments Comments
+ * For the most part, the parser ignores CIF comments other than for attempting to identify the CIF
+ * version with which its input purports to comply.  In the event that the caller wants to be informed of comments and
+ * other whitespace, however, there is among the parse options a pointer to a callback function for that purpose.  Its
+ * use is analogous to the callbacks already discussed.
+ *
+ * @subsection syntax-only Syntax-only parsing
+ * For some applications, it might not be desirable or even feasible to collect parsed CIF content into an
+ * in-memory representation.  The simplest such application performs a simple syntax check of the input -- perhaps to
+ * test compliance with a particular CIF version and/or parse options.  The parser function operates in just
+ * that way when its third argument is NULL (that is, when the caller provides no CIF handle location).
+ * All provided callbacks are invoked as normal in this mode, including any error callback, and in the absence of any
+ * callbacks the parser's return code indicates whether any errors were detected.  This syntax-only parsing mode does
+ * have a few limitations, however, primarily that because it does not retain an in-memory representation of its input,
+ * it cannot check CIF semantic requirements for data name, frame code, and block code uniqueness within their
+ * respective scopes.
+ *
+ * @subsection event-driven Event-driven parsing
+ * The availability and scope of callback functions make the syntax-only mode described above a CIF analog of the
+ * event-driven "SAX" XML parsing interface.  To use the parser in that mode, the caller provides callback functions
+ * by which to be informed of parse "events" of interest -- recognition of entities and entity boundaries -- so as to
+ * extract the desired information during the parse instead of by afterward analyzing the parse result.  Callbacks can
+ * communicate with themselves and each other, and can memorialize data for the caller, via the @c user_data object
+ * provided among the parse options (and demonstrated in the error-counting example).  Callbacks need not be provided
+ * for events that are not of interest.
  */
 
 /*

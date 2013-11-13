@@ -29,7 +29,7 @@ ACLOCAL_AMFLAGS = -I m4
 if make_docs
 doxygen_html_targets = dox-html
 doxygen_man_targets = dox-man
-dox_deps = Doxyfile src/cif.h misc/main.dox misc/footer.html
+dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css
 else
 doxygen_html_targets =
 doxygen_man_targets =

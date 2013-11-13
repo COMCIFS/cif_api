@@ -255,7 +255,7 @@ ACLOCAL_AMFLAGS = -I m4
 @make_docs_FALSE@doxygen_man_targets = 
 @make_docs_TRUE@doxygen_man_targets = dox-man
 @make_docs_FALSE@dox_deps = 
-@make_docs_TRUE@dox_deps = Doxyfile src/cif.h misc/main.dox misc/footer.html
+@make_docs_TRUE@dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css
 @install_docs_FALSE@html_install = :
 
 # The chmod in the below command is needed to work around weirdness in the behavior of the

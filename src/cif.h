@@ -667,8 +667,8 @@ struct cif_parse_opts_s {
      * it is desirable to parse it that way regardless of the absence of a version code.
      *
      * CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled (albeit
-     * with an error on account of the missing version code).  In that case, however, CIF 1 streams that (allowably)
-     * omit the version code may be parsed incorrectly.
+     * with an error on account of the missing version code).  On the other hand, CIF 1 streams that (allowably)
+     * omit the version code may be parsed incorrectly if this option is enabled.
      */
     int default_to_cif2;
 
@@ -690,7 +690,7 @@ struct cif_parse_opts_s {
      * interpreted as UTF-8).
      *
      * If no encoding is specified via this option (i.e. it is @c NULL ) and no encoding signature is recognized in the
-     * input CIF, then the parser will choose a default text encoding for CIF 1.1 documents that is appropriate to the
+     * input CIF, then for CIF 1.1 documents the parser will choose a default text encoding that is appropriate to the
      * system on which it is running, and it will attempt to parse according to that encoding.  How the default encoding
      * is chosen is implementation dependent in this case.
      *
@@ -714,7 +714,7 @@ struct cif_parse_opts_s {
      * be chosen for CIF 2.0 as well.
      *
      * This option is dangerous.  Enabling it can cause CIF parsing to fail, or in some cases cause CIF contents to
-     * silently be misinterpreted if the specified default encoding is not in fact the correct encoding for the input.
+     * silently be misinterpreted, if the specified default encoding is not in fact the correct encoding for the input.
      * On the other hand, use of this option is essential for correctly parsing CIF documents whose encoding cannot be
      * determined or guessed correctly.
      *
@@ -863,6 +863,24 @@ int cif_parse(
         /*@in@*/ /*@temp@*/ struct cif_parse_opts_s *options,
         /*@out@*/ /*@null@*/ cif_t **cif
         ) /*@modifies *cif@*/;
+
+/**
+ * @brief Allocates a parse options structure and initializes it with default values.
+ *
+ * Obtaining a parse options structure via this function insulates programs against additions to the option list in
+ * future versions of the library.  Programs may create @c cif_parse_opts_s objects by other means -- for example, by
+ * allocating them on the stack -- but programs that do so are likely to crash if dynamically linked against a future
+ * version of the library that adds fields to the structure definition, even if they are re-compiled against revised
+ * library headers.  This is not an issue for statically-linked programs that fully initialize their options.
+ *
+ * On successful return, the provided options object belongs to the caller.
+ *
+ * @param[in,out] opts a the location where a pointer to the new parse options structure should be recorded.  The
+ *         initial value of @p *opts is ignored, and overwritten on success.
+ *
+ * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
+ */
+int cif_parse_options_create(struct cif_parse_opts_s **opts);
 
 /**
  * @brief A CIF parse error handler function that ignores all errors
@@ -2312,6 +2330,53 @@ int cif_value_remove_item_by_key(
         /*@temp@*/ const UChar *key, 
         cif_value_t **value
         );
+
+/**
+ * @}
+ *
+ * @defgroup utility_funcs CIF utility functions
+ *
+ * @{
+ */
+
+/**
+ * @brief Creates and returns a duplicate of a Unicode string.
+ *
+ * It is sometimes useful to duplicate a Unicode string, but ICU does not provide an analog of @c strdup() for that
+ * purpose.  The CIF API therefore provides its own.
+ *
+ * Behavior is undefined if the argument is not terminated by a NUL (Unicode) character.
+ *
+ * @param[in] str the NUL-terminated Unicode string to duplicate; the caller retains ownership of this object
+ *
+ * @return Returns a pointer to the duplicate, or NULL on failure or if the argument is NULL.  Responsibility for the
+ *         duplicate, if any, belongs to the caller.
+ */
+UChar *cif_u_strdup(const UChar *str);
+
+/**
+ * @brief Converts (the initial part of) the specified Unicode string to a case-folded normalized form.
+ *
+ * The normalized form is that obtained by first converting to Unicode normalization form NFD, applying the Unicode
+ * case-folding algorithm to the result (with default handling of Turkic dotless i), and renormalizing the case-folded
+ * form to Unicode normalization form NFC.  The result string, if provided, becomes the responsibility of the caller.
+ * If not NULL, it is guaranteed to be NUL-terminated.
+ *
+ * The normalized form output by this function is suitable for comparing CIF "case-insensitive" strings for equivalence,
+ * as equivalent strings will have identical normalized forms.  This accounts not only for case folding itself, but also
+ * for combining marks, including sequences thereof.  It does not, however, erase distinctions between different Unicode
+ * characters that are typically rendered similarly (so-called "compatibility equivalents"), as that would constitute
+ * a semantic change.
+ *
+ * @param[in] src the Unicode string to normalize; must not be NULL
+ * @param[in] srclen the maximum length of the input to normalize; if less than zero then the whole string is
+ *     normalized up to the first NUL character (which otherwise does not need to be present)
+ * @param[in,out] normalized a pointer to a location to record the result; if NULL then the result is discarded, but
+ *     the return code still indicates whether normalization was successful
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+int cif_normalize(const UChar *src, int32_t srclen, UChar **normalized);
 
 /**
  * @}

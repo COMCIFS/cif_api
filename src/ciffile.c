@@ -119,6 +119,25 @@ static const char CIF2_UTF8_MAGIC[MAGIC_LENGTH + MAGIC_EXTRA + 1] = "\x23\x5c\x2
 
 static const char UTF8[6] = "UTF-8";
 
+int cif_parse_options_create(struct cif_parse_opts_s **opts) {
+    struct cif_parse_opts_s *opts_temp = (struct cif_parse_opts_s *) calloc(1, sizeof(struct cif_parse_opts_s));
+
+    if (opts_temp == NULL) {
+        return CIF_ERROR;
+    } else {
+        /* explicitly initialize all pointer members */
+        opts_temp->default_encoding_name = NULL;
+        opts_temp->handler = NULL;
+        opts_temp->whitespace_callback = NULL;
+        opts_temp->error_callback = NULL;
+        opts_temp->user_data = NULL;
+        /* members having integral types are pre-initialized to zero because calloc() clears the memory it allocates */
+
+        *opts = opts_temp;
+        return CIF_OK;
+    }
+}
+
 /*
  * Parses a CIF from the specified stream.  If the 'cif' argument is non-NULL
  * then a handle for the parsed CIF is written to its referrent.  Otherwise,

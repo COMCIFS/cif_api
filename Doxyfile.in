@@ -459,7 +459,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = "@abs_srcdir@/src/cif.h" "@abs_srcdir@/misc/main.dox"
+INPUT                  = "@abs_srcdir@/src/cif.h" "@abs_srcdir@/misc/main.dox" "@abs_srcdir@/src/parser.c"
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -665,7 +665,7 @@ HTML_FOOTER            = "@abs_srcdir@/misc/footer.html"
 # the style sheet file to the HTML output directory, so don't put your own 
 # stylesheet in the HTML output directory as well, or it will be erased!
 
-HTML_STYLESHEET        = 
+HTML_STYLESHEET        = "@abs_srcdir@/misc/dox.css"
 
 # If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes, 
 # files or namespaces will be aligned in HTML using tables. If set to 

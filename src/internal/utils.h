@@ -571,26 +571,6 @@ int cif_normalize_table_index(/*@in@*/ /*@temp@*/ const UChar *name, int32_t nam
         /*@in@*/ /*@temp@*/ UChar **normalized_name, int invalidityCode) /*@modifies *normalized_name@*/ INTERNAL;
 
 /*
- * Converts (the initial part of) the specified Unicode string to case-folded normalized form
- *
- * src: the string to normalize; assumed non-NULL
- * srclen: the maximum length of the input to normalize; if less than zero then the whole string is normalized up to
- *     the terminating NUL character (which otherwise does not need to be present)
- * normalized: a pointer to a location to record the result; if NULL then the result is discarded, but the return
- *     cide still indicates whether normalization was successful
- *
- * Returns CIF_ERROR if normalization fails or CIF_OK if it succeeds
- */
-int cif_normalize_common(/*@temp@*/ const UChar *src, int32_t srclen, UChar **normalized) INTERNAL;
-
-/*
- * Creates and returns a duplicate of the specified Unicode string.  Returns
- * NULL on error or if the argument is NULL.  Behavior is undefined if the
- * argument is not null(-character)-terminated.
- */
-/*@only@*/ /*@null@*/ UChar *cif_u_strdup(/*@temp@*/ const UChar *) INTERNAL;
-
-/*
  * Serializes a value to this library's internal serialization format.
  * Returns NULL if serialization fails (most likely because of insufficient memory).
  */

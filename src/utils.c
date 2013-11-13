@@ -77,10 +77,14 @@ static int cif_is_valid_name(/*@temp@*/ const UChar *name, int for_item);
  * src: the Unicode string to normalize; assumed non-NULL
  * srclen: the maximum length of the input to normalize; if less than zero then the whole string is normalized up to
  *     the terminating NUL character (which otherwise does not need to be present)
+ * mode: tyhe desired normalization mode
+ * result_length: a pointer by which to return the length of the normalized result
+ * terminate: iff zero, the returned string is not required to be NUL-terminated
  *
  * Returns a pointer to the normalized string, or NULL if normalization fails
  */
-/*@only@*/ /*@null@*/ static UChar *cif_unicode_normalize(/*@temp@*/ const UChar *src, int32_t srclen, UNormalizationMode mode);
+static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormalizationMode mode, int32_t *result_length,
+        int terminate);
 
 /*
  * Applies the Unicode case-folding algorithm (without Turkic dotless-i special option) to the (initial segment of the)
@@ -89,10 +93,12 @@ static int cif_is_valid_name(/*@temp@*/ const UChar *name, int for_item);
  * src: the Unicode string to fold; assumed non-NULL
  * srclen: the maximum length of the input to fold; if less than zero then the whole string is folded up to
  *     the terminating NUL character (which otherwise does not need to be present)
+ * result_length: a pointer by which to return the length of the folded result
  *
- * Returns a pointer to the folded string, or NULL if folding fails; the caller is responsible for cleaning up
+ * Returns a pointer to the folded string, or NULL if folding fails; the caller is responsible for cleaning up; the
+ * result is not necessarilly NUL-terminated
  */
-/*@only@*/ /*@null@*/ static UChar *cif_fold_case(/*@temp@*/ const UChar *src, int32_t srclen);
+static UChar *cif_fold_case(const UChar *src, int32_t srclen, int32_t *result_length);
 
 
 static int cif_has_disallowed_chars(const UChar *str) {
@@ -145,8 +151,9 @@ static int cif_is_valid_name(const UChar *name, int for_item) {
             && (cif_has_disallowed_chars(name) == 0)) ? 1 : 0;
 }
 
-int cif_normalize_common(const UChar *src, int32_t srclen, UChar **normalized) {
-    UChar *buf = cif_unicode_normalize(src, srclen, UNORM_NFD);
+int cif_normalize(const UChar *src, int32_t srclen, UChar **normalized) {
+    int32_t result_length;
+    UChar *buf = cif_unicode_normalize(src, srclen, UNORM_NFD, &result_length, 0);
 
     INIT_USTDERR;
     if (buf == NULL) {
@@ -155,7 +162,7 @@ int cif_normalize_common(const UChar *src, int32_t srclen, UChar **normalized) {
         u_fflush(ustderr);
 #endif
     } else {
-        UChar *buf2 = cif_fold_case(buf, -1);
+        UChar *buf2 = cif_fold_case(buf, result_length, &result_length);
 
         if (buf2 == NULL) {
 #ifdef DEBUG
@@ -165,7 +172,7 @@ int cif_normalize_common(const UChar *src, int32_t srclen, UChar **normalized) {
             free(buf);
         } else {
             free(buf);
-            buf = cif_unicode_normalize(buf2, -1, UNORM_NFC);
+            buf = cif_unicode_normalize(buf2, result_length, UNORM_NFC, &result_length, 1);
             if (buf == NULL) {
 #ifdef DEBUG
                 u_fprintf(ustderr, "error: Could not normalize to form NFC: %S\n", buf2);
@@ -194,7 +201,8 @@ int cif_normalize_common(const UChar *src, int32_t srclen, UChar **normalized) {
  * otherwise, the caller assumes responsibility for cleaning up the returned Unicode string.  The original string is
  * not modified.
  */
-static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormalizationMode mode) {
+static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormalizationMode mode, int32_t *result_length,
+        int terminate) {
     int32_t src_chars = ((srclen >= 0) ? srclen : u_strlen(src));
 
     /* prepare an output buffer, reserving space for a trailing NUL character */
@@ -206,26 +214,30 @@ static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormaliza
         UErrorCode code = U_ZERO_ERROR;
         int32_t normalized_chars = unorm_normalize(src, src_chars, mode, 0, buf, buffer_chars, &code);
 
-        if (U_SUCCESS(code) && (normalized_chars < buffer_chars)) {
-            /* output captured and terminator written -- it's all good */
-            return buf;
-        } else if (U_SUCCESS(code) || (code == U_BUFFER_OVERFLOW_ERROR)) {
-            /* a larger output buffer was needed */
-            int32_t needed_chars = normalized_chars + 1;
-            UChar *temp = (UChar *) realloc(buf, ((size_t) needed_chars) * sizeof (UChar));
+        if ((code == U_STRING_NOT_TERMINATED_WARNING) && terminate) {
+            /* (only) the terminator did not fit in the buffer */
+            UChar *temp = (UChar *) realloc(buf, ((size_t) normalized_chars + 1) * sizeof (UChar));
 
             if (temp != NULL) {
-                buf = temp;
-                if (normalized_chars == buffer_chars) {
-                    /* only the terminating NUL character was missed; add it and be done */
-                    buf[normalized_chars] = 0;
-                    return buf;
-                } else {
-                    /* need to run the normalization routine again to capture the missing output */
-                    buffer_chars = needed_chars;
-                    continue;
-                }
-            } /* else reallocation failure */
+                /* buf is no longer a valid pointer */
+                temp[normalized_chars] = 0;
+                *result_length = normalized_chars;
+                return temp; 
+            } /* else reallocation failure; buf remains valid */
+        } else if (U_SUCCESS(code)) {
+            /* output captured and terminator written -- it's all good */
+            *result_length = normalized_chars;
+            return buf;
+        } else if (code == U_BUFFER_OVERFLOW_ERROR) {
+            /* a larger output buffer was needed */
+
+            /* allocate a sufficient buffer; do not realloc() because it is useless to preserve the current content */
+            free(buf);
+            buffer_chars = (size_t) normalized_chars + 1;
+            buf = (UChar *) malloc(buffer_chars * sizeof (UChar));  /* no need for a NULL check here */
+
+            /* run the normalization routine again to capture the missing output */
+            continue;
         } /* else normalization failed */
 
 #ifdef DEBUG
@@ -239,7 +251,7 @@ static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormaliza
     return buf;
 }
 
-static UChar *cif_fold_case(const UChar *src, int32_t srclen) {
+static UChar *cif_fold_case(const UChar *src, int32_t srclen, int32_t *result_length) {
     int32_t src_chars = ((srclen < 0) ? u_strlen(src) : srclen);
 
     /* initial guess: the folded version will not contain more code units than the unfolded */
@@ -250,28 +262,20 @@ static UChar *cif_fold_case(const UChar *src, int32_t srclen) {
         UErrorCode code = U_ZERO_ERROR;
         int32_t folded_chars = u_strFoldCase(buf, buffer_chars, src, src_chars, U_FOLD_CASE_DEFAULT, &code);
 
-        if (U_SUCCESS(code) && (folded_chars < buffer_chars)) {
-            /* case folding was successful */
-            break;
-        } else if (U_SUCCESS(code) || (code == U_BUFFER_OVERFLOW_ERROR)) {
+        if (U_SUCCESS(code)) {
+            /* case folding was successful, but result is not necessarily NUL-terminated */
+            *result_length = folded_chars;
+            return buf;
+        } else if (code == U_BUFFER_OVERFLOW_ERROR) {
             /* the destination buffer was too small */
-            int32_t needed_chars = folded_chars + 1;
-            UChar *temp = (UChar *) realloc(buf, ((size_t) needed_chars) * sizeof(UChar));
 
-            if (temp != NULL) {
-                /* successful reallocation; buf is no longer a valid pointer */
-                buf = temp;
-                if (folded_chars == buffer_chars) {
-                    /* only the terminator failed to fit in the original buffer */
-                    /* add the missing terminator; no need to re-fold */
-                    buf[folded_chars] = 0;
-                    break;
-                } else {
-                    /* re-fold */
-                    buffer_chars = needed_chars;
-                    continue;
-                }
-            }  /* else memory (re)allocation failure; buf is still a live pointer */
+            /* allocate a sufficient buffer */
+            free(buf);
+            buffer_chars = (size_t) folded_chars + 1;
+            buf = (UChar *) realloc(buf, buffer_chars * sizeof(UChar));  /* no need for a NULL check here */
+
+            /* re-fold */
+            continue;
         }  /* else case-folding failure */
 
         /* clean up and fail */
@@ -297,7 +301,7 @@ int cif_normalize_name(const UChar *name, int32_t namelen, UChar **normalized_na
     if (cif_is_valid_name(name, 0) == 0) {
         return invalidityCode;
     } else {
-        return cif_normalize_common(name, namelen, normalized_name);
+        return cif_normalize(name, namelen, normalized_name);
     }
 }
 
@@ -305,15 +309,16 @@ int cif_normalize_item_name(const UChar *name, int32_t namelen, UChar **normaliz
     if (cif_is_valid_name(name, 1) == 0) {
         return invalidityCode;
     } else {
-        return cif_normalize_common(name, namelen, normalized_name);
+        return cif_normalize(name, namelen, normalized_name);
     }
 }
 
 int cif_normalize_table_index(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
     if ((name != NULL) && (cif_has_disallowed_chars(name) == 0)) {
-        UChar *buf = cif_unicode_normalize(name, namelen, UNORM_NFC);
+        int32_t dummy;
+        UChar *buf = cif_unicode_normalize(name, namelen, UNORM_NFC, &dummy, 1);
 
-        if (buf) {
+        if (buf != NULL) {
             if (normalized_name) {
                 *normalized_name = buf;
             } else {

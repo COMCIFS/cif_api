@@ -55,7 +55,7 @@ int cif_block_create_frame_internal(cif_block_t *block, const UChar *code, int l
         temp->code_orig = NULL;
 
         result = ((lenient == 0) ? cif_normalize_name(code, -1, &(temp->code), CIF_INVALID_FRAMECODE)
-                                 : cif_normalize_common(code, -1, &(temp->code)));
+                                 : cif_normalize(code, -1, &(temp->code)));
 
         TRACELINE;
 
