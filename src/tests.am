@@ -28,11 +28,9 @@ compiled_tests = \
     $(testdir)/test_value_create \
     $(testdir)/test_value_init_char \
     $(testdir)/test_value_copy_char \
-    $(testdir)/test_value_init_numb
-# cif_value_autoinit_numb
+    $(testdir)/test_value_init_numb \
+    $(testdir)/test_value_autoinit_numb
 # cif_value_parse_numb
-# cif_value_as_double
-# cif_value_su_as_double
 # cif_value_get_element_at
 # cif_value_set_element_at
 # cif_value_insert_element_at
@@ -64,8 +62,8 @@ compiled_tests = \
 # cif_loop_free
 # cif_packet_free
 # cif_value_free
-# !cif_parse
-# !cif_write
+# cif_parse
+# cif_write
 
 check_PROGRAMS = $(compiled_tests)
 

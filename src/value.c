@@ -403,6 +403,19 @@ static UChar *format_text_decimal(double sign_num, char *digit_buf, char *su_buf
  */
 static UChar *format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale);
 
+/**
+ * @brief Counts the number of significant mantissa bits in the specified double value
+ *
+ * "Significant" mantissa bits are all the bits from the most significant bit through the least-significant non-zero
+ * bit.  That is, the maximal string of zero bits at the least-significant end of the mantissa is omitted from the
+ * count.  Additionally, the radix-FLT_RADIX order of magnitude of the double argument is returned.
+ *
+ * @param[in] d the double value in which to count bits
+ * @param[in,out] exp the location where the radix-FLT_RADIX place value, plus one, of the most significant mantissa
+ *         bit shall be recorded.
+ */
+static int frac_bits(double d, int *exp);
+
 #ifdef HAVE_STRDUP
 #ifndef HAVE_DECL_STRDUP
 #ifdef __cplusplus
@@ -1290,10 +1303,11 @@ static double to_double(const char *ddigits, int scale) {
              * and maximum-length digit string of all '9'.  The algorithm employed is slightly sloppy, however,and
              * may require one more decimal digit than is absolutely necessary.
              *
-             * if msp == DBL_MAX_10_EXP (its maximum possible value here) and the digit string has CIF_LINE_LENGTH digits
-             * (its maximum), and DBL_MAX_10_EXP < CIF_LINE_LENGTH, then the lsp is 1 + DBL_MAX_10_EXP - CIF_LINE_LENGTH.
-             * The number of additional digits needed is then
-             * 1 + ceil(log2(10^(msp + 1) - 1)) - DBL_MANT_DIG, which is
+             * if msp == DBL_MAX_10_EXP (its maximum possible value here) and the digit string has CIF_LINE_LENGTH
+             * digits (its maximum), and DBL_MAX_10_EXP < CIF_LINE_LENGTH, then the lsp is
+             * 1 + DBL_MAX_10_EXP - CIF_LINE_LENGTH.  The number of additional digits needed is then
+             *
+             * 1 + ceil(log2(10^(msp + 1) - 1)) - DBL_MANT_DIG
              *     <= 1 + ceil(log2(10^(msp + 1))) - DBL_MANT_DIG
              *      = 1 + ceil((msp + 1) * log2(10)) - DBL_MANT_DIG
              *     <= 1 + ceil((msp + 1) * 3.322) - DBL_MANT_DIG
@@ -2045,6 +2059,29 @@ int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int ma
     }
 }
 
+static int frac_bits(double d, int *exp) {
+    if (d == 0.0) {
+        *exp = 0;
+        return 0;
+    } else {
+        double t = frexp(d, exp);
+        /* FIXME: assumes DBL_MANT_DIG <= 64 */
+        uint64_t bits = (uint64_t) ldexp(fabs(t), DBL_MANT_DIG);
+        int zeroes = 0;
+
+        while ((bits % 16) == 0) {
+            zeroes += 4;
+            bits /= 16;
+        }
+        while ((bits % 2) == 0) {
+            zeroes += 1;
+            bits /= 2;
+        }
+
+        return (DBL_MANT_DIG - zeroes);
+    }
+}
+
 /*
  * BUF_SIZE must be sufficient to accommodate the number of decimal digits in UINT_MAX, plus the number of decimal
  * digits in max(2, floor(log10(UINT_MAX))), plus a decimal point, exponent sigil, exponent sign, and terminator.  Where
@@ -2053,12 +2090,21 @@ int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int ma
  */
 #define BUF_SIZE 50
 int cif_value_autoinit_numb(cif_value_t *numb, double val, double su, unsigned int su_rule) {
-    if ((su >= 0.0) && (su_rule >= 9) && (cif_value_clean(numb) == CIF_OK)) {
+    if ((su >= 0.0) && (su_rule >= 2) && (cif_value_clean(numb) == CIF_OK)) {
         /* Arguments appear valid */
 
         if (su == 0.0) { /* an exact number */
-            int most_significant_place = MSP(val);
-            int scale = -most_significant_place + (DBL_DIG - 1);
+            int exp;
+            int bit_count = frac_bits(val, &exp);
+            int scale;
+
+            if (bit_count >= exp) {
+                scale = (bit_count - exp);
+            } else {
+                int most_significant_place = MSP(val);
+
+                scale = ((most_significant_place < DBL_DIG) ? 0 : ((DBL_DIG - 1) - most_significant_place));
+            }
 
             return cif_value_init_numb(numb, val, su, scale, DEFAULT_MAX_LEAD_ZEROES);
         } else {
@@ -2086,7 +2132,7 @@ int cif_value_autoinit_numb(cif_value_t *numb, double val, double su, unsigned i
 #endif
 
                 /* determine the number of significant digits in the su_rule (which is known to be positive here) */
-                rule_digits = (int) log10(su_rule + 0.5);
+                rule_digits = (int) log10(su_rule + 0.5) + 1;
 
                 /*
                  * Assuming that the buffer is large enough (which it very much should be), format the su using the same

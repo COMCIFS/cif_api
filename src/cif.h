@@ -1943,7 +1943,8 @@ int cif_value_copy_char(
  *
  * For success, the entire input string must be successfully parsed.  On success (only), any previous contents
  * of the value object are released as if by @c cif_value_clean() ; otherwise the value object is not modified.
- * The value object takes ownership of the parsed text on success.
+ * The value object takes ownership of the parsed text on success.  The representable values that can be initialized
+ * in this manner are not limited to those representable in any particular native floating-point format.
  *
  * @param[in,out] numb the value object into which to parse the text
  *
@@ -1977,14 +1978,14 @@ int cif_value_parse_numb(
  * indistinguishable from one representing an exact number.
  *
  * If the scale is greater than zero or if pure decimal notation would require more than the specified number of
- * leading zeroes after the decimal point, then the number is formatted in scientific notation (d.ddde+-dd).  (The
- * number of digits of exponent may vary.)  Otherwise, it is formatted in decimal notation.
+ * leading zeroes after the decimal point, then the number's text representation is formatted in scientific notation
+ * (d.ddde+-dd).  (The number of digits of exponent may vary.)  Otherwise, it is formatted in decimal notation.
  *
  * It is an error if a text representation consistent with the arguments would require more characters than the
  * CIF 2.0 maximum line length (2048 characters).
  *
  * The behavior of this function is constrained by the characteristics of the data type (@c double ) of the 
- * @p value and @p su arguments.  Behavior is undefined if a scale is specified that exceeds the maximum possible
+ * @p value and @p su parameters.  Behavior is undefined if a scale is specified that exceeds the maximum possible
  * precision of a value of type double, or such that @c 10^(-scale) is greater than the greatest representable finite
  * double.
  *
@@ -2020,11 +2021,12 @@ int cif_value_init_numb(
  * text is formatted, and the number of digits of value and su that are recorded.  The largest scale is chosen such
  * that the significant digits of the rounded su, interpreted as an integer, are less than or equal to the su_rule.
  * The most commonly used su_rule is probably 19, but others are used as well, including at least 9, 27, 28, 29, and 99.
- * The su_rule must be at least 9, and behavior is undefined if its decimal representation has more significant digits
- * than the implementation-defined maximum decimal precision of a double.
+ * The su_rule must be at least 2, and behavior is undefined if its decimal representation has more significant digits
+ * than the implementation-defined maximum decimal precision of a double.  If su_rule is less than 6 then some standard
+ * uncertainties may be foratted as (0) in the value's text representation.
  * 
- * If the su is exactly zero then all significant digits of the value (and possibly more) are formatted.  The su_rule
- * is ignored in this case, and no su is included in the text representation.
+ * If the @p su is exactly zero then all significant digits are recorded to represent the exact value of @p val.  The
+ * @p su_rule is ignored in this case, and no su is included in the text representation.
  * 
  * The value's text representation is expressed in scientific notation if it would otherwise have more than five
  * leading zeroes or any trailing insignificant zeroes.  Otherwise, it is expressed in plain decimal notation.
