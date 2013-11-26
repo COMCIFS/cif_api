@@ -105,7 +105,8 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_value_init_char$(EXEEXT) \
 	$(testdir)/test_value_copy_char$(EXEEXT) \
 	$(testdir)/test_value_init_numb$(EXEEXT) \
-	$(testdir)/test_value_autoinit_numb$(EXEEXT)
+	$(testdir)/test_value_autoinit_numb$(EXEEXT) \
+	$(testdir)/test_value_parse_numb$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -219,6 +220,12 @@ __testdir__test_value_init_numb_OBJECTS =  \
 	test_value_init_numb.$(OBJEXT)
 __testdir__test_value_init_numb_LDADD = $(LDADD)
 __testdir__test_value_init_numb_DEPENDENCIES = libcif.la
+__testdir__test_value_parse_numb_SOURCES =  \
+	$(testdir)/test_value_parse_numb.c
+__testdir__test_value_parse_numb_OBJECTS =  \
+	test_value_parse_numb.$(OBJEXT)
+__testdir__test_value_parse_numb_LDADD = $(LDADD)
+__testdir__test_value_parse_numb_DEPENDENCIES = libcif.la
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -250,7 +257,8 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_value_copy_char.c \
 	$(testdir)/test_value_create.c \
 	$(testdir)/test_value_init_char.c \
-	$(testdir)/test_value_init_numb.c
+	$(testdir)/test_value_init_numb.c \
+	$(testdir)/test_value_parse_numb.c
 DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_block_create_frame1.c \
 	$(testdir)/test_block_create_frame2.c \
@@ -269,7 +277,8 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_value_copy_char.c \
 	$(testdir)/test_value_create.c \
 	$(testdir)/test_value_init_char.c \
-	$(testdir)/test_value_init_numb.c
+	$(testdir)/test_value_init_numb.c \
+	$(testdir)/test_value_parse_numb.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -435,7 +444,8 @@ compiled_tests = \
     $(testdir)/test_value_init_char \
     $(testdir)/test_value_copy_char \
     $(testdir)/test_value_init_numb \
-    $(testdir)/test_value_autoinit_numb
+    $(testdir)/test_value_autoinit_numb \
+    $(testdir)/test_value_parse_numb
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -628,6 +638,9 @@ $(testdir)/test_value_init_char$(EXEEXT): $(__testdir__test_value_init_char_OBJE
 $(testdir)/test_value_init_numb$(EXEEXT): $(__testdir__test_value_init_numb_OBJECTS) $(__testdir__test_value_init_numb_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_value_init_numb$(EXEEXT)
 	$(LINK) $(__testdir__test_value_init_numb_OBJECTS) $(__testdir__test_value_init_numb_LDADD) $(LIBS)
+$(testdir)/test_value_parse_numb$(EXEEXT): $(__testdir__test_value_parse_numb_OBJECTS) $(__testdir__test_value_parse_numb_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_value_parse_numb$(EXEEXT)
+	$(LINK) $(__testdir__test_value_parse_numb_OBJECTS) $(__testdir__test_value_parse_numb_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -664,6 +677,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_init_char.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_init_numb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_parse_numb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/value.Plo@am__quote@
 
@@ -967,6 +981,20 @@ test_value_init_numb.obj: $(testdir)/test_value_init_numb.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_value_init_numb.c' object='test_value_init_numb.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_value_init_numb.obj `if test -f '$(testdir)/test_value_init_numb.c'; then $(CYGPATH_W) '$(testdir)/test_value_init_numb.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_value_init_numb.c'; fi`
+
+test_value_parse_numb.o: $(testdir)/test_value_parse_numb.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_value_parse_numb.o -MD -MP -MF $(DEPDIR)/test_value_parse_numb.Tpo -c -o test_value_parse_numb.o `test -f '$(testdir)/test_value_parse_numb.c' || echo '$(srcdir)/'`$(testdir)/test_value_parse_numb.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_value_parse_numb.Tpo $(DEPDIR)/test_value_parse_numb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_value_parse_numb.c' object='test_value_parse_numb.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_value_parse_numb.o `test -f '$(testdir)/test_value_parse_numb.c' || echo '$(srcdir)/'`$(testdir)/test_value_parse_numb.c
+
+test_value_parse_numb.obj: $(testdir)/test_value_parse_numb.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_value_parse_numb.obj -MD -MP -MF $(DEPDIR)/test_value_parse_numb.Tpo -c -o test_value_parse_numb.obj `if test -f '$(testdir)/test_value_parse_numb.c'; then $(CYGPATH_W) '$(testdir)/test_value_parse_numb.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_value_parse_numb.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_value_parse_numb.Tpo $(DEPDIR)/test_value_parse_numb.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_value_parse_numb.c' object='test_value_parse_numb.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_value_parse_numb.obj `if test -f '$(testdir)/test_value_parse_numb.c'; then $(CYGPATH_W) '$(testdir)/test_value_parse_numb.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_value_parse_numb.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

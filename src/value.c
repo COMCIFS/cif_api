@@ -414,7 +414,7 @@ static UChar *format_text_sci(double sign_num, char *digit_buf, char *su_buf, si
  * @param[in,out] exp the location where the radix-FLT_RADIX place value, plus one, of the most significant mantissa
  *         bit shall be recorded.
  */
-static int frac_bits(double d, int *exp);
+static int frac_bits(double d, int *exponent);
 
 #ifdef HAVE_STRDUP
 #ifndef HAVE_DECL_STRDUP
@@ -915,6 +915,9 @@ static UChar *format_text_sci(double sign_num, char *digit_buf, char *su_buf, si
 /* The maximum value of the mantissa bits of a double, when interpreted as an unsigned integer */
 #define MAX_MANTISSA  ((((uintmax_t) 1) << DBL_MANT_DIG) - 1)
 
+/* The minimum value of the mantissa bits of a normalized, non-zero double, when interpreted as an unsigned integer */
+#define MIN_MANTISSA  (((uintmax_t) 1) << (DBL_MANT_DIG - 1))
+
 /*
  * The offset to the left of the units digit of the most significant bignum digit of an integer mantissa.  Although the
  * computation is approximate in principle, on account of the definition BDIG_PER_DIG, the result is nevertheless
@@ -1047,7 +1050,7 @@ static char *to_digits(double d, int scale) {
         uint32_t digits[DIG_PER_DBL + 1];
 
         /* uintmax_t is assumed at least DBL_MANT_DIGITS wide */
-        uintmax_t frac_bits;
+        uintmax_t fraction;
 
         uint32_t *msd = digits + UNITS_DIGIT;
         uint32_t *lsd;
@@ -1071,9 +1074,9 @@ static char *to_digits(double d, int scale) {
         /* assumes DBL_MAX_EXP > DBL_MANT_DIG */
         /* assumes ldexp() and frexp() introduce no rounding error */
         d = frexp(d, &exponent);
-        for (frac_bits = (uintmax_t) ldexp(d, DBL_MANT_DIG); frac_bits > 0; ) {
-            *(msd--) = frac_bits % BBASE;
-            frac_bits /= BBASE;
+        for (fraction = (uintmax_t) ldexp(d, DBL_MANT_DIG); fraction > 0; ) {
+            *(msd--) = fraction % BBASE;
+            fraction /= BBASE;
         }
         /* correct the exponent for the bias we introduced via ldexp() */
         exponent -= DBL_MANT_DIG;
@@ -1237,6 +1240,7 @@ static char *to_digits(double d, int scale) {
     }
 }
 
+/* FIXME: parts of the following assume DBL_MANT_DIG is not more than 64 and that FLT_RADIX is 2 */
 static double to_double(const char *ddigits, int scale) {
     /* skip leading zeroes: */
     while (*ddigits == '0') ddigits++;
@@ -1304,29 +1308,25 @@ static double to_double(const char *ddigits, int scale) {
              * may require one more decimal digit than is absolutely necessary.
              *
              * if msp == DBL_MAX_10_EXP (its maximum possible value here) and the digit string has CIF_LINE_LENGTH
-             * digits (its maximum), and DBL_MAX_10_EXP < CIF_LINE_LENGTH, then the lsp is
-             * 1 + DBL_MAX_10_EXP - CIF_LINE_LENGTH.  The number of additional digits needed is then
+             * digits (its maximum), and DBL_MAX_10_EXP < CIF_LINE_LENGTH (true for IEEE 754 doubles), then the lsp is
+             * 1 + DBL_MAX_10_EXP - CIF_LINE_LENGTH.  The number of additional decimal digits needed is then
              *
-             * 1 + ceil(log2(10^(msp + 1) - 1)) - DBL_MANT_DIG
-             *     <= 1 + ceil(log2(10^(msp + 1))) - DBL_MANT_DIG
-             *      = 1 + ceil((msp + 1) * log2(10)) - DBL_MANT_DIG
-             *     <= 1 + ceil((msp + 1) * 3.322) - DBL_MANT_DIG
-             *      = 1 + ceil(((msp + 1) * 3322.) / 1000.) - DBL_MANT_DIG
-             *     <= 2 + floor(((msp + 1) * 3322.) / 1000.) - DBL_MANT_DIG
-             *      = 2 + (((msp + 1) * 3322) / 1000) - DBL_MANT_DIG
+             * floor(log2(10^(DBL_MAX_10_EXP + 1) - 1)) - DBL_MANT_DIG
+             *     <= floor(log2(10^(DBL_MAX_10_EXP + 1))) - DBL_MANT_DIG
+             *      = floor((DBL_MAX_10_EXP + 1) * log2(10)) - DBL_MANT_DIG
+             *     <= floor((DBL_MAX_10_EXP + 1) * 3.322) - DBL_MANT_DIG
+             *      = floor(((DBL_MAX_10_EXP + 1) * 3322.) / 1000.) - DBL_MANT_DIG
+             *      = (((DBL_MAX_10_EXP + 1) * 3322) / 1000) - DBL_MANT_DIG
              *
-             * if msp == DBL_MAX_10_EXP (its maximum possible value) and the digit string has CIF_LINE_LENGTH digits
-             * (its maximum), then the initial lsp is 1 + DBL_MAX_10_EXP - CIF_LINE_LENGTH, and the ultimate lsp is
-             * >= 1 + DBL_MAX_10_EXP - CIF_LINE_LENGTH - (2 + (((DBL_MAX_10_EXP + 1) * 3322) / 1000) - DBL_MANT_DIG)
-             *  = DBL_MANT_DIG - CIF_LINE_LENGTH - (2 + (((DBL_MAX_10_EXP + 1) * 2322) / 1000))
-             *
-             * That provides a reliable lower bound for the number of decimal digits required in the event that the
+             * That provides a reliable upper bound for the number of decimal digits required in the event that the
              * significand needs to be right shifted for its most-significant bits to fit into the number of mantissa
              * bits.  On the other hand, however, it is conceivable that for some values of the constants, the initial,
              * unshifted value may have a lesser lsp, but no less than:
              * (2 + DBL_MIN_10_EXP - DBL_DIG) - CIF_LINE_LENGTH
              */
-#define     ULT_LSP_ALT1 ((DBL_MANT_DIG - CIF_LINE_LENGTH) - (((DBL_MAX_10_EXP + 1) * 2322) / 1000))
+#define     DBL_MANT_10_DIG (3 * (DBL_MANT_DIG  / 10))
+#define     ULT_LSP_ALT1 ((DBL_MANT_10_DIG + DBL_MANT_DIG - CIF_LINE_LENGTH) \
+                    - (((DBL_MAX_10_EXP + 1) * 2322) / 1000))
 #define     ULT_LSP_ALT2 ((2 + DBL_MIN_10_EXP - DBL_DIG) - CIF_LINE_LENGTH)
 #if (ULT_LSP_ALT1 < ULT_LSP_ALT2)
 #define     BIGNUM_DIGITS (((DBL_MAX_10_EXP + DDIG_PER_DIG - 1) / DDIG_PER_DIG) \
@@ -1336,14 +1336,19 @@ static double to_double(const char *ddigits, int scale) {
                     + ((DDIG_PER_DIG - (ULT_LSP_ALT2 + 1)) / DDIG_PER_DIG))
 #endif
 
-            /* The internal bignum representation serving as an intermediate representation */
+            /* The internal bignum representation that will serve as an intermediate representation */
             uint32_t digits[BIGNUM_DIGITS];
             int units_digit;
-            int frac_digits;
 
-            /* Note: log(x)/log(b) == log_base_b(x) */
-            int right_shift_min = ceil((log(*ddigits - '0') + msp * log(10.0)) / log(2.0)) - DBL_MANT_DIG;
-            int right_shift_max = ceil((log(1 + *ddigits - '0') + msp * log(10.0)) / log(2.0)) - DBL_MANT_DIG;
+            int right_shift_min;
+            int right_shift_max;
+
+            /* a binary exponent tracking the internal scaling performed during this computation */
+            int exponent = 0;
+
+            /* pointers tracking the most- and least-significant bignum digits in the number */
+            uint32_t *msd;
+            uint32_t *lsd;
 
             /* The extreme *decimal* places that may need to be supported in this computation */
             int lsp_min;
@@ -1351,30 +1356,29 @@ static double to_double(const char *ddigits, int scale) {
 
             /* data tracking the state of processing of the input digit string */
             uint32_t *next_dig;
-            int ddigits_left = ((msp >= 0)
-                    ? ((msp % DDIG_PER_DIG) + 1) 
-                    : (DDIG_PER_DIG - ((-msp - 1) % DDIG_PER_DIG)));
+            int ddigits_left;
             const char *next_ddig;
 
-            /* pointers tracking the most- and least-significant bignum digits in the number */
-            uint32_t *msd;
-            uint32_t *lsd;
-
-            /* a binary exponent tracking the internal scaling performed during this computation */
-            int exponent = 0;
-
-            /* the target minimum value for the most-significant digit of the correctly scaled bignum */
-            /* XXX: the whole minimum-MSD approach is not right; the whole number needs to be considered */
-            static uintmax_t min_msd = 0;
+            /*
+             * The C89 math library does not define log2(); we work around using log10(), and for that purpose compute
+             * and retain log10(2.0).
+             */
+            static int is_init = 0;
+            static double log_2 = 0;
 
             /* a workspace for assembling the integer value of the mantissa */
             uintmax_t mantissa_bits;
 
             int i;
 
-            if (min_msd == 0) {
-                for (min_msd = (MAX_MANTISSA >> 1) + 1; min_msd >= BBASE; min_msd /= BBASE) /* nothing */;
+            if (is_init == 0) {
+                log_2 = log10(2.0);
+                is_init = 1;
             }
+
+            /* Note: log(x)/log(b) == log_base_b(x) */
+            right_shift_min = 1 + floor((log10(*ddigits - '0') + msp) / log_2) - DBL_MANT_DIG;
+            right_shift_max = 1 + floor((log10(1 + *ddigits - '0') + msp) / log_2) - DBL_MANT_DIG;
 
             assert ((right_shift_max - right_shift_min) < 2);
 
@@ -1388,7 +1392,7 @@ static double to_double(const char *ddigits, int scale) {
             } else if (right_shift_min < 0) {
                 /*
                  * Each left shift by log2(10) bits, or fraction thereof, requires an additional decimal digit.
-                 * We approximate with a few more than may be needed, by estimating log2(10) as 3.
+                 * We approximate with a few more than may be needed, by (under)estimating log2(10) as 3.
                  */
                 lsp_min = lsp;
                 msp_max = msp + ((2 - right_shift_min) / 3);
@@ -1399,9 +1403,8 @@ static double to_double(const char *ddigits, int scale) {
 
             assert(msp_max >= 0);
 
-            /* compute the units digit position in the bignum digit string, and the number of fractional digits */
+            /* compute the units digit position in the bignum digit string */
             units_digit = msp_max / DDIG_PER_DIG;
-            frac_digits = ((lsp_min >= 0) ? 0 : (((DDIG_PER_DIG - 1) - lsp_min) / DDIG_PER_DIG));
 
             /* clear the bignum digits */
             for(i = 0; i < BIGNUM_DIGITS; i += 1) {
@@ -1413,6 +1416,7 @@ static double to_double(const char *ddigits, int scale) {
             msd = next_dig;
 
             /* read digits into the bignum */
+            ddigits_left = ((msp >= 0) ? ((msp % DDIG_PER_DIG) + 1) : (DDIG_PER_DIG - ((-msp - 1) % DDIG_PER_DIG)));
             for (next_ddig = ddigits; next_ddig <= last_ddig; next_ddig += 1) {
                 assert(ddigits_left > 0);
                 *next_dig = (*next_dig * 10) + (*next_ddig - '0');
@@ -1421,7 +1425,7 @@ static double to_double(const char *ddigits, int scale) {
                     ddigits_left = DDIG_PER_DIG;
                 }
             }
-            /* add trailing zeroes as necessary */
+            /* add trailing decimal zeroes as necessary to fill out the bignum digit */
             assert(ddigits_left > 0);
             if (ddigits_left < DDIG_PER_DIG) {
                 do {
@@ -1430,14 +1434,17 @@ static double to_double(const char *ddigits, int scale) {
             } /* else the last bignum digit was already exactly filled */
             lsd = next_dig;
 
-            /* scale if necessary */
+            /*
+             * scale the significand to use DBL_MANT_DIG radix-FLT_RADIX integer digits.
+             *
+             * Between right_shift_min and right_shift_max (if they differ), right_shift_max is chosen as the target
+             * shift, because even if it is off by one (it cannot be off by more), a correction may still be unneeded
+             * if there are no nonzero fractional digits after the initial scaling.  The same would not be true if
+             * right_shift_min were chosen and was off by one.
+             */
 
-            if ((msd < (digits + (units_digit - MAX_MANT_MSD_OFFSET)))
-                    || (((msd > (digits + (units_digit - MAX_MANT_MSD_OFFSET))) || (*msd < min_msd))
-                            && (lsd > digits + units_digit))) {
-
-                /* perform a rough power-of-two scaling to bring the bignum integer part approximately into range */
-                /* a right shift by right_shift_max bits overall should be within one bit of the needed shift */
+            if (right_shift_max > 0) {
+                /* shift right */
                 while (exponent < right_shift_max) {
                     uint32_t shift = (right_shift_max - exponent);
                     uint64_t remainder = 0;
@@ -1455,7 +1462,9 @@ static double to_double(const char *ddigits, int scale) {
                     while (*msd == 0) msd += 1;
                     exponent += shift;
                 }
-                while (exponent > right_shift_max) {
+            } else if (right_shift_max < 0) {
+                /* shift left -- the usual case */
+                while ((exponent > right_shift_max) && ((lsd - digits) > units_digit)) {
                     uint32_t shift = (exponent - right_shift_max);
                     uint64_t carry = 0;
 
@@ -1472,10 +1481,18 @@ static double to_double(const char *ddigits, int scale) {
                     while (*lsd == 0) lsd -= 1;
                     exponent -= shift;
                 }
+            } /* else no scaling is needed */
 
-                /* adjust by one bit, if necessary, to ensure DBL_MANT_DIG bits of mantissa */
-                assert(msd == (digits + (units_digit - MAX_MANT_MSD_OFFSET)));
-                if ((*msd < min_msd) && (lsd > digits + units_digit)) {
+            /* compute the integer mantissa, applying a one-bit left shift if it turns out to be needed */
+            while (CIF_TRUE) {  /* at most two iterations are expected */
+                for (mantissa_bits = 0, next_dig = msd; next_dig <= (digits + units_digit); next_dig += 1) {
+                    mantissa_bits = (mantissa_bits * BBASE) + *next_dig;
+                }
+                assert(mantissa_bits <= MAX_MANTISSA);
+
+                if ((mantissa_bits >= MIN_MANTISSA) || ((lsd - digits) <= units_digit)) {
+                    break;
+                } else {  /* this alternative should be exercised at most once */
                     uint64_t carry = 0;
 
                     for (next_dig = lsd; (next_dig >= msd) || (carry != 0); next_dig -= 1) {
@@ -1488,13 +1505,8 @@ static double to_double(const char *ddigits, int scale) {
                     while (*lsd == 0) lsd -= 1;
                     exponent -= 1;
                 }
-            } /* else no scaling is needed */
-
-            /* compute the integer mantissa */
-            for (mantissa_bits = 0, next_dig = msd; next_dig <= (digits + units_digit); next_dig += 1) {
-                mantissa_bits = (mantissa_bits * BBASE) + *next_dig;
             }
-            assert(mantissa_bits <= MAX_MANTISSA);
+
             mantissa_bits = round_to_int(mantissa_bits, digits, units_digit, lsd);
 
             /* account for overflow during rounding */
@@ -1901,8 +1913,7 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
         suc = n_temp.su_digits;
         while (su_start < pos) {
             /* digits are expressed in the C locale */
-            /* TODO: this looks wrong; should we really be converting from digit chars to digit values here? */
-            *(suc++) = (text[su_start++] - UCHAR_0);
+            *(suc++) = (text[su_start++]);
         }
         *suc = '\0';
 
@@ -2059,12 +2070,12 @@ int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int ma
     }
 }
 
-static int frac_bits(double d, int *exp) {
+static int frac_bits(double d, int *exponent) {
     if (d == 0.0) {
-        *exp = 0;
+        *exponent = 0;
         return 0;
     } else {
-        double t = frexp(d, exp);
+        double t = frexp(d, exponent);
         /* FIXME: assumes DBL_MANT_DIG <= 64 */
         uint64_t bits = (uint64_t) ldexp(fabs(t), DBL_MANT_DIG);
         int zeroes = 0;
@@ -2094,12 +2105,12 @@ int cif_value_autoinit_numb(cif_value_t *numb, double val, double su, unsigned i
         /* Arguments appear valid */
 
         if (su == 0.0) { /* an exact number */
-            int exp;
-            int bit_count = frac_bits(val, &exp);
+            int exponent;
+            int bit_count = frac_bits(val, &exponent);
             int scale;
 
-            if (bit_count >= exp) {
-                scale = (bit_count - exp);
+            if (bit_count >= exponent) {
+                scale = (bit_count - exponent);
             } else {
                 int most_significant_place = MSP(val);
 
