@@ -15,31 +15,31 @@ int main(int argc, char *argv[]) {
     cif_value_t *value;
     UChar *text;
     double d;
-    U_STRING_DECL(v0, "0", 1);
-    U_STRING_DECL(v450_s1, "450.0", 5);
-    U_STRING_DECL(v450_s0, "450", 3);
-    U_STRING_DECL(v450_sm1, "4.5e+02", 7);
-    U_STRING_DECL(v450_sm2, "5e+02", 5);
-    U_STRING_DECL(v992_sm1, "9.9e+02", 7);
-    U_STRING_DECL(v992_sm2, "1.0e+03", 7);
-    U_STRING_DECL(vm12_345s_017_s3, "-12.345(17)", 11);
-    U_STRING_DECL(vm12_345s_017_sm1, "-1e+01(0)", 9);
+    U_STRING_DECL(v0, "0", 2);
+    U_STRING_DECL(v450_s1, "450.0", 6);
+    U_STRING_DECL(v450_s0, "450", 4);
+    U_STRING_DECL(v450_sm1, "4.5e+02", 8);
+    U_STRING_DECL(v450_sm2, "4e+02", 6);
+    U_STRING_DECL(v992_sm1, "9.9e+02", 8);
+    U_STRING_DECL(v992_sm2, "1.0e+03", 8);
+    U_STRING_DECL(vm12_345s_017_s3, "-12.345(17)", 12);
+    U_STRING_DECL(vm12_345s_017_sm1, "-1e+01(0)", 10);
     U_STRING_DECL(vm0_5s_10_s0, "0(1)", 5);
     U_STRING_DECL(vm0_6s_10_s0, "1(1)", 5);
     U_STRING_DECL(vm0_00000042s_00000017_s8, "4.2e-07(17)", 12);
 
-    U_STRING_INIT(v0, "0", 1);
-    U_STRING_INIT(v450_s1, "450.0", 5);
-    U_STRING_INIT(v450_s0, "450", 3);
-    U_STRING_INIT(v450_sm1, "4.5e+02", 7);
+    U_STRING_INIT(v0, "0", 2);
+    U_STRING_INIT(v450_s1, "450.0", 6);
+    U_STRING_INIT(v450_s0, "450", 4);
+    U_STRING_INIT(v450_sm1, "4.5e+02", 8);
 
     /* Note: ties round to even in the IEEE default rounding mode */
-    U_STRING_INIT(v450_sm2, "4e+02", 5);
+    U_STRING_INIT(v450_sm2, "4e+02", 6);
 
-    U_STRING_INIT(v992_sm1, "9.9e+02", 7);
-    U_STRING_INIT(v992_sm2, "1.0e+03", 7);
-    U_STRING_INIT(vm12_345s_017_s3, "-12.345(17)", 11);
-    U_STRING_INIT(vm12_345s_017_sm1, "-1e+01(0)", 9);
+    U_STRING_INIT(v992_sm1, "9.9e+02", 8);
+    U_STRING_INIT(v992_sm2, "1.0e+03", 8);
+    U_STRING_INIT(vm12_345s_017_s3, "-12.345(17)", 12);
+    U_STRING_INIT(vm12_345s_017_sm1, "-1e+01(0)", 10);
     U_STRING_INIT(vm0_5s_10_s0, "0(1)", 5);
     U_STRING_INIT(vm0_6s_10_s0, "1(1)", 5);
     U_STRING_INIT(vm0_00000042s_00000017_s8, "4.2e-07(17)", 12);

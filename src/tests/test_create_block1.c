@@ -17,10 +17,10 @@ int main(int argc, char *argv[]) {
     cif_t *cif = NULL;
     cif_block_t *block = NULL;
     int result;
-    U_STRING_DECL(block_code, "block", 5);
+    U_STRING_DECL(block_code, "block", 6);
     UChar *code;
 
-    U_STRING_INIT(block_code, "block", 5);
+    U_STRING_INIT(block_code, "block", 6);
     TESTHEADER(test_name);
     CREATE_CIF(test_name, cif);
 

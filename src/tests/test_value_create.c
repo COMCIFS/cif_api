@@ -16,9 +16,9 @@ int main(int argc, char *argv[]) {
     UChar *text;
     size_t count;
     int result;
-    U_STRING_DECL(zero, "0", 1);
+    U_STRING_DECL(zero, "0", 2);
 
-    U_STRING_INIT(zero, "0", 1);
+    U_STRING_INIT(zero, "0", 2);
     TESTHEADER(test_name);
 
     /* Test creating a value of kind CIF_UNK_KIND */ 

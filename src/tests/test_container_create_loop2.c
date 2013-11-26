@@ -33,19 +33,19 @@ int main(int argc, char *argv[]) {
     UChar *item_names[6];
     int counter;
     int subtest;
-    U_STRING_DECL(block_code, "block", 5);
-    U_STRING_DECL(name0, "_item0", 6);
-    U_STRING_DECL(name1, "_item1", 6);
-    U_STRING_DECL(name2, "_item2", 6);
+    U_STRING_DECL(block_code, "block", 6);
+    U_STRING_DECL(name0, "_item0", 7);
+    U_STRING_DECL(name1, "_item1", 7);
+    U_STRING_DECL(name2, "_item2", 7);
 
     /* Initialize data and prepare the test fixture */
 
     INIT_USTDERR;
     TESTHEADER(test_name);
-    U_STRING_INIT(block_code, "block", 5);
-    U_STRING_INIT(name0, "_item0", 6);
-    U_STRING_INIT(name1, "_item1", 6);
-    U_STRING_INIT(name2, "_item2", 6);
+    U_STRING_INIT(block_code, "block", 6);
+    U_STRING_INIT(name0, "_item0", 7);
+    U_STRING_INIT(name1, "_item1", 7);
+    U_STRING_INIT(name2, "_item2", 7);
     CREATE_CIF(test_name, cif);
     CREATE_BLOCK(test_name, cif, block_code, block);
 

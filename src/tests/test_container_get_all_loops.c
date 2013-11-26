@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     U_STRING_DECL(block1_code, "block1", 7);
     U_STRING_DECL(block2_code, "block2", 7);
     U_STRING_DECL(frame_code, "frame", 6);
-    U_STRING_DECL(category, "category", 8);
+    U_STRING_DECL(category, "category", 9);
 
     /* Initialize data and prepare the test fixture */
     TESTHEADER(test_name);
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     U_STRING_INIT(block1_code, "block1", 7);
     U_STRING_INIT(block2_code, "block2", 7);
     U_STRING_INIT(frame_code, "frame", 6);
-    U_STRING_INIT(category, "category", 8);
+    U_STRING_INIT(category, "category", 9);
     for (counter = 0; counter < NUM_NAMES; counter += 1) {
         u_sprintf(item_names[counter], "_item%d", counter);
         loop_items[counter] = NULL;
