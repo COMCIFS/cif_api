@@ -30,7 +30,8 @@ compiled_tests = \
     $(testdir)/test_value_copy_char \
     $(testdir)/test_value_init_numb \
     $(testdir)/test_value_autoinit_numb \
-    $(testdir)/test_value_parse_numb
+    $(testdir)/test_value_parse_numb \
+    $(testdir)/test_list_elements
 # cif_value_get_element_at
 # cif_value_set_element_at
 # cif_value_insert_element_at

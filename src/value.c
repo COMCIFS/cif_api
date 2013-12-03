@@ -528,7 +528,7 @@ static int cif_value_clone_numb(struct numb_value_s *value, struct numb_value_s 
         if (clone->digits != NULL) {
             if (value->su_digits != NULL) {
                 clone->su_digits = strdup(value->su_digits);
-                if (clone->su_digits != NULL) DEFAULT_FAIL(su);
+                if (clone->su_digits == NULL) DEFAULT_FAIL(su);
             } else {
                 clone->su_digits = NULL;
             }

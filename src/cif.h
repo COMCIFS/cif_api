@@ -2143,8 +2143,14 @@ int cif_value_get_element_count(
  * reflected in the list.  If that is not desired then the caller can make a copy via @c cif_value_clone() .  The
  * caller must not free the returned value, but may modify it in any other way.
  *
- * @param[in] value a pointer to the value from which to retrieve an element; must not be a pointer to a value of
- *         kind @c CIF_LIST_KIND
+ * It is unsafe for the caller to retain the provided element pointer if and when the list that owns the element ceases
+ * to be under its exclusive control, for the lifetime of the referenced value object is then uncertain.  It will not
+ * outlive the list that owns it, but various operations on the list may cause it to be discarded while the list is
+ * still live.  Note in particular that a context switch to another thread that has access to the list object
+ * constitutes passing out of the caller's control.  If multiple threads have unsynchronized concurrent access to
+ * the list then no element retrieved from it via this function is @em ever safe to use.
+ *
+ * @param[in] value a pointer to the @c CIF_LIST_KIND value from which to retrieve an element
  *
  * @param[in] index the zero-based index of the requested element; must be less than the number of elements in the list
  *
@@ -2164,7 +2170,7 @@ int cif_value_get_element_at(cif_value_t *value, size_t index, cif_value_t **ele
  * Special case: if the replacement value is the same object as the one currently at the specified position in the
  * list, then this function succeeds without changing anything.
  *
- * @param[in,out] value a pointer to the list value to modify
+ * @param[in,out] value a pointer to the @c CIF_LIST_KIND value to modify
  *
  * @param[in] index the zero-based index of the element to replace; must be less than the number of elements in the
  *         list
