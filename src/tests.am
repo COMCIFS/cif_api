@@ -31,15 +31,8 @@ compiled_tests = \
     $(testdir)/test_value_init_numb \
     $(testdir)/test_value_autoinit_numb \
     $(testdir)/test_value_parse_numb \
-    $(testdir)/test_list_elements
-# cif_value_get_element_at
-# cif_value_set_element_at
-# cif_value_insert_element_at
-# cif_value_remove_element_at
-# cif_value_get_keys
-# cif_value_get_item_by_key
-# cif_value_set_item_by_key
-# cif_value_remove_item_by_key
+    $(testdir)/test_list_elements \
+    $(testdir)/test_table_elements
 #    $(testdir)/test_value_clean
 # cif_value_clone
 # cif_container_get_value

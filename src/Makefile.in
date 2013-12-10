@@ -107,7 +107,8 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_value_init_numb$(EXEEXT) \
 	$(testdir)/test_value_autoinit_numb$(EXEEXT) \
 	$(testdir)/test_value_parse_numb$(EXEEXT) \
-	$(testdir)/test_list_elements$(EXEEXT)
+	$(testdir)/test_list_elements$(EXEEXT) \
+	$(testdir)/test_table_elements$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -198,6 +199,12 @@ __testdir__test_loop_get_names_OBJECTS =  \
 	test_loop_get_names.$(OBJEXT)
 __testdir__test_loop_get_names_LDADD = $(LDADD)
 __testdir__test_loop_get_names_DEPENDENCIES = libcif.la
+__testdir__test_table_elements_SOURCES =  \
+	$(testdir)/test_table_elements.c
+__testdir__test_table_elements_OBJECTS =  \
+	test_table_elements.$(OBJEXT)
+__testdir__test_table_elements_LDADD = $(LDADD)
+__testdir__test_table_elements_DEPENDENCIES = libcif.la
 __testdir__test_value_autoinit_numb_SOURCES =  \
 	$(testdir)/test_value_autoinit_numb.c
 __testdir__test_value_autoinit_numb_OBJECTS =  \
@@ -260,6 +267,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
+	$(testdir)/test_table_elements.c \
 	$(testdir)/test_value_autoinit_numb.c \
 	$(testdir)/test_value_copy_char.c \
 	$(testdir)/test_value_create.c \
@@ -281,6 +289,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
+	$(testdir)/test_table_elements.c \
 	$(testdir)/test_value_autoinit_numb.c \
 	$(testdir)/test_value_copy_char.c \
 	$(testdir)/test_value_create.c \
@@ -454,7 +463,8 @@ compiled_tests = \
     $(testdir)/test_value_init_numb \
     $(testdir)/test_value_autoinit_numb \
     $(testdir)/test_value_parse_numb \
-    $(testdir)/test_list_elements
+    $(testdir)/test_list_elements \
+    $(testdir)/test_table_elements
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -635,6 +645,9 @@ $(testdir)/test_list_elements$(EXEEXT): $(__testdir__test_list_elements_OBJECTS)
 $(testdir)/test_loop_get_names$(EXEEXT): $(__testdir__test_loop_get_names_OBJECTS) $(__testdir__test_loop_get_names_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_loop_get_names$(EXEEXT)
 	$(LINK) $(__testdir__test_loop_get_names_OBJECTS) $(__testdir__test_loop_get_names_LDADD) $(LIBS)
+$(testdir)/test_table_elements$(EXEEXT): $(__testdir__test_table_elements_OBJECTS) $(__testdir__test_table_elements_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_table_elements$(EXEEXT)
+	$(LINK) $(__testdir__test_table_elements_OBJECTS) $(__testdir__test_table_elements_LDADD) $(LIBS)
 $(testdir)/test_value_autoinit_numb$(EXEEXT): $(__testdir__test_value_autoinit_numb_OBJECTS) $(__testdir__test_value_autoinit_numb_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_value_autoinit_numb$(EXEEXT)
 	$(LINK) $(__testdir__test_value_autoinit_numb_OBJECTS) $(__testdir__test_value_autoinit_numb_LDADD) $(LIBS)
@@ -685,6 +698,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_get_block.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_list_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_get_names.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_table_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_autoinit_numb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_copy_char.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_create.Po@am__quote@
@@ -938,6 +952,20 @@ test_loop_get_names.obj: $(testdir)/test_loop_get_names.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_loop_get_names.c' object='test_loop_get_names.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_get_names.obj `if test -f '$(testdir)/test_loop_get_names.c'; then $(CYGPATH_W) '$(testdir)/test_loop_get_names.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_loop_get_names.c'; fi`
+
+test_table_elements.o: $(testdir)/test_table_elements.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_table_elements.o -MD -MP -MF $(DEPDIR)/test_table_elements.Tpo -c -o test_table_elements.o `test -f '$(testdir)/test_table_elements.c' || echo '$(srcdir)/'`$(testdir)/test_table_elements.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_table_elements.Tpo $(DEPDIR)/test_table_elements.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_table_elements.c' object='test_table_elements.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_table_elements.o `test -f '$(testdir)/test_table_elements.c' || echo '$(srcdir)/'`$(testdir)/test_table_elements.c
+
+test_table_elements.obj: $(testdir)/test_table_elements.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_table_elements.obj -MD -MP -MF $(DEPDIR)/test_table_elements.Tpo -c -o test_table_elements.obj `if test -f '$(testdir)/test_table_elements.c'; then $(CYGPATH_W) '$(testdir)/test_table_elements.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_table_elements.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_table_elements.Tpo $(DEPDIR)/test_table_elements.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_table_elements.c' object='test_table_elements.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_table_elements.obj `if test -f '$(testdir)/test_table_elements.c'; then $(CYGPATH_W) '$(testdir)/test_table_elements.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_table_elements.c'; fi`
 
 test_value_autoinit_numb.o: $(testdir)/test_value_autoinit_numb.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_value_autoinit_numb.o -MD -MP -MF $(DEPDIR)/test_value_autoinit_numb.Tpo -c -o test_value_autoinit_numb.o `test -f '$(testdir)/test_value_autoinit_numb.c' || echo '$(srcdir)/'`$(testdir)/test_value_autoinit_numb.c

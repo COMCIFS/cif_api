@@ -1800,6 +1800,35 @@ int cif_packet_free(
  * @defgroup value_funcs Functions for manipulating value objects
  *
  * @{
+ * CIF data values are represented by and to CIF API functions via the opaque data type @c cif_value_t .  Because this
+ * type is truly opaque, @c cif_value_t objects cannot directly be declared.  Independent value objects must instead
+ * be created via function @c cif_value_create() , and @i independent ones should be released via @c cif_value_free()
+ * when they are no longer needed.  Unlike the "handles" on CIF structural components that are used in several other
+ * parts of the API, @c cif_value_t objects are complete data objects, independent from the backing CIF storage
+ * mechanism, albeit in some cases parts of aggregate value objects.
+ *
+ * The API classifies values into several distinct "kinds": character (Unicode string) values, apparently-numeric
+ * values, list values, table values, unknown-value place holders, and not-applicable/default-value place holders.
+ * These alternatives are represented by the enumeration @c cif_kind_t.  Value kinds are assigned when values are
+ * created, but may be changed by re-initialization.  Several functions serve this purpose: @c cif_value_init(), of
+ * course, but also @c cif_value_init_char(), @c cif_value_copy_char(), @c cif_value_parse_numb(),
+ * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  If it is unknown, the kind of a value object can be
+ * determined via @c cif_value_kind(); this is important, because many of the value manipulation functions are
+ * useful only for values of certain kinds.
+ *
+ * Values of list and table kind aggregate other value objects.  The aggregates do not accept independent value objects
+ * directly into themselves; instead they make copies of values entered into them so as to reduce confusion
+ * about object ownership.  Such internal copies can still be exposed outside their container objects, however, to
+ * reduce copying and facilitate value manipulation.  Value objects that belong to a list or table aggregate are
+ * @i dependent on their container object, and must not be directly freed.
+ *
+ * Table values associate other values with Unicode string keys.  Unlike CIF data values and keywords, table keys are
+ * not "case insensitive".  They do, however, take Unicode canonical equivalence into account, thus Unicode strings
+ * containing different sequences of characters and yet canonically equivalent to each other can be used
+ * interchangeably as table keys associated with the same value.  When table keys are enumerated via
+ * @code cif_value_get_keys(), the form of the key most recently used to enter a value into the table is the form
+ * provided.  Table keys may contain whitespace, including leading and trailing whitespace, which is significant.
+ * The Unicode string consisting of zero characters is a valid table key.
  */
 
 /**
@@ -2234,6 +2263,9 @@ int cif_value_remove_element_at(cif_value_t *value, size_t index, cif_value_t **
 
 /**
  * @brief Retrieves an array of the keys of a table value.
+ *
+ * Although tables are insensitive to differences between canonically equivalent keys, this function always provides
+ * keys in the form most recently entered into the table.
  *
  * The caller assumes responsibility for freeing the returned array itself, but @em not the keys in it.  The keys
  * remain the responsibility of the table, and @b MUST @b NOT be freed or modified in any way.  Each key is a

@@ -217,12 +217,13 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
  * case, CIF_OK is returned if the named item was initially present; otherwise,
  * CIF_NOSUCH_ITEM is returned.
  */
-static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_t **value, int do_remove) {
+static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_t **value, int do_remove,
+        int invalidity_code) {
     FAILURE_HANDLING;
     UChar *key_norm;
     int result;
 
-    result = (*map->normalizer)(key, -1, &key_norm, CIF_INVALID_ITEMNAME);
+    result = (*map->normalizer)(key, -1, &key_norm, invalidity_code);
     if (result != CIF_OK) {
         SET_RESULT(result);
     } else {
@@ -276,11 +277,11 @@ int cif_packet_set_item(cif_packet_t *packet, const UChar *name, cif_value_t *va
 }
 
 int cif_packet_get_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
-    return cif_map_retrieve_item(&(packet->map), name, value, 0);
+    return cif_map_retrieve_item(&(packet->map), name, value, 0, CIF_INVALID_ITEMNAME);
 }
 
 int cif_packet_remove_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
-    return cif_map_retrieve_item(&(packet->map), name, value, 1);
+    return cif_map_retrieve_item(&(packet->map), name, value, 1, CIF_INVALID_ITEMNAME);
 }
 
 int cif_value_get_keys(cif_value_t *table, UChar ***keys) {
@@ -293,7 +294,7 @@ int cif_value_get_keys(cif_value_t *table, UChar ***keys) {
 
 int cif_value_set_item_by_key(cif_value_t *table, const UChar *key, cif_value_t *item) {
     if (table->kind == CIF_TABLE_KIND) {
-        return cif_map_set_item(&(table->as_table.map), key, item, CIF_ARGUMENT_ERROR);
+        return cif_map_set_item(&(table->as_table.map), key, item, CIF_INVALID_INDEX);
     } else {
         return CIF_ARGUMENT_ERROR;
     }
@@ -301,7 +302,7 @@ int cif_value_set_item_by_key(cif_value_t *table, const UChar *key, cif_value_t 
 
 int cif_value_get_item_by_key(cif_value_t *table, const UChar *name, cif_value_t **value) {
     if (table->kind == CIF_TABLE_KIND) {
-        return cif_map_retrieve_item(&(table->as_table.map), name, value, 0);
+        return cif_map_retrieve_item(&(table->as_table.map), name, value, 0, CIF_NOSUCH_ITEM);
     } else {
         return CIF_ARGUMENT_ERROR;
     }
@@ -309,7 +310,7 @@ int cif_value_get_item_by_key(cif_value_t *table, const UChar *name, cif_value_t
 
 int cif_value_remove_item_by_key(cif_value_t *table, const UChar *name, cif_value_t **value) {
     if (table->kind == CIF_TABLE_KIND) {
-        return cif_map_retrieve_item(&(table->as_table.map), name, value, 1);
+        return cif_map_retrieve_item(&(table->as_table.map), name, value, 1, CIF_NOSUCH_ITEM);
     } else {
         return CIF_ARGUMENT_ERROR;
     }
