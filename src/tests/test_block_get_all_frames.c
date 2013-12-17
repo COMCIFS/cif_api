@@ -102,7 +102,10 @@ int main(int argc, char *argv[]) {
         /* Make sure there are no unmatched block codes */
         TEST(HASH_COUNT(head), 0, test_name, subtest++);
     }
-    
+
+    cif_container_free(block2);
+    cif_container_free(block);
+
     DESTROY_CIF(test_name, cif);
 
     return 0;

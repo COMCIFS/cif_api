@@ -61,13 +61,14 @@ int main(int argc, char *argv[]) {
     TEST((*(names + 1) != NULL), 0, test_name, 5);
     TEST(u_strcmp(item1, *names), 0, test_name, 6);
     free(*names);
-    free(names);
 
     /* destroy the loop via handle loop2 */
     TEST(cif_loop_destroy(loop2), CIF_OK, test_name, 7);
 
     /* attempt to retrieve the data names again */
     TEST(cif_loop_get_names(loop1, *names), CIF_INVALID_HANDLE, test_name, 8);
+    TEST(cif_loop_free(loop1), CIF_OK, test_name, 9);
+    free(names);
 
     /* Final cleanup */
     DESTROY_CIF(test_name, cif);

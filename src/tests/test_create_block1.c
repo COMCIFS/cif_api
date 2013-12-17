@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
 
     TEST(cif_container_get_code(block, &code), CIF_OK, test_name, 4);
     TEST(u_strcmp(block_code, code), 0, test_name, 5);
+    free(code);
 
     /* not under test: */
     cif_block_free(block);

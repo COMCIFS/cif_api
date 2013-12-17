@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
     TEST(u_strcmp(text, copy_text), 0, test_name, 8);
 
     cif_value_free(value);
+    free(copy_text);
 
     return 0;
 }

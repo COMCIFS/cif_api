@@ -73,22 +73,31 @@ int main(int argc, char *argv[]) {
     /* Test various malformations */
     TEST(((text = cif_u_strdup(v)) == NULL), 0, test_name, 4);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 5);
+    free(text);
     TEST(((text = cif_u_strdup(ve00s2)) == NULL), 0, test_name, 6);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 7);
+    free(text);
     TEST(((text = cif_u_strdup(v1_0es2)) == NULL), 0, test_name, 8);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 9);
+    free(text);
     TEST(((text = cif_u_strdup(v1_0e00s2x)) == NULL), 0, test_name, 10);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 11);
+    free(text);
     TEST(((text = cif_u_strdup(v1_0e00sx2)) == NULL), 0, test_name, 12);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 13);
+    free(text);
     TEST(((text = cif_u_strdup(v1_0e00s2b)) == NULL), 0, test_name, 14);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 15);
+    free(text);
     TEST(((text = cif_u_strdup(vb1_0e00s2)) == NULL), 0, test_name, 16);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 17);
+    free(text);
     TEST(((text = cif_u_strdup(v1_0be00s2)) == NULL), 0, test_name, 18);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 19);
+    free(text);
     TEST(((text = cif_u_strdup(v7_0e00s2_0)) == NULL), 0, test_name, 20);
     TEST(cif_value_parse_numb(value, text), CIF_INVALID_NUMBER, test_name, 21);
+    free(text);
 
     /* test exact numbers */
     TEST(((text = cif_u_strdup(v0)) == NULL), 0, test_name, 22);
@@ -98,6 +107,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 26);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 27);
     TEST(u_strcmp(v0, text), 0, test_name, 28);
+    free(text);
 
     TEST(((text = cif_u_strdup(v17)) == NULL), 0, test_name, 29);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 30);
@@ -106,6 +116,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 33);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 34);
     TEST(u_strcmp(v17, text), 0, test_name, 35);
+    free(text);
 
     TEST(((text = cif_u_strdup(v170_)) == NULL), 0, test_name, 36);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 37);
@@ -114,6 +125,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 40);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 41);
     TEST(u_strcmp(v170_, text), 0, test_name, 42);
+    free(text);
 
     TEST(((text = cif_u_strdup(v_32)) == NULL), 0, test_name, 43);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 44);
@@ -122,6 +134,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 47);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 48);
     TEST(u_strcmp(v_32, text), 0, test_name, 49);
+    free(text);
 
     TEST(((text = cif_u_strdup(vm17_00)) == NULL), 0, test_name, 50);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 51);
@@ -130,6 +143,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 54);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 55);
     TEST(u_strcmp(vm17_00, text), 0, test_name, 56);
+    free(text);
 
     TEST(((text = cif_u_strdup(vm17_00e3)) == NULL), 0, test_name, 57);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 58);
@@ -138,6 +152,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 61);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 62);
     TEST(u_strcmp(vm17_00e3, text), 0, test_name, 63);
+    free(text);
 
     TEST(((text = cif_u_strdup(vm17_00em4)) == NULL), 0, test_name, 64);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 65);
@@ -146,6 +161,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 68);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 69);
     TEST(u_strcmp(vm17_00em4, text), 0, test_name, 70);
+    free(text);
 
     TEST(((text = cif_u_strdup(v2_142e104)) == NULL), 0, test_name, 71);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 72);
@@ -154,6 +170,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 75);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 76);
     TEST(u_strcmp(v2_142e104, text), 0, test_name, 77);
+    free(text);
 
     /* test measured numbers */
     TEST(((text = cif_u_strdup(vm173s2)) == NULL), 0, test_name, 78);
@@ -163,6 +180,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 2.0), 0, test_name, 82);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 83);
     TEST(u_strcmp(vm173s2, text), 0, test_name, 84);
+    free(text);
 
     TEST(((text = cif_u_strdup(v73_s120)) == NULL), 0, test_name, 85);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 86);
@@ -171,6 +189,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 120.0), 0, test_name, 89);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 90);
     TEST(u_strcmp(v73_s120, text), 0, test_name, 91);
+    free(text);
 
     TEST(((text = cif_u_strdup(v1_0e00s2)) == NULL), 0, test_name, 92);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 93);
@@ -179,6 +198,7 @@ int main(int argc, char *argv[]) {
     TEST((fabs(cif_value_su_as_double(value) - 0.2) > 0.001), 0, test_name, 96);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 97);
     TEST(u_strcmp(v1_0e00s2, text), 0, test_name, 98);
+    free(text);
 
     TEST(((text = cif_u_strdup(v3_456e20s7)) == NULL), 0, test_name, 99);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 100);
@@ -187,6 +207,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 7e+17), 0, test_name, 103);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 104);
     TEST(u_strcmp(v3_456e20s7, text), 0, test_name, 105);
+    free(text);
 
     TEST(((text = cif_u_strdup(vm_00456e20s7)) == NULL), 0, test_name, 106);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 107);
@@ -195,6 +216,7 @@ int main(int argc, char *argv[]) {
     TEST((cif_value_su_as_double(value) != 7e+15), 0, test_name, 110);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 111);
     TEST(u_strcmp(vm_00456e20s7, text), 0, test_name, 112);
+    free(text);
 
     cif_value_free(value);
 

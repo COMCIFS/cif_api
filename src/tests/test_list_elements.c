@@ -43,10 +43,10 @@ int main(int argc, char *argv[]) {
     TEST(cif_value_create(CIF_UNK_KIND, &element1), CIF_OK, test_name, 8);
     TEST(cif_value_set_element_at(value, 0, element1), CIF_INVALID_INDEX, test_name, 9);
     TEST(cif_value_set_element_at(value, -1, element1), CIF_INVALID_INDEX, test_name, 10);
+    /* element1 is valid and independent */
 
     /* error results for wrong-type arguments */
 
-    TEST(cif_value_create(CIF_UNK_KIND, &element1), CIF_OK, test_name, 11);
     TEST(cif_value_kind(element1), CIF_UNK_KIND, test_name, 12);
     TEST(cif_value_get_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 13);
     TEST(cif_value_set_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 14);
@@ -177,9 +177,10 @@ int main(int argc, char *argv[]) {
     TEST(cif_value_remove_element_at(value, 3, &element2), CIF_OK, test_name, 96);
     TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 97);
     TEST(count, 3, test_name, 98);
-    /* it is not safe to test element2 != element3 because element3 no longer points to a valid object */
-    /* element1 and element2 both belong to the list value */
-    /* element3 is invalid (freed) */
+    TEST(element2 != element3, 0, test_name, 99);
+    cif_value_free(element2);
+    /* element1 belongs to the list value */
+    /* element2 and element3 are invalid (freed) */
 
     /* test removing a middle value */
     TEST(cif_value_get_element_at(value, 0, &element1), CIF_OK, test_name, 100);
@@ -191,6 +192,7 @@ int main(int argc, char *argv[]) {
     TEST(element1 != element3, 0, test_name, 106);
     TEST(cif_value_get_element_at(value, 1, &element3), CIF_OK, test_name, 107);
     TEST(element2 != element3, 0, test_name, 108);
+    /* element1, element2, and element3 all belong to the list value */
 
     /* test removing the first value */
     TEST(cif_value_remove_element_at(value, 0, NULL), CIF_OK, test_name, 109);

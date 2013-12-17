@@ -15,6 +15,7 @@
 #endif
 
 #include <stdlib.h>
+#include <assert.h>
 #include "cif.h"
 #include "internal/ciftypes.h"
 #include "internal/utils.h"
@@ -47,9 +48,29 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
         }
         names_norm[element_count] = NULL;
 
+        /* pretend it's going to be a standalone packet to avoid making unneeded key copies */
         result = cif_packet_create_norm(packet, names_norm, 0);
         if (result == CIF_OK) {
-            /* we're about to abandon our copies of the name pointers; they now belong to the packet */
+            struct entry_s *entry;
+
+            /* assign the original item names */
+            /* iteration via hh.next is documented to proceed in insertion order */
+            for (next = names, entry = (*packet)->map.head;
+                    *next;
+                    next += 1, entry = (struct entry_s *) entry->hh.next) {
+                assert(entry != NULL);
+                if (u_strcmp(*next, entry->key) != 0) {
+                    assert (entry->key_orig == entry->key);  /* implementation detail of cif_packet_create_norm() */
+                    entry->key_orig = cif_u_strdup(*next);
+
+                    if (entry->key_orig == NULL) {
+                        cif_packet_free(*packet);
+                        DEFAULT_FAIL(soft);
+                    }
+                }
+            }
+
+            /* we're about to abandon our copies of the name pointers; the names now belong to the packet */
             (*packet)->map.is_standalone = 1;
             /* free the array, but not its elements */
             free(names_norm);
@@ -69,6 +90,12 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
     FAILURE_TERMINUS;
 }
 
+/*
+ * FIXME: the need for this is unclear, especially in its current form.  The
+ * objective is to provide for avoiding unneeded multiple normalization, but
+ * this function is hard to use because it does not record the original item
+ * names; instead, it just sets them to the (provided) normalized names.
+ */
 int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int standalone) {
     FAILURE_HANDLING;
 
@@ -80,6 +107,7 @@ int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int standalone)
         if (temp_packet) {
             /*@temp@*/ UChar **name;
 
+            temp_packet->map.normalizer = cif_normalize_item_name;
             temp_packet->map.is_standalone = standalone;
             temp_packet->map.head = NULL;
             for (name = names; *name; name += 1) {
@@ -95,6 +123,7 @@ int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int standalone)
                     } else {
                         scalar->key = *name;
                     }
+                    scalar->key_orig = scalar->key;
                     HASH_ADD_KEYPTR(hh, temp_packet->map.head, scalar->key, U_BYTES(scalar->key), scalar);
                 }
             }

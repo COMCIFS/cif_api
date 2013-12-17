@@ -1697,7 +1697,8 @@ int cif_packet_create(
  * @brief Retrieves the names of all the items in the current packet.
  *
  * It is the caller's responsibility to release the resulting array, but its elements @b MUST @b NOT be modified or
- * freed.
+ * freed.  Names are initially in the order in which they appear in the array passed to @c cif_packate_create().
+ * If a @em new items is added via @c cif_packet_set_item() then its name is appended to the packet's name list.
  *
  * @param[in] packet a pointer to the packet whose data names are requested
  *

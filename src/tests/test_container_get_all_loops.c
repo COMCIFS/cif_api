@@ -138,6 +138,7 @@ int main(int argc, char *argv[]) {
                             loop_mask ^= (1 << counter);
                             do {
                                 HASH_DEL(head, el);
+                                free(el);
                                 name_ctr += 1;
                                 if (*name_ctr == NULL) {
                                     if (head == NULL) {
@@ -184,6 +185,7 @@ int main(int argc, char *argv[]) {
     TEST(cif_container_get_all_loops(block1, &loops), CIF_INVALID_HANDLE, test_name, subtest++);
 
     /* Final cleanup */
+    cif_container_free(block1);
     DESTROY_CIF(test_name, cif);
 
     return 0;

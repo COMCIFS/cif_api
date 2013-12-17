@@ -32,12 +32,36 @@ compiled_tests = \
     $(testdir)/test_value_autoinit_numb \
     $(testdir)/test_value_parse_numb \
     $(testdir)/test_list_elements \
-    $(testdir)/test_table_elements
-#    $(testdir)/test_value_clean
-# cif_value_clone
+    $(testdir)/test_table_elements \
+    $(testdir)/test_value_clone \
+    $(testdir)/test_packet_create
+# cif_packet_get_names
+# cif_packet_get_item
+# cif_packet_set_item
+# cif_packet_remove_item
 # cif_container_get_value
+#   - invalid name
+#   - absent
+#   - present in zero-packet loop
+#   - present in single-packet loop
+#   - present in multiple-packet loop
+#   - NULL value pointer pointer
+#   - non-NULL pointer to NULL value pointer
+#   - non-NULL pointer to non-NULL value pointer
+#   - child frames / parent blocks not read
 # cif_container_set_value
+#   - invalid name
+#   - NULL value pointer (?)
+#   - each value type
+#   - not initially present
+#   - initially in single-packet loop
+#   - initially in multi-packet loop
+#   - child frames / parent blocks not affected
 # cif_container_remove_item
+#   - item name invalid
+#   - item not present
+#   - present in multi-item loop
+#   - present in single-item loop
 # cif_loop_add_item
 # cif_loop_add_packet
 # cif_loop_get_packets
@@ -46,18 +70,15 @@ compiled_tests = \
 # cif_pktitr_next_packet
 # cif_pktitr_update_packet
 # cif_pktitr_remove_packet
-# cif_packet_create
-# cif_packet_get_names
-# cif_packet_get_item
-# cif_packet_set_item
-# cif_packet_remove_item
 # cif_container_destroy
 # cif_loop_destroy
-# cif_loop_free
-# cif_packet_free
-# cif_value_free
 # cif_parse
 # cif_write
+#
+# Not sure how to test these portably, except incidentally via valgrinding
+# the other tests:
+# cif_value_clean
+# cif_*_free
 
 check_PROGRAMS = $(compiled_tests)
 

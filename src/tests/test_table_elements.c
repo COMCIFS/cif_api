@@ -210,6 +210,7 @@ int main(int argc, char *argv[]) {
     TEST(cif_value_get_keys(value, &keys), CIF_OK, test_name, 106);
     TEST(test_key_list(all_keys, 3, keys), 0, test_name, 107);
     cif_value_free(element3);
+    free(text1);
     free(keys);
     /* element1 and element2 both belong to the list value */
     /* element3 is invalid (freed) */
@@ -252,6 +253,8 @@ int main(int argc, char *argv[]) {
     TEST(cif_value_get_text(element1, &text1), CIF_OK, test_name, 129);
     TEST(cif_value_get_text(element2, &text2), CIF_OK, test_name, 130);
     TEST(u_strcmp(text1, text2), 0, test_name, 131);
+    free(text1);
+    free(text2);
     TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 132);
     TEST(count, 1, test_name, 133);
     TEST(cif_value_get_keys(value, &keys), CIF_OK, test_name, 134);
@@ -280,6 +283,9 @@ int main(int argc, char *argv[]) {
     TEST(element2 != element3, 0, test_name, 149);
     /* test non-case-folding */
     TEST(cif_value_get_item_by_key(value, folded_key, &element3), CIF_NOSUCH_ITEM, test_name, 150);
+
+    /* test NULL value pointer */
+    TEST(cif_value_get_item_by_key(value, normalized_key, NULL), CIF_OK, test_name, 151);
 
     cif_value_free(element1);
 

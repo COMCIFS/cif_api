@@ -89,6 +89,10 @@ int main(int argc, char *argv[]) {
         item_names[2] = name2;
     }
 
+    for (counter = 0; counter <= NUM_NAMES; counter++) {
+        free(invalid_names[counter]);
+    }
+
     /* subtests 23 - 40: duplicating an item name that is already present in the container */
     for (counter = 0; counter < 3; counter++) {
         int counter2;
@@ -129,6 +133,8 @@ int main(int argc, char *argv[]) {
     TEST(cif_get_block(cif, block_code, &block2), CIF_OK, test_name, subtest++);
     TEST(cif_block_destroy(block), CIF_OK, test_name, subtest++);
     TEST(cif_container_create_loop(block2, NULL, item_names, NULL), CIF_INVALID_HANDLE, test_name, subtest++);
+
+    cif_container_free(block2);
 
     DESTROY_CIF(test_name, cif);
 

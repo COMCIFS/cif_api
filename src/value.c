@@ -502,7 +502,10 @@ static void cif_table_value_clean(struct table_value_s *table_value) {
 
     HASH_ITER(hh, table_value->map.head, entry, temp) {
         HASH_DEL(table_value->map.head, entry);
-        CLEAN_PTR(entry->key);
+        if (entry->key != entry->key_orig) {
+            CLEAN_PTR(entry->key);
+        }
+        CLEAN_PTR(entry->key_orig);
         cif_value_free((cif_value_t *) entry);
     }
 }
@@ -593,26 +596,29 @@ static int cif_value_clone_table(struct table_value_s *value, struct table_value
 
     cif_table_init(&temp);
     HASH_ITER(hh, value->map.head, entry, tmp) {
-        struct entry_s *new_entry = (struct entry_s *) malloc(sizeof(struct entry_s *));
+        struct entry_s *new_entry = (struct entry_s *) malloc(sizeof(struct entry_s));
 
         if (new_entry != NULL) {
-           new_entry->key = cif_u_strdup(entry->key);
-           if (new_entry->key != NULL) {
-               cif_value_t *new_value = &(new_entry->as_value);
+            new_entry->key = cif_u_strdup(entry->key);
+            if (new_entry->key != NULL) {
+                new_entry->key_orig = cif_u_strdup(entry->key_orig);
+                if (new_entry->key_orig != NULL) {
+                    cif_value_t *new_value = &(new_entry->as_value);
 
-               new_value->kind = CIF_UNK_KIND;
-               if (cif_value_clone(&(entry->as_value), &new_value) == CIF_OK) {
-#undef uthash_fatal
+                    new_value->kind = CIF_UNK_KIND;
+                    if (cif_value_clone(&(entry->as_value), &new_value) == CIF_OK) {
+#undef  uthash_fatal
 #define uthash_fatal(msg) DEFAULT_FAIL(hash)
-                   HASH_ADD_KEYPTR(hh, temp.map.head, new_entry->key, U_BYTES(new_entry->key), new_entry);
-                   continue;
+                        HASH_ADD_KEYPTR(hh, temp.map.head, new_entry->key, U_BYTES(new_entry->key), new_entry);
+                        continue;
+                    }
 
-                   FAILURE_HANDLER(hash):
-                   cif_value_clean(new_value);
-               }
-               free(new_entry->key);
-           }
-           free(new_entry); 
+                    FAILURE_HANDLER(hash):
+                    free(new_entry->key_orig);
+                }
+                free(new_entry->key);
+            }
+            free(new_entry);
         }
 
         cif_table_value_clean(&temp);
@@ -736,7 +742,7 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
                     entry = NULL;
                     DESERIALIZE(struct entry_s, entry, buf, HANDLER_LABEL(value));
                     entry->key = key;
-#undef uthash_fatal
+#undef  uthash_fatal
 #define uthash_fatal(msg) DEFAULT_FAIL(hash)
                     HASH_ADD_KEYPTR(hh, temp.as_table.map.head, entry->key, U_BYTES(entry->key), entry);
                     break;
@@ -1609,7 +1615,7 @@ extern "C" {
 
 int cif_value_create(cif_kind_t kind, cif_value_t **value) {
     FAILURE_HANDLING;
-    /*@only@*/ cif_value_t *temp = (cif_value_t *) malloc(sizeof(cif_value_t));
+    cif_value_t *temp = (cif_value_t *) malloc(sizeof(cif_value_t));
 
     if (temp != NULL) {
         switch (kind) {
@@ -1687,11 +1693,12 @@ int cif_value_free(union cif_value_u *value) {
 int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
     FAILURE_HANDLING;
     cif_value_t *temp;
-    cif_value_t *to_free = NULL;
+    cif_value_t *to_free;
 
     if (*clone != NULL) {
         if (cif_value_clean(*clone) != CIF_OK) DEFAULT_FAIL(soft);
         temp = *clone;
+        to_free = NULL;
     } else {
         if (cif_value_create(CIF_UNK_KIND, &temp) != CIF_OK) DEFAULT_FAIL(soft);
         to_free = temp;
@@ -1928,7 +1935,7 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
     }
 
     /* write the digit string to the value object */
-    n_temp.digits = (char *) malloc((digit_end + 1) - (digit_start + num_decimal));
+    n_temp.digits = (char *) malloc((digit_end + 2) - (digit_start + num_decimal));
     if (n_temp.digits != NULL) {
         char *c = n_temp.digits;
 

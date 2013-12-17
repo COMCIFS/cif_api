@@ -108,7 +108,9 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_value_autoinit_numb$(EXEEXT) \
 	$(testdir)/test_value_parse_numb$(EXEEXT) \
 	$(testdir)/test_list_elements$(EXEEXT) \
-	$(testdir)/test_table_elements$(EXEEXT)
+	$(testdir)/test_table_elements$(EXEEXT) \
+	$(testdir)/test_value_clone$(EXEEXT) \
+	$(testdir)/test_packet_create$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -199,6 +201,11 @@ __testdir__test_loop_get_names_OBJECTS =  \
 	test_loop_get_names.$(OBJEXT)
 __testdir__test_loop_get_names_LDADD = $(LDADD)
 __testdir__test_loop_get_names_DEPENDENCIES = libcif.la
+__testdir__test_packet_create_SOURCES =  \
+	$(testdir)/test_packet_create.c
+__testdir__test_packet_create_OBJECTS = test_packet_create.$(OBJEXT)
+__testdir__test_packet_create_LDADD = $(LDADD)
+__testdir__test_packet_create_DEPENDENCIES = libcif.la
 __testdir__test_table_elements_SOURCES =  \
 	$(testdir)/test_table_elements.c
 __testdir__test_table_elements_OBJECTS =  \
@@ -211,6 +218,10 @@ __testdir__test_value_autoinit_numb_OBJECTS =  \
 	test_value_autoinit_numb.$(OBJEXT)
 __testdir__test_value_autoinit_numb_LDADD = $(LDADD)
 __testdir__test_value_autoinit_numb_DEPENDENCIES = libcif.la
+__testdir__test_value_clone_SOURCES = $(testdir)/test_value_clone.c
+__testdir__test_value_clone_OBJECTS = test_value_clone.$(OBJEXT)
+__testdir__test_value_clone_LDADD = $(LDADD)
+__testdir__test_value_clone_DEPENDENCIES = libcif.la
 __testdir__test_value_copy_char_SOURCES =  \
 	$(testdir)/test_value_copy_char.c
 __testdir__test_value_copy_char_OBJECTS =  \
@@ -267,8 +278,10 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
+	$(testdir)/test_packet_create.c \
 	$(testdir)/test_table_elements.c \
 	$(testdir)/test_value_autoinit_numb.c \
+	$(testdir)/test_value_clone.c \
 	$(testdir)/test_value_copy_char.c \
 	$(testdir)/test_value_create.c \
 	$(testdir)/test_value_init_char.c \
@@ -289,8 +302,10 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
+	$(testdir)/test_packet_create.c \
 	$(testdir)/test_table_elements.c \
 	$(testdir)/test_value_autoinit_numb.c \
+	$(testdir)/test_value_clone.c \
 	$(testdir)/test_value_copy_char.c \
 	$(testdir)/test_value_create.c \
 	$(testdir)/test_value_init_char.c \
@@ -464,7 +479,9 @@ compiled_tests = \
     $(testdir)/test_value_autoinit_numb \
     $(testdir)/test_value_parse_numb \
     $(testdir)/test_list_elements \
-    $(testdir)/test_table_elements
+    $(testdir)/test_table_elements \
+    $(testdir)/test_value_clone \
+    $(testdir)/test_packet_create
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -645,12 +662,18 @@ $(testdir)/test_list_elements$(EXEEXT): $(__testdir__test_list_elements_OBJECTS)
 $(testdir)/test_loop_get_names$(EXEEXT): $(__testdir__test_loop_get_names_OBJECTS) $(__testdir__test_loop_get_names_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_loop_get_names$(EXEEXT)
 	$(LINK) $(__testdir__test_loop_get_names_OBJECTS) $(__testdir__test_loop_get_names_LDADD) $(LIBS)
+$(testdir)/test_packet_create$(EXEEXT): $(__testdir__test_packet_create_OBJECTS) $(__testdir__test_packet_create_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_packet_create$(EXEEXT)
+	$(LINK) $(__testdir__test_packet_create_OBJECTS) $(__testdir__test_packet_create_LDADD) $(LIBS)
 $(testdir)/test_table_elements$(EXEEXT): $(__testdir__test_table_elements_OBJECTS) $(__testdir__test_table_elements_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_table_elements$(EXEEXT)
 	$(LINK) $(__testdir__test_table_elements_OBJECTS) $(__testdir__test_table_elements_LDADD) $(LIBS)
 $(testdir)/test_value_autoinit_numb$(EXEEXT): $(__testdir__test_value_autoinit_numb_OBJECTS) $(__testdir__test_value_autoinit_numb_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_value_autoinit_numb$(EXEEXT)
 	$(LINK) $(__testdir__test_value_autoinit_numb_OBJECTS) $(__testdir__test_value_autoinit_numb_LDADD) $(LIBS)
+$(testdir)/test_value_clone$(EXEEXT): $(__testdir__test_value_clone_OBJECTS) $(__testdir__test_value_clone_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_value_clone$(EXEEXT)
+	$(LINK) $(__testdir__test_value_clone_OBJECTS) $(__testdir__test_value_clone_LDADD) $(LIBS)
 $(testdir)/test_value_copy_char$(EXEEXT): $(__testdir__test_value_copy_char_OBJECTS) $(__testdir__test_value_copy_char_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_value_copy_char$(EXEEXT)
 	$(LINK) $(__testdir__test_value_copy_char_OBJECTS) $(__testdir__test_value_copy_char_LDADD) $(LIBS)
@@ -698,8 +721,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_get_block.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_list_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_get_names.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_table_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_autoinit_numb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_clone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_copy_char.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_init_char.Po@am__quote@
@@ -953,6 +978,20 @@ test_loop_get_names.obj: $(testdir)/test_loop_get_names.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_get_names.obj `if test -f '$(testdir)/test_loop_get_names.c'; then $(CYGPATH_W) '$(testdir)/test_loop_get_names.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_loop_get_names.c'; fi`
 
+test_packet_create.o: $(testdir)/test_packet_create.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_packet_create.o -MD -MP -MF $(DEPDIR)/test_packet_create.Tpo -c -o test_packet_create.o `test -f '$(testdir)/test_packet_create.c' || echo '$(srcdir)/'`$(testdir)/test_packet_create.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_packet_create.Tpo $(DEPDIR)/test_packet_create.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_packet_create.c' object='test_packet_create.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_packet_create.o `test -f '$(testdir)/test_packet_create.c' || echo '$(srcdir)/'`$(testdir)/test_packet_create.c
+
+test_packet_create.obj: $(testdir)/test_packet_create.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_packet_create.obj -MD -MP -MF $(DEPDIR)/test_packet_create.Tpo -c -o test_packet_create.obj `if test -f '$(testdir)/test_packet_create.c'; then $(CYGPATH_W) '$(testdir)/test_packet_create.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_packet_create.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_packet_create.Tpo $(DEPDIR)/test_packet_create.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_packet_create.c' object='test_packet_create.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_packet_create.obj `if test -f '$(testdir)/test_packet_create.c'; then $(CYGPATH_W) '$(testdir)/test_packet_create.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_packet_create.c'; fi`
+
 test_table_elements.o: $(testdir)/test_table_elements.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_table_elements.o -MD -MP -MF $(DEPDIR)/test_table_elements.Tpo -c -o test_table_elements.o `test -f '$(testdir)/test_table_elements.c' || echo '$(srcdir)/'`$(testdir)/test_table_elements.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_table_elements.Tpo $(DEPDIR)/test_table_elements.Po
@@ -980,6 +1019,20 @@ test_value_autoinit_numb.obj: $(testdir)/test_value_autoinit_numb.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_value_autoinit_numb.c' object='test_value_autoinit_numb.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_value_autoinit_numb.obj `if test -f '$(testdir)/test_value_autoinit_numb.c'; then $(CYGPATH_W) '$(testdir)/test_value_autoinit_numb.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_value_autoinit_numb.c'; fi`
+
+test_value_clone.o: $(testdir)/test_value_clone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_value_clone.o -MD -MP -MF $(DEPDIR)/test_value_clone.Tpo -c -o test_value_clone.o `test -f '$(testdir)/test_value_clone.c' || echo '$(srcdir)/'`$(testdir)/test_value_clone.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_value_clone.Tpo $(DEPDIR)/test_value_clone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_value_clone.c' object='test_value_clone.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_value_clone.o `test -f '$(testdir)/test_value_clone.c' || echo '$(srcdir)/'`$(testdir)/test_value_clone.c
+
+test_value_clone.obj: $(testdir)/test_value_clone.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_value_clone.obj -MD -MP -MF $(DEPDIR)/test_value_clone.Tpo -c -o test_value_clone.obj `if test -f '$(testdir)/test_value_clone.c'; then $(CYGPATH_W) '$(testdir)/test_value_clone.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_value_clone.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_value_clone.Tpo $(DEPDIR)/test_value_clone.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_value_clone.c' object='test_value_clone.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_value_clone.obj `if test -f '$(testdir)/test_value_clone.c'; then $(CYGPATH_W) '$(testdir)/test_value_clone.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_value_clone.c'; fi`
 
 test_value_copy_char.o: $(testdir)/test_value_copy_char.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_value_copy_char.o -MD -MP -MF $(DEPDIR)/test_value_copy_char.Tpo -c -o test_value_copy_char.o `test -f '$(testdir)/test_value_copy_char.c' || echo '$(srcdir)/'`$(testdir)/test_value_copy_char.c
