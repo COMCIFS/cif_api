@@ -94,12 +94,14 @@ typedef unsigned char uint8_t;
 #define HASH_FIND(hh,head,keyptr,keylen,out)                                     \
 do {                                                                             \
   unsigned _hf_bkt,_hf_hashv;                                                    \
+  unsigned _hf_keylen = (keylen);                                                \
+  char *_hf_keyptr = (char *)(keyptr);                                           \
   out=NULL;                                                                      \
   if (head) {                                                                    \
-     HASH_FCN(keyptr,keylen, (head)->hh.tbl->num_buckets, _hf_hashv, _hf_bkt);   \
+     HASH_FCN(_hf_keyptr,_hf_keylen, (head)->hh.tbl->num_buckets, _hf_hashv, _hf_bkt);   \
      if (HASH_BLOOM_TEST((head)->hh.tbl, _hf_hashv)) {                           \
        HASH_FIND_IN_BKT((head)->hh.tbl, hh, (head)->hh.tbl->buckets[ _hf_bkt ],  \
-                        keyptr,keylen,out);                                      \
+                        _hf_keyptr,_hf_keylen,out);                                      \
      }                                                                           \
   }                                                                              \
 } while (0)
@@ -162,9 +164,11 @@ do {                                                                            
 #define HASH_ADD_KEYPTR(hh,head,keyptr,keylen_in,add)                            \
 do {                                                                             \
  unsigned _ha_bkt;                                                               \
+ unsigned _ha_keylen_in = (unsigned)(keylen_in);                                 \
+ char *_ha_keyptr = (char *)(keyptr);                                            \
  (add)->hh.next = NULL;                                                          \
- (add)->hh.key = (char*)keyptr;                                                  \
- (add)->hh.keylen = (unsigned)keylen_in;                                                   \
+ (add)->hh.key = _ha_keyptr;                                                     \
+ (add)->hh.keylen = _ha_keylen_in;                                               \
  if (!(head)) {                                                                  \
     head = (add);                                                                \
     (head)->hh.prev = NULL;                                                      \
@@ -176,11 +180,11 @@ do {                                                                            
  }                                                                               \
  (head)->hh.tbl->num_items++;                                                    \
  (add)->hh.tbl = (head)->hh.tbl;                                                 \
- HASH_FCN(keyptr,keylen_in, (head)->hh.tbl->num_buckets,                         \
+ HASH_FCN(_ha_keyptr,_ha_keylen_in, (head)->hh.tbl->num_buckets,                 \
          (add)->hh.hashv, _ha_bkt);                                              \
  HASH_ADD_TO_BKT((head)->hh.tbl->buckets[_ha_bkt],&(add)->hh);                   \
  HASH_BLOOM_ADD((head)->hh.tbl,(add)->hh.hashv);                                 \
- HASH_EMIT_KEY(hh,head,keyptr,keylen_in);                                        \
+ HASH_EMIT_KEY(hh,head,_ha_keyptr,_ha_keylen_in);                                \
  HASH_FSCK(hh,head);                                                             \
 } while(0)
 
