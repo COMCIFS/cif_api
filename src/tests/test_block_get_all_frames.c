@@ -19,7 +19,6 @@ int main(int argc, char *argv[]) {
     cif_block_t *block = NULL;
     cif_block_t *block2 = NULL;
     cif_frame_t **frames = NULL;
-    cif_frame_t *frame = NULL;
     UChar *code;
     U_STRING_DECL(block0, "b0", 3);
     U_STRING_DECL(b2, "b2", 3);
@@ -88,9 +87,9 @@ int main(int argc, char *argv[]) {
 
         /* Match each block to a block code; each code may be matched at most once */
         for (counter = 0; frames[counter] != NULL; counter += 1) {
-            UChar *code = NULL;
             struct set_el *el = NULL;
 
+            code = NULL;
             TEST(cif_container_get_code(frames[counter], &code), CIF_OK, test_name, subtest++);
             HASH_FIND(hh, head, code, u_strlen(code) * sizeof(UChar), el);
             TEST((el == NULL), 0, test_name, subtest++);

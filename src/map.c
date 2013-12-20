@@ -43,15 +43,15 @@ static int cif_map_clean(cif_map_t *map) {
     return CIF_OK;
 }
 
-static int cif_map_get_keys(cif_map_t *map, UChar ***names) {
+static int cif_map_get_keys(cif_map_t *map, const UChar ***names) {
     FAILURE_HANDLING;
     size_t name_count = (size_t) HASH_COUNT(map->head);
-    UChar **temp = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
+    const UChar **temp = (const UChar **) malloc(sizeof(UChar *) * (name_count + 1));
 
     if (temp != NULL) {
         struct entry_s *item;
         struct entry_s *temp_item;
-        UChar **next = temp;
+        const UChar **next = temp;
 
         HASH_ITER(hh, map->head, item, temp_item) {
             *next = item->key_orig;
@@ -274,7 +274,7 @@ int cif_packet_free(cif_packet_t *packet) {
     return CIF_OK;
 }
 
-int cif_packet_get_names(cif_packet_t *packet, UChar ***names) {
+int cif_packet_get_names(cif_packet_t *packet, const UChar ***names) {
     return cif_map_get_keys(&(packet->map), names);
 }
 
@@ -290,7 +290,7 @@ int cif_packet_remove_item(cif_packet_t *packet, const UChar *name, cif_value_t 
     return cif_map_retrieve_item(&(packet->map), name, value, 1, CIF_INVALID_ITEMNAME);
 }
 
-int cif_value_get_keys(cif_value_t *table, UChar ***keys) {
+int cif_value_get_keys(cif_value_t *table, const UChar ***keys) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_get_keys(&(table->as_table.map), keys);
     } else {

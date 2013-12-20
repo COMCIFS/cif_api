@@ -1989,7 +1989,7 @@ int cif_value_init_char(cif_value_t *value, UChar *text) {
     }
 }
 
-int cif_value_copy_char(cif_value_t *value, UChar *text) {
+int cif_value_copy_char(cif_value_t *value, const UChar *text) {
     if (text == NULL) {
         return CIF_ARGUMENT_ERROR;
     } else {

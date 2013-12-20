@@ -1709,7 +1709,7 @@ int cif_packet_create(
  */
 int cif_packet_get_names(
         cif_packet_t *packet,
-        UChar ***names
+        const UChar ***names
         );
 
 /**
@@ -1973,7 +1973,7 @@ int cif_value_init_char(
  */
 int cif_value_copy_char(
         /*@in@*/ /*@temp@*/ cif_value_t *value,
-        /*@in@*/ /*@keep@*/ UChar *text
+        /*@in@*/ /*@keep@*/ const UChar *text
         );
 
 /**
@@ -2293,7 +2293,7 @@ int cif_value_remove_element_at(cif_value_t *value, size_t index, cif_value_t **
  */
 int cif_value_get_keys(
         /*@temp@*/ cif_value_t *table,
-        UChar ***keys
+        const UChar ***keys
         );
 
 /**

@@ -24,7 +24,6 @@ int main(int argc, char *argv[]) {
     U_STRING_DECL(three_sir, "Three, sir.", 12);
     UChar *text;
     UChar *text2;
-    UChar *text3;
     size_t count;
     size_t extra;
     int i;

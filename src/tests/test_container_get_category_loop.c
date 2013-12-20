@@ -21,7 +21,6 @@ int main(int argc, char *argv[]) {
     cif_loop_t *loop = NULL;
     UChar *item_names[4] = { NULL, NULL, NULL, NULL };
     UChar **test_names;
-    int counter;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(block2_code, "block2", 7);
     U_STRING_DECL(category, "category", 9);

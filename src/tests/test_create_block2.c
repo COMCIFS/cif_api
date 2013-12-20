@@ -14,7 +14,6 @@
 int main(int argc, char *argv[]) {
     char test_name[80] = "test_create_block2";
     cif_t *cif = NULL;
-    int result;
 #define NUM_PATTERNS 8
     char code_patterns[NUM_PATTERNS][64] = {
         "",

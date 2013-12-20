@@ -17,7 +17,6 @@ int main(int argc, char *argv[]) {
     cif_block_t *block = NULL;
     cif_block_t *block2 = NULL;
     cif_frame_t *frame = NULL;
-    int result;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(block2_code, "block2", 7);
     U_STRING_DECL(frame_code, "frame", 6);
@@ -34,7 +33,7 @@ int main(int argc, char *argv[]) {
 
     /* Verify the result when the requested frame is absent */
     TEST(cif_block_get_frame(block, frame_code, &frame), CIF_NOSUCH_FRAME, test_name, 1);
-    TEST(frame, NULL, test_name, 2);
+    TEST(frame != NULL, 0, test_name, 2);
 
     /* Verify that the test frame is absent from the other block, too */
     TEST(cif_block_get_frame(block2, frame_code, &frame), CIF_NOSUCH_FRAME, test_name, 3);
@@ -44,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     /* Test creating the frame in one block */
     TEST(cif_block_create_frame(block, frame_code, &frame), CIF_OK, test_name, 5);
-    TEST_NOT(frame, NULL, test_name, 6);
+    TEST(frame == NULL, 0, test_name, 6);
 
     /* no mechanism for checking the frame code */
 
@@ -54,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     /* test retrieving the frame */
     TEST(cif_block_get_frame(block, frame_code, &frame), CIF_OK, test_name, 7);
-    TEST_NOT(frame, NULL, test_name, 8);
+    TEST(frame == NULL, 0, test_name, 8);
 
     /* not under test: */
     cif_frame_free(frame);
@@ -65,7 +64,7 @@ int main(int argc, char *argv[]) {
 
     /* Verify that the frame can be retrieved by an alternative, equivalent frame code */
     TEST(cif_block_get_frame(block, alt_frame_code, &frame), CIF_OK, test_name, 10);
-    TEST_NOT(frame, NULL, test_name, 11);
+    TEST(frame == NULL, 0, test_name, 11);
 
     /* Test creating a frame whose frame code is the same as the host block's block code */
     TEST(cif_block_create_frame(block, block_code, NULL), CIF_OK, test_name, 12);

@@ -84,9 +84,9 @@ int main(int argc, char *argv[]) {
 
         /* Match each block to a block code; each code may be matched at most once */
         for (counter = 0; blocks[counter] != NULL; counter += 1) {
-            UChar *code = NULL;
             struct set_el *el = NULL;
 
+            code = NULL;
             TEST(cif_container_get_code(blocks[counter], &code), CIF_OK, test_name, subtest++);
             HASH_FIND(hh, head, code, u_strlen(code) * sizeof(UChar), el);
             TEST((el == NULL), 0, test_name, subtest++);

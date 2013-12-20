@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     cif_packet_t *packet = NULL;
     cif_value_t *value = NULL;
     UChar *names[5];
-    UChar **names2;
+    const UChar **names2;
     int counter;
     U_STRING_DECL(name0, "_name1", 7);
     U_STRING_DECL(name1, "_cATegory.Item2", 16);

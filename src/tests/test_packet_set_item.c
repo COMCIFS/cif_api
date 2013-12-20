@@ -12,19 +12,18 @@
 #include "../cif.h"
 #include "test.h"
 
-static int test_name_list(UChar **expected, int num_expected, UChar **observed);
+static int test_name_list(UChar **expected, int num_expected, const UChar **observed);
 
 int main(int argc, char *argv[]) {
     char test_name[80] = "test_packet_set_item";
     cif_packet_t *packet = NULL;
     cif_value_t *value = NULL;
     cif_value_t *value2 = NULL;
-    UChar **item_names = NULL;
+    const UChar **item_names = NULL;
     UChar *used_names[5] = { NULL, NULL, NULL, NULL, NULL };
     UChar *text = NULL;
     UChar uncomposed_name[6] = { 0x5f, 'K', 0x0073, 0x0307, 0x0323, 0 };
     UChar equivalent_name[6] = { 0x5f, 'K', 0x0073, 0x0323, 0x0307, 0 };
-    UChar normalized_name[4] = { 0x5f, 'k', 0x1e69, 0 };
     U_STRING_DECL(simple_name, "_name", 6);
     U_STRING_DECL(invalid_name, "name", 5);
     U_STRING_DECL(another_name, "_another.name", 14);
@@ -98,7 +97,7 @@ int main(int argc, char *argv[]) {
  * number of NUL-terminated Unicode strings, each of which is a character-by-character match to one of the 'expected'
  * Unicode strings, but not necessarily in the same order.
  */
-static int test_name_list(UChar **expected, int num_expected, UChar **observed) {
+static int test_name_list(UChar **expected, int num_expected, const UChar **observed) {
     int seen = 0;
     int i;
     int j;

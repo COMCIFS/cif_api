@@ -17,7 +17,6 @@ int main(int argc, char *argv[]) {
     cif_t *cif = NULL;
     cif_block_t *block;
     cif_frame_t *frame;
-    int result;
 #define NUM_PAIRS 3
     char code_pairs[NUM_PAIRS][2][64] = {
         {"Frame", "frAme"},
@@ -42,7 +41,7 @@ int main(int argc, char *argv[]) {
             test_name,
             HARD_FAIL
             );
-        TEST(frame, NULL, test_name, 3 * counter + 1);
+        TEST(frame != NULL, 0, test_name, 3 * counter + 1);
         TEST(
             cif_block_create_frame(block, TO_UNICODE(code_pairs[counter][0], buffer, CIF_LINE_LENGTH), &frame),
             CIF_OK,
@@ -58,7 +57,7 @@ int main(int argc, char *argv[]) {
             test_name,
             3 * counter + 2
             );
-        TEST_NOT(frame, NULL, test_name, 3 * counter + 3);
+        TEST(frame == NULL, 0, test_name, 3 * counter + 3);
         cif_frame_destroy(frame);
     }
 

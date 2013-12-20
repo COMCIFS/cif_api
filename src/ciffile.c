@@ -607,7 +607,7 @@ static int write_list(void *context, cif_value_t *list_value) {
 
 static int write_table(void *context, cif_value_t *table_value) {
     FAILURE_HANDLING;
-    UChar **keys;
+    const UChar **keys;
     int result;
 
     if ((result = cif_value_get_keys(table_value, &keys)) != CIF_OK) {
@@ -615,7 +615,7 @@ static int write_table(void *context, cif_value_t *table_value) {
     } else {
         if (write_literal(context, "{", 1, CIF_WRAP) == 1) {
             int write_names_save = IS_WRITE_ITEM_NAMES(context);
-            UChar **key;
+            const UChar **key;
 
             SET_WRITE_ITEM_NAMES(context, CIF_FALSE);
             for (key = keys; *key; key += 1) {

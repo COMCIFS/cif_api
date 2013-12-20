@@ -17,7 +17,6 @@ int main(int argc, char *argv[]) {
     cif_block_t *block = NULL;
     cif_block_t *block2 = NULL;
     cif_frame_t *frame = NULL;
-    int result;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(block2_code, "block2", 7);
 

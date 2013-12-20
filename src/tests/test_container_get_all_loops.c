@@ -110,7 +110,6 @@ int main(int argc, char *argv[]) {
     subtest = 14;
     INIT_USTDERR;
     for (loop_ctr = loops; *loop_ctr != NULL; loop_ctr += 1) {
-        int matched = 0;
         UChar **observed_items = NULL;
         UChar **name_ctr;
 

@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
     char test_name[80] = "test_get_block";
     cif_t *cif = NULL;
     cif_block_t *block;
-    int result;
 #define NUM_PAIRS 4
     char code_pairs[NUM_PAIRS][2][64] = {
         {"Block", "bLOck"},
@@ -39,7 +38,7 @@ int main(int argc, char *argv[]) {
             test_name,
             HARD_FAIL
             );
-        TEST(block, NULL, test_name, 3 * counter + 1);
+        TEST(block != NULL, 0, test_name, 3 * counter + 1);
         TEST(
             cif_create_block(cif, TO_UNICODE(code_pairs[counter][0], buffer, CIF_LINE_LENGTH), &block),
             CIF_OK,
@@ -55,7 +54,7 @@ int main(int argc, char *argv[]) {
             test_name,
             3 * counter + 2
             );
-        TEST_NOT(block, NULL, test_name, 3 * counter + 3);
+        TEST(block == NULL, 0, test_name, 3 * counter + 3);
         cif_block_destroy(block);
     }
 

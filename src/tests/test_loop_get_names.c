@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     TEST(cif_loop_destroy(loop2), CIF_OK, test_name, 7);
 
     /* attempt to retrieve the data names again */
-    TEST(cif_loop_get_names(loop1, *names), CIF_INVALID_HANDLE, test_name, 8);
+    TEST(cif_loop_get_names(loop1, &names), CIF_INVALID_HANDLE, test_name, 8);
     TEST(cif_loop_free(loop1), CIF_OK, test_name, 9);
     free(names);
 

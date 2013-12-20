@@ -13,7 +13,7 @@
 #include "../cif.h"
 #include "test.h"
 
-static int test_key_list(UChar **expected, int num_expected, UChar **observed);
+static int test_key_list(UChar **expected, int num_expected, const UChar **observed);
 
 int main(int argc, char *argv[]) {
     char test_name[80] = "test_table_elements";
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     UChar normalized_key[3] = { 'K', 0x1e69, 0 };
     UChar folded_key[3] =     { 'k', 0x1e69, 0 };
     UChar *all_keys[4];
-    UChar **keys;
+    const UChar **keys;
     UChar *text1;
     UChar *text2;
     size_t count;
@@ -299,7 +299,7 @@ int main(int argc, char *argv[]) {
  * number of NUL-terminated Unicode strings, each of which is a character-by-character match to one of the 'expected'
  * Unicode strings, but not necessarily in the same order.
  */
-static int test_key_list(UChar **expected, int num_expected, UChar **observed) {
+static int test_key_list(UChar **expected, int num_expected, const UChar **observed) {
     int seen = 0;
     int i;
     int j;

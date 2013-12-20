@@ -49,31 +49,31 @@ int main(int argc, char *argv[]) {
 
     TEST(cif_value_kind(element1), CIF_UNK_KIND, test_name, 12);
     TEST(cif_value_get_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 13);
-    TEST(cif_value_set_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 14);
+    TEST(cif_value_set_element_at(element1, 0, element2), CIF_ARGUMENT_ERROR, test_name, 14);
     cif_value_free(element1);
 
     TEST(cif_value_create(CIF_TABLE_KIND, &element1), CIF_OK, test_name, 15);
     TEST(cif_value_kind(element1), CIF_TABLE_KIND, test_name, 16);
     TEST(cif_value_get_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 17);
-    TEST(cif_value_set_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 18);
+    TEST(cif_value_set_element_at(element1, 0, element2), CIF_ARGUMENT_ERROR, test_name, 18);
     cif_value_free(element1);
 
     TEST(cif_value_create(CIF_CHAR_KIND, &element1), CIF_OK, test_name, 19);
     TEST(cif_value_kind(element1), CIF_CHAR_KIND, test_name, 20);
     TEST(cif_value_get_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 21);
-    TEST(cif_value_set_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 22);
+    TEST(cif_value_set_element_at(element1, 0, element2), CIF_ARGUMENT_ERROR, test_name, 22);
     cif_value_free(element1);
 
     TEST(cif_value_create(CIF_NUMB_KIND, &element1), CIF_OK, test_name, 23);
     TEST(cif_value_kind(element1), CIF_NUMB_KIND, test_name, 24);
     TEST(cif_value_get_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 25);
-    TEST(cif_value_set_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 26);
+    TEST(cif_value_set_element_at(element1, 0, element2), CIF_ARGUMENT_ERROR, test_name, 26);
     cif_value_free(element1);
 
     TEST(cif_value_create(CIF_NA_KIND, &element1), CIF_OK, test_name, 27);
     TEST(cif_value_kind(element1), CIF_NA_KIND, test_name, 28);
     TEST(cif_value_get_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 29);
-    TEST(cif_value_set_element_at(element1, 0, &element2), CIF_ARGUMENT_ERROR, test_name, 30);
+    TEST(cif_value_set_element_at(element1, 0, element2), CIF_ARGUMENT_ERROR, test_name, 30);
     cif_value_free(element1);
 
     /* insertion and retrieval */
