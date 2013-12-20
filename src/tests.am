@@ -34,11 +34,13 @@ compiled_tests = \
     $(testdir)/test_list_elements \
     $(testdir)/test_table_elements \
     $(testdir)/test_value_clone \
-    $(testdir)/test_packet_create
-# cif_packet_get_names
-# cif_packet_get_item
-# cif_packet_set_item
+    $(testdir)/test_packet_create \
+    $(testdir)/test_packet_set_item
 # cif_packet_remove_item
+# cif_packet_get_item
+#   - test normalization
+#   - test value 
+# cif_packet_get_names
 # cif_container_get_value
 #   - invalid name
 #   - absent

@@ -166,8 +166,12 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                         item->key_orig = key_orig;
                     }
 
-                    /* clone the new value onto the old; or else just clean the old */
-                    if (((value == NULL) && (cif_value_clean(existing_value) == CIF_OK))
+                    /*
+                     * Except if the value presented is the same object as is already in the map,
+                     * clone the new value onto the old or else just clean the old
+                     */
+                    if ((value == existing_value)
+                            || ((value == NULL) && (cif_value_clean(existing_value) == CIF_OK))
                             || (cif_value_clone(value, &existing_value) == CIF_OK)) {
                         free(key_norm);
                         return CIF_OK;

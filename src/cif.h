@@ -1698,7 +1698,7 @@ int cif_packet_create(
  *
  * It is the caller's responsibility to release the resulting array, but its elements @b MUST @b NOT be modified or
  * freed.  Names are initially in the order in which they appear in the array passed to @c cif_packate_create().
- * If a @em new items is added via @c cif_packet_set_item() then its name is appended to the packet's name list.
+ * If a @em new item is added via @c cif_packet_set_item() then its name is appended to the packet's name list.
  *
  * @param[in] packet a pointer to the packet whose data names are requested
  *
@@ -1708,7 +1708,7 @@ int cif_packet_create(
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_packet_get_names(
-        /*@temp@*/ cif_packet_t *packet,
+        cif_packet_t *packet,
         UChar ***names
         );
 
@@ -1717,8 +1717,13 @@ int cif_packet_get_names(
  *         provide any value for the specified data name.
  *
  * The provided value object is copied into the packet; the packet does not assume responsibility for either the
- * specified value object or the specified name.  If the value handle is @c NULL then an explicit unknown-value object is
- * recorded.  The copied (or created) value can subsequently be obtained via @c cif_packet_get_item().
+ * specified value object or the specified name.  If the value handle is @c NULL then an explicit unknown-value object
+ * is recorded.  The copied (or created) value can subsequently be obtained via @c cif_packet_get_item().
+ *
+ * When the specified name matches an item already present in the packet, the existing value is first cleaned as if
+ * by @c cif_value_clean(), then the new value is copied onto it.  That will be visible to code that holds a reference
+ * to the value obtained via @c cif_packet_get_item().  Exception: if the @p value is the same object as the
+ * current internal one for the given name then this function succeeds without changing anything.
  *
  * @param[in,out] packet a pointer to the packet to modify
  *
@@ -1727,12 +1732,15 @@ int cif_packet_get_names(
  *
  * @param[in] value the value object to copy into the packet, or @c NULL for an unknown-value value object to be added
  *
- * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ * @return Returns @c CIF_OK on success, or else an error code characterizing the nature of the failure, normally one
+ *         of:
+ *         @li @c CIF_INVALID_ITEMNAME if @p name is not a valid CIF data name
+ *         @li @c CIF_ERROR in most other cases
  */
 int cif_packet_set_item(
-        /*@temp@*/ cif_packet_t *packet, 
-        /*@temp@*/ const UChar *name, 
-        /*@temp@*/ cif_value_t *value
+        cif_packet_t *packet, 
+        const UChar *name, 
+        cif_value_t *value
         );
 
 /**
@@ -1753,8 +1761,8 @@ int cif_packet_set_item(
  *         otherwise.
  */
 int cif_packet_get_item(
-        /*@temp@*/ cif_packet_t *packet, 
-        /*@temp@*/ const UChar *name, 
+        cif_packet_t *packet, 
+        const UChar *name, 
         cif_value_t **value
         );
 
@@ -1775,8 +1783,8 @@ int cif_packet_get_item(
  *         otherwise.
  */
 int cif_packet_remove_item(
-        /*@temp@*/ cif_packet_t *packet, 
-        /*@temp@*/ const UChar *name, 
+        cif_packet_t *packet, 
+        const UChar *name, 
         cif_value_t **value
         );
 
@@ -1792,7 +1800,7 @@ int cif_packet_remove_item(
  *         no specific failure conditions are currently defined.
  */
 int cif_packet_free(
-        /*@only@*/ cif_packet_t *packet
+        cif_packet_t *packet
         );
 
 /**
@@ -1803,7 +1811,7 @@ int cif_packet_free(
  * @{
  * CIF data values are represented by and to CIF API functions via the opaque data type @c cif_value_t .  Because this
  * type is truly opaque, @c cif_value_t objects cannot directly be declared.  Independent value objects must instead
- * be created via function @c cif_value_create() , and @i independent ones should be released via @c cif_value_free()
+ * be created via function @c cif_value_create() , and @em independent ones should be released via @c cif_value_free()
  * when they are no longer needed.  Unlike the "handles" on CIF structural components that are used in several other
  * parts of the API, @c cif_value_t objects are complete data objects, independent from the backing CIF storage
  * mechanism, albeit in some cases parts of aggregate value objects.
@@ -1821,13 +1829,13 @@ int cif_packet_free(
  * directly into themselves; instead they make copies of values entered into them so as to reduce confusion
  * about object ownership.  Such internal copies can still be exposed outside their container objects, however, to
  * reduce copying and facilitate value manipulation.  Value objects that belong to a list or table aggregate are
- * @i dependent on their container object, and must not be directly freed.
+ * @em dependent on their container object, and must not be directly freed.
  *
  * Table values associate other values with Unicode string keys.  Unlike CIF data values and keywords, table keys are
  * not "case insensitive".  They do, however, take Unicode canonical equivalence into account, thus Unicode strings
  * containing different sequences of characters and yet canonically equivalent to each other can be used
  * interchangeably as table keys associated with the same value.  When table keys are enumerated via
- * @code cif_value_get_keys(), the form of the key most recently used to enter a value into the table is the form
+ * @c cif_value_get_keys(), the form of the key most recently used to enter a value into the table is the form
  * provided.  Table keys may contain whitespace, including leading and trailing whitespace, which is significant.
  * The Unicode string consisting of zero characters is a valid table key.
  */
@@ -1846,7 +1854,8 @@ int cif_packet_free(
  *
  * @param[in] kind the value kind to create
  *
- * @param[in,out] value the location where a pointer to the new value should be recorded; must not be NULL
+ * @param[in,out] value the location where a pointer to the new value should be recorded; must not be NULL.  The
+ *         initial value of @p *value is ignored.
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
@@ -2277,7 +2286,7 @@ int cif_value_remove_element_at(cif_value_t *value, size_t index, cif_value_t **
  * @param[out] keys the location where a pointer to the array of keys should be written; must not be NULL.
  *
  * @return Returns a status code characteristic of the result:
- *         @li @c CIF_ARGUMENT_ERROR if the @c value has kind different from @c CIF_TABLE_KIND , otherwise
+ *         @li @c CIF_ARGUMENT_ERROR if the @p table has kind different from @c CIF_TABLE_KIND , otherwise
  *         @li @c CIF_OK if the keys were successfully retrieved, or
  *         @li an error code, typically @c CIF_ERROR , if retrieving the keys fails for reasons other than those already
  *             described
@@ -2304,7 +2313,7 @@ int cif_value_get_keys(
  * @param[in] item a pointer to the value object to enter into the table, or @c NULL to enter a @c CIF_UNK_KIND value
  *
  * @return Returns a status code characteristic of the result:
- *         @li @c CIF_ARGUMENT_ERROR if the @c value has kind different from @c CIF_TABLE_KIND , otherwise
+ *         @li @c CIF_ARGUMENT_ERROR if the @p table has kind different from @c CIF_TABLE_KIND , otherwise
  *         @li @c CIF_INVALID_INDEX if the given key does not meet CIF validity criteria
  *         @li @c CIF_OK if the entry was successfully set / updated, or
  *         @li an error code, typically @c CIF_ERROR , if setting or updating the entry fails for reasons other than

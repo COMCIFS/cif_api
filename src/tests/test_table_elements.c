@@ -300,6 +300,7 @@ int main(int argc, char *argv[]) {
  * Unicode strings, but not necessarily in the same order.
  */
 static int test_key_list(UChar **expected, int num_expected, UChar **observed) {
+    int seen = 0;
     int i;
     int j;
 
@@ -317,7 +318,12 @@ static int test_key_list(UChar **expected, int num_expected, UChar **observed) {
         return (i + 1);
 
         found:
-        continue;
+        /* make sure this isn't a duplicate */
+        if ((seen & (1 << i)) != 0) {
+            return (i + 1);
+        } else {
+            seen |= (1 << i);
+        }
     }
 
     return 0;
