@@ -287,7 +287,7 @@ int cif_packet_get_item(cif_packet_t *packet, const UChar *name, cif_value_t **v
 }
 
 int cif_packet_remove_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
-    return cif_map_retrieve_item(&(packet->map), name, value, 1, CIF_INVALID_ITEMNAME);
+    return cif_map_retrieve_item(&(packet->map), name, value, 1, CIF_NOSUCH_ITEM);
 }
 
 int cif_value_get_keys(cif_value_t *table, const UChar ***keys) {

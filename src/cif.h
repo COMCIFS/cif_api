@@ -1780,7 +1780,7 @@ int cif_packet_get_item(
  * @param[in,out] value if not NULL, the location where a pointer to the removed item should be written
  *
  * @return Returns @c CIF_OK if the packet initially contained an item having the given name, or @c CIF_NOSUCH_ITEM
- *         otherwise.
+ *         otherwise (including if the given name is not a valid CIF item name).
  */
 int cif_packet_remove_item(
         cif_packet_t *packet, 
