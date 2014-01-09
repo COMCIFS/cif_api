@@ -22,6 +22,8 @@ int main(int argc, char *argv[]) {
     UChar *text1;
     UChar *text2;
     size_t count;
+    double d1;
+    double d2;
     U_STRING_DECL(value_text, "value text", 11);
     U_STRING_DECL(value_text2, "value text 2", 13);
 
@@ -89,8 +91,12 @@ int main(int argc, char *argv[]) {
     TEST(element1 == element2, 0, test_name, 37);
     /* element values should be equal */
     TEST(cif_value_kind(element2), CIF_NUMB_KIND, test_name, 38);
-    TEST(cif_value_as_double(element1) != cif_value_as_double(element2), 0, test_name, 39);
-    TEST(cif_value_su_as_double(element1) != cif_value_su_as_double(element2), 0, test_name, 40);
+    cif_value_get_number(element1, &d1);
+    cif_value_get_number(element2, &d2);
+    TEST(d1 != d2, 0, test_name, 39);
+    cif_value_get_su(element1, &d1);
+    cif_value_get_su(element2, &d2);
+    TEST(d1 != d2, 0, test_name, 40);
     TEST(cif_value_get_text(element1, &text1), CIF_OK, test_name, 41);
     TEST(cif_value_get_text(element2, &text2), CIF_OK, test_name, 42);
     TEST(u_strcmp(text1, text2), 0, test_name, 43);
@@ -113,7 +119,8 @@ int main(int argc, char *argv[]) {
     TEST(cif_value_kind(element3), CIF_NA_KIND, test_name, 53);
     TEST(cif_value_get_element_at(value, 0, &element3), CIF_OK, test_name, 54);
     TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 55);
-    TEST(cif_value_as_double(element3) != 17.25, 0, test_name, 56);
+    cif_value_get_number(element3, &d1);
+    TEST(d1 != 17.25, 0, test_name, 56);
     /* element2 and element3 both belong to the list value */
     /* element1 is valid and independent */
 
@@ -140,7 +147,8 @@ int main(int argc, char *argv[]) {
     TEST(cif_value_get_element_at(value, 0, &element3), CIF_OK, test_name, 71);
     TEST(cif_value_init_numb(element3, 42.0, 0.0, 0, 5), CIF_OK, test_name, 72);
     TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 73);
-    TEST(cif_value_as_double(element3) != 42.0, 0, test_name, 74);
+    cif_value_get_number(element3, &d1);
+    TEST(d1 != 42.0, 0, test_name, 74);
     /* element2 and element3 both belong to the list value */
     /* element1 is invalid (freed) */
 

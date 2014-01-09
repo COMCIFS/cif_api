@@ -53,110 +53,133 @@ int main(int argc, char *argv[]) {
     /* reinitialize the value as kind NUMB, scale 1, exact */
     TEST(cif_value_init_numb(value, 450.0, 0.0, 1, 6), CIF_OK, test_name, 3);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 4);
-    TEST((cif_value_as_double(value) != 450.0), 0, test_name, 5);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 6);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 7);
-    TEST(u_strcmp(v450_s1, text), 0, test_name, 8);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 5);
+    TEST((d != 450.0), 0, test_name, 6);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 7);
+    TEST((d != 0.0), 0, test_name, 8);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 9);
+    TEST(u_strcmp(v450_s1, text), 0, test_name, 10);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale 0, exact */
-    TEST(cif_value_init_numb(value, 450.0, 0.0, 0, 6), CIF_OK, test_name, 9);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 10);
-    TEST((cif_value_as_double(value) != 450.0), 0, test_name, 11);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 12);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 13);
-    TEST(u_strcmp(v450_s0, text), 0, test_name, 14);
+    TEST(cif_value_init_numb(value, 450.0, 0.0, 0, 6), CIF_OK, test_name, 11);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 12);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 13);
+    TEST((d != 450.0), 0, test_name, 14);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 15);
+    TEST((d != 0.0), 0, test_name, 16);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 17);
+    TEST(u_strcmp(v450_s0, text), 0, test_name, 18);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale -1, exact */
-    TEST(cif_value_init_numb(value, 450.0, 0.0, -1, 6), CIF_OK, test_name, 15);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 16);
-    d = cif_value_as_double(value);
-    TEST((cif_value_as_double(value) != 450.0), 0, test_name, 17);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 18);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 19);
-    TEST(u_strcmp(v450_sm1, text), 0, test_name, 20);
+    TEST(cif_value_init_numb(value, 450.0, 0.0, -1, 6), CIF_OK, test_name, 19);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 20);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 21);
+    TEST((d != 450.0), 0, test_name, 22);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 23);
+    TEST((d != 0.0), 0, test_name, 24);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 25);
+    TEST(u_strcmp(v450_sm1, text), 0, test_name, 26);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale -2, rounded-exact */
-    TEST(cif_value_init_numb(value, 450.0, 0.0, -2, 6), CIF_OK, test_name, 21);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 22);
-    TEST((cif_value_as_double(value) != 400.0), 0, test_name, 23);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 24);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 25);
-    TEST(u_strcmp(v450_sm2, text), 0, test_name, 26);
+    TEST(cif_value_init_numb(value, 450.0, 0.0, -2, 6), CIF_OK, test_name, 27);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 28);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 29);
+    TEST((d != 400.0), 0, test_name, 30);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 31);
+    TEST((d != 0.0), 0, test_name, 32);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 33);
+    TEST(u_strcmp(v450_sm2, text), 0, test_name, 34);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale -1, rounded-exact */
-    TEST(cif_value_init_numb(value, 992.0, 0.0, -1, 6), CIF_OK, test_name, 27);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 28);
-    TEST((cif_value_as_double(value) != 990.0), 0, test_name, 29);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 30);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 31);
-    TEST(u_strcmp(v992_sm1, text), 0, test_name, 32);
+    TEST(cif_value_init_numb(value, 992.0, 0.0, -1, 6), CIF_OK, test_name, 35);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 36);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 37);
+    TEST((d != 990.0), 0, test_name, 38);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 39);
+    TEST((d != 0.0), 0, test_name, 40);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 41);
+    TEST(u_strcmp(v992_sm1, text), 0, test_name, 42);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale -2, rounded-exact, with rounding up */
-    TEST(cif_value_init_numb(value, 992.0, 0.0, -2, 6), CIF_OK, test_name, 33);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 34);
-    TEST((cif_value_as_double(value) != 1000.0), 0, test_name, 35);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 36);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 37);
-    TEST(u_strcmp(v992_sm2, text), 0, test_name, 38);
+    TEST(cif_value_init_numb(value, 992.0, 0.0, -2, 6), CIF_OK, test_name, 43);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 44);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 45);
+    TEST((d != 1000.0), 0, test_name, 46);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 47);
+    TEST((d != 0.0), 0, test_name, 48);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 49);
+    TEST(u_strcmp(v992_sm2, text), 0, test_name, 50);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale -2, rounded-exact, with rounding up */
-    TEST(cif_value_init_numb(value, 992.0, 0.0, -2, 6), CIF_OK, test_name, 39);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 40);
-    TEST((cif_value_as_double(value) != 1000.0), 0, test_name, 41);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 42);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 43);
-    TEST(u_strcmp(v992_sm2, text), 0, test_name, 44);
+    TEST(cif_value_init_numb(value, 992.0, 0.0, -2, 6), CIF_OK, test_name, 51);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 52);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 53);
+    TEST((d != 1000.0), 0, test_name, 54);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 55);
+    TEST((d != 0.0), 0, test_name, 56);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 57);
+    TEST(u_strcmp(v992_sm2, text), 0, test_name, 58);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale 3, measured, negative */
-    TEST(cif_value_init_numb(value, -12.345, 0.017, 3, 6), CIF_OK, test_name, 45);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 46);
-    TEST((cif_value_as_double(value) != -12.345), 0, test_name, 47);
-    TEST((cif_value_su_as_double(value) != 0.017), 0, test_name, 48);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 49);
-    TEST(u_strcmp(vm12_345s_017_s3, text), 0, test_name, 50);
+    TEST(cif_value_init_numb(value, -12.345, 0.017, 3, 6), CIF_OK, test_name, 59);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 60);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 61);
+    TEST((d != -12.345), 0, test_name, 62);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 63);
+    TEST((d != 0.017), 0, test_name, 64);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 65);
+    TEST(u_strcmp(vm12_345s_017_s3, text), 0, test_name, 66);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale -1, measured, negative */
-    TEST(cif_value_init_numb(value, -12.345, 0.017, -1, 6), CIF_OK, test_name, 51);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 52);
-    TEST((cif_value_as_double(value) != -10), 0, test_name, 53);
-    TEST((cif_value_su_as_double(value) != 0.0), 0, test_name, 54);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 55);
-    TEST(u_strcmp(vm12_345s_017_sm1, text), 0, test_name, 56);
+    TEST(cif_value_init_numb(value, -12.345, 0.017, -1, 6), CIF_OK, test_name, 67);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 68);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 69);
+    TEST((d != -10), 0, test_name, 70);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 71);
+    TEST((d != 0.0), 0, test_name, 72);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 73);
+    TEST(u_strcmp(vm12_345s_017_sm1, text), 0, test_name, 74);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale 0, measured, non-zero sig-figs from rounding */
-    TEST(cif_value_init_numb(value, 0.5, 1.0, 0, 6), CIF_OK, test_name, 57);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 58);
-    TEST((cif_value_as_double(value) != 0.0), 0, test_name, 59);
-    TEST((cif_value_su_as_double(value) != 1.0), 0, test_name, 60);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 61);
-    TEST(u_strcmp(vm0_5s_10_s0, text), 0, test_name, 62);
+    TEST(cif_value_init_numb(value, 0.5, 1.0, 0, 6), CIF_OK, test_name, 75);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 76);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 77);
+    TEST((d != 0.0), 0, test_name, 78);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 79);
+    TEST((d != 1.0), 0, test_name, 80);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 81);
+    TEST(u_strcmp(vm0_5s_10_s0, text), 0, test_name, 82);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale 0, measured, non-zero sig-figs from rounding */
-    TEST(cif_value_init_numb(value, 0.6, 1.0, 0, 6), CIF_OK, test_name, 63);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 64);
-    TEST((cif_value_as_double(value) != 1.0), 0, test_name, 65);
-    TEST((cif_value_su_as_double(value) != 1.0), 0, test_name, 66);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 67);
-    TEST(u_strcmp(vm0_6s_10_s0, text), 0, test_name, 68);
+    TEST(cif_value_init_numb(value, 0.6, 1.0, 0, 6), CIF_OK, test_name, 83);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 84);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 85);
+    TEST((d != 1.0), 0, test_name, 86);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 87);
+    TEST((d != 1.0), 0, test_name, 88);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 89);
+    TEST(u_strcmp(vm0_6s_10_s0, text), 0, test_name, 90);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale 8, measured, excessive leading zeroes */
-    TEST(cif_value_init_numb(value, 0.00000042, 0.00000017, 8, 5), CIF_OK, test_name, 69);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 70);
-    TEST((cif_value_as_double(value) != 0.00000042), 0, test_name, 71);
-    TEST((cif_value_su_as_double(value) != 0.00000017), 0, test_name, 72);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 73);
-    TEST(u_strcmp(vm0_00000042s_00000017_s8, text), 0, test_name, 74);
+    TEST(cif_value_init_numb(value, 0.00000042, 0.00000017, 8, 5), CIF_OK, test_name, 91);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 92);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 93);
+    TEST((d != 0.00000042), 0, test_name, 94);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 95);
+    TEST((d != 0.00000017), 0, test_name, 96);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 97);
+    TEST(u_strcmp(vm0_00000042s_00000017_s8, text), 0, test_name, 98);
     free(text);
 
     cif_value_free(value);

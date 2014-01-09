@@ -393,6 +393,7 @@ extern UFILE *ustderr;
     sqlite3_stmt *s = (stmt); \
     int ofs = (col_ofs); \
     cif_value_t *v = (val); \
+    double svp_d; \
     buffer_t *buf; \
     switch (v->kind) { \
         case CIF_CHAR_KIND: \
@@ -403,7 +404,8 @@ extern UFILE *ustderr;
             break; \
         case CIF_NUMB_KIND: \
             if ((sqlite3_bind_text16(s, 1 + ofs, v->as_numb.text, -1, SQLITE_STATIC) != SQLITE_OK) \
-                    || (sqlite3_bind_double(s, 2 + ofs, cif_value_as_double(v)) != SQLITE_OK) \
+                    || (cif_value_get_number(v, &svp_d) != CIF_OK) \
+                    || (sqlite3_bind_double(s, 2 + ofs, svp_d) != SQLITE_OK) \
                     || (sqlite3_bind_text(s, 3 + ofs, v->as_numb.digits, -1, SQLITE_STATIC) != SQLITE_OK) \
                     || (sqlite3_bind_text(s, 4 + ofs, v->as_numb.su_digits, -1, SQLITE_STATIC) != SQLITE_OK) \
                     || (sqlite3_bind_int(s, 5 + ofs, v->as_numb.scale) != SQLITE_OK)) { \

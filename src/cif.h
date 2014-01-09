@@ -2224,32 +2224,38 @@ cif_kind_t cif_value_kind(
 /**
  * @brief Returns the value represented by the given number value object.
  *
- * Behavior is undefined if the provided object is not a valid, initialized number value object.  Unlike most CIF
- * functions, the return value is not an error code -- no errors are detected.  Behavior is implementation-defined if
- * the represented numeric value is outside the representable range of type @c double .
+ * Behavior is implementation-defined if the represented numeric value is outside the representable range of type
+ * @c double .  Some of the possible behaviors include raising a floating-point trap and returning a special value,
+ * such as an IEEE infinity.
  *
  * @param[in] numb a pointer the the value object whose numeric value is requested
+ * @param[in,out] val a pointer to the location where the numeric value should be recorded; must be a valid pointer
+ *         to space large enough to accommodate a @c double.
  *
- * @return Returns the numeric value of the value object, as a @c double
+ * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
+ *         another code, typically @c CIF_ERROR, if an error occurs.
  */
-double cif_value_as_double(
-        cif_value_t *numb
+int cif_value_get_number(
+        cif_value_t *numb,
+        double *val
         );
 
 /**
  * @brief Returns the uncertainty of the value represented by the given number value object.
  *
- * The uncertainty is zero for an exact number.  Behavior is undefined if the provided object is not a valid,
- * initialized number value object.  Unlike most CIF functions, the return value is not an error code -- no errors are
- * detected.  Behavior is implementation-defined if the uncertainty is outside the representable range of type
- * @c double .
+ * The uncertainty is zero for an exact number.  Behavior is implementation-defined if the uncertainty is outside the
+ * representable range of type @c double .
  *
  * @param[in] numb a pointer the the value object whose numeric standard uncertainty is requested
+ * @param[in,out] su a pointer to the location where the uncertainty should be recorded; must be a valid pointer
+ *         to space large enough to accommodate a @c double.
  *
- * @return Returns the standard uncertainty of the value object, as a @c double
+ * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
+ *         another code, typically @c CIF_ERROR, if an error occurs.
  */
-double cif_value_su_as_double(
-        cif_value_t *numb
+int cif_value_get_su(
+        cif_value_t *numb,
+        double *su
         );
 
 /**

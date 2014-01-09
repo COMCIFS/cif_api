@@ -26,6 +26,7 @@ compiled_tests = \
     $(testdir)/test_container_get_all_loops \
     $(testdir)/test_loop_get_names \
     $(testdir)/test_value_create \
+    $(testdir)/test_value_get_number \
     $(testdir)/test_value_init_char \
     $(testdir)/test_value_copy_char \
     $(testdir)/test_value_init_numb \

@@ -2196,29 +2196,29 @@ cif_kind_t cif_value_kind(cif_value_t *value) {
     return value->kind;
 }
 
-double cif_value_as_double(cif_value_t *n) {
-    struct numb_value_s *numb = &(n->as_numb);
-    double d;
+int cif_value_get_number(cif_value_t *n, double *val) {
+    if (n->kind != CIF_NUMB_KIND) {
+        return CIF_ARGUMENT_ERROR;
+    } else {
+        struct numb_value_s *numb = &(n->as_numb);
+        double d = to_double(numb->digits, numb->scale);
 
-    assert(numb->kind == CIF_NUMB_KIND);
-
-    d = to_double(numb->digits, numb->scale);
-    return ((numb->sign < 0) ? -d : d);
+        *val = ((numb->sign < 0) ? -d : d);
+        return CIF_OK;
+    }
 }
 
-double cif_value_su_as_double(cif_value_t *n) {
-    struct numb_value_s *numb = &(n->as_numb);
-
-    assert(numb->kind == CIF_NUMB_KIND);
-
-    if (numb->su_digits == NULL) {
-        return 0.0;
+int cif_value_get_su(cif_value_t *n, double *su) {
+    if (n->kind != CIF_NUMB_KIND) {
+        return CIF_ARGUMENT_ERROR;
     } else {
-        double su;
+        struct numb_value_s *numb = &(n->as_numb);
 
-        su = to_double(numb->su_digits, numb->scale);
-        /* always non-negative */
-        return su;
+        *su = (numb->su_digits == NULL)
+                ? 0.0
+                : to_double(numb->su_digits, numb->scale);
+
+        return CIF_OK;
     }
 }
 
