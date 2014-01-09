@@ -113,32 +113,35 @@
  * @endcode
  * 
  * For convenience, the CIF API provides two default error handler callback functions, @c cif_parse_error_die() and
- * @c cif_parse_error_ignore().  As their names imply, the former causes the parse to be aborted on any error, whereas
- * the latter causes all errors to silently be ignored.
+ * @c cif_parse_error_ignore().  As their names imply, the former causes the parse to be aborted on any error (the
+ * default behavior), whereas the latter causes all errors to silently be ignored (to the extent that is possible).
  *
  * @subsection parser-callbacks Parser callbacks
- * Parsing a CIF from an external representation is in many ways analogous to performing a depth-first traversal of a
+ * Parsing a CIF from an external representation is in many ways analogous to performing a depth-first traversal of
  * a pre-parsed instance of the CIF data model, as the @c cif_walk() function does.  In view of this similarity, a @c
- * cif_handler_t object such as is used with @c cif_walk() can be provided among the parse options to facilitate
+ * cif_handler_t object such as is also used with @c cif_walk() can be provided among the parse options to facilitate
  * caller monitoring and control of the parse process.  The handler callbacks can probe and to some
- * extent modify the CIF as it is parsed, including by instructing the parser to ignore (but not altogether skip)
+ * extent modify the CIF as it is parsed, including by instructing the parser to suppress (but not altogether skip)
  * some portions of the input.  This facility has applications from parse-time data selection to validation and beyond;
  * for example, here is a naive approach to assigning loop categories based on loop data names: @code
  * int assign_loop_category(cif_loop_t *loop, void *context) {
  *     UChar **names;
- *     UChar *name0;
+ *     UChar **next;
  *     UChar *dot_location;
  *     const UChar unicode_point = 0x2E;
  *
  *     // We can rely on at least one data name
  *     cif_loop_get_names(loop, &names);
- *     name0 = cif_u_strdup(names[0]);
  *     // Assumes the name contains a decimal point (Unicode code point U+002E), and
  *     // takes the category as everything preceding it.  Ignores case sensitivity considerations.
  *     dot_location = u_strchr(names[0] + 1, unicode_point);
  *     *dot_location = 0;
- *     cif_loop_set_category(loop, name0);
- *     free(name0);
+ *     cif_loop_set_category(loop, names[0]);
+ *     // Clean up
+ *     for (next = names; *next != NULL; next += 1) {
+ *         free(*next);
+ *     }
+ *     free(names);
  * }
  *
  * void parse_with_categories(FILE *in) {
@@ -173,13 +176,13 @@
  *
  * @subsection syntax-only Syntax-only parsing
  * For some applications, it might not be desirable or even feasible to collect parsed CIF content into an
- * in-memory representation.  The simplest such application performs a simple syntax check of the input -- perhaps to
+ * in-memory representation.  The simplest such application performs only a syntax check of the input -- perhaps to
  * test compliance with a particular CIF version and/or parse options.  The parser function operates in just
  * that way when its third argument is NULL (that is, when the caller provides no CIF handle location).
  * All provided callbacks are invoked as normal in this mode, including any error callback, and in the absence of any
  * callbacks the parser's return code indicates whether any errors were detected.  This syntax-only parsing mode does
- * have a few limitations, however, primarily that because it does not retain an in-memory representation of its input,
- * it cannot check CIF semantic requirements for data name, frame code, and block code uniqueness within their
+ * have a few limitations, however -- primarily that because it does not retain an in-memory representation of its
+ * input, it cannot check CIF semantic requirements for data name, frame code, and block code uniqueness within their
  * respective scopes.
  *
  * @subsection event-driven Event-driven parsing
@@ -188,7 +191,7 @@
  * by which to be informed of parse "events" of interest -- recognition of entities and entity boundaries -- so as to
  * extract the desired information during the parse instead of by afterward analyzing the parse result.  Callbacks can
  * communicate with themselves and each other, and can memorialize data for the caller, via the @c user_data object
- * provided among the parse options (and demonstrated in the error-counting example).  Callbacks need not be provided
+ * provided among the parse options (and demonstrated in the error-counting example).  Callbacks can be omitted
  * for events that are not of interest.
  */
 

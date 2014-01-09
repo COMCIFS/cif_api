@@ -22,14 +22,72 @@
 #include <unicode/ustring.h>
 
 /**
- * @brief The maximum number of characters in one line of a CIF
+ * @page resource_mgmt Resource management with CIF API
+ *
+ * The core CIF API, being written in C, leaves basic responsibility for resource management in the hands of the
+ * application programmer.  Nevertheless, the API is designed to make the resource
+ * management burden as light as reasonably possible.  What follows is a discussion of many of the considerations
+ * and specific API features that relate to resource management.
+ *
+ * @section basics Resource management basics
+ * For the most part, CIF API objects are created dynamically via functions having @c _create in their names
+ * (@c cif_create_block(), for example).  Each object type for which there is a creation function has one or more
+ * functions for releasing that object and all its internal state:
+ * @li Most types have a @c cif_*_free() function that cleans up objects of that type.  These are the
+ *         workhorse resource releasing functions.  For objects that are handles on parts of a managed CIF, these
+ *         functions release the handle without modifying the underlying managed CIF.
+ * @li Most handle objects have a @c cif_*_destroy() function that removes the portion of the managed CIF represented
+ *         by the handle.  Inasmuch as the handle would be useless after such an operation is performed, these
+ *         functions also clean up the handle object as if by calling the appropriate free function.
+ *
+ * Use of the type-specific resource release functions ensures that all internal state is correctly released.
+ * Application code must not pass CIF API objects to the C library's @c free() function, except as may be explicitly
+ * described elsewhere in the API documentation.
+ * 
+ * Except where otherwise specified, CIF API functions that return a pointer to the caller via a pointer pointer
+ * (as object creation functions in particular do) thereby assign responsibility for the returned pointer to the
+ * calling function.  More generally, any function that allocates an object directly or indirectly bears initial
+ * responsibility for releasing that object.  It must ensure the object is released before it returns, or
+ * else it must pass responsibility for doing so to another context (typically the caller's).  Note, too, that API
+ * functions that accept a pointer pointer argument vary with respect to what they do with the value, if any, that
+ * the argument initially points to.  Many of them simply overwrite it, which will result in a memory leak if 
+ * the caller passes a pointer to the only pointer to a live object.
+ *
+ * Except where otherwise specified (such as for the @c cif_*_free() and @c cif_*_destroy() functions), passing a
+ * pointer as a CIF API function argument does not transfer responsibility for the pointed-to object to the called
+ * function.
+ * Furthermore, API functions do not create aliases to their pointer arguments that would make it unsafe for the
+ * responsible function to clean them up at its sole discretion.  Where necessary, API functions copy objects in
+ * order to avoid creating aliases to them.  These characteristics are intended to minimize confusion about whether
+ * application code can or should release any particular CIF API object.
+ *
+ * Some API functions accept or return general objects such as arrays or Unicode strings.  For the most part, the same
+ * rules apply to such objects as to CIF API objects, but the API does not provide resource management functions for
+ * such objects.  See specific function documentation for details.  With respect to arrays in particular, consult
+ * function docs for information about responsibility for array elements, as distinguished from responsibility for the
+ * array itself.
+ *
+ * It should be borne in mind that CIF API handle objects, such as those of types @c cif_container_t and
+ * @c cif_loop_t , are separate resources from the corresponding parts of managed CIFs.  At any given time, for any
+ * given
+ * part of a managed CIF, there may be any number -- including zero -- of extant, valid handles.  New handles can be
+ * obtained for existing managed CIF pieces, and handles can be released without affecting the underlying managed CIF.
+ * Destroying the underlying managed piece invalidates all outstanding handles, but releases only the handle, if any,
+ * by which the destruction was performed.
+ *
+ * @section special Exceptions and special cases
+ * The CIF API provides a handful of functions having resource management relevance that do not fit the general pattern:
+ * @li Though it does not have "create" in its name, the cif_parse() function operates as an object creation function
+ *         when its last argument is a pointer to NULL.
+ * @li The creation function for loop packet iterators is cif_loop_get_packets() .  Its cleanup functions are
+ *         cif_pktitr_close() and cif_pktitr_abort() .
+ * @li The function cif_value_clean() is unusual in that it releases internal resources held by its argument without
+ *         releasing the argument itself (converting it to a kind of value that does not require dynamically-allocated
+ *         internal resources).
+ * @li There is only one handle object for each overall managed CIF (of type @c cif_t ).  There is therefore no
+ *         function @c cif_free() ; use @c cif_destroy() instead.
+ * @li There is no creation function for transparent data type @c cif_handler_t .
  */
-#define CIF_LINE_LENGTH 2048
-
-/**
- * @brief The maximimum number of characters in a CIF data name
- */
-#define CIF_NAMELEN_LIMIT CIF_LINE_LENGTH
 
 /**
  * @defgroup return_codes Function return codes
@@ -444,6 +502,16 @@
  */
 
 /**
+ * @brief The maximum number of characters in one line of a CIF
+ */
+#define CIF_LINE_LENGTH 2048
+
+/**
+ * @brief The maximimum number of characters in a CIF data name
+ */
+#define CIF_NAMELEN_LIMIT CIF_LINE_LENGTH
+
+/**
  * @brief The category code with which the library tags the unique loop (if any) in each data block or save
  *        frame that contains items not associated with an explicit CIF @c loop_ construct
  *
@@ -654,7 +722,10 @@ typedef void (*cif_whitespace_callback_t)(size_t line, size_t column, const UCha
  * @brief Represents a collection of CIF parsing options.
  *
  * Unlike most data types defined by the CIF API, the parse options are not opaque.  This reflects the @c struct's
- * intended use for collecting (only) user-settable option values.
+ * intended use for collecting (only) user-settable option values.  There is nevertheless still an object creation
+ * function, @c cif_parse_options_create() ; applications allocating parse options only via that function will thereby
+ * insulate themselves against changes to the struct's size arising from additions to the option list in future
+ * versions of the API.
  */
 struct cif_parse_opts_s {
 
@@ -763,8 +834,8 @@ struct cif_parse_opts_s {
      * @c CIF_TRAVERSE_SKIP_CURRENT and @c CIF_TRAVERSE_SKIP_SIBLINGS are interpreted as directing which data to record
      * in the target CIF, if indeed the user has provided one.  (The parser cannot altogether skip parsing any part
      * of the input if it must identify the end of that part and there resume normal operation.)  Handler callbacks are
-     * not invoked for skipped entities.  Handlers may modify the CIF under construction, subject to the inherent
-     * limitations of the CIF in fact being incompletely constructed when they are called.
+     * not invoked for entities thereby passed over.  Handlers may modify the CIF under construction, subject to the
+     * limitations inherent in the CIF being incompletely constructed when they are called.
      */
     cif_handler_t *handler;
 
@@ -825,7 +896,7 @@ extern "C" {
  *
  * @b CIF @b handler @b callbacks.  The parse options allow the caller to register a variety of callback functions by
  * which the parse can be tracked and influenced.  Most of these are wrapped together in the @c handler option, by
- * which a @c cif_handler_t object can be provided.  Handler functions belonging to such a handlerwill be called when
+ * which a @c cif_handler_t object can be provided.  Handler functions belonging to such a handler will be called when
  * appropriate during CIF parsing, and the returned navigational signals direct which parts of the input data are
  * included in the in-memory CIF rpresentation, if any, constructed by the parse.  To some extent, the CIF can be
  * modified during parse time, too; for example, loop categories may be assigned via callback.
@@ -843,26 +914,26 @@ extern "C" {
  * block codes will not be detected.  Also, the handles provided to CIF handler functions during the parse may be NULL
  * or may yield less information in this mode.
  *
- * @param[in] stream a @c FILE @c * from which to read the raw CIF data; must be a non-NULL pointer to a readable
- *         stream, which will typically be read to its end
+ * @param[in,out] stream a @c FILE @c * from which to read the raw CIF data; must be a non-NULL pointer to a readable
+ *         stream, which will typically be read to its end.  The caller retains ownership of this stream.
  *
  * @param[in] options a pointer to a @c struct @c cif_parse_opts_s object describing options to use while parsing, or
  *         @c NULL to use default values for all options
  *
- * @param[in,out] cif controls the disposition of the parsed data.  If NULL, then the parsed data are discarded, else
- *         they added to the CIF to which this pointer refers, creating a new one for the purpose if the pointer
- *         dereferences to a NULL pointer.
+ * @param[in,out] cif controls the disposition of the parsed data.  If NULL, then the parsed data are discarded.
+ *         Otherwise, they are added to the CIF to which this pointer refers.  If a NULL handle is initially recorded
+ *         at the referenced location then a new CIF is created to receive the data and its handle is recorded here.
+ *         In the latter case, ownership of the new CIF goes to the caller.
  * 
  * @return Returns @c CIF_OK on a successful parse, even if the results are discarded, or an error code
  *         (typically @c CIF_ERROR ) on failure.  In the event of a failure, a new CIF object may still be created
- *         and returned via the @c cif argument or the provided CIF object may still be modified by addition of
- *         one or more data blocks.
+ *         and returned via the @c cif argument, or the provided CIF object may still be modified.
  */
 int cif_parse(
-        /*@in@*/ /*@temp@*/ FILE *stream,
-        /*@in@*/ /*@temp@*/ struct cif_parse_opts_s *options,
-        /*@out@*/ /*@null@*/ cif_t **cif
-        ) /*@modifies *cif@*/;
+        FILE *stream,
+        struct cif_parse_opts_s *options,
+        cif_t **cif
+        );
 
 /**
  * @brief Allocates a parse options structure and initializes it with default values.
@@ -870,30 +941,48 @@ int cif_parse(
  * Obtaining a parse options structure via this function insulates programs against additions to the option list in
  * future versions of the library.  Programs may create @c cif_parse_opts_s objects by other means -- for example, by
  * allocating them on the stack -- but programs that do so are likely to crash if dynamically linked against a future
- * version of the library that adds fields to the structure definition, even if they are re-compiled against revised
- * library headers.  This is not an issue for statically-linked programs that fully initialize their options.
+ * version of the library that adds fields to the structure definition, perhaps even if they are re-compiled against
+ * revised library headers.  This is not an issue for statically-linked programs that fully initialize their options.
  *
  * On successful return, the provided options object belongs to the caller.
  *
  * @param[in,out] opts a the location where a pointer to the new parse options structure should be recorded.  The
- *         initial value of @p *opts is ignored, and overwritten on success.
+ *         initial value of @p *opts is ignored, and is overwritten on success.
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_parse_options_create(struct cif_parse_opts_s **opts);
+int cif_parse_options_create(
+        struct cif_parse_opts_s **opts
+        );
 
 /**
  * @brief A CIF parse error handler function that ignores all errors
  */
-int cif_parse_error_ignore(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
+int cif_parse_error_ignore(
+        int code,
+        size_t line,
+        size_t column,
+        const UChar *text,
+        size_t length,
+        void *data
+        );
 
 /**
  * @brief A CIF parse error handler function that interrupts the parse on any error, returning @c code
  */
-int cif_parse_error_die(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
+int cif_parse_error_die(
+        int code,
+        size_t line,
+        size_t column,
+        const UChar *text,
+        size_t length,
+        void *data
+        );
 
 /**
  * @brief Formats the CIF data represented by the @c cif handle to the specified output stream.
+ *
+ * Ownership of the arguments does not transfer to the function.
  *
  * @param[in,out] stream a @c FILE @c * to which to write the CIF format output; must be a non-NULL pointer to a
  *         writable stream.
@@ -904,8 +993,8 @@ int cif_parse_error_die(int code, size_t line, size_t column, const UChar *text,
  *         The stream state is undefined after a failure.
  */
 int cif_write(
-        /*@in@*/ /*@temp@*/ FILE *stream,
-        /*@in@*/ /*@temp@*/ cif_t *cif
+        FILE *stream,
+        cif_t *cif
         );
 
 /**
@@ -923,28 +1012,29 @@ int cif_write(
  * managed CIF via the @c cif_destroy() function.
  *
  * @param[out] cif a pointer to the location where a handle on the managed CIF should be recorded; must not be NULL.
+ *         The initial value of @p *cif is ignored, and is overwritten on success.
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 int cif_create(
-        /*@temp@*/ cif_t **cif
-        ) /*@modifies *cif@*/;
+        cif_t **cif
+        );
 
 /**
  * @brief Removes the specified managed CIF, releasing all resources it holds.
  *
  * The @c cif handle and any outstanding handles on its contents are invalidated by this function.  The effects of
- * any further use of them are undefined, though the functions of this library @em may return code
- * @c CIF_INVALID_HANDLE if such a handle is passed to them.  Any resources belonging to the provided handle itself
- * are also released, but not those belonging to any other handle.  The original external source (if any) of the CIF
- * data is not affected.
+ * any further use of them (except release via the @c cif_*_free() functions) are undefined, though the functions of
+ * this library @em may return code @c CIF_INVALID_HANDLE if such a handle is passed to them.  Any resources belonging
+ * to the provided handle itself are also released, but not those belonging to any other handle.  The original external
+ * source (if any) of the CIF data is not affected.
  *
- * @param[in] cif the handle on the CIF to destroy; must not be NULL
+ * @param[in] cif the handle on the CIF to destroy; must not be NULL.  On success, this handle ceases to be valid.
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 int cif_destroy(
-        /*@only@*/ cif_t *cif
+        cif_t *cif
         );
 
 /*
@@ -959,14 +1049,16 @@ int cif_destroy(
  * is used, the caller assumes responsibility for cleaning up the provided handle via either @c cif_container_free()
  * (to clean up only the handle) or @c cif_container_destroy() (to also remove the block from the managed CIF).
  *
+ * The caller retains ownership of all the arguments.
+ *
  * @param[in] cif a handle on the managed CIF object to which a new block should be added; must be non-NULL and
  *        valid.
  *
  * @param[in] code the block code of the block to add, as a NUL-terminated Unicode string; the block code must
  *        comply with CIF constraints on block codes.
  *
- * @param[in,out] block if not NULL, then a location where a handle on the new block should be recorded.  A handle is
- *        recorded only on success.
+ * @param[in,out] block if not NULL, then a location where a handle on the new block should be recorded, overwriting
+ *        any previous value.  A handle is recorded only on success.
  *
  * @return @c CIF_OK on success or an error code on failure, normally one of:
  *        @li @c CIF_INVALID_BLOCKCODE  if the provided block code is invalid
@@ -975,32 +1067,34 @@ int cif_destroy(
  *        @li @c CIF_ERROR for most other failures
  */
 int cif_create_block(
-        /*@in@*/ /*@temp@*/ cif_t *cif,
-        /*@in@*/ /*@temp@*/ const UChar *code,
-        /*@out@*/ /*@null@*/ cif_block_t **block
-        ) /*@modifies *block@*/;
+        cif_t *cif,
+        const UChar *code,
+        cif_block_t **block
+        );
 
 /**
  * @brief Looks up and optionally returns the data block bearing the specified block code, if any, in the specified CIF.
  *
  * Note that CIF block codes are matched in caseless and Unicode-normalized form.
  *
+ * The caller retains ownership of all arguments.
+ *
  * @param[in] cif a handle on the managed CIF object in which to look up the specified block code; must be non-NULL
  *         and valid.
  *
  * @param[in] code the block code to look up, as a NUL-terminated Unicode string.
  *
- * @param[in,out] block if not NULL on input and a block matching the specified code is found, then a handle on it is
- *         written where this parameter points.  The caller assumes responsibility for releasing this handle.
+ * @param[in,out] block if not NULL on input, and if a block matching the specified code is found, then a handle on it
+ *         is written where this argument points.  The caller assumes responsibility for releasing this handle.
  *       
  * @return @c CIF_OK on a successful lookup (even if @c block is NULL), @c CIF_NOSUCH_BLOCK if there is no data block
  *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
 int cif_get_block(
-        /*@in@*/ /*@temp@*/ cif_t *cif,
-        /*@in@*/ /*@temp@*/ const UChar *code,
-        /*@out@*/ /*@null@*/ cif_block_t **block
-        ) /*@modifies *block@*/;
+        cif_t *cif,
+        const UChar *code,
+        cif_block_t **block
+        );
 
 /**
  * @brief Provides a null-terminated array of data block handles, one for each block in the specified CIF.
@@ -1008,6 +1102,7 @@ int cif_get_block(
  * The caller takes responsibility for cleaning up the provided block handles and the dynamic array containing them.
  *
  * @param[in] cif a handle on the managed CIF object from which to draw block handles; must be non-NULL and valid.
+ *         The caller retains ownership of this argument.
  *
  * @param[in,out] blocks a pointer to the location where a pointer to the resulting array of block handles should be
  *         recorded.  Must not be NULL.
@@ -1015,8 +1110,8 @@ int cif_get_block(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_get_all_blocks(
-        /*@in@*/ /*@temp@*/ cif_t *cif,
-        /*@out@*/ cif_block_t ***blocks
+        cif_t *cif,
+        cif_block_t ***blocks
         );
 
 /**
@@ -1024,8 +1119,8 @@ int cif_get_all_blocks(
  *        routines provided by the caller for each structural element
  *
  * Traverses the tree structure of a CIF, invoking caller-specified handler functions for each structural element
- * along the route.  Order is block -> [frame ->] loop -> packet -> item, with save frames are traversed before loops
- * belonging to the same data block.  Handler callbacks can influence the walker's path via their return values,
+ * along the route.  Order is block -> [frame ->] loop -> packet -> item, with save frames being traversed before loops
+ * within each data block.  Handler callbacks can influence the walker's path via their return values,
  * instructing it to continue as normal (@c CIF_TRAVERSE_CONTINUE), to avoid traversing the children of the current
  * element (@c CIF_TRAVERSE_SKIP_CURRENT), to avoid traversing subsequent siblings of the current element
  * (@c CIF_TRAVERSE_SKIP_SIBLINGS), or to terminate the walk altogether (@c CIF_TRAVERSE_END).  For the purposes of
@@ -1037,7 +1132,11 @@ int cif_get_all_blocks(
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR) on failure
  */
-int cif_walk(cif_t *cif, cif_handler_t *handler, void *context);
+int cif_walk(
+        cif_t *cif,
+        cif_handler_t *handler,
+        void *context
+        );
 
 /**
  * @}
@@ -1078,18 +1177,19 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context);
  *
  * @return @c CIF_OK on success or an error code on failure, normally one of:
  *        @li @c CIF_INVALID_FRAMECODE  if the provided frame code is invalid
- *        @li @c CIF_DUP_FRAMECODE if the specified CIF already contains a frame having the given code (note that
+ *        @li @c CIF_DUP_FRAMECODE if the specified data block already contains a frame having the given code (note that
  *                frame codes are compared in a Unicode-normalized and caseless form)
  *        @li @c CIF_ERROR for most other failures
  */
 int cif_block_create_frame(
-        /*@in@*/ /*@temp@*/ cif_block_t *block,
-        /*@in@*/ /*@temp@*/ const UChar *code,
-        /*@out@*/ /*@null@*/ cif_frame_t **frame
-        ) /*@modifies *frame@*/;
+        cif_block_t *block,
+        const UChar *code,
+        cif_frame_t **frame
+        );
 
 /**
- * @brief Looks up and optionally returns the save frame bearing the specified code, if any, in the specified CIF.
+ * @brief Looks up and optionally returns the save frame bearing the specified code, if any, in the specified data
+ *         block.
  *
  * Note that CIF frame codes are matched in caseless and Unicode-normalized form.
  *
@@ -1105,18 +1205,18 @@ int cif_block_create_frame(
  *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
 int cif_block_get_frame(
-        /*@in@*/ /*@temp@*/ cif_block_t *block,
-        /*@in@*/ /*@temp@*/ const UChar *code,
-        /*@out@*/ /*@null@*/ cif_frame_t **frame
-        ) /*@modifies *frame@*/;
+        cif_block_t *block,
+        const UChar *code,
+        cif_frame_t **frame
+        );
 
 /**
  * @brief Provides a null-terminated array of save frame handles, one for each frame in the specified data block.
  *
- * The caller takes responsibility for cleaning up the provided frame handles.
+ * The caller takes responsibility for cleaning up the provided frame handles and the dynamic array containing them.
  *
- * @param[in] block a handle on the managed data block object from which to draw save frame handles; must be non-NULL and
- *         valid.
+ * @param[in] block a handle on the managed data block object from which to draw save frame handles; must be non-NULL
+ *         and valid.
  *
  * @param[in,out] frames a pointer to the location where a pointer to the resulting array of frame handles should be
  *         recorded.  Must not be NULL.
@@ -1124,8 +1224,8 @@ int cif_block_get_frame(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_block_get_all_frames(
-        /*@in@*/ /*@temp@*/ cif_block_t *block,
-        /*@out@*/ cif_frame_t ***frames
+        cif_block_t *block,
+        cif_frame_t ***frames
         );
 
 /**
@@ -1160,8 +1260,7 @@ int cif_block_get_all_frames(
 
 /**
  * @brief Frees any resources associated with the specified container handle without
- * modifying the managed CIF to which its associated data block or save frame
- * belongs.
+ * modifying the associated managed CIF
  *
  * @param[in] container a handle on the container object to free; must be non-NULL and valid on entry, but is
  *         invalidated by this function
@@ -1169,12 +1268,12 @@ int cif_block_get_all_frames(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_container_free(
-        /*@only@*/ /*@null@*/ cif_container_t *container
+        cif_container_t *container
         );
 
 /**
  * @brief Frees any resources associated with the specified container handle, and furthermore removes the associated
- *         save frame and all its contents from its managed CIF.
+ *         container and all its contents from its managed CIF.
  *
  * @param[in,out] container a handle on the container to destroy; must be non-NULL and valid on entry, but is
  *         invalidated by this function
@@ -1182,7 +1281,7 @@ int cif_container_free(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_container_destroy(
-        /*@only@*/ cif_container_t *container
+        cif_container_t *container
         );
 
 /**
@@ -1198,8 +1297,8 @@ int cif_container_destroy(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_container_get_code(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@in@*/ /*@temp@*/ UChar **code
+        cif_container_t *container,
+        UChar **code
         );
 
 /**
@@ -1210,13 +1309,15 @@ int cif_container_get_code(
  * @return @c CIF_OK if the container is a data block, @c CIF_ARGUMENT_ERROR if it is a save frame, or @c CIF_ERROR if
  *         it is @c NULL
  */
-int cif_container_assert_block(cif_container_t *container);
+int cif_container_assert_block(
+        cif_container_t *container
+        );
 
 /**
  * @brief Creates a new loop in the specified container, and optionally returns a handle on it.
  *
- * There must be at least one item name, and all item names given must initially be absent from the container.  All item
- * names must be valid, per the CIF specifications.
+ * There must be at least one item name, and all item names given must initially be absent from the container.
+ * All item names must be valid, per the CIF specifications.
  * The category name may be NULL, in which case the loop has no explicit category, but the empty category name is
  * reserved for the loop containing all the scalar data in the container.  The preprocessor macro @c CIF_SCALARS
  * expands to that category name; it is provided to make the meaning clearer.  Other categories are not required to be
@@ -1240,11 +1341,11 @@ int cif_container_assert_block(cif_container_t *container);
  *        @li @c CIF_ERROR in most other failure cases
  */
 int cif_container_create_loop(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@in@*/ /*@temp@*/ const UChar *category,
-        /*@in@*/ /*@temp@*/ UChar *names[],
-        /*@out@*/ /*@null@*/ cif_loop_t **loop
-        ) /*@modifies *loop@*/;
+        cif_container_t *container,
+        const UChar *category,
+        UChar *names[],
+        cif_loop_t **loop
+        );
 
 /**
  * @brief Looks up the loop, if any, in the specified container that is assigned to the specified category.
@@ -1267,10 +1368,10 @@ int cif_container_create_loop(
  *         @li @c CIF_ERROR in most other cases
  */
 int cif_container_get_category_loop(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@in@*/ /*@temp@*/ const UChar *category,
-        /*@out@*/ /*@null@*/ cif_loop_t **loop
-        ) /*@modifies *loop@*/;
+        cif_container_t *container,
+        const UChar *category,
+        cif_loop_t **loop
+        );
 
 /**
  * @brief Looks up the loop, if any, in the specified container that contains the specified item, and optionally returns
@@ -1294,17 +1395,18 @@ int cif_container_get_category_loop(
  *         The return code does not depend on whether @c loop is NULL.
  */
 int cif_container_get_item_loop(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@in@*/ /*@temp@*/ const UChar *item_name,
-        /*@out@*/ /*@null@*/ cif_loop_t **loop
-        ) /*@modifies *loop@*/;
+        cif_container_t *container,
+        const UChar *item_name,
+        cif_loop_t **loop
+        );
 
 /**
  * @brief Provides a null-terminated array of loop handles, one for each loop in the specified container.
  *
  * The caller takes responsibility for cleaning up the provided loop handles and the array containing them.
  *
- * @param[in] container a handle on the managed container object for which to draw loop handles; must be non-NULL and valid.
+ * @param[in] container a handle on the managed container object for which to draw loop handles; must be non-NULL and
+ *         valid.
  *
  * @param[in,out] loops a pointer to the location where a pointer to the resulting array of loop handles should be
  *         recorded.  Must not be NULL.
@@ -1312,8 +1414,8 @@ int cif_container_get_item_loop(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_container_get_all_loops(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@out@*/ /*@null@*/ cif_loop_t ***loops
+        cif_container_t *container,
+        cif_loop_t ***loops
         );
 
 /**
@@ -1321,9 +1423,9 @@ int cif_container_get_all_loops(
  *
  * The @c cif_container_create_loop() function creates loops that initially contain no data (which is intended to be
  * a transitory state), and it is possible via the packet iterator interface to remove all packets from a previously
- * non-empty loop.  The CIF data model does not accommodate loops without data, so by whatever path they are introduced
- * empty loops must be removed or filled inorder to achieve a valid CIF.  This convenience function serves that
- * purpose by efficiently removing all empty loops belonging directly to the specified container.
+ * non-empty loop.  The CIF data model does not accommodate loops without data, so by whatever path they are
+ * introduced, empty loops must be removed or filled in order to achieve a valid CIF.  This convenience function serves
+ * that purpose by efficiently removing all empty loops belonging directly to the specified container.
  *
  * @param[in] container a handle on the data block or save frame from which to prune empty loops
  *
@@ -1355,17 +1457,17 @@ int cif_container_prune(
  * @return Returns a result code as described above, or @c CIF_ERROR if an error occurs
  */
 int cif_container_get_value(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@in@*/ /*@temp@*/ const UChar *item_name,
-        /*@in@*/ cif_value_t **val
-        ) /*@modifies *val@*/;
+        cif_container_t *container,
+        const UChar *item_name,
+        cif_value_t **val
+        );
 
 /**
  * @brief Sets the value of the specified item in the specified container, or adds it
  * as a scalar if it's not already present in the container.
  *
- * Care is required with this function: if the named item is in a multi-packet loop then the
- * given value is set for the item in every loop packet.
+ * The given value is set for the item in every packet of the loop to which it belongs.  To set a value in just one
+ * packet of a multi-packet loop, use a packet iterator.
  *
  * @param[in] container a handle on the container to modify; must be non-NULL and valid
  *
@@ -1376,9 +1478,9 @@ int cif_container_get_value(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_container_set_value(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@in@*/ /*@temp@*/ const UChar *item_name,
-        /*@in@*/ /*@temp@*/ cif_value_t *val
+        cif_container_t *container,
+        const UChar *item_name,
+        cif_value_t *val
         );
 
 /**
@@ -1395,8 +1497,8 @@ int cif_container_set_value(
  *         container, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_container_remove_item(
-        /*@in@*/ /*@temp@*/ cif_container_t *container,
-        /*@in@*/ /*@temp@*/ const UChar *item_name
+        cif_container_t *container,
+        const UChar *item_name
         );
 
 /**
@@ -1416,12 +1518,12 @@ int cif_container_remove_item(
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 int cif_loop_free(
-        /*@only@*/ cif_loop_t *loop
+        cif_loop_t *loop
         );
 
 /**
  * @brief Releases any resources associated with the given loop handle, and furthermore removes the entire associated
- *         loop from its managed CIF, including all items and values belonging to it, discarding them.
+ *         loop from its managed CIF, including all items and values belonging to it.
  *
  * Provided that they are initially valid, the loop handle and any outstanding iterators over its contents are
  * invalidated by successful execution of this function.
@@ -1434,7 +1536,7 @@ int cif_loop_free(
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 int cif_loop_destroy(
-        /*@only@*/ cif_loop_t *loop
+        cif_loop_t *loop
         );
 
 /**
@@ -1451,8 +1553,8 @@ int cif_loop_destroy(
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_loop_get_category(
-        /*@in@*/ /*@temp@*/ cif_loop_t *loop,
-        /*@in@*/ /*@temp@*/ UChar **category
+        cif_loop_t *loop,
+        UChar **category
         );
 
 /**
@@ -1483,16 +1585,17 @@ int cif_loop_set_category(
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 int cif_loop_get_names(
-        /*@in@*/ /*@temp@*/ cif_loop_t *loop,
-        /*@in@*/ /*@temp@*/ UChar ***item_names
-        ) /*@modifies *item_names@*/;
+        cif_loop_t *loop,
+        UChar ***item_names
+        );
 
 /**
  * @brief Adds the CIF data item identified by the specified name to the specified managed loop, with the given
  *         initial value in every existing loop packet.
  *
  * Note that there is an asymmetry here, in that items are added to specific @em loops, but removed from 
- * overall @em containers (data blocks and save frames).
+ * overall @em containers (data blocks and save frames).  This reflects the architectural asymmetry that items
+ * must be unique within their entire container, yet within it each belongs to a specific loop.
  *
  * @param[in] loop a handle on the loop to which the item should be added
  *
@@ -1507,9 +1610,9 @@ int cif_loop_get_names(
  *         @li @c CIF_ERROR in most other cases
  */
 int cif_loop_add_item(
-        /*@in@*/ /*@temp@*/ cif_loop_t *loop,
-        /*@in@*/ /*@temp@*/ const UChar *item_name,
-        /*@in@*/ /*@temp@*/ cif_value_t *val
+        cif_loop_t *loop,
+        const UChar *item_name,
+        cif_value_t *val
         );
 
 /* items are removed directly from containers, not from loops */
@@ -1532,8 +1635,8 @@ int cif_loop_add_item(
  *         @li @c CIF_ERROR in most other cases
  */
 int cif_loop_add_packet(
-        /*@in@*/ /*@temp@*/ cif_loop_t *loop,
-        /*@in@*/ /*@temp@*/ cif_packet_t *packet
+        cif_loop_t *loop,
+        cif_packet_t *packet
         );
 
 /**
@@ -1553,9 +1656,9 @@ int cif_loop_add_packet(
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_loop_get_packets(
-        /*@in@*/ /*@temp@*/ cif_loop_t *loop,
-        /*@in@*/ /*@temp@*/ cif_pktitr_t **iterator
-        ) /*@modifies *iterator@*/;
+        cif_loop_t *loop,
+        cif_pktitr_t **iterator
+        );
 
 /**
  * @}
@@ -1569,7 +1672,7 @@ int cif_loop_get_packets(
  * @brief Finalizes any changes applied via the specified iterator and releases any resources associated with it.  The
  *         iterator ceases to be active.
  *
- * Note that failure means that changes applied by the iterator could not be made permanent; the iterator's resources
+ * Failure of this function means that changes applied by the iterator could not be made permanent; its resources
  * are released regardless, and it ceases being active.
  *
  * @param[in,out] iterator a pointer to the iterator to close; must be a non-NULL pointer to an active iterator object
@@ -1577,7 +1680,7 @@ int cif_loop_get_packets(
  * @return @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_pktitr_close(
-        /*@only@*/ cif_pktitr_t *iterator
+        cif_pktitr_t *iterator
         );
 
 /**
@@ -1593,7 +1696,7 @@ int cif_pktitr_close(
  *         @c CIF_ERROR ) in all other cases
  */
 int cif_pktitr_abort(
-        /*@only@*/ cif_pktitr_t *iterator
+        cif_pktitr_t *iterator
         );
 
 /**
@@ -1602,8 +1705,10 @@ int cif_pktitr_abort(
  * If @c packet is not NULL then the packet data are recorded where it points, either replacing the contents of a
  * packet provided that way by the caller (when @c *packet is not NULL) or providing a new packet to the caller.
  * A new packet provided to the caller in this way becomes the responsibility of the caller; when no longer needed
- * its resources should be released via @c cif_packet_free().  Notwithstanding the foregoing, behavior of this
- * function is undefined if it has previously returned @c CIF_FINISHED for the given iterator.
+ * its resources should be released via @c cif_packet_free().
+ *
+ * Notwithstanding the foregoing, behavior of this function is undefined if it has previously returned @c CIF_FINISHED
+ * for the given iterator.
  *
  * @param[in,out] iterator a pointer to the packet iterator from which the next packet is requested
  *
@@ -1616,9 +1721,9 @@ int cif_pktitr_abort(
  *         packet provided to the function are undefined (but valid)
  */
 int cif_pktitr_next_packet(
-        /*@in@*/ /*@temp@*/ cif_pktitr_t *iterator,
-        /*@in@*/ /*@temp@*/ /*@null@*/ cif_packet_t **packet
-        ) /*@modifies *packet@*/;
+        cif_pktitr_t *iterator,
+        cif_packet_t **packet
+        );
 
 /**
  * @brief Updates the last packet iterated by the specified iterator with the values from the provided packet.
@@ -1631,7 +1736,7 @@ int cif_pktitr_next_packet(
  * @param[in] iterator a pointer to the packet iterator defining the loop and packet to update; must be a non-NULL
  *         pointer to an active packet iterator
  *
- * @param[in] packet a pointer to the packet object defining the updates to apply; must not be NULL
+ * @param[in] packet a pointer to a packet object defining the updates to apply; must not be NULL
  *
  * @return @c CIF_OK on success, or else an error code characterizing the nature of the failure, normally one of:
  *         @li @c CIF_MISUSE if the iterator has no current packet (because it has not yet provided one, or because the
@@ -1640,8 +1745,8 @@ int cif_pktitr_next_packet(
  *         @li @c CIF_ERROR in most other cases
  */
 int cif_pktitr_update_packet(
-        /*@in@*/ /*@temp@*/ cif_pktitr_t *iterator,
-        /*@in@*/ /*@temp@*/ cif_packet_t *packet
+        cif_pktitr_t *iterator,
+        cif_packet_t *packet
         );
 
 /**
@@ -1655,11 +1760,11 @@ int cif_pktitr_update_packet(
  * @return Returns @c CIF_OK on success, or else an error code characterizing the nature of the failure, normally one
  *         of:
  *         @li @c CIF_MISUSE if the iterator has no current packet (because it has not yet provided one, or because the
- *              one most recently provided has been removed
+ *              one most recently provided has been removed via this function
  *         @li @c CIF_ERROR in most other cases
  */
 int cif_pktitr_remove_packet(
-        /*@in@*/ /*@temp@*/ cif_pktitr_t *iterator
+        cif_pktitr_t *iterator
         );
 
 /**
@@ -1673,9 +1778,9 @@ int cif_pktitr_remove_packet(
 /**
  * @brief Creates a new packet for the given item names
  *
- * The resulting packet does not retain any references to the item name strings provided by the caller.  The new
- * packet will contain for each data name a value object representing the explicit "unknown" value.  The caller is
- * responsible for freeing the packet when it is no longer needed.
+ * The resulting packet does not retain any references to the item name strings provided by the caller.  It will
+ * contain for each data name a value object representing the explicit "unknown" value.  The caller is responsible for
+ * freeing the packet via @c cif_packet_free() when it is no longer needed.
  * 
  * @param[in,out] packet the location were the address of the new packet should be recorded.  Must not be NULL.
  *
@@ -1722,7 +1827,7 @@ int cif_packet_get_names(
  *
  * When the specified name matches an item already present in the packet, the existing value is first cleaned as if
  * by @c cif_value_clean(), then the new value is copied onto it.  That will be visible to code that holds a reference
- * to the value obtained via @c cif_packet_get_item().  Exception: if the @p value is the same object as the
+ * to the value (obtained via @c cif_packet_get_item()).  Exception: if @p value is the same object as the
  * current internal one for the given name then this function succeeds without changing anything.
  *
  * @param[in,out] packet a pointer to the packet to modify
@@ -1747,9 +1852,9 @@ int cif_packet_set_item(
  * @brief Determines whether a packet contains a value for a specified data name, and optionally provides that value.
  *
  * The value, if any, is returned via parameter @p value, provided that that parameter is not NULL.  In contrast to
- * @c cif_packet_set_item(), the value is not copied out; rather a pointer to the packet's own copy is provided.
- * Therefore, callers must not free the value object themselves, but they may freely @em modify it, and such
- * modifications will be visible via the packet.
+ * @c cif_packet_set_item(), the value is not copied out; rather a pointer to the packet's own internal object is
+ * provided.  Therefore, callers must not free the value object themselves, but they may freely @em modify it, and such
+ * modifications will subsequently be visible via the packet.
  *
  * @param[in] packet a pointer to the packet object from which to retrieve a value
  *
@@ -1814,7 +1919,7 @@ int cif_packet_free(
  * be created via function @c cif_value_create() , and @em independent ones should be released via @c cif_value_free()
  * when they are no longer needed.  Unlike the "handles" on CIF structural components that are used in several other
  * parts of the API, @c cif_value_t objects are complete data objects, independent from the backing CIF storage
- * mechanism, albeit in some cases parts of aggregate value objects.
+ * mechanism, albeit sometimes parts of aggregate value objects.
  *
  * The API classifies values into several distinct "kinds": character (Unicode string) values, apparently-numeric
  * values, list values, table values, unknown-value place holders, and not-applicable/default-value place holders.
@@ -1834,7 +1939,7 @@ int cif_packet_free(
  * Table values associate other values with Unicode string keys.  Unlike CIF data values and keywords, table keys are
  * not "case insensitive".  They do, however, take Unicode canonical equivalence into account, thus Unicode strings
  * containing different sequences of characters and yet canonically equivalent to each other can be used
- * interchangeably as table keys associated with the same value.  When table keys are enumerated via
+ * interchangeably as table keys.  When keys are enumerated via
  * @c cif_value_get_keys(), the form of the key most recently used to enter a value into the table is the form
  * provided.  Table keys may contain whitespace, including leading and trailing whitespace, which is significant.
  * The Unicode string consisting of zero characters is a valid table key.
@@ -1846,7 +1951,7 @@ int cif_packet_free(
  * The new object is initialized with a kind-dependent default value:
  * @li an empty string for @c CIF_CHAR_KIND
  * @li an exact zero for @c CIF_NUMB_KIND
- * @li an empty list or table for @c CIF_LIST_KIND and @c CIF_TABLE_KIND, respectively
+ * @li an empty list or table for @c CIF_LIST_KIND or @c CIF_TABLE_KIND, respectively
  * @li (there is only one possible distinct value each for @c CIF_UNK_KIND and @c CIF_NA_KIND)
  * 
  * For @c CIF_CHAR_KIND and @c CIF_NUMB_KIND, however, it is somewhat more efficient to create a value object of kind
@@ -1868,16 +1973,16 @@ int cif_value_create(
  * @brief Frees any resources associated with the provided value object without freeing the object itself,
  *         changing it into the explicit unknown value.
  *
- * This function's primary uses are internal, though it is available for anyone to use.  External code more often
+ * This function's primary uses are internal, but it is available for anyone to use.  External code more often
  * wants @c cif_value_free() instead.  This function does not directly affect any managed CIF.
  *
- * @param[in,out] value a pointer to the value object to clean
+ * @param[in,out] value a valid pointer to the value object to clean
  *
  * @return Returns @c CIF_OK on success.  In principle, an error code such as @c CIF_ERROR is returned on failure, but
  *         no specific failure conditions are currently defined.
  */
 int cif_value_clean(
-        /*@temp@*/ cif_value_t *value
+        cif_value_t *value
         );
 
 /**
@@ -1886,13 +1991,13 @@ int cif_value_clean(
  * This provides only resource management; it has no effect on any managed CIF.  This function is a safe no-op
  * when its argument is NULL.
  *
- * @param[in,out] value a pointer to the value object to free
+ * @param[in,out] value a valid pointer to the value object to free, or NULL
  *
  * @return Returns @c CIF_OK on success.  In principle, an error code such as @c CIF_ERROR is returned on failure, but
  *         no specific failure conditions are currently defined.
  */
 int cif_value_free(
-        /*@only@*/ cif_value_t *value
+        cif_value_t *value
         );
 
 /**
@@ -1907,27 +2012,29 @@ int cif_value_free(
  * @param[in] value a pointer to the value object to clone
  *
  * @param[in,out] clone the location where a pointer to the cloned value should be made to reside, either by replacing
- *         the contents of an existing value object or by recording a pointer to a new one
+ *         the contents of an existing value object or by recording a pointer to a new one; must not be NULL.  If
+ *         @p *clone is not NULL then it must point to a valid cif value object.
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 int cif_value_clone(
-        /*@in@*/ /*@temp@*/ cif_value_t *value,
-        /*@in@*/ /*@temp@*/ cif_value_t **clone
-        ) /*@modifies *clone@*/;
+        cif_value_t *value,
+        cif_value_t **clone
+        );
 
 /**
- * @brief Reinitializes the provided value object to a default value of the specified kind
+ * @brief Reinitializes the provided value object to a default value of the specified kind.
  *
  * The value referenced by the provided handle should have been allocated via @c cif_value_create().  Any unneeded
  * resources it holds are released.  The specified value kind does not need to be the same as the value's present
  * kind.  Kind-specific default values are documented with @c cif_value_create().
  *
- * This function is equivalent to cif_value_clean() when the specified kind is @c CIF_UNK_KIND, and it is less useful
- * than the character- and number-specific (re)initialization functions for those value kinds.  It is the only
- * means available to change an existing value to a list, table, or N/A value in-place, however.
+ * This function is equivalent to @c cif_value_clean() when the specified kind is @c CIF_UNK_KIND, and it is less useful
+ * than the character- and number-specific (re)initialization functions.  It is the only means available to change an
+ * existing value in-place to a list, table, or N/A value, however, and it can be used to efficently empty a list or
+ * table value.
  *
- * On failure, the value is left in a valid but undefined state.
+ * On failure, the value is left in a valid but otherwise undefined state.
  *
  * @param[in,out] value a handle on the value to reinitialize; must not be @c NULL
  * @param[in] kind the cif value kind as which the value should be reinitialized
@@ -1936,44 +2043,51 @@ int cif_value_clone(
  */
 int cif_value_init(
         cif_value_t *value,
-        cif_kind_t kind);
+        cif_kind_t kind
+        );
 
 /**
- * @brief (Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with the specified text
+ * @brief (Re)initializes the specified value object as being of kind @c CIF_CHAR_KIND, with the specified text
  *
- * Any previous contents of the provided value object are first cleaned as if by @c cif_value_clean().  Responsibility
- * for the provided string passes to the value object; it should not subsequently be managed directly by the caller.
- * Note that this implies that the text must be dynamically allocated.  The value object will become sensitive to text
- * changes performed afterward via the @c text pointer.
+ * Any previous contents of the provided value object are first cleaned as if by @c cif_value_clean().
+ * <strong><em>Responsibility for the provided string passes to the value object</em></strong>; it should not
+ * subsequently be managed directly by the caller.  This implies that the text must be dynamically allocated.  The
+ * value object will become sensitive to text changes performed afterward via the @c text pointer.
+ *
+ * This behavior could be described as wrapping an existing Unicode string in a CIF value object.
  *
  * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
  *
  * @param[in] text the new text content for the specified value object; must not be NULL
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ *
+ * @sa cif_value_copy_char()
  */
 int cif_value_init_char(
-        /*@in@*/ /*@temp@*/ cif_value_t *value,
-        /*@in@*/ /*@keep@*/ UChar *text
+        cif_value_t *value,
+        UChar *text
         );
 
 /**
  * @brief (Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with a copy of the specified text.
  *
  * This function performs the same job as @c cif_value_init_char(), except that it makes a copy of the value text.
- * Responsibility for the @c text argument does not change, and the value object does not become sensitive to change
- * via the @c text pointer.  Unlike @c cif_value_init_char(), this function is suitable for for initialization text
- * that resides on the stack (e.g. in a local array variable) or in read-only memory.
+ * <strong><em>Responsibility for the @c text argument does not change</em></strong>, and the value object does not
+ * become sensitive to change via the @c text pointer.  Unlike @c cif_value_init_char(), this function is thus suitable
+ * for initialization text that resides on the stack (e.g. in a local array variable) or in read-only memory.
  *
  * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
  *
  * @param[in] text the new text content for the specified value object; must not be NULL
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ *
+ * @sa cif_value_init_char()
  */
 int cif_value_copy_char(
-        /*@in@*/ /*@temp@*/ cif_value_t *value,
-        /*@in@*/ /*@keep@*/ const UChar *text
+        cif_value_t *value,
+        const UChar *text
         );
 
 /**
@@ -1981,9 +2095,13 @@ int cif_value_copy_char(
  *         recording them in the provided value object.
  *
  * For success, the entire input string must be successfully parsed.  On success (only), any previous contents
- * of the value object are released as if by @c cif_value_clean() ; otherwise the value object is not modified.
- * The value object takes ownership of the parsed text on success.  The representable values that can be initialized
- * in this manner are not limited to those representable in any particular native floating-point format.
+ * of the value object are released as if by @c cif_value_clean() ; otherwise, the value object is not modified.
+ * <strong><em>The value object takes ownership of the parsed text on success.</em></strong>  The caller is responsible
+ * for ensuring that the @p text pointer is not afterward used to modify its referrent.  The representable values
+ * that can be initialized in this manner are not limited to those representable the machine's native
+ * floating-point format.
+ *
+ * This behavior could be described as wrapping an existing Unicode string in a (numeric) CIF value object.
  *
  * @param[in,out] numb the value object into which to parse the text
  *
@@ -1996,8 +2114,8 @@ int cif_value_copy_char(
  *         @li @c CIF_ERROR in most other cases
  */
 int cif_value_parse_numb(
-        /*@in@*/ /*@temp@*/ cif_value_t *numb, 
-        /*@in@*/ /*@keep@*/ UChar *text
+        cif_value_t *numb, 
+        UChar *text
         );
 
 /**
@@ -2009,16 +2127,17 @@ int cif_value_parse_numb(
  * The value's text representation will be formatted with a standard uncertainty if and only if the given standard
  * uncertainty (@p su ) is greater than zero.  It is an error for the uncertainty to be less than zero.
  *
- * The @p scale gives the number of significant digits to the right of the decimal point; the value and uncertainty
+ * The @p scale gives the number of significant digits to the right of the units digit; the value and uncertainty
  * will be rounded or extended to this number of decimal places as needed.  Any rounding is performed according to the
  * floating-point rounding mode in effect at that time.  The scale may be less than zero, indicating that some of the
- * digits to the left of the decimal point are insignificant and not to be recorded.  Care is required with this
- * parameter: if the given su rounds to exactly zero at the specified scale, then the resulting number object is
- * indistinguishable from one representing an exact number.
+ * units digits and possibly others to its left are insignificant and not to be recorded.  If the given su rounds to
+ * exactly zero at the specified scale, then the resulting number object represents an exact number, whether the su
+ * given was exactly zero or not.
  *
- * If the scale is greater than zero or if pure decimal notation would require more than the specified number of
+ * If the scale is greater than zero or if pure decimal notation would require more than @p max_leading_zeroes
  * leading zeroes after the decimal point, then the number's text representation is formatted in scientific notation
- * (d.ddde+-dd).  (The number of digits of exponent may vary.)  Otherwise, it is formatted in decimal notation.
+ * (d.ddde+-dd; the number of digits of mantissa and exponent may vary).  Otherwise, it is formatted in decimal
+ * notation.
  *
  * It is an error if a text representation consistent with the arguments would require more characters than the
  * CIF 2.0 maximum line length (2048 characters).
@@ -2042,7 +2161,7 @@ int cif_value_parse_numb(
  * @return Returns CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure.
  */
 int cif_value_init_numb(
-        /*@in@*/ /*@temp@*/ cif_value_t *numb, 
+        cif_value_t *numb, 
         double val, 
         double su, 
         int scale, 
@@ -2053,7 +2172,7 @@ int cif_value_init_numb(
  * @brief (Re-)initializes the given value as a number with the specified value and uncertainty, automatically
  *         choosing the number of significant digits to keep based on the specified @p su and @p su_rule.
  *
- * Any previous contents of the provided value are released, as if by cif_value_clean().
+ * Any previous contents of the provided value are released, as if by @c cif_value_clean().
  * 
  * The number's text representation will be formatted with a standard uncertainty if and only if the given su is
  * greater than zero.  In that case, the provided su_rule governs the number of decimal digits with which the value
@@ -2082,7 +2201,7 @@ int cif_value_init_numb(
  * @return Returns CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure.
  */
 int cif_value_autoinit_numb(
-        /*@in@*/ /*@temp@*/ cif_value_t *numb, 
+        cif_value_t *numb, 
         double val, 
         double su, 
         unsigned int su_rule
@@ -2099,21 +2218,22 @@ int cif_value_autoinit_numb(
  * @return Returns the kind code of the specified value
  */
 cif_kind_t cif_value_kind(
-        /*@in@*/ /*@temp@*/ cif_value_t *value
+        cif_value_t *value
         );
 
 /**
  * @brief Returns the value represented by the given number value object.
  *
  * Behavior is undefined if the provided object is not a valid, initialized number value object.  Unlike most CIF
- * functions, the return value is not an error code -- no errors are detected.
+ * functions, the return value is not an error code -- no errors are detected.  Behavior is implementation-defined if
+ * the represented numeric value is outside the representable range of type @c double .
  *
  * @param[in] numb a pointer the the value object whose numeric value is requested
  *
  * @return Returns the numeric value of the value object, as a @c double
  */
 double cif_value_as_double(
-        /*@in@*/ /*@temp@*/ cif_value_t *numb
+        cif_value_t *numb
         );
 
 /**
@@ -2121,14 +2241,15 @@ double cif_value_as_double(
  *
  * The uncertainty is zero for an exact number.  Behavior is undefined if the provided object is not a valid,
  * initialized number value object.  Unlike most CIF functions, the return value is not an error code -- no errors are
- * detected.
+ * detected.  Behavior is implementation-defined if the uncertainty is outside the representable range of type
+ * @c double .
  *
  * @param[in] numb a pointer the the value object whose numeric standard uncertainty is requested
  *
  * @return Returns the standard uncertainty of the value object, as a @c double
  */
 double cif_value_su_as_double(
-        /*@in@*/ /*@temp@*/ cif_value_t *numb
+        cif_value_t *numb
         );
 
 /**
@@ -2140,8 +2261,8 @@ double cif_value_su_as_double(
  * limits.
  * 
  * This function is natural for values of kind @c CIF_CHAR_KIND.  It is also fairly natural for values of kind
- * @c CIF_NUMB_KIND, for those carry a text representation with them to allow for undelimited number-like values
- * that nevertheless are intended to be interpreted as text.  It is natural, but trivial, for kinds @c CIF_NA_KIND
+ * @c CIF_NUMB_KIND, as those carry a text representation with them to allow for undelimited number-like values
+ * that are intended to be interpreted as text.  It is natural, but trivial, for kinds @c CIF_NA_KIND
  * and @c CIF_UNK_KIND, for which the text representation is NULL (as opposed to empty).  It is decidedly unnatural,
  * however, for the composite value kinds @c CIF_LIST_KIND and @c CIF_TABLE_KIND.  As such, the text for values of
  * those kinds is also NULL, though that is subject to change in the future.
@@ -2154,8 +2275,8 @@ double cif_value_su_as_double(
  * @return Returns @c CIF_OK on success, or @c CIF_ERROR on failure
  */
 int cif_value_get_text(
-        /*@temp@*/ cif_value_t *value,
-        /*@out@*/ UChar **text
+        cif_value_t *value,
+        UChar **text
         );
 
 /**
@@ -2167,19 +2288,19 @@ int cif_value_get_text(
  *
  * @param[in] value a pointer to the value object whose elements are to be counted; must not be NULL
  *
- * @param[out] count the number of elements
+ * @param[out] count a pointer to a location where the number of elements should be recorded
  *
  * @return @c CIF_OK if the value has kind @c CIF_LIST_KIND or @c CIF_TABLE_KIND, otherwise @c CIF_ARGUMENT_ERROR
  */
 int cif_value_get_element_count(
-        /*@temp@*/ cif_value_t *value,
-        /*@out@*/ size_t *count);
+        cif_value_t *value,
+        size_t *count);
 
 /**
  * @brief Retrieves an element of a list value by its index.
  *
- * A pointer to the actual value object contained in the list is returned, so modifications to the value will be
- * reflected in the list.  If that is not desired then the caller can make a copy via @c cif_value_clone() .  The
+ * <em>A pointer to the actual value object contained in the list is returned, so modifications to the value will be
+ * reflected in the list.</em>  If that is not desired then the caller can make a copy via @c cif_value_clone() .  The
  * caller must not free the returned value, but may modify it in any other way.
  *
  * It is unsafe for the caller to retain the provided element pointer if and when the list that owns the element ceases
@@ -2187,7 +2308,7 @@ int cif_value_get_element_count(
  * outlive the list that owns it, but various operations on the list may cause it to be discarded while the list is
  * still live.  Note in particular that a context switch to another thread that has access to the list object
  * constitutes passing out of the caller's control.  If multiple threads have unsynchronized concurrent access to
- * the list then no element retrieved from it via this function is @em ever safe to use.
+ * the list then no element retrieved from it via this function is @em ever safe to use, not even to clone it.
  *
  * @param[in] value a pointer to the @c CIF_LIST_KIND value from which to retrieve an element
  *
@@ -2198,7 +2319,10 @@ int cif_value_get_element_count(
  * @return Returns @c CIF_ARGUMENT_ERROR if the @c value has kind different from @c CIF_LIST_KIND; otherwise returns
  *     @c CIF_OK if @c index is less than the number of elements in the list, else @c CIF_INVALID_INDEX .
  */
-int cif_value_get_element_at(cif_value_t *value, size_t index, cif_value_t **element);
+int cif_value_get_element_at(
+        cif_value_t *value,
+        size_t index,
+        cif_value_t **element);
 
 /**
  * @brief Replaces an existing element of a list value with a different value.
@@ -2222,8 +2346,15 @@ int cif_value_get_element_at(cif_value_t *value, size_t index, cif_value_t **ele
  *         @li @c CIF_OK if a value was successfully set, or
  *         @li an error code, typically @c CIF_ERROR , if setting the value fails for reasons other than those already
  *             described
+ *
+ * @sa cif_value_insert_element_at()
+ * @sa cif_value_set_item_by_key()
  */
-int cif_value_set_element_at(cif_value_t *value, size_t index, cif_value_t *element);
+int cif_value_set_element_at(
+        cif_value_t *value,
+        size_t index,
+        cif_value_t *element
+        );
 
 /**
  * @brief Inserts an element into the specified list value at the specified position, pushing back the elements
@@ -2245,8 +2376,14 @@ int cif_value_set_element_at(cif_value_t *value, size_t index, cif_value_t *elem
  *         @li @c CIF_OK if a value was successfully inserted, or
  *         @li an error code, typically @c CIF_ERROR , if inserting the value fails for reasons other than those already
  *             described
+ *
+ * @sa cif_value_set_element_at()
  */
-int cif_value_insert_element_at(cif_value_t *value, size_t index, cif_value_t *element);
+int cif_value_insert_element_at(
+        cif_value_t *value,
+        size_t index,
+        cif_value_t *element
+        );
 
 /**
  * @brief Removes an existing element from a list value, optionally returning it to the caller.
@@ -2268,8 +2405,14 @@ int cif_value_insert_element_at(cif_value_t *value, size_t index, cif_value_t *e
  *         @li @c CIF_OK if a value was successfully inserted
  *         @li in principle, a general error code such as @c CIF_ERROR may be returned if removing the value fails for
  *             reasons other than those already described, but no such failure conditions are currently defined
+ *
+ * @sa cif_value_remove_item_by_key()
  */
-int cif_value_remove_element_at(cif_value_t *value, size_t index, cif_value_t **element);
+int cif_value_remove_element_at(
+        cif_value_t *value,
+        size_t index,
+        cif_value_t **element
+        );
 
 /**
  * @brief Retrieves an array of the keys of a table value.
@@ -2277,9 +2420,10 @@ int cif_value_remove_element_at(cif_value_t *value, size_t index, cif_value_t **
  * Although tables are insensitive to differences between canonically equivalent keys, this function always provides
  * keys in the form most recently entered into the table.
  *
- * The caller assumes responsibility for freeing the returned array itself, but @em not the keys in it.  The keys
- * remain the responsibility of the table, and @b MUST @b NOT be freed or modified in any way.  Each key is a
- * NUL-terminated Unicode string, and the end of the list is marked by a NULL element.
+ * The caller assumes responsibility for freeing the returned array itself, but @em not the keys in it.
+ * <strong><em>The keys remain the responsibility of the table, and MUST NOT be freed or modified in any
+ * way.</em></strong>  Each key is a NUL-terminated Unicode string, and the end of the list is marked by a NULL
+ * element.
  *
  * @param[in] table a pointer to the table value whose keys are requested
  *
@@ -2292,7 +2436,7 @@ int cif_value_remove_element_at(cif_value_t *value, size_t index, cif_value_t **
  *             described
  */
 int cif_value_get_keys(
-        /*@temp@*/ cif_value_t *table,
+        cif_value_t *table,
         const UChar ***keys
         );
 
@@ -2318,11 +2462,13 @@ int cif_value_get_keys(
  *         @li @c CIF_OK if the entry was successfully set / updated, or
  *         @li an error code, typically @c CIF_ERROR , if setting or updating the entry fails for reasons other than
  *             those already described
+ *
+ * @sa cif_value_set_element_at()
  */
 int cif_value_set_item_by_key(
-        /*@temp@*/ cif_value_t *table, 
-        /*@temp@*/ const UChar *key, 
-        /*@temp@*/ cif_value_t *item
+        cif_value_t *table, 
+        const UChar *key, 
+        cif_value_t *item
         );
 
 /**
@@ -2347,10 +2493,12 @@ int cif_value_set_item_by_key(
  *         @li @c CIF_NOSUCH_ITEM if the key was not found.
  *         @li in principle, an error code such as @c CIF_ERROR is returned in the event of a failure other than those
  *             already described, but no such failure conditions are currently defined.
+ *
+ * @sa cif_value_get_element_at()
  */
 int cif_value_get_item_by_key(
-        /*@temp@*/ cif_value_t *table, 
-        /*@temp@*/ const UChar *key, 
+        cif_value_t *table, 
+        const UChar *key, 
         cif_value_t **value
         );
 
@@ -2374,10 +2522,12 @@ int cif_value_get_item_by_key(
  *         @li @c CIF_NOSUCH_ITEM if the key was not found.
  *         @li in principle, an error code such as @c CIF_ERROR is returned in the event of a failure other than those
  *             already described, but no such failure conditions are currently defined.
+ *
+ * @sa cif_value_remove_element_at()
  */
 int cif_value_remove_item_by_key(
-        /*@temp@*/ cif_value_t *table, 
-        /*@temp@*/ const UChar *key, 
+        cif_value_t *table, 
+        const UChar *key, 
         cif_value_t **value
         );
 
@@ -2393,7 +2543,7 @@ int cif_value_remove_item_by_key(
  * @brief Creates and returns a duplicate of a Unicode string.
  *
  * It is sometimes useful to duplicate a Unicode string, but ICU does not provide an analog of @c strdup() for that
- * purpose.  The CIF API therefore provides its own.
+ * purpose.  The CIF API therefore provides its own, and makes it available for general use.
  *
  * Behavior is undefined if the argument is not terminated by a NUL (Unicode) character.
  *
@@ -2402,12 +2552,14 @@ int cif_value_remove_item_by_key(
  * @return Returns a pointer to the duplicate, or NULL on failure or if the argument is NULL.  Responsibility for the
  *         duplicate, if any, belongs to the caller.
  */
-UChar *cif_u_strdup(const UChar *str);
+UChar *cif_u_strdup(
+        const UChar *str
+        );
 
 /**
  * @brief Converts (the initial part of) the specified Unicode string to a case-folded normalized form.
  *
- * The normalized form is that obtained by first converting to Unicode normalization form NFD, applying the Unicode
+ * The normalized form is that obtained by converting to Unicode normalization form NFD, applying the Unicode
  * case-folding algorithm to the result (with default handling of Turkic dotless i), and renormalizing the case-folded
  * form to Unicode normalization form NFC.  The result string, if provided, becomes the responsibility of the caller.
  * If not NULL, it is guaranteed to be NUL-terminated.
@@ -2426,7 +2578,11 @@ UChar *cif_u_strdup(const UChar *str);
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_normalize(const UChar *src, int32_t srclen, UChar **normalized);
+int cif_normalize(
+        const UChar *src,
+        int32_t srclen,
+        UChar **normalized
+        );
 
 /**
  * @}
