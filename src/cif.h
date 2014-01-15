@@ -1594,8 +1594,8 @@ int cif_loop_get_names(
  *         initial value in every existing loop packet.
  *
  * Note that there is an asymmetry here, in that items are added to specific @em loops, but removed from 
- * overall @em containers (data blocks and save frames).  This reflects the architectural asymmetry that items
- * must be unique within their entire container, yet within it each belongs to a specific loop.
+ * overall @em containers (data blocks and save frames).  This reflects the CIF architectural asymmetry that item
+ * names must be unique within their entire container, yet within it they each belong exclusively to a specific loop.
  *
  * @param[in] loop a handle on the loop to which the item should be added
  *
@@ -2334,7 +2334,8 @@ int cif_value_get_element_at(
  * @brief Replaces an existing element of a list value with a different value.
  *
  * The provided value is @em copied into the list (if not NULL); responsibility for the original object is not
- * transferred.  The replaced value is freed and discarded, except as described next.
+ * transferred.  The replaced value is first cleaned as if by @c cif_value_clean(), then the new value is copied onto
+ * it.  That will be visible to code that holds a reference to the value (obtained via @c cif_value_get_element_at()).
  * 
  * Special case: if the replacement value is the same object as the one currently at the specified position in the
  * list, then this function succeeds without changing anything.
@@ -2449,8 +2450,10 @@ int cif_value_get_keys(
 /**
  * @brief Associates a specified value and key in the provided table value.
  *
- * The value and key are copied into the table; responsibility for the originals does not transfer.  Any value
- * previously associated with the given key is automatically freed, except as described next.
+ * The value and key are copied into the table; responsibility for the originals does not transfer.  If a value
+ * was already associated with the given key then it is first cleaned as if by @c cif_value_clean(), then the new value
+ * is copied onto it.  That will be visible to code that holds a reference to the value (obtained via @c
+ * cif_value_get_item_by_key()).
  * 
  * Special case: if the item value is the same object as one currently associated with the given key in the table, then
  * this function succeeds without changing anything.
