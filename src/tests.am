@@ -51,10 +51,6 @@ compiled_tests = \
 #   - non-NULL pointer to non-NULL value pointer
 #   - child frames / parent blocks not read
 # cif_container_set_value
-#   - invalid name
-#   - NULL value pointer (?)
-#   - each value type
-#   - not initially present
 #   - initially in single-packet loop
 #   - initially in multi-packet loop
 #   - child frames / parent blocks not affected
@@ -75,11 +71,6 @@ compiled_tests = \
 # cif_loop_destroy
 # cif_parse
 # cif_write
-#
-# Not sure how to test these portably, except incidentally via valgrinding
-# the other tests:
-# cif_value_clean
-# cif_*_free
 
 check_PROGRAMS = $(compiled_tests)
 

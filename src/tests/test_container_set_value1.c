@@ -264,8 +264,30 @@ int main(int argc, char *argv[]) {
     TEST(!assert_values_equal(value3, value2), 0, test_name, 120);
     cif_value_free(value3);
     cif_value_free(value2);
+    value2 = NULL;
+
+    /* test setting a NULL value */
+    TEST(cif_value_clean(value1), CIF_OK, test_name, 121);
+    TEST(cif_container_get_item_loop(frame, item6l, NULL), CIF_NOSUCH_ITEM, test_name, 122);
+    TEST(cif_container_set_value(frame, item6l, NULL), CIF_OK, test_name, 123);
+    /* verify that the item went into the scalar loop, in (only) the right container */
+    TEST(cif_container_get_item_loop(frame, item6l, &loop), CIF_OK, test_name, 124);
+    TEST(cif_loop_get_category(loop, &ustr), CIF_OK, test_name, 125);
+    TEST(ustr == NULL, 0, test_name, 126);
+    TEST(ustr[0], 0, test_name, 127);
+    free(ustr);
+    cif_loop_free(loop);
+    /* read back the value and check it */
+    TEST(cif_container_get_value(frame, item6l, &value2), CIF_OK, test_name, 128);
+    TEST(cif_value_kind(value2), CIF_UNK_KIND, test_name, 129);
+    cif_value_free(value2);
     cif_value_free(value1);
 
+    TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 130);
+    TEST(cif_container_set_value(block, invalid, NULL), CIF_INVALID_ITEMNAME, test_name, 131);
+    TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 132);
+    cif_frame_free(frame);
+    cif_block_free(block);
     DESTROY_CIF(test_name, cif);
 
     return 0;

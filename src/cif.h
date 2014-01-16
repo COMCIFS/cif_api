@@ -1473,9 +1473,11 @@ int cif_container_get_value(
  *
  * @param[in] item_name the name of the item to set, as a NUL-terminated Unicode string; must be a valid item name
  *
- * @param[in] val a pointer to the value to set for the specified item
+ * @param[in] val a pointer to the value to set for the specified item; if NULL then a value of kind @c CIF_UNK_KIND
+ *         is set
  *
- * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ * @return @c CIF_OK on success, @c CIF_INVALID_ITEMNAME if the item name is invalid, or another error code (typically
+ *         @c CIF_ERROR ) on failure
  */
 int cif_container_set_value(
         cif_container_t *container,

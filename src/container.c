@@ -789,6 +789,12 @@ int cif_container_set_value(
         SET_RESULT(result);
     } else {
         if (BEGIN(db) == SQLITE_OK) {
+            cif_value_t temp_val;
+
+            if (val == NULL) {
+                temp_val.kind = CIF_UNK_KIND;
+                val = &temp_val;
+            }
             result = cif_container_get_item_loop_internal(container, name, &item_loop);
             switch (result) {
                 case CIF_NOSUCH_ITEM:
