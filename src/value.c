@@ -79,9 +79,10 @@ int fegetround(void);
  * @brief Serializes a NUL-terminated Unicode string to the provided buffer.
  *
  * The serialized representation is the bytes of a @c size_t @em character count followed by the raw bytes of the
- * string, excluding those of the terminating NUL character, all in machine order.
+ * string, excluding those of the terminating NUL character, all in machine order.  Special handling is provided
+ * for NULL (not empty) strings.
  *
- * @param[in] string a pointer to the NUL-terminated Unicode string to serialize; must not be NULL.
+ * @param[in] string a pointer to the NUL-terminated Unicode string to serialize; may be NULL
  * @param[in,out] buffer a pointer to the @c write_buffer_t buffer to which the serialized form should be appended;
  *         must not be NULL.
  * @param[in] onerr the label to which execution should branch in the event that an error occurs; must be defined in the
@@ -90,8 +91,8 @@ int fegetround(void);
 #define SERIALIZE_USTRING(string, buffer, onerr) do { \
     const UChar *str = (string); \
     write_buffer_t *us_buf = (buffer); \
-    size_t us_size = (size_t) u_strlen(str); \
-    if (cif_buf_write(us_buf, &us_size, sizeof(size_t)) != CIF_OK) goto onerr; \
+    ssize_t us_size = ((str == NULL) ? (ssize_t) -1 : (ssize_t) u_strlen(str)); \
+    if (cif_buf_write(us_buf, &us_size, sizeof(ssize_t)) != CIF_OK) goto onerr; \
     if (cif_buf_write(us_buf, str, us_size * sizeof(UChar)) != CIF_OK) goto onerr; \
 } while (0)
 
@@ -102,6 +103,7 @@ int fegetround(void);
  * must therefore be an lvalue).  The @c dest pointer is unmodified on failure.
  *
  * @param[out] dest a Unicode string pointer to be pointed at the deserialized string; its initial value is ignored.
+ *         may be set NULL
  * @param[in,out] a @c read_buffer_t from which the serialized string data should be read; on success its position is
  *         immediately after the last byte of the serialized string, but on failure its position becomes undefined;
  *         must not be NULL.
@@ -110,16 +112,20 @@ int fegetround(void);
  */
 #define DESERIALIZE_USTRING(dest, buffer, onerr) do { \
     read_buffer_t *us_buf = (buffer); \
-    size_t _size; \
-    if (cif_buf_read(us_buf, &_size, sizeof(size_t)) == sizeof(size_t)) { \
-        UChar *d = (UChar *) malloc((_size + 1) * sizeof(UChar)); \
-        if (d != NULL) { \
-            if (cif_buf_read(us_buf, d, _size) == _size) { \
-                d[_size] = 0; \
-                dest = d; \
-                break; \
-            } else { \
-                free(d); \
+    ssize_t _size; \
+    if (cif_buf_read(us_buf, &_size, sizeof(ssize_t)) == sizeof(ssize_t)) { \
+        if (_size < 0) { \
+            dest = NULL; \
+        } else { \
+            UChar *d = (UChar *) malloc((_size + 1) * sizeof(UChar)); \
+            if (d != NULL) { \
+                if (cif_buf_read(us_buf, d, (_size * sizeof(UChar))) == (_size * sizeof(UChar))) { \
+                    d[_size] = 0; \
+                    dest = d; \
+                    break; \
+                } else { \
+                    free(d); \
+                } \
             } \
         } \
     } \
@@ -142,7 +148,6 @@ int fegetround(void);
     if (cif_buf_write(s_buf, val, sizeof(cif_kind_t)) != CIF_OK) goto onerr; \
     switch (val->kind) { \
         case CIF_NUMB_KIND: \
-            /*@fallthrough@*/ \
         case CIF_CHAR_KIND: \
             SERIALIZE_USTRING(val->as_char.text, s_buf, onerr); \
             break; \
@@ -187,18 +192,20 @@ int fegetround(void);
         if (cif_buf_read(_buf, &_kind, sizeof(cif_kind_t)) == sizeof(cif_kind_t)) { \
             switch(_kind) { \
                 case CIF_CHAR_KIND: \
-                    /*@fallthrough@*/ \
+                    v->kind = CIF_CHAR_KIND; \
+                    /* fall through */ \
                 case CIF_NUMB_KIND: \
                     DESERIALIZE_USTRING(v->as_char.text, _buf, vfail); \
-                    v->kind = CIF_CHAR_KIND; \
                     if ((_kind == CIF_NUMB_KIND) \
                             && (cif_value_parse_numb(v, v->as_char.text) != CIF_OK)) goto vfail; \
                     break; \
                 case CIF_LIST_KIND: \
                     if (cif_list_deserialize(&(v->as_list), _buf) != CIF_OK) goto vfail; \
+                    assert(v->kind == CIF_LIST_KIND); \
                     break; \
                 case CIF_TABLE_KIND: \
                     if (cif_table_deserialize(&(v->as_table), _buf) != CIF_OK) goto vfail; \
+                    assert(v->kind == CIF_TABLE_KIND); \
                     break; \
                 default: \
                     v->kind = _kind; \
@@ -263,12 +270,12 @@ int fegetround(void);
  * Creates a new dynamic buffer with the specified initial capacity.
  * Returns a pointer to the buffer structure, or NULL if buffer creation fails.
  */
-static /*@only@*/ /*@null@*/ buffer_t *cif_buf_create(size_t cap);
+static buffer_t *cif_buf_create(size_t cap);
 
 /*
  * Releases a writeable dynamic buffer and all resources associated with it.  A no-op if the argument is NULL.
  */
-static void cif_buf_free(/*@only@*/ write_buffer_t *buf);
+static void cif_buf_free(write_buffer_t *buf);
 
 /*
  * Writes bytes to a dynamic buffer, starting at its current position.
@@ -278,7 +285,7 @@ static void cif_buf_free(/*@only@*/ write_buffer_t *buf);
  * Behavior is undefined if buf does not point to a valid buffer_t object, or if start does not point to an
  * allocated block of memory at least len bytes long, or if the source is inside the buffer.
  */
-static int cif_buf_write(/*@temp@*/ write_buffer_t *buf, /*@temp@*/ const void *src, size_t len);
+static int cif_buf_write(write_buffer_t *buf, const void *src, size_t len);
 
 /*
  * Reads up to the specified number of bytes from the specified dynamic buffer into the specified destination,
@@ -286,7 +293,7 @@ static int cif_buf_write(/*@temp@*/ write_buffer_t *buf, /*@temp@*/ const void *
  * Returns the number of bytes transferred to the destination (which will be zero when no more are available and
  * when the third argument is zero).  
  */
-static size_t cif_buf_read(/*@temp@*/ read_buffer_t *buf, /*@out@*/ void *dest, size_t max);
+static size_t cif_buf_read(read_buffer_t *buf, void *dest, size_t max);
 
 /*
  * (macro) Returns the buffer's internal position to the begining, leaving its limit intact.
@@ -302,34 +309,34 @@ static size_t cif_buf_read(/*@temp@*/ read_buffer_t *buf, /*@out@*/ void *dest, 
  * Fully initializes a list value as an empty list.  Does not allocate any additional resources.  Should not be
  * invoked on an already-initialized value, as doing so may create a resource leak
  */
-static void cif_list_init(/*@out@*/ struct list_value_s *list_value);
+static void cif_list_init(struct list_value_s *list_value);
 
 /*
  * Fully initializes a table value as an table list.  Does not allocate any additional resources.  Should not be
  * invoked on an already-initialized value, as doing so may create a resource leak
  */
-static void cif_table_init(/*@out@*/ struct table_value_s *table_value);
+static void cif_table_init(struct table_value_s *table_value);
 
 /*
  * Value-type specific value cleaning functions
  */
-static void cif_char_value_clean(/*@temp@*/ struct char_value_s *char_value);
-static void cif_numb_value_clean(/*@temp@*/ struct numb_value_s *numb_value);
-static void cif_list_value_clean(/*@temp@*/ struct list_value_s *list_value);
-static void cif_table_value_clean(/*@temp@*/ struct table_value_s *table_value);
+static void cif_char_value_clean(struct char_value_s *char_value);
+static void cif_numb_value_clean(struct numb_value_s *numb_value);
+static void cif_list_value_clean(struct list_value_s *list_value);
+static void cif_table_value_clean(struct table_value_s *table_value);
 
 /*
  * Clones a list value, assuming all fields of the target object contain garbage
  */
-static int cif_value_clone_list(/*@in@*/ /*@temp@*/ struct list_value_s *value, /*@out@*/ struct list_value_s *clone);
+static int cif_value_clone_list(struct list_value_s *value, struct list_value_s *clone);
 
 /*
  * Composite-value serialization and deserialization functions
  */
 static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf);
 static int cif_table_serialize(struct table_value_s *table, write_buffer_t *buf);
-static int cif_list_deserialize(/*@out@*/ struct list_value_s *list, read_buffer_t *buf);
-static int cif_table_deserialize(/*@out@*/ struct table_value_s *table, read_buffer_t *buf);
+static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf);
+static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf);
 
 /**
  * @brief produces an unsigned digit-string representation of the specified double, rounded to the specified scale
@@ -487,7 +494,7 @@ static void cif_numb_value_clean(struct numb_value_s *numb_value) {
 static void cif_list_value_clean(struct list_value_s *list_value) {
     for (; list_value->size > 0; ) {
         list_value->size -= 1;
-        (void) cif_value_free(list_value->elements[list_value->size]);
+        cif_value_free(list_value->elements[list_value->size]);
     }
     CLEAN_PTR(list_value->elements);
     list_value->capacity = 0;
@@ -643,6 +650,8 @@ static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf) {
         }
     }
 
+    return CIF_OK;
+
     fail:
     return CIF_ERROR;
 }
@@ -665,6 +674,8 @@ static int cif_table_serialize(struct table_value_s *table, write_buffer_t *buf)
          */
         if(cif_buf_write(buf, &separator, sizeof(int)) != CIF_OK) DEFAULT_FAIL(element);
         SERIALIZE_USTRING(element->key, buf, HANDLER_LABEL(element));
+        SERIALIZE_USTRING(((element->key_orig == element->key) ? NULL : element->key_orig), buf,
+                HANDLER_LABEL(element));
         SERIALIZE(element, buf, HANDLER_LABEL(element));
     }
     return cif_buf_write(buf, &terminator, sizeof(int));
@@ -682,29 +693,38 @@ static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf) {
     size_t capacity;
 
     if (cif_buf_read(buf, &capacity, sizeof(size_t)) == sizeof(size_t)) { 
-        cif_value_t **elements = (cif_value_t **) malloc(sizeof(cif_value_t *) * capacity);
-
-        if (elements != NULL) {
-            size_t size;
-
-            for (size = 0; size < capacity; size += 1) {
-                elements[size] = NULL;  /* TODO: check whether this initialization can be avoided */
-                DESERIALIZE(cif_value_t, elements[size], buf, HANDLER_LABEL(element));
-            }
-
-            /* the 'list' argument is modified only now that we have successfully deserialized a whole list */
+        if (capacity == 0) {
+            /* an empty list */
             cif_list_init(list);
-            list->elements = elements;
-            list->capacity = capacity;
-            list->size = size;
+            list->elements = NULL;
+            list->capacity = 0;
+            list->size = 0;
             return CIF_OK;
+        } else {
+            cif_value_t **elements = (cif_value_t **) malloc(sizeof(cif_value_t *) * capacity);
 
-            FAILURE_HANDLER(element):
-            while (size > 0) {
-                size -= 1;
-                cif_value_free(elements[size]);
+            if (elements != NULL) {
+                size_t size;
+
+                for (size = 0; size < capacity; size += 1) {
+                    elements[size] = NULL;  /* essential */
+                    DESERIALIZE(cif_value_t, elements[size], buf, HANDLER_LABEL(element));
+                }
+
+                /* the 'list' argument is modified only now that we have successfully deserialized a whole list */
+                cif_list_init(list);
+                list->elements = elements;
+                list->capacity = capacity;
+                list->size = size;
+                return CIF_OK;
+
+                FAILURE_HANDLER(element):
+                while (size > 0) {
+                    size -= 1;
+                    cif_value_free(elements[size]);
+                }
+                free(elements);
             }
-            free(elements);
         }
     }
 
@@ -722,13 +742,14 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
     FAILURE_HANDLING;
     cif_value_t temp;
     UChar *key;
+    UChar *key_orig;
     struct entry_s *entry;
 
     cif_table_init(&(temp.as_table));
     for (;;) {
         int flag;
 
-        if (cif_buf_read(buf, &flag, sizeof(int)) != CIF_OK) {
+        if (cif_buf_read(buf, &flag, sizeof(int)) != sizeof(int)) {
             DEFAULT_FAIL(key);
         } else {
             switch (flag) {
@@ -739,9 +760,12 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
                 case SERIAL_ENTRY_SEPARATOR:
                     key = NULL;
                     DESERIALIZE_USTRING(key, buf, HANDLER_LABEL(key));
+                    key_orig = NULL;
+                    DESERIALIZE_USTRING(key_orig, buf, HANDLER_LABEL(key_orig));
                     entry = NULL;
                     DESERIALIZE(struct entry_s, entry, buf, HANDLER_LABEL(value));
                     entry->key = key;
+                    entry->key_orig = ((key_orig == NULL) ? key : key_orig);
 #undef  uthash_fatal
 #define uthash_fatal(msg) DEFAULT_FAIL(hash)
                     HASH_ADD_KEYPTR(hh, temp.as_table.map.head, entry->key, U_BYTES(entry->key), entry);
@@ -756,6 +780,9 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
     cif_value_free(&(entry->as_value));
 
     FAILURE_HANDLER(value):
+    free(key_orig);
+
+    FAILURE_HANDLER(key_orig):
     free(key);
 
     FAILURE_HANDLER(key):
@@ -1693,12 +1720,11 @@ int cif_value_free(union cif_value_u *value) {
 int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
     FAILURE_HANDLING;
     cif_value_t *temp;
-    cif_value_t *to_free;
+    cif_value_t *to_free = NULL;
 
     if (*clone != NULL) {
         if (cif_value_clean(*clone) != CIF_OK) DEFAULT_FAIL(soft);
         temp = *clone;
-        to_free = NULL;
     } else {
         if (cif_value_create(CIF_UNK_KIND, &temp) != CIF_OK) DEFAULT_FAIL(soft);
         to_free = temp;

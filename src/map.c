@@ -46,7 +46,7 @@ static int cif_map_clean(cif_map_t *map) {
 static int cif_map_get_keys(cif_map_t *map, const UChar ***names) {
     FAILURE_HANDLING;
     size_t name_count = (size_t) HASH_COUNT(map->head);
-    const UChar **temp = (const UChar **) malloc(sizeof(UChar *) * (name_count + 1));
+    const UChar **temp = (const UChar **) malloc(sizeof(const UChar *) * (name_count + 1));
 
     if (temp != NULL) {
         struct entry_s *item;

@@ -37,7 +37,9 @@ compiled_tests = \
     $(testdir)/test_value_clone \
     $(testdir)/test_packet_create \
     $(testdir)/test_packet_set_item \
-    $(testdir)/test_packet_remove_item
+    $(testdir)/test_packet_remove_item \
+    $(testdir)/test_container_set_value1
+# nested complex values
 # cif_container_get_value
 #   - invalid name
 #   - absent

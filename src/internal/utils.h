@@ -70,9 +70,9 @@ extern UFILE *ustderr;
  */
 #define DEBUG_WRAP(db,f) ( \
   (_debug_result = (f)), \
-  (_debug_result == SQLITE_OK) ? 0 \
+  ((_debug_result == SQLITE_OK) ? 0 \
     : fprintf(stderr, "At line %d in " __FILE__ ", SQLite error code %d: %s\n", __LINE__, \
-              _debug_result, sqlite3_errmsg(db)), \
+              _debug_result, sqlite3_errmsg(db))), \
   _debug_result \
 )
 /*
@@ -284,7 +284,7 @@ extern UFILE *ustderr;
 } while (0)
 
 /*
- * Prepares an existing SQL statement of the specified CIF for reuse, or 
+ * Prepares an existing SQL statement of the specified CIF for reuse, or
  * prepares a new one if it cannot do so.  Causes CIF_ERROR to
  * be returned from the context function if a presumed-usable statement is
  * not ultimately prepared.
@@ -436,29 +436,29 @@ extern UFILE *ustderr;
     sqlite3_stmt *_stmt = (_s); \
     cif_value_t *_value = (_val); \
     int _col_ofs = (_ofs); \
-    /*@shared@*/ const void *_blob; \
-    _value->kind = (cif_kind_t) sqlite3_column_int(_stmt, _col_ofs + 1); \
+    const void *_blob; \
+    _value->kind = (cif_kind_t) sqlite3_column_int(_stmt, _col_ofs); \
     switch (_value->kind) { \
         case CIF_CHAR_KIND: \
             GET_COLUMN_STRING(_stmt, _col_ofs + 2, _value->as_char.text, HANDLER_LABEL(errlabel)); \
             if (_value->as_char.text != NULL) break; \
             FAIL(errlabel, CIF_INTERNAL_ERROR); \
         case CIF_NUMB_KIND: \
-            GET_COLUMN_STRING(_stmt, _col_ofs + 3, _value->as_numb.text, HANDLER_LABEL(errlabel)); \
-            GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 4, _value->as_numb.digits, HANDLER_LABEL(errlabel)); \
+            GET_COLUMN_STRING(_stmt, _col_ofs + 2, _value->as_numb.text, HANDLER_LABEL(errlabel)); \
+            GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 3, _value->as_numb.digits, HANDLER_LABEL(errlabel)); \
             if ((_value->as_numb.text != NULL) && (*(_value->as_numb.text) != 0) && (_value->as_numb.digits != NULL) \
                     && (*(_value->as_numb.digits) != '\0')) { \
-                GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 5, _value->as_numb.su_digits, HANDLER_LABEL(errlabel)); \
-                _value->as_numb.scale = sqlite3_column_int(_stmt, _col_ofs + 6); \
+                GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 4, _value->as_numb.su_digits, HANDLER_LABEL(errlabel)); \
+                _value->as_numb.scale = sqlite3_column_int(_stmt, _col_ofs + 5); \
                 _value->as_numb.sign = (*(_value->as_numb.text) == UCHAR_MINUS) ? -1 : 1; \
                 break; \
             } \
             FAIL(errlabel, CIF_INTERNAL_ERROR); \
         case CIF_LIST_KIND: \
         case CIF_TABLE_KIND: \
-            _blob = (const void *) sqlite3_column_blob(_stmt, _col_ofs + 2); \
+            _blob = (const void *) sqlite3_column_blob(_stmt, _col_ofs + 1); \
             if ((_blob != NULL) && (cif_value_deserialize( \
-                    _blob, (size_t) sqlite3_column_bytes(_stmt, _col_ofs + 2), _value) != NULL)) { \
+                    _blob, (size_t) sqlite3_column_bytes(_stmt, _col_ofs + 1), _value) != NULL)) { \
                 break; \
             } \
             FAIL(errlabel, CIF_INTERNAL_ERROR); \
@@ -485,18 +485,28 @@ extern "C" {
  * An internal version of cif_create_block() that allows block code validation to be suppressed (when 'lenient' is
  * nonzero)
  */
-int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_block_t **block) INTERNAL ;
+int cif_create_block_internal(
+        cif_t *cif,
+        const UChar *code,
+        int lenient,
+        cif_block_t **block
+        ) INTERNAL ;
 
 /*
  * An internal version of cif_block_create_frame() that allows frame code validation to be suppressed (when 'lenient' is
  * nonzero)
  */
-int cif_block_create_frame_internal(cif_block_t *block, const UChar *code, int lenient, cif_frame_t **frame) INTERNAL ;
+int cif_block_create_frame_internal(
+        cif_block_t *block,
+        const UChar *code,
+        int lenient,
+        cif_frame_t **frame
+        ) INTERNAL ;
 
 /*
  * Creates a new packet for the given item names, and records a pointer to it where the given pointer points.  The
  * names are assumed already normalized, as if by cif_normalize_name()
- * 
+ *
  * packet: a pointer to the location were the address of the new packet should be written
  * names:  a pointer to a NULL-terminated array of Unicode string pointers containing the data names to be
  *         represented in the new packet; may contain zero names
@@ -504,8 +514,8 @@ int cif_block_create_frame_internal(cif_block_t *block, const UChar *code, int l
  *         the pointers to them are copied.
  */
 int cif_packet_create_norm(
-        cif_packet_t **packet, 
-        UChar **names, 
+        cif_packet_t **packet,
+        UChar **names,
         int standalone
         ) INTERNAL;
 
@@ -523,13 +533,17 @@ int cif_packet_create_norm(
  *     but the return code still indicates whether normalization succeeded
  * invalidityCode: the return code to use in the event that the specified name
  *     does not meet the validity criteria for a frame or block code
- * 
+ *
  * The normalization applied by this function is to convert the input to Unicode
  * normalization form NFD, then case-fold the result, and finally to transform
  * the case-folded string to Unicode normalization form NFC.
  */
-int cif_normalize_name(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namelen,
-        /*@in@*/ /*@temp@*/ UChar **normalized_name, int invalidityCode) /*@modifies *normalized_name@*/ INTERNAL;
+int cif_normalize_name(
+        const UChar *name,
+        int32_t namelen,
+        UChar **normalized_name,
+        int invalidityCode
+        ) INTERNAL;
 
 /*
  * Validates a CIF data name, and creates a normalized version suitable for use
@@ -544,13 +558,17 @@ int cif_normalize_name(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namelen,
  *     but the return code still indicates whether normalization succeeded
  * invalidityCode: the return code to use in the event that the specified name
  *     does not meet the validity criteria for a data name
- * 
+ *
  * The normalization applied by this function is to convert the input to Unicode
  * normalization form NFD, then case-fold the result, and finally to transform
  * the case-folded string to Unicode normalization form NFC.
  */
-int cif_normalize_item_name(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namelen,
-        /*@in@*/ /*@temp@*/ UChar **normalized_name, int invalidityCode) /*@modifies *normalized_name@*/ INTERNAL;
+int cif_normalize_item_name(
+        const UChar *name,
+        int32_t namelen,
+        UChar **normalized_name,
+        int invalidityCode
+        ) INTERNAL;
 
 /*
  * Validates a CIF table index, and creates a normalized version suitable for use
@@ -565,18 +583,24 @@ int cif_normalize_item_name(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namel
  *     but the return code still indicates whether normalization succeeded
  * invalidityCode: the return code to use in the event that the specified name
  *     does not meet the validity criteria for a data name
- * 
+ *
  * The normalization applied by this function is simply to convert the input to
  * Unicode normalization form NFC
  */
-int cif_normalize_table_index(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namelen,
-        /*@in@*/ /*@temp@*/ UChar **normalized_name, int invalidityCode) /*@modifies *normalized_name@*/ INTERNAL;
+int cif_normalize_table_index(
+        const UChar *name,
+        int32_t namelen,
+        UChar **normalized_name,
+        int invalidityCode
+        ) INTERNAL;
 
 /*
  * Serializes a value to this library's internal serialization format.
  * Returns NULL if serialization fails (most likely because of insufficient memory).
  */
-/*@only@*/ /*@null@*/ buffer_t *cif_value_serialize(/*@temp@*/ cif_value_t *value) INTERNAL;
+buffer_t *cif_value_serialize(
+        cif_value_t *value
+        ) INTERNAL;
 
 /*
  * Deserializes a value from this library's internal serialization format.
@@ -586,10 +610,11 @@ int cif_normalize_table_index(/*@in@*/ /*@temp@*/ const UChar *name, int32_t nam
  * or NULL if deserialization fails (most likely because of insufficient memory
  * or a format error).
  */
-/*@only@*/ cif_value_t *cif_value_deserialize(
-        /*@temp@*/ const void *src,
+cif_value_t *cif_value_deserialize(
+        const void *src,
         size_t len,
-        /*@temp@*/ cif_value_t *dest) INTERNAL;
+        cif_value_t *dest
+        ) INTERNAL;
 
 /*
  * Sets any and all (possibly looped) values for the specified item in the
@@ -598,16 +623,17 @@ int cif_normalize_table_index(/*@in@*/ /*@temp@*/ const UChar *name, int32_t nam
  * transaction management is performed.
  */
 int cif_container_set_all_values(
-        /*@temp@*/ cif_container_t *container,
-        /*@temp@*/ const UChar *item_name,
-        /*@temp@*/ cif_value_t *val) INTERNAL;
+        cif_container_t *container,
+        const UChar *item_name,
+        cif_value_t *val
+        ) INTERNAL;
 
 /*
  * Releases all resources associated with the specified packet iterator.  This is intended for internal
  * use by the library -- client code should instead call cif_pkitr_close() or cif_pktitr_abort().
  */
 int cif_pktitr_free(
-        /*@only@*/ cif_pktitr_t *iterator
+        cif_pktitr_t *iterator
         ) INTERNAL;
 
 /*
@@ -616,13 +642,17 @@ int cif_pktitr_free(
  *
  * @param[in,out] scanner a pointer to a scanner structure initialized with character source properties, user options,
  *         and an initial CIF version assertion / evaluation
- * @param[in] not_utf8 if non-zero, indicates that the characters provided by the scanner's character source are known 
+ * @param[in] not_utf8 if non-zero, indicates that the characters provided by the scanner's character source are known
  *         to be derived from an encoded byte sequence via an encoding different from UTF-8
  * @param[in,out] dest a pointer to a @c cif_t object to update with the CIF data read from the provided source.  May
  *         be NULL, in which case a semantic-free syntax check of the provided character stream is performed without
  *         recording anything
  */
-int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest);
+int cif_parse_internal(
+        struct scanner_s *scanner,
+        int not_utf8,
+        cif_t *dest
+        );
 
 #ifdef __cplusplus
 }

@@ -41,10 +41,13 @@ typedef union {
     write_buffer_t for_writing;
 } buffer_t;
 
+/*
+ * Frees a read_buffer_t or a write_buffer_t structure WITHOUT freeing the raw
+ * buffered data (member 'start' of either type).
+ */
 #define cif_buf_free_metadata(buf) do { \
   buffer_t *b = (buf); \
   if (b) { \
-    free(b->for_writing.start); \
     free(b); \
   } \
 } while (0)

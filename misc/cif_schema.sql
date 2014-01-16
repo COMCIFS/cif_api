@@ -111,7 +111,7 @@ create table loop (
 );
 
 create index ix1_loop
-  on loop(container_id, category);
+  on loop (container_id, category);
 
 --
 -- Restrict each container to one scalar loop on insert
@@ -264,12 +264,12 @@ create table item_value (
     on update cascade
     on delete cascade,
   check (row_num > 0),
-  check (case when (val is null) then (kind in (4, 5)) else (kind not in (4, 5)) end),
-  check (case when (val_text is null) then (kind not in (0, 1)) else (kind in (0, 1)) end),
+  check (case when (val is null) then kind in (4, 5) else kind in (0, 1, 2, 3) end),
+  check ((val_text is null) = (kind not in (0, 1))),
   check (case when (kind = 1) then (scale is not null)
-        and (length(val_digits) > 0) and (val_digits not glob '*[!0-9]*')
-        and ((su_digits is null) or ((length(su_digits) > 0) and (su_digits not glob '*[!0-9]*')))
-    else coalesce(val_digits, su_digits, scale) is null end)
+        and (length(val_digits) > 0) and (val_digits not glob '*[^0-9]*')
+        and ((su_digits is null) or ((length(su_digits) > 0) and (su_digits not glob '*[^0-9]*')))
+      else (coalesce(val_digits, su_digits, scale) is null) end)
 );
 
 --

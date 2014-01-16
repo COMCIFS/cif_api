@@ -6,6 +6,9 @@
  * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
  */
 
+#ifndef TESTS_TEST_H
+#define TESTS_TEST_H
+
 #include <stdio.h>
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
@@ -171,4 +174,5 @@ static UFILE *ustderr = NULL;
     } \
 } while (0)
 
+#endif
 

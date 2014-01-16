@@ -76,60 +76,58 @@
  * returns CIF_OK if normalization is successful, invalidityCode if the input name is found invalid, or CIF_ERROR if
  *     validation/normalization fails
  */
-typedef int (*name_normalizer_f)(/*@in@*/ /*@temp@*/ const UChar *name, int32_t namelen,
-        /*@in@*/ /*@temp@*/ UChar **normalized_name, int invalidityCode) /*@modifies *normalized_name@*/;
+typedef int (*name_normalizer_f)(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode);
 
 /* a whole CIF */
 
 struct cif_s {
-   /*@only@*/ sqlite3 *db;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *create_block_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_block_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_blocks_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *create_frame_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_frame_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_frames_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *destroy_container_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *validate_container_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *create_loop_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_loopnum_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *set_loop_category_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *add_loopitem_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_cat_loop_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_item_loop_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_all_loops_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *prune_container_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_value_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *set_all_values_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_loop_size_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *remove_item_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *destroy_loop_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *get_loop_names_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *add_loop_item_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *max_packet_num_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *check_item_loop_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *insert_value_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *update_packet_item_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *insert_packet_item_stmt;
-   /*@only@*/ /*@null@*/ sqlite3_stmt *remove_packet_stmt;
+   sqlite3 *db;
+   sqlite3_stmt *create_block_stmt;
+   sqlite3_stmt *get_block_stmt;
+   sqlite3_stmt *get_all_blocks_stmt;
+   sqlite3_stmt *create_frame_stmt;
+   sqlite3_stmt *get_frame_stmt;
+   sqlite3_stmt *get_all_frames_stmt;
+   sqlite3_stmt *destroy_container_stmt;
+   sqlite3_stmt *validate_container_stmt;
+   sqlite3_stmt *create_loop_stmt;
+   sqlite3_stmt *get_loopnum_stmt;
+   sqlite3_stmt *set_loop_category_stmt;
+   sqlite3_stmt *add_loop_item_stmt;
+   sqlite3_stmt *get_cat_loop_stmt;
+   sqlite3_stmt *get_item_loop_stmt;
+   sqlite3_stmt *get_all_loops_stmt;
+   sqlite3_stmt *prune_container_stmt;
+   sqlite3_stmt *get_value_stmt;
+   sqlite3_stmt *set_all_values_stmt;
+   sqlite3_stmt *get_loop_size_stmt;
+   sqlite3_stmt *remove_item_stmt;
+   sqlite3_stmt *destroy_loop_stmt;
+   sqlite3_stmt *get_loop_names_stmt;
+   sqlite3_stmt *max_packet_num_stmt;
+   sqlite3_stmt *check_item_loop_stmt;
+   sqlite3_stmt *insert_value_stmt;
+   sqlite3_stmt *update_packet_item_stmt;
+   sqlite3_stmt *insert_packet_item_stmt;
+   sqlite3_stmt *remove_packet_stmt;
 };
 
 /* data containers block and frame */
 
 struct cif_container_s {
-    /*@shared@*/ cif_t *cif;
+    cif_t *cif;
     sqlite_int64 id;
-    /*@only@*/ UChar *code;
-    /*@only@*/ UChar *code_orig;
+    UChar *code;
+    UChar *code_orig;
     sqlite_int64 block_id;
 };
 
 /* loops */
 
 struct cif_loop_s {
-    /*@shared@*/ cif_container_t *container;
+    cif_container_t *container;
     int loop_num;
-    /*@only@*/ /*@null@*/ UChar *category;
+    UChar *category;
     UChar **names;
 };
 
@@ -148,9 +146,9 @@ struct entry_s;
  * underlying structure.
  */
 typedef struct cif_map_s {
-    /*@only@*/ /*@null@*/ struct entry_s *head;  /* must be initialized to NULL! */
+    struct entry_s *head;  /* must be initialized to NULL! */
     int is_standalone; /* In (only) standalone maps, the keys belong to the entries */
-    /*@shared@*/ name_normalizer_f normalizer;
+    name_normalizer_f normalizer;
 } cif_map_t;
 
 struct cif_packet_s {
@@ -163,8 +161,8 @@ struct cif_packet_s {
  */
 struct cif_pktitr_s {
     sqlite3_stmt *stmt;
-    /*@shared@*/ cif_loop_t *loop;
-    /*@only@*/ UChar **item_names;
+    cif_loop_t *loop;
+    UChar **item_names;
     struct set_element_s *name_set;
     int previous_row_num;
 };
@@ -188,7 +186,7 @@ typedef struct numb_value_s {
      * consisting of a single zero.
      */
     char *digits;
-    /*@null@*/ char *su_digits;
+    char *su_digits;
     int scale;
 } cif_numb_t;
 
@@ -196,7 +194,7 @@ struct list_element_s;
 
 typedef struct list_value_s {
     cif_kind_t kind;  /* expected: CIF_LIST_KIND */
-    /*@only@*/ /*@null@*/ cif_value_t **elements;
+    cif_value_t **elements;
     size_t size;
     size_t capacity;
 } cif_list_t;
@@ -217,7 +215,7 @@ union cif_value_u {
 
 struct list_element_s {
     cif_value_t as_value; /* not a pointer */
-    /*@shared@*/ /*@null@*/ struct list_element_s *next;
+    struct list_element_s *next;
 };
 
 struct entry_s {

@@ -306,6 +306,7 @@ int cif_loop_add_item(
     UChar *norm_name;
     int result;
 
+    TRACELINE;
     result = cif_normalize_item_name(item_name, -1, &norm_name, CIF_INVALID_ITEMNAME);
     if (result != CIF_OK) {
         SET_RESULT(result);
@@ -324,28 +325,36 @@ int cif_loop_add_item(
          * Create any needed prepared statements, or prepare the existing one(s)
          * for re-use, exiting this function with an error on failure.
          */
-        PREPARE_STMT(cif, add_loopitem, ADD_LOOP_ITEM_SQL);
+        PREPARE_STMT(cif, add_loop_item, ADD_LOOP_ITEM_SQL);
 
-        if ((norm_name != NULL) && (BEGIN_NESTTX(cif->db) == SQLITE_OK)) {
-            if ((sqlite3_bind_int64(cif->add_loop_item_stmt, 1, container->id) == SQLITE_OK)
-                    && (sqlite3_bind_text16(cif->add_loop_item_stmt, 2, norm_name, -1, SQLITE_STATIC) == SQLITE_OK)
-                    && (sqlite3_bind_text16(cif->add_loop_item_stmt, 3, item_name, -1, SQLITE_STATIC) == SQLITE_OK)
-                    && (sqlite3_bind_int(cif->add_loop_item_stmt, 4, loop->loop_num) == SQLITE_OK)
+        TRACELINE;
+        assert(norm_name != NULL);
+        if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
+            TRACELINE;
+            if ((DEBUG_WRAP(cif->db, sqlite3_bind_int64(cif->add_loop_item_stmt, 1, container->id)) == SQLITE_OK)
+                    && (DEBUG_WRAP(cif->db, sqlite3_bind_text16(cif->add_loop_item_stmt, 2, norm_name, -1, SQLITE_STATIC)) == SQLITE_OK)
+                    && (DEBUG_WRAP(cif->db, sqlite3_bind_text16(cif->add_loop_item_stmt, 3, item_name, -1, SQLITE_STATIC)) == SQLITE_OK)
+                    && (DEBUG_WRAP(cif->db, sqlite3_bind_int(cif->add_loop_item_stmt, 4, loop->loop_num)) == SQLITE_OK)
                     ) {
                 STEP_HANDLING;
 
+                TRACELINE;
                 switch (STEP_STMT(cif, add_loop_item)) {
                     case SQLITE_DONE:
+                        TRACELINE;
                         if ((cif_container_set_all_values(container, norm_name, val) == CIF_OK)
                                 && (COMMIT_NESTTX(cif->db) == SQLITE_OK)) {
+                            free(norm_name);
                             return CIF_OK;
                         }
                         break;
                     case SQLITE_ROW:
                         /* should not happen -- the insert statement should not return any rows */
+                        TRACELINE;
                         sqlite3_reset(cif->add_loop_item_stmt);
                         break;
                     case SQLITE_ERROR:
+                        TRACELINE;
                         if (sqlite3_reset(cif->add_loop_item_stmt) == SQLITE_CONSTRAINT) {
                             FAIL(soft, CIF_DUP_ITEMNAME);
                         } /* else drop out the bottom and fail */
@@ -355,10 +364,12 @@ int cif_loop_add_item(
             ROLLBACK_NESTTX(cif->db);
         }
 
-        DROP_STMT(cif, add_loopitem);
+        DROP_STMT(cif, add_loop_item);
+
+        FAILURE_HANDLER(soft):
+        free(norm_name);
     }
 
-    FAILURE_HANDLER(soft):
     FAILURE_TERMINUS;
 }
 
@@ -398,7 +409,8 @@ int cif_loop_add_packet(
             /* determine the packet number to use */
             switch (STEP_STMT(cif, max_packet_num)) {
                 case SQLITE_ROW:
-                    row_num = sqlite3_column_int(cif->max_packet_num_stmt, 1) + 1;
+                    TRACELINE;
+                    row_num = sqlite3_column_int(cif->max_packet_num_stmt, 0) + 1;
                     if ((sqlite3_reset(cif->max_packet_num_stmt) == SQLITE_OK)
                             && (sqlite3_clear_bindings(cif->max_packet_num_stmt) == SQLITE_OK)
                             && (sqlite3_bind_int64(cif->check_item_loop_stmt, 1, container->id) == SQLITE_OK)
@@ -421,42 +433,52 @@ int cif_loop_add_packet(
                                 switch(STEP_STMT(cif, check_item_loop)) {
                                     case SQLITE_DONE:
                                         /* the item does not belong to this loop */
+                                        TRACELINE;
                                         FAIL(rb, CIF_WRONG_LOOP);
                                     case SQLITE_ROW:
+                                        TRACELINE;
                                         if (sqlite3_reset(cif->check_item_loop_stmt) != SQLITE_OK) {
                                             DEFAULT_FAIL(rb);
                                         }
                                         break;  /* break from switch */
                                     default:
+                                        TRACELINE;
                                         DEFAULT_FAIL(hard);
                                 }
                             }
 
-                            if ((sqlite3_bind_int64(cif->insert_value_stmt, 1, container->id) != SQLITE_OK)
-                                    || (sqlite3_bind_text16(cif->insert_value_stmt, 2, item->key, -1, SQLITE_STATIC)
-                                            != SQLITE_OK)
-                                    || (sqlite3_bind_int(cif->insert_value_stmt, 3, row_num) != SQLITE_OK)
-                                    || (sqlite3_bind_int(cif->insert_value_stmt, 4, item->as_value.kind)
-                                            != SQLITE_OK)) {
+                            TRACELINE;
+                            if ((sqlite3_bind_int64(cif->insert_value_stmt, 1, container->id) == SQLITE_OK)
+                                    && (sqlite3_bind_text16(cif->insert_value_stmt, 2, item->key, -1, SQLITE_STATIC)
+                                            == SQLITE_OK)
+                                    && (sqlite3_bind_int(cif->insert_value_stmt, 3, row_num) == SQLITE_OK)
+                                    && (sqlite3_bind_int(cif->insert_value_stmt, 4, item->as_value.kind)
+                                            == SQLITE_OK)) {
                                 SET_VALUE_PROPS(cif->insert_value_stmt, 4, &(item->as_value), hard, rb);
+                                TRACELINE;
                                 switch (STEP_STMT(cif, insert_value)) {
                                     case SQLITE_DONE:
                                         /* one value recorded; move on to the next, if any */
+                                        TRACELINE;
                                         if (sqlite3_clear_bindings(cif->insert_value_stmt) != SQLITE_OK) {
                                             DEFAULT_FAIL(hard);
                                         }
                                         continue;
                                     case SQLITE_ROW:
                                         /* should not happen: insert statements do not return rows */
+                                        TRACELINE;
                                         FAIL(rb, CIF_INTERNAL_ERROR);
                                     default:
+                                        TRACELINE;
                                         break; /* falls out of the switch, ultimately to fail hard */
                                 }
                             }
 
+                            TRACELINE;
                             break; /* break out of the loop */
 
                             FAILURE_HANDLER(rb):
+                            TRACELINE;
                             ROLLBACK_NESTTX(cif->db);
                             DEFAULT_FAIL(soft);
                         }
@@ -464,6 +486,7 @@ int cif_loop_add_packet(
                     break;
                 case SQLITE_DONE:
                     /* should not happen: an aggregate selection must always return a row */
+                    TRACELINE;
                     (void) ROLLBACK_NESTTX(cif->db);
                     FAIL(soft, CIF_INTERNAL_ERROR);
             }

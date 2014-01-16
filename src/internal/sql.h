@@ -39,8 +39,6 @@
 
 #define SET_CATEGORY_SQL "update loop set category = ? where container_id = ? and loop_num = ?"
 
-#define ADD_LOOPITEM_SQL "insert into loop_item(container_id, loop_num, name, name_orig) values (?, ?, ?, ?)"
-
 #define GET_CAT_LOOP_SQL "select loop_num from loop where container_id = ? and category = ?"
 
 #define GET_ITEM_LOOP_SQL "select l.loop_num, l.category from loop l " \
@@ -58,21 +56,16 @@
         "from item_value where container_id = ? and name = ?"
 
 /*
-#define SET_ALL_VALUES_SQL "update item_value " \
-        "set kind = ?, val_text = ?, val = ?, val_digits = ?, su_digits = ? scale = ?" \
-        "where container_id = ? and name = ?"
-*/
-/*
- * This version of the set-all-values statement both updates existing values and sets omitted values in all packets
- * of the loop containing the specified name in the specified container:
+ * This statement both updates existing values and sets omitted values in all packets of the loop containing the
+ * specified name in the specified container:
  */
 #define SET_ALL_VALUES_SQL "insert or replace into item_value " \
   "(kind, val_text, val, val_digits, su_digits, scale, container_id, name, row_num) " \
-  "select distinct ?, ?, ?, ?, ?, ?, ?7, ?8, iv.row_num " \
+  "select distinct ?, ?, ?, ?, ?, ?, li1.container_id, li1.name, iv.row_num " \
      "from loop_item li1 " \
        "join loop_item li2 on li1.container_id = li2.container_id and li1.loop_num = li2.loop_num " \
        "join item_value iv on li2.container_id = iv.container_id and li2.name = iv.name " \
-     "where li1.container_id = ?7 and li1.name = ?8"
+     "where li1.container_id = ? and li1.name = ?"
 
 #define GET_LOOP_SIZE_SQL "select loop_num, count(*) as size " \
         "from loop_item li1 join loop_item li2 using (container_id, loop_num) " \

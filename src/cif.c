@@ -107,7 +107,7 @@ int cif_create(cif_t **cif) {
                         INIT_STMT(temp, create_loop);
                         INIT_STMT(temp, get_loopnum);
                         INIT_STMT(temp, set_loop_category);
-                        INIT_STMT(temp, add_loopitem);
+                        INIT_STMT(temp, add_loop_item);
                         INIT_STMT(temp, get_cat_loop);
                         INIT_STMT(temp, get_item_loop);
                         INIT_STMT(temp, get_all_loops);
@@ -118,7 +118,6 @@ int cif_create(cif_t **cif) {
                         INIT_STMT(temp, remove_item);
                         INIT_STMT(temp, destroy_loop);
                         INIT_STMT(temp, get_loop_names);
-                        INIT_STMT(temp, add_loop_item);
                         INIT_STMT(temp, max_packet_num);
                         INIT_STMT(temp, check_item_loop);
                         INIT_STMT(temp, insert_value);
