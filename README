@@ -1,10 +1,66 @@
-CIF API 0.1.0
+CIF API 0.2.0
+=============
 
 The CIF API provides a standard C interface for reading, writing, and
-manipulating Crystallographic Information Files (CIFs).
+manipulating Crystallographic Information Files (CIFs).  It is targeted
+in particular at CIF 2.0, but it provides support for CIF 1.1 and earlier
+as well.
 
-Refer to file INSTALL for installation instructions.
+Pre-built, doxygen-generated programmer's documentation is available in
+dox-html/, and pre-built, doxygen-generated man pages are available in
+dox-man/.
 
 Refer to file COPYING for conditions for copying the contents of the
-package.
+package, in either source or binary form, except the contents of the uthash/
+directory.  See uthash/LICENSE for information about copying the contents of
+that directory; it is under those terms that uthash is herein distributed to
+you.  Note that the uthash license terms permit *binary* distribution without
+constraint.
+
+Refer to file INSTALL for general installation instructions.  Build details
+specific to this package follow:
+
+* The package depends on the International Components for Unicode (ICU), so
+  its headers and development libraries are required to build the project,
+  and at least the ICU development libraries will be required to build
+  programs that use the CIF API library.  The CIF API was developed and tested
+  against ICU 3.6, and it is expected to be compatible also with more recent
+  versions.
+
+* The package depends on SQLite for its CIF storage engine.  It was developed
+  and tested against SQLite 3.6.20, and is expected to work with many later
+  versions.  It depends on foreign key support, which was introduced in
+  version 3.6.19, so versions earlier than that are not supported.
+
+* Configuring the project requires the pkg-config program, and pkg-config data
+  for ICU.
+
+* The reference C compiler employed for package development was GNU gcc 4.1.2.
+  Considerable effort was devoted, however, to restricting implementation code
+  to the intersection of standard C90 and standard C99, and additionally to
+  avoiding code that has different meaning in C and C++.  With very few
+  caveats, any compiler that is compliant with any one of C90, C99, or C++98
+  should be able to build the project.
+
+* At present, the --enable-extra-warnings configuration option is effective
+  only for gcc.
+
+* Configuring the project successfully depends on a line-counting command.
+  The configure program will attempt to guess at a suitable one, but if it
+  cannot find one it recognizes then the builder may need to specify an
+  appropriate one via the --with-line-counter configuration option.  Example:
+      ./configure --with-line-counter='/usr/bin/wc --lines'
+  (Though configure knows about wc in particular, so you should not need this
+  option if wc is present in the executable path.)  The line-counter is a
+  build-time requirement only; it is no longer required once the library is
+  built.
+
+* There are a handful of other project-specific configuration options, but
+  they are adequately explained in configure's help text.
+
+
+The principal author of the CIF API software, documentation, and build system
+is John C. Bollinger, Ph.D, of Memphis, Tennessee, U.S.A..  E-mail
+correspondance intended for him may be directed to
+    John <DOT> Bollinger <AT> StJude <DOT> org.
 
