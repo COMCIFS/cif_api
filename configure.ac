@@ -7,7 +7,10 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([CIF API], [0.2.0], [John.Bollinger@StJude.org])
+dnl quoting delimiters in the bug report address does not affect the generated
+dnl configure script, but may offer some protection against the address being
+dnl scraped from this Autoconf file:
+AC_INIT([CIF API], [0.2.0], [John[.]Bollinger[@]StJude[.]org])
 AC_CONFIG_SRCDIR([src/cif.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])

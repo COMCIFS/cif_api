@@ -59,11 +59,22 @@ compiled_tests = \
 #   - item not present
 #   - present in multi-item loop
 #   - present in single-item loop
+#   - last item of its loop
+#   - last item of the scalar loop
 # cif_loop_add_item
 # cif_loop_add_packet
+#   - empty packet
+#   - some items
+#   - all items
+#   - item for wrong loop
+#   - loop initially empty
+#   - loop initially non-empty
+#   - scalar loop
 # cif_loop_get_packets
 # cif_pktitr_close
+#   - changes persist
 # cif_pktitr_abort
+#   - changes rolled back
 # cif_pktitr_next_packet
 # cif_pktitr_update_packet
 # cif_pktitr_remove_packet
@@ -73,6 +84,7 @@ compiled_tests = \
 # cif_write
 
 check_PROGRAMS = $(compiled_tests)
+EXTRA_DIST += tests/assert_value.h
 
 TESTS = \
   $(testdir)/link.test \

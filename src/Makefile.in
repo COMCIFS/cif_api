@@ -477,8 +477,8 @@ LIB_CURRENT = 0
 LIB_REVISION = 0
 LIB_AGE = 0
 LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
-EXTRA_DIST = notes.txt style.txt $(testdir)/link.test \
-	$(testdir)/test.h
+EXTRA_DIST = notes.txt style.txt tests/assert_value.h \
+	$(testdir)/link.test $(testdir)/test.h
 
 # For valgrind tests:
 # TODO: find a cleaner way to do this
