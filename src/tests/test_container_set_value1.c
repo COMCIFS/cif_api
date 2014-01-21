@@ -281,11 +281,29 @@ int main(int argc, char *argv[]) {
     TEST(cif_container_get_value(frame, item6l, &value2), CIF_OK, test_name, 128);
     TEST(cif_value_kind(value2), CIF_UNK_KIND, test_name, 129);
     cif_value_free(value2);
+    value2 = NULL;
     cif_value_free(value1);
 
-    TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 130);
-    TEST(cif_container_set_value(block, invalid, NULL), CIF_INVALID_ITEMNAME, test_name, 131);
-    TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 132);
+    /* test removing values */
+    TEST(cif_container_remove_item(frame, item5l), CIF_OK, test_name, 130);
+    TEST(cif_container_get_value(frame, item5l, &value2), CIF_NOSUCH_ITEM, test_name, 131);
+    TEST(cif_container_get_value(block, item5l, &value2), CIF_OK, test_name, 132);
+    cif_value_free(value2);
+    value2 = NULL;
+    TEST(cif_container_remove_item(frame, item6l), CIF_OK, test_name, 133);
+    TEST(cif_container_get_value(frame, item6l, &value2), CIF_NOSUCH_ITEM, test_name, 134);
+    TEST(cif_container_get_value(block, item6l, &value2), CIF_OK, test_name, 135);
+    cif_value_free(value2);
+
+    /* The item-less loop should be destroyed (?) */
+    TEST(cif_container_get_category_loop(frame, CIF_SCALARS, &loop), CIF_NOSUCH_LOOP, test_name, 136);
+    TEST(cif_container_get_category_loop(block, CIF_SCALARS, &loop), CIF_OK, test_name, 137);
+    cif_loop_free(loop);
+
+    TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 138);
+    TEST(cif_container_set_value(block, invalid, NULL), CIF_INVALID_ITEMNAME, test_name, 139);
+    TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 140);
+
     cif_frame_free(frame);
     cif_block_free(block);
     DESTROY_CIF(test_name, cif);
