@@ -17,9 +17,9 @@
 #include "internal/value.h"
 
 #ifdef __GNUC__
-#define UNUSED   __attribute__ ((unused))
-#define INTERNAL __attribute__ ((visibility ("hidden"), warn_unused_result))
-#define INTERNAL_VOID __attribute__ ((visibility ("hidden")))
+#define UNUSED   __attribute__ ((__unused__))
+#define INTERNAL __attribute__ ((__visibility__ ("hidden"), __warn_unused_result__))
+#define INTERNAL_VOID __attribute__ ((__visibility__ ("hidden")))
 #else
 #define UNUSED
 #define INTERNAL

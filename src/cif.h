@@ -22,7 +22,7 @@
 #include <unicode/ustring.h>
 
 #ifdef __GNUC__
-#define WARN_UNUSED __attribute__ ((warn_unused_result))
+#define WARN_UNUSED __attribute__ ((__warn_unused_result__))
 #else
 #define WARN_UNUSED
 #endif
