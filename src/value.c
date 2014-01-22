@@ -1683,7 +1683,7 @@ int cif_value_create(cif_kind_t kind, cif_value_t **value) {
     FAILURE_TERMINUS;
 }
 
-int cif_value_clean(union cif_value_u *value) {
+void cif_value_clean(union cif_value_u *value) {
     switch (value->kind) {
         case CIF_CHAR_KIND:
             cif_char_value_clean((struct char_value_s *) value);
@@ -1704,17 +1704,13 @@ int cif_value_clean(union cif_value_u *value) {
 
     /* Mark the value as kind CIF_UNK_KIND in case it is cleaned again or freed */
     value->kind = CIF_UNK_KIND;
-
-    return CIF_OK;
 }
 
-int cif_value_free(union cif_value_u *value) {
+void cif_value_free(union cif_value_u *value) {
     if (value != NULL) {
         cif_value_clean(value);
         free(value);
     }
-
-    return CIF_OK;
 }
 
 int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
@@ -1723,7 +1719,7 @@ int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
     cif_value_t *to_free = NULL;
 
     if (*clone != NULL) {
-        if (cif_value_clean(*clone) != CIF_OK) DEFAULT_FAIL(soft);
+        cif_value_clean(*clone);
         temp = *clone;
     } else {
         if (cif_value_create(CIF_UNK_KIND, &temp) != CIF_OK) DEFAULT_FAIL(soft);
@@ -1770,35 +1766,34 @@ int cif_value_init(cif_value_t *value, cif_kind_t kind) {
     if (kind == CIF_NUMB_KIND) {
         return cif_value_init_numb(value, 0.0, 0.0, 0, 1);
     } else {
-        int result = cif_value_clean(value);
+        int result = CIF_OK;
 
-        if (result == CIF_OK) {
-            switch (kind) {
-                case CIF_CHAR_KIND:
-                    value->as_char.text = (UChar *) malloc(sizeof(UChar));
-                    if (value->as_char.text == NULL) {
-                        result = CIF_ERROR;
-                    } else {
-                        *(value->as_char.text) = 0;
-                        value->kind = CIF_CHAR_KIND;
-                    }
-                    break;
-                case CIF_LIST_KIND:
-                    cif_list_init(&(value->as_list));    /* no resource allocation here */
-                    break;
-                case CIF_TABLE_KIND:
-                    cif_table_init(&(value->as_table));  /* no resource allocation here */
-                    break;
-                case CIF_NA_KIND:
-                    value->kind = CIF_NA_KIND;
-                    break;
-                case CIF_UNK_KIND:
-                    /* do nothing */
-                    break;
-                default:
-                    result = CIF_ARGUMENT_ERROR;
-                    break;
-            }
+        cif_value_clean(value);
+        switch (kind) {
+            case CIF_CHAR_KIND:
+                value->as_char.text = (UChar *) malloc(sizeof(UChar));
+                if (value->as_char.text == NULL) {
+                    result = CIF_ERROR;
+                } else {
+                    *(value->as_char.text) = 0;
+                    value->kind = CIF_CHAR_KIND;
+                }
+                break;
+            case CIF_LIST_KIND:
+                cif_list_init(&(value->as_list));    /* no resource allocation here */
+                break;
+            case CIF_TABLE_KIND:
+                cif_table_init(&(value->as_table));  /* no resource allocation here */
+                break;
+            case CIF_NA_KIND:
+                value->kind = CIF_NA_KIND;
+                break;
+            case CIF_UNK_KIND:
+                /* do nothing */
+                break;
+            default:
+                result = CIF_ARGUMENT_ERROR;
+                break;
         }
 
         return result;
@@ -1979,17 +1974,15 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
         *c = '\0';
 
         /* Successful parse; copy results to the target value object */
-        if (cif_value_clean(n) == CIF_OK) {
-            numb->kind = CIF_NUMB_KIND;
-            numb->text = text;
-            numb->sign = n_temp.sign;
-            numb->digits = n_temp.digits;
-            numb->su_digits = n_temp.su_digits;
-            numb->scale = n_temp.scale;
-            return CIF_OK;
-        }
+        cif_value_clean(n);
+        numb->kind = CIF_NUMB_KIND;
+        numb->text = text;
+        numb->sign = n_temp.sign;
+        numb->digits = n_temp.digits;
+        numb->su_digits = n_temp.su_digits;
+        numb->scale = n_temp.scale;
 
-        free(n_temp.digits);
+        return CIF_OK;
     }
 
     FAILURE_HANDLER(late):
@@ -2003,15 +1996,10 @@ int cif_value_init_char(cif_value_t *value, UChar *text) {
     if (text == NULL) {
         return CIF_ARGUMENT_ERROR;
     } else {
-        int clean_result = cif_value_clean(value);
-
-        if (clean_result == CIF_OK) {
-            value->as_char.text = text;
-            value->kind = CIF_CHAR_KIND;
-            return CIF_OK;
-        } else {
-            return clean_result;
-        }
+        cif_value_clean(value);
+        value->as_char.text = text;
+        value->kind = CIF_CHAR_KIND;
+        return CIF_OK;
     }
 }
 
@@ -2045,54 +2033,53 @@ int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int ma
         char *locale = setlocale(LC_NUMERIC, "C");
 
         if (locale != NULL) {
-            if (cif_value_clean(n) == CIF_OK) {
-                char *digit_buf = to_digits(val, scale);
+            char *digit_buf = to_digits(val, scale);
 
-                if (digit_buf != NULL) {
-                    char *su_buf;
+            cif_value_clean(n);
+            if (digit_buf != NULL) {
+                char *su_buf;
 
-                    /* the size of the su digit string, excluding the terminator; 0 for no uncertainty */
-                    ssize_t su_size;
+                /* the size of the su digit string, excluding the terminator; 0 for no uncertainty */
+                ssize_t su_size;
 
-                    if (su > 0) {
-                        su_buf = to_digits(su, scale);
-                        su_size = ((su_buf == NULL) ? -1 : (ssize_t) strlen(su_buf));
-                    } else {
-                        su_buf = NULL;
-                        su_size = 0;
-                    }
-
-                    if ((su_size == 0) || (su_buf != NULL)) {
-                        UChar *text;
-
-                        /* casting 'su_size' (type ssize_t) to type 'size_t' is safe because we know it is > 0 */
-                        if ((scale >= 0) && (-(most_significant_place + 1) <= max_leading_zeroes)) {
-                            /* use decimal notation */
-                            text = format_text_decimal(val, digit_buf, su_buf, (size_t) su_size, scale);
-                        } else {
-                            /* use scientific notation */
-                            text = format_text_sci(val, digit_buf, su_buf, (size_t) su_size, scale);
-                        }
-
-                        if (text != NULL) {
-                            /* assign the formatted results to the value object */
-                            numb->kind = CIF_NUMB_KIND;
-                            numb->sign = (val < 0) ? -1 : 1;
-                            numb->text = text;
-                            numb->digits = digit_buf;
-                            numb->su_digits = su_buf;
-                            numb->scale = scale;
-
-                            /* restore the original locale */
-                            setlocale(LC_NUMERIC, locale);
-
-                            return CIF_OK;
-                        }
-
-                        if (su_buf != NULL) free(su_buf);
-                    }
-                    free(digit_buf);
+                if (su > 0) {
+                    su_buf = to_digits(su, scale);
+                    su_size = ((su_buf == NULL) ? -1 : (ssize_t) strlen(su_buf));
+                } else {
+                    su_buf = NULL;
+                    su_size = 0;
                 }
+
+                if ((su_size == 0) || (su_buf != NULL)) {
+                    UChar *text;
+
+                    /* casting 'su_size' (type ssize_t) to type 'size_t' is safe because we know it is > 0 */
+                    if ((scale >= 0) && (-(most_significant_place + 1) <= max_leading_zeroes)) {
+                        /* use decimal notation */
+                        text = format_text_decimal(val, digit_buf, su_buf, (size_t) su_size, scale);
+                    } else {
+                        /* use scientific notation */
+                        text = format_text_sci(val, digit_buf, su_buf, (size_t) su_size, scale);
+                    }
+
+                    if (text != NULL) {
+                        /* assign the formatted results to the value object */
+                        numb->kind = CIF_NUMB_KIND;
+                        numb->sign = (val < 0) ? -1 : 1;
+                        numb->text = text;
+                        numb->digits = digit_buf;
+                        numb->su_digits = su_buf;
+                        numb->scale = scale;
+
+                        /* restore the original locale */
+                        setlocale(LC_NUMERIC, locale);
+
+                        return CIF_OK;
+                    }
+
+                    if (su_buf != NULL) free(su_buf);
+                }
+                free(digit_buf);
             }
 
             /* restore the original locale */
@@ -2134,8 +2121,10 @@ static int frac_bits(double d, int *exponent) {
  */
 #define BUF_SIZE 50
 int cif_value_autoinit_numb(cif_value_t *numb, double val, double su, unsigned int su_rule) {
-    if ((su >= 0.0) && (su_rule >= 2) && (cif_value_clean(numb) == CIF_OK)) {
+    if ((su >= 0.0) && (su_rule >= 2)) {
         /* Arguments appear valid */
+
+        cif_value_clean(numb);
 
         if (su == 0.0) { /* an exact number */
             int exponent;
@@ -2312,9 +2301,12 @@ int cif_value_set_element_at(
 
         if (target == element) {
             return CIF_OK;
+        } else if (element == NULL) {
+            cif_value_clean(target);
+            return CIF_OK;
         } else {
             /* TODO: check safety in case of failure: */
-            return ((element == NULL) ? cif_value_clean(target): cif_value_clone(element, &target));
+            return cif_value_clone(element, &target);
         }
     }
 }

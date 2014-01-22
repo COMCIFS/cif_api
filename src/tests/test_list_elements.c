@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "../cif.h"
 #include "test.h"
+#include "assert_value.h"
 
 int main(int argc, char *argv[]) {
     char test_name[80] = "test_list_elements";
@@ -20,10 +21,8 @@ int main(int argc, char *argv[]) {
     cif_value_t *element2 = NULL;
     cif_value_t *element3 = NULL;
     UChar *text1;
-    UChar *text2;
     size_t count;
     double d1;
-    double d2;
     U_STRING_DECL(value_text, "value text", 11);
     U_STRING_DECL(value_text2, "value text 2", 13);
 
@@ -90,64 +89,53 @@ int main(int argc, char *argv[]) {
     /* element pointers should be unequal */
     TEST(element1 == element2, 0, test_name, 37);
     /* element values should be equal */
-    TEST(cif_value_kind(element2), CIF_NUMB_KIND, test_name, 38);
-    cif_value_get_number(element1, &d1);
-    cif_value_get_number(element2, &d2);
-    TEST(d1 != d2, 0, test_name, 39);
-    cif_value_get_su(element1, &d1);
-    cif_value_get_su(element2, &d2);
-    TEST(d1 != d2, 0, test_name, 40);
-    TEST(cif_value_get_text(element1, &text1), CIF_OK, test_name, 41);
-    TEST(cif_value_get_text(element2, &text2), CIF_OK, test_name, 42);
-    TEST(u_strcmp(text1, text2), 0, test_name, 43);
-    free(text1);
-    free(text2);
+    TEST(!assert_values_equal(element1, element2), 0, test_name, 38);
     cif_value_free(element1);
     /* cif_value_get_element() should be returning a pointer to its internal value object, not to a clone */
-    TEST(cif_value_get_element_at(value, 0, &element1), CIF_OK, test_name, 44);
-    TEST(element1 != element2, 0, test_name, 45);
+    TEST(cif_value_get_element_at(value, 0, &element1), CIF_OK, test_name, 39);
+    TEST(element1 != element2, 0, test_name, 40);
     /* element1 and element2 both belong to the list value */
 
     /* element 1 */
-    TEST(cif_value_create(CIF_NA_KIND, &element1), CIF_OK, test_name, 46);
-    TEST(cif_value_insert_element_at(value, 1, element1), CIF_OK, test_name, 47);
-    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 48);
-    TEST(count, 2, test_name, 49);
-    TEST(cif_value_get_element_at(value, 1, &element3), CIF_OK, test_name, 50);
-    TEST(element3 == element1, 0, test_name, 51);
-    TEST(element3 == element2, 0, test_name, 52);
-    TEST(cif_value_kind(element3), CIF_NA_KIND, test_name, 53);
-    TEST(cif_value_get_element_at(value, 0, &element3), CIF_OK, test_name, 54);
-    TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 55);
-    cif_value_get_number(element3, &d1);
-    TEST(d1 != 17.25, 0, test_name, 56);
+    TEST(cif_value_create(CIF_NA_KIND, &element1), CIF_OK, test_name, 41);
+    TEST(cif_value_insert_element_at(value, 1, element1), CIF_OK, test_name, 42);
+    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 43);
+    TEST(count, 2, test_name, 44);
+    TEST(cif_value_get_element_at(value, 1, &element3), CIF_OK, test_name, 45);
+    TEST(element3 == element1, 0, test_name, 46);
+    TEST(element3 == element2, 0, test_name, 47);
+    TEST(cif_value_kind(element3), CIF_NA_KIND, test_name, 48);
+    TEST(cif_value_get_element_at(value, 0, &element3), CIF_OK, test_name, 49);
+    TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 50);
+    TEST(cif_value_get_number(element3, &d1), CIF_OK, test_name, 51);
+    TEST(d1 != 17.25, 0, test_name, 52);
     /* element2 and element3 both belong to the list value */
     /* element1 is valid and independent */
 
     /* element 0.5 */
-    TEST(cif_value_copy_char(element1, value_text), CIF_OK, test_name, 58);
-    TEST(cif_value_insert_element_at(value, 1, element1), CIF_OK, test_name, 59);
-    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 60);
-    TEST(count, 3, test_name, 61);
-    TEST(cif_value_get_element_at(value, 1, &element3), CIF_OK, test_name, 62);
-    TEST(element3 == element1, 0, test_name, 63);
-    TEST(element3 == element2, 0, test_name, 64);
-    TEST(cif_value_kind(element3), CIF_CHAR_KIND, test_name, 65);
-    TEST(cif_value_get_text(element3, &text1), CIF_OK, test_name, 66);
-    TEST(u_strcmp(text1, value_text), 0, test_name, 67);
+    TEST(cif_value_copy_char(element1, value_text), CIF_OK, test_name, 53);
+    TEST(cif_value_insert_element_at(value, 1, element1), CIF_OK, test_name, 54);
+    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 55);
+    TEST(count, 3, test_name, 56);
+    TEST(cif_value_get_element_at(value, 1, &element3), CIF_OK, test_name, 57);
+    TEST(element3 == element1, 0, test_name, 58);
+    TEST(element3 == element2, 0, test_name, 59);
+    TEST(cif_value_kind(element3), CIF_CHAR_KIND, test_name, 60);
+    TEST(cif_value_get_text(element3, &text1), CIF_OK, test_name, 61);
+    TEST(u_strcmp(text1, value_text), 0, test_name, 62);
     cif_value_free(element1);
     free(text1);
     /* element2 and element3 both belong to the list value */
     /* element1 is invalid (freed) */
 
     /* element -0 */
-    TEST(cif_value_insert_element_at(value, 0, NULL), CIF_OK, test_name, 68);
-    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 69);
-    TEST(count, 4, test_name, 70);
-    TEST(cif_value_get_element_at(value, 0, &element3), CIF_OK, test_name, 71);
-    TEST(cif_value_init_numb(element3, 42.0, 0.0, 0, 5), CIF_OK, test_name, 72);
-    TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 73);
-    cif_value_get_number(element3, &d1);
+    TEST(cif_value_insert_element_at(value, 0, NULL), CIF_OK, test_name, 63);
+    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 64);
+    TEST(count, 4, test_name, 65);
+    TEST(cif_value_get_element_at(value, 0, &element3), CIF_OK, test_name, 66);
+    TEST(cif_value_init_numb(element3, 42.0, 0.0, 0, 5), CIF_OK, test_name, 67);
+    TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 68);
+    TEST(cif_value_get_number(element3, &d1), CIF_OK, test_name, 69);
     TEST(d1 != 42.0, 0, test_name, 74);
     /* element2 and element3 both belong to the list value */
     /* element1 is invalid (freed) */

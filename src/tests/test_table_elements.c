@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "../cif.h"
 #include "test.h"
+#include "assert_value.h"
 
 static int test_key_list(UChar **expected, int num_expected, const UChar **observed);
 
@@ -34,7 +35,6 @@ int main(int argc, char *argv[]) {
     UChar *text2;
     size_t count;
     double d1;
-    double d2;
     U_STRING_DECL(value_text, "value text", 11);
     U_STRING_DECL(value_text2, "value text 2", 13);
     U_STRING_DECL(value_text3, "vALuE_TEXt 3", 13);
@@ -128,40 +128,29 @@ int main(int argc, char *argv[]) {
     /* element pointers should be unequal */
     TEST(element1 == element2, 0, test_name, 50);
     /* element values should be equal */
-    TEST(cif_value_kind(element2), CIF_NUMB_KIND, test_name, 51);
-    cif_value_get_number(element1, &d1);
-    cif_value_get_number(element2, &d2);
-    TEST(d1 != d2, 0, test_name, 52);
-    cif_value_get_su(element1, &d1);
-    cif_value_get_su(element2, &d2);
-    TEST(d1 != d2, 0, test_name, 53);
-    TEST(cif_value_get_text(element1, &text1), CIF_OK, test_name, 54);
-    TEST(cif_value_get_text(element2, &text2), CIF_OK, test_name, 55);
-    TEST(u_strcmp(text1, text2), 0, test_name, 56);
-    free(text1);
-    free(text2);
+    TEST(!assert_values_equal(element1, element2), 0, test_name, 51);
     cif_value_free(element1);
     /* cif_value_get_item_by_key() should be returning a pointer to its internal value object, not to a clone */
-    TEST(cif_value_get_item_by_key(value, all_keys[0], &element1), CIF_OK, test_name, 57);
-    TEST(element1 != element2, 0, test_name, 58);
-    TEST(cif_value_get_keys(value, &keys), CIF_OK, test_name, 59);
-    TEST(test_key_list(all_keys, 1, keys), 0, test_name, 60);
+    TEST(cif_value_get_item_by_key(value, all_keys[0], &element1), CIF_OK, test_name, 52);
+    TEST(element1 != element2, 0, test_name, 53);
+    TEST(cif_value_get_keys(value, &keys), CIF_OK, test_name, 54);
+    TEST(test_key_list(all_keys, 1, keys), 0, test_name, 55);
     free(keys);
     /* element1 and element2 both belong to the table value */
 
     /* item empty_key */
-    TEST(cif_value_create(CIF_NA_KIND, &element1), CIF_OK, test_name, 61);
-    TEST(cif_value_kind(element1), CIF_NA_KIND, test_name, 62);
-    TEST(cif_value_set_item_by_key(value, all_keys[1], element1), CIF_OK, test_name, 63);
-    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 64);
-    TEST(count, 2, test_name, 65);
-    TEST(cif_value_get_item_by_key(value, all_keys[1], &element3), CIF_OK, test_name, 66);
-    TEST(element3 == element1, 0, test_name, 67);
-    TEST(element3 == element2, 0, test_name, 68);
-    TEST(cif_value_kind(element3), CIF_NA_KIND, test_name, 69);
-    TEST(cif_value_get_item_by_key(value, all_keys[0], &element3), CIF_OK, test_name, 70);
-    TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 71);
-    cif_value_get_number(element3, &d1);
+    TEST(cif_value_create(CIF_NA_KIND, &element1), CIF_OK, test_name, 56);
+    TEST(cif_value_kind(element1), CIF_NA_KIND, test_name, 57);
+    TEST(cif_value_set_item_by_key(value, all_keys[1], element1), CIF_OK, test_name, 58);
+    TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 59);
+    TEST(count, 2, test_name, 60);
+    TEST(cif_value_get_item_by_key(value, all_keys[1], &element3), CIF_OK, test_name, 61);
+    TEST(element3 == element1, 0, test_name, 62);
+    TEST(element3 == element2, 0, test_name, 63);
+    TEST(cif_value_kind(element3), CIF_NA_KIND, test_name, 64);
+    TEST(cif_value_get_item_by_key(value, all_keys[0], &element3), CIF_OK, test_name, 65);
+    TEST(cif_value_kind(element3), CIF_NUMB_KIND, test_name, 66);
+    TEST(cif_value_get_number(element3, &d1), CIF_OK, test_name, 67);
     TEST(d1 != 17.25, 0, test_name, 72);
     TEST(cif_value_get_keys(value, &keys), CIF_OK, test_name, 73);
     TEST(test_key_list(all_keys, 2, keys), 0, test_name, 74);

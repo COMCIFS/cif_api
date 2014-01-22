@@ -20,8 +20,8 @@ TO_REMOVE=
 	
 	int main(int argc, char *argv[]) {
   	    cif_t *cif;
-  	    cif_create(&cif);
-  	    cif_destroy(cif);
+  	    int result = cif_create(&cif);
+  	    result = cif_destroy(cif);
   	    return 0;
 	}
 	EOF

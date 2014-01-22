@@ -21,6 +21,16 @@
 #include <stdio.h>
 #include <unicode/ustring.h>
 
+#ifdef __GNUC__
+#define WARN_UNUSED __attribute__ ((warn_unused_result))
+#else
+#define WARN_UNUSED
+#endif
+
+#define CIF_FUNC_DECL(type, name, params) type name params WARN_UNUSED
+#define CIF_INTFUNC_DECL(name, params) CIF_FUNC_DECL(int, name, params)
+#define CIF_VOIDFUNC_DECL(name, params) void name params
+
 /**
  * @page resource_mgmt Resource management with CIF API
  *
@@ -929,11 +939,11 @@ extern "C" {
  *         (typically @c CIF_ERROR ) on failure.  In the event of a failure, a new CIF object may still be created
  *         and returned via the @c cif argument, or the provided CIF object may still be modified.
  */
-int cif_parse(
+CIF_INTFUNC_DECL(cif_parse, (
         FILE *stream,
         struct cif_parse_opts_s *options,
         cif_t **cif
-        );
+        ));
 
 /**
  * @brief Allocates a parse options structure and initializes it with default values.
@@ -951,33 +961,33 @@ int cif_parse(
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_parse_options_create(
+CIF_INTFUNC_DECL(cif_parse_options_create, (
         struct cif_parse_opts_s **opts
-        );
+        ));
 
 /**
  * @brief A CIF parse error handler function that ignores all errors
  */
-int cif_parse_error_ignore(
+CIF_INTFUNC_DECL(cif_parse_error_ignore, (
         int code,
         size_t line,
         size_t column,
         const UChar *text,
         size_t length,
         void *data
-        );
+        ));
 
 /**
  * @brief A CIF parse error handler function that interrupts the parse on any error, returning @c code
  */
-int cif_parse_error_die(
+CIF_INTFUNC_DECL(cif_parse_error_die, (
         int code,
         size_t line,
         size_t column,
         const UChar *text,
         size_t length,
         void *data
-        );
+        ));
 
 /**
  * @brief Formats the CIF data represented by the @c cif handle to the specified output stream.
@@ -992,10 +1002,10 @@ int cif_parse_error_die(
  * @return Returns @c CIF_OK if the data are fully written, or else an error code (typically @c CIF_ERROR ).
  *         The stream state is undefined after a failure.
  */
-int cif_write(
+CIF_INTFUNC_DECL(cif_write, (
         FILE *stream,
         cif_t *cif
-        );
+        ));
 
 /**
  * @}
@@ -1016,9 +1026,9 @@ int cif_write(
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_create(
+CIF_INTFUNC_DECL(cif_create, (
         cif_t **cif
-        );
+        ));
 
 /**
  * @brief Removes the specified managed CIF, releasing all resources it holds.
@@ -1033,9 +1043,9 @@ int cif_create(
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_destroy(
+CIF_INTFUNC_DECL(cif_destroy, (
         cif_t *cif
-        );
+        ));
 
 /*
  * There is no cif_clean() or cif_free() -- these would inherently cause
@@ -1066,11 +1076,11 @@ int cif_destroy(
  *                block codes are compared in a Unicode-normalized and caseless form)
  *        @li @c CIF_ERROR for most other failures
  */
-int cif_create_block(
+CIF_INTFUNC_DECL(cif_create_block, (
         cif_t *cif,
         const UChar *code,
         cif_block_t **block
-        );
+        ));
 
 /**
  * @brief Looks up and optionally returns the data block bearing the specified block code, if any, in the specified CIF.
@@ -1090,11 +1100,11 @@ int cif_create_block(
  * @return @c CIF_OK on a successful lookup (even if @c block is NULL), @c CIF_NOSUCH_BLOCK if there is no data block
  *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
-int cif_get_block(
+CIF_INTFUNC_DECL(cif_get_block, (
         cif_t *cif,
         const UChar *code,
         cif_block_t **block
-        );
+        ));
 
 /**
  * @brief Provides a null-terminated array of data block handles, one for each block in the specified CIF.
@@ -1109,10 +1119,10 @@ int cif_get_block(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_get_all_blocks(
+CIF_INTFUNC_DECL(cif_get_all_blocks, (
         cif_t *cif,
         cif_block_t ***blocks
-        );
+        ));
 
 /**
  * @brief Performs a depth-first, natural-order traversal of a CIF, calling back to handler
@@ -1132,11 +1142,11 @@ int cif_get_all_blocks(
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR) on failure
  */
-int cif_walk(
+CIF_INTFUNC_DECL(cif_walk, (
         cif_t *cif,
         cif_handler_t *handler,
         void *context
-        );
+        ));
 
 /**
  * @}
@@ -1181,11 +1191,11 @@ int cif_walk(
  *                frame codes are compared in a Unicode-normalized and caseless form)
  *        @li @c CIF_ERROR for most other failures
  */
-int cif_block_create_frame(
+CIF_INTFUNC_DECL(cif_block_create_frame, (
         cif_block_t *block,
         const UChar *code,
         cif_frame_t **frame
-        );
+        ));
 
 /**
  * @brief Looks up and optionally returns the save frame bearing the specified code, if any, in the specified data
@@ -1204,11 +1214,11 @@ int cif_block_create_frame(
  * @return @c CIF_OK on a successful lookup (even if @c frame is NULL), @c CIF_NOSUCH_FRAME if there is no save frame
  *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
-int cif_block_get_frame(
+CIF_INTFUNC_DECL(cif_block_get_frame, (
         cif_block_t *block,
         const UChar *code,
         cif_frame_t **frame
-        );
+        ));
 
 /**
  * @brief Provides a null-terminated array of save frame handles, one for each frame in the specified data block.
@@ -1223,10 +1233,10 @@ int cif_block_get_frame(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_block_get_all_frames(
+CIF_INTFUNC_DECL(cif_block_get_all_frames, (
         cif_block_t *block,
         cif_frame_t ***frames
-        );
+        ));
 
 /**
  * @}
@@ -1264,12 +1274,10 @@ int cif_block_get_all_frames(
  *
  * @param[in] container a handle on the container object to free; must be non-NULL and valid on entry, but is
  *         invalidated by this function
- *
- * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_container_free(
+CIF_VOIDFUNC_DECL(cif_container_free, (
         cif_container_t *container
-        );
+        ));
 
 /**
  * @brief Frees any resources associated with the specified container handle, and furthermore removes the associated
@@ -1280,9 +1288,9 @@ int cif_container_free(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_container_destroy(
+CIF_INTFUNC_DECL(cif_container_destroy, (
         cif_container_t *container
-        );
+        ));
 
 /**
  * @brief Retrieves the identifying code (block code or frame code) of the specified container.
@@ -1296,10 +1304,10 @@ int cif_container_destroy(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_container_get_code(
+CIF_INTFUNC_DECL(cif_container_get_code, (
         cif_container_t *container,
         UChar **code
-        );
+        ));
 
 /**
  * @brief Asserts that the specified container represents a data block, as opposed to a save frame
@@ -1309,9 +1317,9 @@ int cif_container_get_code(
  * @return @c CIF_OK if the container is a data block, @c CIF_ARGUMENT_ERROR if it is a save frame, or @c CIF_ERROR if
  *         it is @c NULL
  */
-int cif_container_assert_block(
+CIF_INTFUNC_DECL(cif_container_assert_block, (
         cif_container_t *container
-        );
+        ));
 
 /**
  * @brief Creates a new loop in the specified container, and optionally returns a handle on it.
@@ -1340,12 +1348,12 @@ int cif_container_assert_block(
  *        @li @c CIF_DUP_ITEMNAME if one or more of the item names is already present in the target container
  *        @li @c CIF_ERROR in most other failure cases
  */
-int cif_container_create_loop(
+CIF_INTFUNC_DECL(cif_container_create_loop, (
         cif_container_t *container,
         const UChar *category,
         UChar *names[],
         cif_loop_t **loop
-        );
+        ));
 
 /**
  * @brief Looks up the loop, if any, in the specified container that is assigned to the specified category.
@@ -1367,11 +1375,11 @@ int cif_container_create_loop(
  *         @li @c CIF_CAT_NOT_UNIQUE if multiple loops having the specified category are found
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_container_get_category_loop(
+CIF_INTFUNC_DECL(cif_container_get_category_loop, (
         cif_container_t *container,
         const UChar *category,
         cif_loop_t **loop
-        );
+        ));
 
 /**
  * @brief Looks up the loop, if any, in the specified container that contains the specified item, and optionally returns
@@ -1394,11 +1402,11 @@ int cif_container_get_category_loop(
  *         @li @c CIF_ERROR in most other cases
  *         The return code does not depend on whether @c loop is NULL.
  */
-int cif_container_get_item_loop(
+CIF_INTFUNC_DECL(cif_container_get_item_loop, (
         cif_container_t *container,
         const UChar *item_name,
         cif_loop_t **loop
-        );
+        ));
 
 /**
  * @brief Provides a null-terminated array of loop handles, one for each loop in the specified container.
@@ -1413,10 +1421,10 @@ int cif_container_get_item_loop(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_container_get_all_loops(
+CIF_INTFUNC_DECL(cif_container_get_all_loops, (
         cif_container_t *container,
         cif_loop_t ***loops
-        );
+        ));
 
 /**
  * @brief Removes all data-less loops from the specified container
@@ -1431,9 +1439,9 @@ int cif_container_get_all_loops(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_container_prune(
+CIF_INTFUNC_DECL(cif_container_prune, (
         cif_container_t *container
-        );
+        ));
 
 /**
  * @brief Looks up an item by name in a data block or save frame, and optionally returns (one of) its value(s)
@@ -1456,11 +1464,11 @@ int cif_container_prune(
  *
  * @return Returns a result code as described above, or @c CIF_ERROR if an error occurs
  */
-int cif_container_get_value(
+CIF_INTFUNC_DECL(cif_container_get_value, (
         cif_container_t *container,
         const UChar *item_name,
         cif_value_t **val
-        );
+        ));
 
 /**
  * @brief Sets the value of the specified item in the specified container, or adds it
@@ -1479,11 +1487,11 @@ int cif_container_get_value(
  * @return @c CIF_OK on success, @c CIF_INVALID_ITEMNAME if the item name is invalid, or another error code (typically
  *         @c CIF_ERROR ) on failure
  */
-int cif_container_set_value(
+CIF_INTFUNC_DECL(cif_container_set_value, (
         cif_container_t *container,
         const UChar *item_name,
         cif_value_t *val
-        );
+        ));
 
 /**
  * @brief Removes the specified item and all its values from the specified container.
@@ -1498,10 +1506,10 @@ int cif_container_set_value(
  * @return Returns @c CIF_OK if the item was successfully removed, @c CIF_NOSUCH_ITEM if it was not present in the
  *         container, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_container_remove_item(
+CIF_INTFUNC_DECL(cif_container_remove_item, (
         cif_container_t *container,
         const UChar *item_name
-        );
+        ));
 
 /**
  * @}
@@ -1516,12 +1524,10 @@ int cif_container_remove_item(
  *         it is associated.
  *
  * @param[in] loop the loop handle to free; must be non-NULL and valid
- *
- * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_loop_free(
+CIF_VOIDFUNC_DECL(cif_loop_free, (
         cif_loop_t *loop
-        );
+        ));
 
 /**
  * @brief Releases any resources associated with the given loop handle, and furthermore removes the entire associated
@@ -1537,9 +1543,9 @@ int cif_loop_free(
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_loop_destroy(
+CIF_INTFUNC_DECL(cif_loop_destroy, (
         cif_loop_t *loop
-        );
+        ));
 
 /**
  * @brief Retrieves the specified loop's category.
@@ -1554,10 +1560,10 @@ int cif_loop_destroy(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_loop_get_category(
+CIF_INTFUNC_DECL(cif_loop_get_category, (
         cif_loop_t *loop,
         UChar **category
-        );
+        ));
 
 /**
  * @brief Sets the specified loop's category.
@@ -1568,10 +1574,10 @@ int cif_loop_get_category(
  *         may be NULL, but must not be a zero-length string.  Ownership of this string is not transferred by passing
  *         it to this function.
  */
-int cif_loop_set_category(
+CIF_INTFUNC_DECL(cif_loop_set_category, (
         cif_loop_t *loop,
         const UChar *category
-        );
+        ));
 
 /**
  * @brief Retrieves the item names belonging to the specified loop.
@@ -1586,10 +1592,10 @@ int cif_loop_set_category(
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_loop_get_names(
+CIF_INTFUNC_DECL(cif_loop_get_names, (
         cif_loop_t *loop,
         UChar ***item_names
-        );
+        ));
 
 /**
  * @brief Adds the CIF data item identified by the specified name to the specified managed loop, with the given
@@ -1611,11 +1617,11 @@ int cif_loop_get_names(
  *         @li @c CIF_DUP_ITEMNAME if the specified item name is already present in the loop's container
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_loop_add_item(
+CIF_INTFUNC_DECL(cif_loop_add_item, (
         cif_loop_t *loop,
         const UChar *item_name,
         cif_value_t *val
-        );
+        ));
 
 /* items are removed directly from containers, not from loops */
 
@@ -1636,10 +1642,10 @@ int cif_loop_add_item(
  *         @li @c CIF_WRONG_LOOP if the packet specifies any items that do not belong to the target loop
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_loop_add_packet(
+CIF_INTFUNC_DECL(cif_loop_add_packet, (
         cif_loop_t *loop,
         cif_packet_t *packet
-        );
+        ));
 
 /**
  * @brief Creates an iterator over the packets in the specified loop.
@@ -1657,10 +1663,10 @@ int cif_loop_add_packet(
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_loop_get_packets(
+CIF_INTFUNC_DECL(cif_loop_get_packets, (
         cif_loop_t *loop,
         cif_pktitr_t **iterator
-        );
+        ));
 
 /**
  * @}
@@ -1681,9 +1687,9 @@ int cif_loop_get_packets(
  *
  * @return @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_pktitr_close(
+CIF_INTFUNC_DECL(cif_pktitr_close, (
         cif_pktitr_t *iterator
-        );
+        ));
 
 /**
  * @brief If possible, reverts any changes applied via the provided iterator to its CIF, and, in all cases, releases any
@@ -1697,9 +1703,9 @@ int cif_pktitr_close(
  * @return Returns @c CIF_OK on success, @c CIF_NOT_SUPPORTED if aborting is not supported, or an error code (typically
  *         @c CIF_ERROR ) in all other cases
  */
-int cif_pktitr_abort(
+CIF_INTFUNC_DECL(cif_pktitr_abort, (
         cif_pktitr_t *iterator
-        );
+        ));
 
 /**
  * @brief Advances a packet iterator to the next packet, and optionally returns the contents of that packet.
@@ -1722,10 +1728,10 @@ int cif_pktitr_abort(
  *         Returns an error code on failure (typically @c CIF_ERROR ), in which case the contents of any pre-existing
  *         packet provided to the function are undefined (but valid)
  */
-int cif_pktitr_next_packet(
+CIF_INTFUNC_DECL(cif_pktitr_next_packet, (
         cif_pktitr_t *iterator,
         cif_packet_t **packet
-        );
+        ));
 
 /**
  * @brief Updates the last packet iterated by the specified iterator with the values from the provided packet.
@@ -1746,10 +1752,10 @@ int cif_pktitr_next_packet(
  *         @li @c CIF_WRONG_LOOP if the packet provides an item that does not belong to the iterator's loop
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_pktitr_update_packet(
+CIF_INTFUNC_DECL(cif_pktitr_update_packet, (
         cif_pktitr_t *iterator,
         cif_packet_t *packet
-        );
+        ));
 
 /**
  * @brief Removes the last packet iterated by the specified iterator from its managed loop.
@@ -1765,9 +1771,9 @@ int cif_pktitr_update_packet(
  *              one most recently provided has been removed via this function
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_pktitr_remove_packet(
+CIF_INTFUNC_DECL(cif_pktitr_remove_packet, (
         cif_pktitr_t *iterator
-        );
+        ));
 
 /**
  * @}
@@ -1784,21 +1790,22 @@ int cif_pktitr_remove_packet(
  * contain for each data name a value object representing the explicit "unknown" value.  The caller is responsible for
  * freeing the packet via @c cif_packet_free() when it is no longer needed.
  * 
- * @param[in,out] packet the location were the address of the new packet should be recorded.  Must not be NULL.
+ * @param[in,out] packet the location were the address of the new packet should be recorded.  Must not be NULL.  The
+ *         value initially at @p *packet is ignored.
  *
  * @param[in] names a pointer to a NULL-terminated array of Unicode string pointers, each element containing one data
  *         names to be represented in the new packet; may contain zero names.  The responsibility for these resources
- *         is not transferred.
+ *         is not transferred.  May be NULL, which is equivalent to containing zero names.
  *
  * @return Returns @c CIF_OK on success, or else an error code characterizing the nature of the failure, normally one
  *         of:
  *         @li @c CIF_INVALID_ITEMNAME if one of the provided strings is not a valid CIF data name
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_packet_create(
+CIF_INTFUNC_DECL(cif_packet_create, (
         cif_packet_t **packet, 
         UChar **names
-        );
+        ));
 
 /**
  * @brief Retrieves the names of all the items in the current packet.
@@ -1814,10 +1821,10 @@ int cif_packet_create(
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_packet_get_names(
+CIF_INTFUNC_DECL(cif_packet_get_names, (
         cif_packet_t *packet,
         const UChar ***names
-        );
+        ));
 
 /**
  * @brief Sets the value of the specified CIF item in the specified packet, including if the packet did not previously
@@ -1844,11 +1851,11 @@ int cif_packet_get_names(
  *         @li @c CIF_INVALID_ITEMNAME if @p name is not a valid CIF data name
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_packet_set_item(
+CIF_INTFUNC_DECL(cif_packet_set_item, (
         cif_packet_t *packet, 
         const UChar *name, 
         cif_value_t *value
-        );
+        ));
 
 /**
  * @brief Determines whether a packet contains a value for a specified data name, and optionally provides that value.
@@ -1867,11 +1874,11 @@ int cif_packet_set_item(
  * @return Returns @c CIF_OK if the packet contains an item having the specified data name, or @c CIF_NOSUCH_ITEM
  *         otherwise.
  */
-int cif_packet_get_item(
+CIF_INTFUNC_DECL(cif_packet_get_item, (
         cif_packet_t *packet, 
         const UChar *name, 
         cif_value_t **value
-        );
+        ));
 
 /**
  * @brief Removes the value, if any, associated with the specified name in the specified packet, optionally returning
@@ -1889,11 +1896,11 @@ int cif_packet_get_item(
  * @return Returns @c CIF_OK if the packet initially contained an item having the given name, or @c CIF_NOSUCH_ITEM
  *         otherwise (including if the given name is not a valid CIF item name).
  */
-int cif_packet_remove_item(
+CIF_INTFUNC_DECL(cif_packet_remove_item, (
         cif_packet_t *packet, 
         const UChar *name, 
         cif_value_t **value
-        );
+        ));
 
 /**
  * @brief Releases the specified packet and all resources associated with it, including those associated with any
@@ -1902,13 +1909,10 @@ int cif_packet_remove_item(
  * This function is a safe no-op when the argument is NULL.
  *
  * @param[in] packet a pointer to the packet to free
- *
- * @return Returns @c CIF_OK on success.  In principle, an error code such as @c CIF_ERROR is returned on failure, but
- *         no specific failure conditions are currently defined.
  */
-int cif_packet_free(
+CIF_VOIDFUNC_DECL(cif_packet_free, (
         cif_packet_t *packet
-        );
+        ));
 
 /**
  * @}
@@ -1966,10 +1970,10 @@ int cif_packet_free(
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_value_create(
+CIF_INTFUNC_DECL(cif_value_create, (
         cif_kind_t kind,
         cif_value_t **value
-        );
+        ));
 
 /**
  * @brief Frees any resources associated with the provided value object without freeing the object itself,
@@ -1983,9 +1987,9 @@ int cif_value_create(
  * @return Returns @c CIF_OK on success.  In principle, an error code such as @c CIF_ERROR is returned on failure, but
  *         no specific failure conditions are currently defined.
  */
-int cif_value_clean(
+CIF_VOIDFUNC_DECL(cif_value_clean, (
         cif_value_t *value
-        );
+        ));
 
 /**
  * @brief Frees the specified value object and all resources associated with it.
@@ -1994,13 +1998,10 @@ int cif_value_clean(
  * when its argument is NULL.
  *
  * @param[in,out] value a valid pointer to the value object to free, or NULL
- *
- * @return Returns @c CIF_OK on success.  In principle, an error code such as @c CIF_ERROR is returned on failure, but
- *         no specific failure conditions are currently defined.
  */
-int cif_value_free(
+CIF_VOIDFUNC_DECL(cif_value_free, (
         cif_value_t *value
-        );
+        ));
 
 /**
  * @brief Creates an independent copy of a CIF value object.
@@ -2019,10 +2020,10 @@ int cif_value_free(
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_value_clone(
+CIF_INTFUNC_DECL(cif_value_clone, (
         cif_value_t *value,
         cif_value_t **clone
-        );
+        ));
 
 /**
  * @brief Reinitializes the provided value object to a default value of the specified kind.
@@ -2043,10 +2044,10 @@ int cif_value_clone(
  *
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_value_init(
+CIF_INTFUNC_DECL(cif_value_init, (
         cif_value_t *value,
         cif_kind_t kind
-        );
+        ));
 
 /**
  * @brief (Re)initializes the specified value object as being of kind @c CIF_CHAR_KIND, with the specified text
@@ -2066,10 +2067,10 @@ int cif_value_init(
  *
  * @sa cif_value_copy_char()
  */
-int cif_value_init_char(
+CIF_INTFUNC_DECL(cif_value_init_char, (
         cif_value_t *value,
         UChar *text
-        );
+        ));
 
 /**
  * @brief (Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with a copy of the specified text.
@@ -2087,10 +2088,10 @@ int cif_value_init_char(
  *
  * @sa cif_value_init_char()
  */
-int cif_value_copy_char(
+CIF_INTFUNC_DECL(cif_value_copy_char, (
         cif_value_t *value,
         const UChar *text
-        );
+        ));
 
 /**
  * @brief Parses the specified Unicode string to produce a floating-point number and its standard uncertainty,
@@ -2115,10 +2116,10 @@ int cif_value_copy_char(
  *         @li @c CIF_INVALID_NUMBER if the text cannot be fully parsed as a number
  *         @li @c CIF_ERROR in most other cases
  */
-int cif_value_parse_numb(
+CIF_INTFUNC_DECL(cif_value_parse_numb, (
         cif_value_t *numb, 
         UChar *text
-        );
+        ));
 
 /**
  * @brief (Re-)initializes the given value as a number with the specified value and uncertainty, with a number of
@@ -2162,13 +2163,13 @@ int cif_value_parse_numb(
  *
  * @return Returns CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_value_init_numb(
+CIF_INTFUNC_DECL(cif_value_init_numb, (
         cif_value_t *numb, 
         double val, 
         double su, 
         int scale, 
         int max_leading_zeroes
-        );
+        ));
 
 /**
  * @brief (Re-)initializes the given value as a number with the specified value and uncertainty, automatically
@@ -2202,12 +2203,12 @@ int cif_value_init_numb(
  *
  * @return Returns CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure.
  */
-int cif_value_autoinit_numb(
+CIF_INTFUNC_DECL(cif_value_autoinit_numb, (
         cif_value_t *numb, 
         double val, 
         double su, 
         unsigned int su_rule
-        );
+        ));
 
 /**
  * @brief Returns the kind code of the specified value.
@@ -2219,9 +2220,9 @@ int cif_value_autoinit_numb(
  *
  * @return Returns the kind code of the specified value
  */
-cif_kind_t cif_value_kind(
+CIF_FUNC_DECL(cif_kind_t, cif_value_kind, (
         cif_value_t *value
-        );
+        ));
 
 /**
  * @brief Returns the value represented by the given number value object.
@@ -2237,10 +2238,10 @@ cif_kind_t cif_value_kind(
  * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
  *         another code, typically @c CIF_ERROR, if an error occurs.
  */
-int cif_value_get_number(
+CIF_INTFUNC_DECL(cif_value_get_number, (
         cif_value_t *numb,
         double *val
-        );
+        ));
 
 /**
  * @brief Returns the uncertainty of the value represented by the given number value object.
@@ -2255,10 +2256,10 @@ int cif_value_get_number(
  * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
  *         another code, typically @c CIF_ERROR, if an error occurs.
  */
-int cif_value_get_su(
+CIF_INTFUNC_DECL(cif_value_get_su, (
         cif_value_t *numb,
         double *su
-        );
+        ));
 
 /**
  * @brief Retrieves the text representation of the specified value.
@@ -2282,10 +2283,10 @@ int cif_value_get_su(
  *
  * @return Returns @c CIF_OK on success, or @c CIF_ERROR on failure
  */
-int cif_value_get_text(
+CIF_INTFUNC_DECL(cif_value_get_text, (
         cif_value_t *value,
         UChar **text
-        );
+        ));
 
 /**
  * @brief Determines the number of elements of a composite data value.
@@ -2300,9 +2301,10 @@ int cif_value_get_text(
  *
  * @return @c CIF_OK if the value has kind @c CIF_LIST_KIND or @c CIF_TABLE_KIND, otherwise @c CIF_ARGUMENT_ERROR
  */
-int cif_value_get_element_count(
+CIF_INTFUNC_DECL(cif_value_get_element_count, (
         cif_value_t *value,
-        size_t *count);
+        size_t *count
+        ));
 
 /**
  * @brief Retrieves an element of a list value by its index.
@@ -2327,10 +2329,11 @@ int cif_value_get_element_count(
  * @return Returns @c CIF_ARGUMENT_ERROR if the @c value has kind different from @c CIF_LIST_KIND; otherwise returns
  *     @c CIF_OK if @c index is less than the number of elements in the list, else @c CIF_INVALID_INDEX .
  */
-int cif_value_get_element_at(
+CIF_INTFUNC_DECL(cif_value_get_element_at, (
         cif_value_t *value,
         size_t index,
-        cif_value_t **element);
+        cif_value_t **element
+        ));
 
 /**
  * @brief Replaces an existing element of a list value with a different value.
@@ -2359,11 +2362,11 @@ int cif_value_get_element_at(
  * @sa cif_value_insert_element_at()
  * @sa cif_value_set_item_by_key()
  */
-int cif_value_set_element_at(
+CIF_INTFUNC_DECL(cif_value_set_element_at, (
         cif_value_t *value,
         size_t index,
         cif_value_t *element
-        );
+        ));
 
 /**
  * @brief Inserts an element into the specified list value at the specified position, pushing back the elements
@@ -2388,11 +2391,11 @@ int cif_value_set_element_at(
  *
  * @sa cif_value_set_element_at()
  */
-int cif_value_insert_element_at(
+CIF_INTFUNC_DECL(cif_value_insert_element_at, (
         cif_value_t *value,
         size_t index,
         cif_value_t *element
-        );
+        ));
 
 /**
  * @brief Removes an existing element from a list value, optionally returning it to the caller.
@@ -2417,11 +2420,11 @@ int cif_value_insert_element_at(
  *
  * @sa cif_value_remove_item_by_key()
  */
-int cif_value_remove_element_at(
+CIF_INTFUNC_DECL(cif_value_remove_element_at, (
         cif_value_t *value,
         size_t index,
         cif_value_t **element
-        );
+        ));
 
 /**
  * @brief Retrieves an array of the keys of a table value.
@@ -2444,10 +2447,10 @@ int cif_value_remove_element_at(
  *         @li an error code, typically @c CIF_ERROR , if retrieving the keys fails for reasons other than those already
  *             described
  */
-int cif_value_get_keys(
+CIF_INTFUNC_DECL(cif_value_get_keys, (
         cif_value_t *table,
         const UChar ***keys
-        );
+        ));
 
 /**
  * @brief Associates a specified value and key in the provided table value.
@@ -2476,11 +2479,11 @@ int cif_value_get_keys(
  *
  * @sa cif_value_set_element_at()
  */
-int cif_value_set_item_by_key(
+CIF_INTFUNC_DECL(cif_value_set_item_by_key, (
         cif_value_t *table, 
         const UChar *key, 
         cif_value_t *item
-        );
+        ));
 
 /**
  * @brief Looks up a table entry by key and optionally returns the associated value.
@@ -2507,11 +2510,11 @@ int cif_value_set_item_by_key(
  *
  * @sa cif_value_get_element_at()
  */
-int cif_value_get_item_by_key(
+CIF_INTFUNC_DECL(cif_value_get_item_by_key, (
         cif_value_t *table, 
         const UChar *key, 
         cif_value_t **value
-        );
+        ));
 
 /**
  * @brief Removes an item from a table value, optionally returning the value.
@@ -2536,11 +2539,11 @@ int cif_value_get_item_by_key(
  *
  * @sa cif_value_remove_element_at()
  */
-int cif_value_remove_item_by_key(
+CIF_INTFUNC_DECL(cif_value_remove_item_by_key, (
         cif_value_t *table, 
         const UChar *key, 
         cif_value_t **value
-        );
+        ));
 
 /**
  * @}
@@ -2563,9 +2566,9 @@ int cif_value_remove_item_by_key(
  * @return Returns a pointer to the duplicate, or NULL on failure or if the argument is NULL.  Responsibility for the
  *         duplicate, if any, belongs to the caller.
  */
-UChar *cif_u_strdup(
+CIF_FUNC_DECL(UChar *, cif_u_strdup, (
         const UChar *str
-        );
+        ));
 
 /**
  * @brief Converts (the initial part of) the specified Unicode string to a case-folded normalized form.
@@ -2589,11 +2592,11 @@ UChar *cif_u_strdup(
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
-int cif_normalize(
+CIF_INTFUNC_DECL(cif_normalize, (
         const UChar *src,
         int32_t srclen,
         UChar **normalized
-        );
+        ));
 
 /**
  * @}

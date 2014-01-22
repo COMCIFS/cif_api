@@ -71,7 +71,7 @@ static int dup_ustrings(UChar ***dest, UChar *src[]) {
 }
 
 /* safe to be called by anyone */
-int cif_loop_free(
+void cif_loop_free(
         cif_loop_t *loop
         ) {
     if (loop->category != NULL) free(loop->category);
@@ -83,7 +83,6 @@ int cif_loop_free(
         free(loop->names);
     }
     free(loop);
-    return CIF_OK;
 }
 
 /* safe to be called by anyone */
@@ -116,7 +115,8 @@ int cif_loop_destroy(
                     /* no such loop (now) exists */
                     FAIL(soft, CIF_INVALID_HANDLE);
                 case 1:
-                    return cif_loop_free(loop);
+                    cif_loop_free(loop);
+                    return CIF_OK;
                 default:
                     /* should not happen because the statement deletes by primary key */
                     SET_RESULT(CIF_INTERNAL_ERROR);

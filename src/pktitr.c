@@ -34,7 +34,7 @@ int cif_pktitr_close(
         (void) ROLLBACK(cif->db);
     }
 
-    (void) cif_pktitr_free(iterator);
+    cif_pktitr_free(iterator);
 
     return result;
 }
@@ -51,12 +51,12 @@ int cif_pktitr_abort(
         result = CIF_ERROR;
     }
 
-    (void) cif_pktitr_free(iterator);
+    cif_pktitr_free(iterator);
 
     return result;
 }
 
-int cif_pktitr_free(
+void cif_pktitr_free(
         cif_pktitr_t *iterator
         ) {
     struct set_element_s *element;
@@ -76,11 +76,9 @@ int cif_pktitr_free(
         free(element);
     }
 
-    (void) sqlite3_finalize(iterator->stmt); /* harmless if the stmt is NULL */
+    sqlite3_finalize(iterator->stmt); /* harmless if the stmt is NULL */
 
     free(iterator);
-
-    return CIF_OK;
 }
 
 int cif_pktitr_next_packet(

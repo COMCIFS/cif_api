@@ -108,7 +108,7 @@ static int assert_lists_equal(cif_value_t *list1, cif_value_t *list2) {
 
 static int assert_tables_equal(cif_value_t *table1, cif_value_t *table2) {
     size_t count1, count2;
-    UChar **keys;
+    const UChar **keys;
     
     if ((cif_value_get_element_count(table1, &count1) != CIF_OK)
             || (cif_value_get_element_count(table2, &count2) != CIF_OK)

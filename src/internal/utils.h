@@ -18,12 +18,12 @@
 
 #ifdef __GNUC__
 #define UNUSED   __attribute__ ((unused))
-#define PURE     __attribute__ ((pure))
-#define INTERNAL __attribute__ ((visibility ("hidden")))
+#define INTERNAL __attribute__ ((visibility ("hidden"), warn_unused_result))
+#define INTERNAL_VOID __attribute__ ((visibility ("hidden")))
 #else
 #define UNUSED
-#define PURE
 #define INTERNAL
+#define INTERNAL_VOID
 #endif
 
 /* simple macros */
@@ -632,9 +632,9 @@ int cif_container_set_all_values(
  * Releases all resources associated with the specified packet iterator.  This is intended for internal
  * use by the library -- client code should instead call cif_pkitr_close() or cif_pktitr_abort().
  */
-int cif_pktitr_free(
+void cif_pktitr_free(
         cif_pktitr_t *iterator
-        ) INTERNAL;
+        ) INTERNAL_VOID;
 
 /*
  * A common parser back end (potentially) serving multiple front ends that accept CIF data in different

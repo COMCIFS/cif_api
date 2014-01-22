@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     value2 = NULL;
 
     /* test setting a fourth value in the same container (unk) */
-    TEST(cif_value_clean(value1), CIF_OK, test_name, 44);
+    cif_value_clean(value1);
     TEST(cif_container_get_item_loop(block, item4l, NULL), CIF_NOSUCH_ITEM, test_name, 45);
     TEST(cif_container_get_item_loop(frame, item4l, NULL), CIF_NOSUCH_ITEM, test_name, 46);
     TEST(cif_container_set_value(block, item4l, value1), CIF_OK, test_name, 47);
@@ -267,7 +267,7 @@ int main(int argc, char *argv[]) {
     value2 = NULL;
 
     /* test setting a NULL value */
-    TEST(cif_value_clean(value1), CIF_OK, test_name, 121);
+    cif_value_clean(value1);
     TEST(cif_container_get_item_loop(frame, item6l, NULL), CIF_NOSUCH_ITEM, test_name, 122);
     TEST(cif_container_set_value(frame, item6l, NULL), CIF_OK, test_name, 123);
     /* verify that the item went into the scalar loop, in (only) the right container */

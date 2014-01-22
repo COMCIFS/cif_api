@@ -210,7 +210,7 @@ extern "C" {
 #endif
 
 /* safe to be called by anyone */
-int cif_container_free(
+void cif_container_free(
         cif_container_t *container
         ) {
     if (container != NULL) {
@@ -219,7 +219,6 @@ int cif_container_free(
         free(container->code_orig);
         free(container);
     }
-    return CIF_OK;
 }
 
 /* safe to be called by anyone */
@@ -235,7 +234,7 @@ int cif_container_destroy(
         PREPARE_STMT(cif, destroy_container, DESTROY_CONTAINER_SQL);
         if ((sqlite3_bind_int64(cif->destroy_container_stmt, 1, container->id) == SQLITE_OK) 
                 && (STEP_STMT(cif, destroy_container) == SQLITE_DONE)) {
-            (void) cif_container_free(container);  /* the present implementation always succeeds */
+            cif_container_free(container);
             return (sqlite3_changes(cif->db) <= 0) ? CIF_INVALID_HANDLE : CIF_OK;
         }
 
@@ -737,10 +736,12 @@ int cif_container_get_value(
                             if (*val == NULL) {
                                 *val = temp;
                                 break;
-                            } else if ((cif_value_clean(*val) == CIF_OK) 
-                                    && (cif_value_clone(temp, val) == CIF_OK)) {
-                                free(temp);
-                                break;
+                            } else {
+                                cif_value_clean(*val);
+                                if (cif_value_clone(temp, val) == CIF_OK) {
+                                    free(temp);
+                                    break;
+                                }
                             }
 
                             FAILURE_HANDLER(inner):

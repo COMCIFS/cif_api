@@ -171,7 +171,7 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                      * clone the new value onto the old or else just clean the old
                      */
                     if ((value == existing_value)
-                            || ((value == NULL) && (cif_value_clean(existing_value) == CIF_OK))
+                            || ((value == NULL) && (cif_value_clean(existing_value), CIF_TRUE))
                             || (cif_value_clone(value, &existing_value) == CIF_OK)) {
                         free(key_norm);
                         return CIF_OK;
@@ -266,12 +266,11 @@ static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_t *
 extern "C" {
 #endif
 
-int cif_packet_free(cif_packet_t *packet) {
+void cif_packet_free(cif_packet_t *packet) {
     if (packet != NULL) {
         cif_map_clean(&(packet->map));
         free(packet);
     }
-    return CIF_OK;
 }
 
 int cif_packet_get_names(cif_packet_t *packet, const UChar ***names) {
@@ -283,7 +282,7 @@ int cif_packet_set_item(cif_packet_t *packet, const UChar *name, cif_value_t *va
 }
 
 int cif_packet_get_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
-    return cif_map_retrieve_item(&(packet->map), name, value, 0, CIF_INVALID_ITEMNAME);
+    return cif_map_retrieve_item(&(packet->map), name, value, 0, CIF_NOSUCH_ITEM);
 }
 
 int cif_packet_remove_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
