@@ -38,7 +38,9 @@ compiled_tests = \
     $(testdir)/test_packet_create \
     $(testdir)/test_packet_set_item \
     $(testdir)/test_packet_remove_item \
-    $(testdir)/test_container_set_value1
+    $(testdir)/test_container_set_value1 \
+    $(testdir)/test_packet_items
+#    $(testdir)/test_loop_packets
 # nested complex values
 # cif_container_get_value
 #   - invalid name
@@ -60,7 +62,6 @@ compiled_tests = \
 #   - present in multi-item loop
 #   - present in single-item loop
 #   - last item of its loop
-#   - last item of the scalar loop
 # cif_loop_add_item
 # cif_loop_add_packet
 #   - empty packet

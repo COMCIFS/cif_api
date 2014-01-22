@@ -24,7 +24,6 @@ int main(int argc, char *argv[]) {
     UChar *text = NULL;
     UChar uncomposed_name[6] = { 0x5f, 'K', 0x0073, 0x0307, 0x0323, 0 };
     UChar equivalent_name[6] = { 0x5f, 'k', 0x0073, 0x0323, 0x0307, 0 };
-    UChar normalized_name[4] = { 0x5f, 'k', 0x1e69, 0 };
     U_STRING_DECL(simple_name, "_name", 6);
     U_STRING_DECL(invalid_name, "name", 5);
     U_STRING_DECL(another_name, "_aNotheR.name", 14);

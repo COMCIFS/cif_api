@@ -34,11 +34,15 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
     UChar **next;
     size_t element_count;
 
-    for (next = names; *next; next += 1) ;
+    if (names == NULL) {
+        element_count = 0;
+    } else {
+        for (next = names; *next; next += 1) ;
+        element_count = (size_t) (next - names);
+    }
 
-    element_count = (size_t) (next - names);
     names_norm = (UChar **) malloc(sizeof(UChar *) * (element_count + 1));
-    if (names_norm) {
+    if (names_norm != NULL) {
         size_t counter;
         int result;
 
@@ -48,16 +52,18 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
         }
         names_norm[element_count] = NULL;
 
-        /* pretend it's going to be a standalone packet to avoid making unneeded key copies */
+        /* pretend it's going to be a dependent packet to avoid making unneeded key copies */
         result = cif_packet_create_norm(packet, names_norm, 0);
         if (result == CIF_OK) {
             struct entry_s *entry;
+            size_t counter2;
 
             /* assign the original item names */
             /* iteration via hh.next is documented to proceed in insertion order */
-            for (next = names, entry = (*packet)->map.head;
-                    *next;
-                    next += 1, entry = (struct entry_s *) entry->hh.next) {
+            for (counter2 = 0, entry = (*packet)->map.head;
+                    counter2 < element_count;
+                    counter2 += 1, entry = (struct entry_s *) entry->hh.next) {
+                next = names + counter2;
                 assert(entry != NULL);
                 if (u_strcmp(*next, entry->key) != 0) {
                     assert (entry->key_orig == entry->key);  /* implementation detail of cif_packet_create_norm() */
@@ -98,43 +104,42 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
  */
 int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int standalone) {
     FAILURE_HANDLING;
+    cif_packet_t *temp_packet;
 
-    if (!names || !packet) {
-        SET_RESULT(CIF_ARGUMENT_ERROR);
-    } else {
-        cif_packet_t *temp_packet = (cif_packet_t *) malloc(sizeof(cif_packet_t));
+    assert(names != NULL);
+    assert(packet != NULL);
 
-        if (temp_packet) {
-            /*@temp@*/ UChar **name;
+    temp_packet = (cif_packet_t *) malloc(sizeof(cif_packet_t));
+    if (temp_packet != NULL) {
+        UChar **name;
 
-            temp_packet->map.normalizer = cif_normalize_item_name;
-            temp_packet->map.is_standalone = standalone;
-            temp_packet->map.head = NULL;
-            for (name = names; *name; name += 1) {
-                struct entry_s *scalar = (struct entry_s *) malloc(sizeof(struct entry_s));
+        temp_packet->map.normalizer = cif_normalize_item_name;
+        temp_packet->map.is_standalone = standalone;
+        temp_packet->map.head = NULL;
+        for (name = names; *name; name += 1) {
+            struct entry_s *scalar = (struct entry_s *) malloc(sizeof(struct entry_s));
 
-                if (!scalar) {
-                    DEFAULT_FAIL(soft);
+            if (scalar == NULL) {
+                DEFAULT_FAIL(soft);
+            } else {
+                scalar->as_value.kind = CIF_UNK_KIND;
+                if (standalone == 0) {
+                    scalar->key = *name;
                 } else {
-                    scalar->as_value.kind = CIF_UNK_KIND;
-                    if (standalone != 0) {
-                        scalar->key = cif_u_strdup(*name);
-                        if (scalar->key == NULL) DEFAULT_FAIL(soft);
-                    } else {
-                        scalar->key = *name;
-                    }
-                    scalar->key_orig = scalar->key;
-                    HASH_ADD_KEYPTR(hh, temp_packet->map.head, scalar->key, U_BYTES(scalar->key), scalar);
+                    scalar->key = cif_u_strdup(*name);
+                    if (scalar->key == NULL) DEFAULT_FAIL(soft);
                 }
+                scalar->key_orig = scalar->key;
+                HASH_ADD_KEYPTR(hh, temp_packet->map.head, scalar->key, U_BYTES(scalar->key), scalar);
             }
-
-            /* Packet is successfully initialized with dummy values */
-            *packet = temp_packet;
-            return CIF_OK;
-
-            FAILURE_HANDLER(soft):
-            (void) cif_packet_free(temp_packet);
         }
+
+        /* Packet is successfully initialized with dummy values */
+        *packet = temp_packet;
+        return CIF_OK;
+
+        FAILURE_HANDLER(soft):
+        cif_packet_free(temp_packet);
     }
 
     FAILURE_TERMINUS;

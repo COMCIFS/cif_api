@@ -114,7 +114,8 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_packet_create$(EXEEXT) \
 	$(testdir)/test_packet_set_item$(EXEEXT) \
 	$(testdir)/test_packet_remove_item$(EXEEXT) \
-	$(testdir)/test_container_set_value1$(EXEEXT)
+	$(testdir)/test_container_set_value1$(EXEEXT) \
+	$(testdir)/test_packet_items$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -216,6 +217,10 @@ __testdir__test_packet_create_SOURCES =  \
 __testdir__test_packet_create_OBJECTS = test_packet_create.$(OBJEXT)
 __testdir__test_packet_create_LDADD = $(LDADD)
 __testdir__test_packet_create_DEPENDENCIES = libcif.la
+__testdir__test_packet_items_SOURCES = $(testdir)/test_packet_items.c
+__testdir__test_packet_items_OBJECTS = test_packet_items.$(OBJEXT)
+__testdir__test_packet_items_LDADD = $(LDADD)
+__testdir__test_packet_items_DEPENDENCIES = libcif.la
 __testdir__test_packet_remove_item_SOURCES =  \
 	$(testdir)/test_packet_remove_item.c
 __testdir__test_packet_remove_item_OBJECTS =  \
@@ -307,7 +312,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
-	$(testdir)/test_packet_create.c \
+	$(testdir)/test_packet_create.c $(testdir)/test_packet_items.c \
 	$(testdir)/test_packet_remove_item.c \
 	$(testdir)/test_packet_set_item.c \
 	$(testdir)/test_table_elements.c \
@@ -335,7 +340,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
-	$(testdir)/test_packet_create.c \
+	$(testdir)/test_packet_create.c $(testdir)/test_packet_items.c \
 	$(testdir)/test_packet_remove_item.c \
 	$(testdir)/test_packet_set_item.c \
 	$(testdir)/test_table_elements.c \
@@ -521,7 +526,8 @@ compiled_tests = \
     $(testdir)/test_packet_create \
     $(testdir)/test_packet_set_item \
     $(testdir)/test_packet_remove_item \
-    $(testdir)/test_container_set_value1
+    $(testdir)/test_container_set_value1 \
+    $(testdir)/test_packet_items
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -708,6 +714,9 @@ $(testdir)/test_loop_get_names$(EXEEXT): $(__testdir__test_loop_get_names_OBJECT
 $(testdir)/test_packet_create$(EXEEXT): $(__testdir__test_packet_create_OBJECTS) $(__testdir__test_packet_create_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_packet_create$(EXEEXT)
 	$(LINK) $(__testdir__test_packet_create_OBJECTS) $(__testdir__test_packet_create_LDADD) $(LIBS)
+$(testdir)/test_packet_items$(EXEEXT): $(__testdir__test_packet_items_OBJECTS) $(__testdir__test_packet_items_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_packet_items$(EXEEXT)
+	$(LINK) $(__testdir__test_packet_items_OBJECTS) $(__testdir__test_packet_items_LDADD) $(LIBS)
 $(testdir)/test_packet_remove_item$(EXEEXT): $(__testdir__test_packet_remove_item_OBJECTS) $(__testdir__test_packet_remove_item_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_packet_remove_item$(EXEEXT)
 	$(LINK) $(__testdir__test_packet_remove_item_OBJECTS) $(__testdir__test_packet_remove_item_LDADD) $(LIBS)
@@ -775,6 +784,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_list_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_get_names.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_create.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_items.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_remove_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_set_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_table_elements.Po@am__quote@
@@ -1061,6 +1071,20 @@ test_packet_create.obj: $(testdir)/test_packet_create.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_packet_create.c' object='test_packet_create.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_packet_create.obj `if test -f '$(testdir)/test_packet_create.c'; then $(CYGPATH_W) '$(testdir)/test_packet_create.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_packet_create.c'; fi`
+
+test_packet_items.o: $(testdir)/test_packet_items.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_packet_items.o -MD -MP -MF $(DEPDIR)/test_packet_items.Tpo -c -o test_packet_items.o `test -f '$(testdir)/test_packet_items.c' || echo '$(srcdir)/'`$(testdir)/test_packet_items.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_packet_items.Tpo $(DEPDIR)/test_packet_items.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_packet_items.c' object='test_packet_items.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_packet_items.o `test -f '$(testdir)/test_packet_items.c' || echo '$(srcdir)/'`$(testdir)/test_packet_items.c
+
+test_packet_items.obj: $(testdir)/test_packet_items.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_packet_items.obj -MD -MP -MF $(DEPDIR)/test_packet_items.Tpo -c -o test_packet_items.obj `if test -f '$(testdir)/test_packet_items.c'; then $(CYGPATH_W) '$(testdir)/test_packet_items.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_packet_items.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_packet_items.Tpo $(DEPDIR)/test_packet_items.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_packet_items.c' object='test_packet_items.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_packet_items.obj `if test -f '$(testdir)/test_packet_items.c'; then $(CYGPATH_W) '$(testdir)/test_packet_items.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_packet_items.c'; fi`
 
 test_packet_remove_item.o: $(testdir)/test_packet_remove_item.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_packet_remove_item.o -MD -MP -MF $(DEPDIR)/test_packet_remove_item.Tpo -c -o test_packet_remove_item.o `test -f '$(testdir)/test_packet_remove_item.c' || echo '$(srcdir)/'`$(testdir)/test_packet_remove_item.c
