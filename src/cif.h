@@ -599,32 +599,32 @@ typedef enum {
     /**
      * @brief The kind code representing a character (Unicode string) data value
      */
-    CIF_CHAR_KIND, 
+    CIF_CHAR_KIND = 0, 
 
     /**
      * @brief The kind code representing a numeric or presumed-numeric data value
      */
-    CIF_NUMB_KIND, 
+    CIF_NUMB_KIND = 1, 
 
     /**
      * @brief The kind code representing a CIF 2.0 list data value
      */
-    CIF_LIST_KIND, 
+    CIF_LIST_KIND = 2, 
 
     /**
      * @brief The kind code representing a CIF 2.0 table data value
      */
-    CIF_TABLE_KIND, 
+    CIF_TABLE_KIND = 3, 
 
     /**
      * @brief The kind code representing the not-applicable data value
      */
-    CIF_NA_KIND, 
+    CIF_NA_KIND = 4, 
 
     /**
      * @brief The kind code representing the unknown/unspecified data value
      */
-    CIF_UNK_KIND
+    CIF_UNK_KIND = 5
 } cif_kind_t;
 
 /**
@@ -1674,6 +1674,35 @@ CIF_INTFUNC_DECL(cif_loop_get_packets, (
  * @defgroup pktitr_funcs Functions for (loop) packet iteration
  *
  * @{
+ *
+ * A packet iterator, obtained via @c cif_loop_get_packets(), represents the current state of a particular iteration
+ * of the packets of a particular loop (of a particular container).  Based on the state of a given iteration
+ * maintained in a packet iterator, the user controls the progression of the iteration and optionally
+ * accesses the data and / or modifies the underlying loop.
+ *
+ * The life cycle of an iterator contains several states:
+ * @li @b NEW - The initial state of every iterator.  An iterator remains in this state until it is destroyed via
+ *         @c cif_pktitr_close() or @c cif_pktitr_abort(), or it is moved to the @b ITERATED state via
+ *         @c cif_pktitr_next_packet(); no other operations are valid for a packet iterator in this state.
+ * @li @b ITERATED - The state of an iterator that has a valid previous packet.  An iterator enters this state
+ *         via @c cif_pktitr_next_packet() (when that function returns @c CIF_OK), and leaves it via
+ *         @c cif_pktitr_remove_packet() [to the @b REMOVED state] or via @c cif_pktitr_next_packet() [to the
+ *         @c FINISHED state] when that function returns @c CIF_FINISHED.  All packet iterator functions are valid
+ *         for an iterator in this state; some leave it in this state.
+ * @li @b REMOVED - The state of an iterator after its most recently iterated packet is removed via
+ *         @c cif_pktitr_remove_packet().  From a forward-looking perspective, this state is nearly equivalent
+ *         to the @b NEW state; the only functional difference is that it is possible for an iterator to proceed
+ *         directly from this state to the @b FINISHED state.
+ * @li @b FINISHED - The state of an iterator after @c cif_pktitr_next_packet() returns @c CIF_FINISHED to signal
+ *         that no more packets are available.  The only valid operations on such an iterator are to destroy it via
+ *         @c cif_pktitr_close() or @c cif_pktitr_abort(), and one of those operations should be performed in a timely
+ *         manner.
+ *
+ * Inasmuch as CIF loops are only incidentally ordered, the sequence in which loop packets are presented by an iterator
+ * is not defined by these specifications.
+ *
+ * While iteration of a given loop is under way, it is implementation-defined what effect, if any, modifications
+ * to that loop other than by the iterator itself (including by a different iterator) have on the iteration results.
  */
 
 /**
@@ -1708,15 +1737,15 @@ CIF_INTFUNC_DECL(cif_pktitr_abort, (
         ));
 
 /**
- * @brief Advances a packet iterator to the next packet, and optionally returns the contents of that packet.
+ * @brief Advances a packet iterator to the next packet, if any, and optionally returns the contents of that packet.
  *
  * If @c packet is not NULL then the packet data are recorded where it points, either replacing the contents of a
  * packet provided that way by the caller (when @c *packet is not NULL) or providing a new packet to the caller.
- * A new packet provided to the caller in this way becomes the responsibility of the caller; when no longer needed
- * its resources should be released via @c cif_packet_free().
+ * "Replacing the contents" includes removing items that do not belong to the iterated loop.
+ * A new packet provided to the caller in this way (when @p packet is not NULL and @p *packet is NULL on call) becomes
+ * the responsibility of the caller; when no longer needed its resources should be released via @c cif_packet_free().
  *
- * Notwithstanding the foregoing, behavior of this function is undefined if it has previously returned @c CIF_FINISHED
- * for the given iterator.
+ * If no more packets are available from the iterator's loop then @c CIF_FINISHED is returned.
  *
  * @param[in,out] iterator a pointer to the packet iterator from which the next packet is requested
  *
@@ -1724,9 +1753,9 @@ CIF_INTFUNC_DECL(cif_pktitr_abort, (
  *         as the address of a new packet, or by replacing the contents of an existing one whose address is already
  *         recorded there.
  *
- * @return On success returns @c CIF_OK if subsequent packets are also available, or @c CIF_FINISHED otherwise.
- *         Returns an error code on failure (typically @c CIF_ERROR ), in which case the contents of any pre-existing
- *         packet provided to the function are undefined (but valid)
+ * @return On success returns @c CIF_OK if the iterator successfully advanced, @c CIF_FINISHED if there were no
+ *         more packets available.  Returns an error code on failure (typically @c CIF_ERROR ), in which case the
+ *         contents of any pre-existing packet provided to the function are undefined (but valid)
  */
 CIF_INTFUNC_DECL(cif_pktitr_next_packet, (
         cif_pktitr_t *iterator,
@@ -1737,9 +1766,10 @@ CIF_INTFUNC_DECL(cif_pktitr_next_packet, (
  * @brief Updates the last packet iterated by the specified iterator with the values from the provided packet.
  *
  * It is an error to pass an iterator to this function for which @c cif_pktitr_next_packet() has not been called
- * since it was obtained or since it was most recently passed to @c cif_pktitr_remove_packet(). Items in the
- * iterator's target loop for which the packet does not provide a value are left unchanged.  It is an error for the
- * provided packet to provide a value for an item not included in the iterator's loop.
+ * since it was obtained or since it was most recently passed to @c cif_pktitr_remove_packet(), or to pass one for
+ * which cif_pktitr_next_packet() has returned @c CIF_FINISHED. Items in the iterator's target loop for which the
+ * packet does not provide a value are left unchanged.  It is an error for the provided packet to provide a value for
+ * an item not included in the iterator's loop.
  *
  * @param[in] iterator a pointer to the packet iterator defining the loop and packet to update; must be a non-NULL
  *         pointer to an active packet iterator

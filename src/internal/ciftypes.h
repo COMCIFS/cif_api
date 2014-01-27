@@ -165,6 +165,7 @@ struct cif_pktitr_s {
     UChar **item_names;
     struct set_element_s *name_set;
     int previous_row_num;
+    int finished;
 };
 
 /* values */

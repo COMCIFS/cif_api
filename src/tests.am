@@ -39,8 +39,9 @@ compiled_tests = \
     $(testdir)/test_packet_set_item \
     $(testdir)/test_packet_remove_item \
     $(testdir)/test_container_set_value1 \
-    $(testdir)/test_packet_items
-#    $(testdir)/test_loop_packets
+    $(testdir)/test_packet_items \
+    $(testdir)/test_loop_packets
+# test_loop_modification
 # nested complex values
 # cif_container_get_value
 #   - invalid name

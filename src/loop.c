@@ -410,14 +410,16 @@ int cif_loop_add_packet(
             switch (STEP_STMT(cif, max_packet_num)) {
                 case SQLITE_ROW:
                     TRACELINE;
+                    /* If the result is NULL then the retrieval function returns it as 0: */
                     row_num = sqlite3_column_int(cif->max_packet_num_stmt, 0) + 1;
                     if ((sqlite3_reset(cif->max_packet_num_stmt) == SQLITE_OK)
                             && (sqlite3_clear_bindings(cif->max_packet_num_stmt) == SQLITE_OK)
                             && (sqlite3_bind_int64(cif->check_item_loop_stmt, 1, container->id) == SQLITE_OK)
                             && (sqlite3_bind_int(cif->check_item_loop_stmt, 3, loop->loop_num) == SQLITE_OK)) {
+
                         /* step through the entries in the packet */
                         for (item = packet->map.head; ; item = (struct entry_s *) item->hh.next) {
-                            if (!item) { /* no more entries */
+                            if (item == NULL) { /* no more entries */
                                 if (COMMIT_NESTTX(cif->db) == SQLITE_OK) {
                                     return CIF_OK;
                                 } else {
@@ -528,6 +530,7 @@ int cif_loop_get_packets(
         temp_it->stmt = NULL;
         temp_it->item_names = NULL;
         temp_it->name_set = NULL;
+        temp_it->finished = 0;
 
         if (cif_loop_get_names(loop, &(temp_it->item_names)) == CIF_OK) {
             UChar **name;

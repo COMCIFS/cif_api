@@ -85,117 +85,141 @@ int cif_pktitr_next_packet(
         cif_pktitr_t *iterator,
         cif_packet_t **packet
         ) {
-    FAILURE_HANDLING;
-    sqlite3_stmt *stmt = iterator->stmt;
-    int current_row = sqlite3_column_int(stmt, 0);
-    cif_packet_t *temp_packet;
-
-    assert (iterator->item_names != NULL);
-    if (sqlite3_get_autocommit(iterator->loop->container->cif->db) != 0) {
-        /* no transaction is active -- the provided iterator is stale */
-        return CIF_INVALID_HANDLE;
-    }
-
-    /* create a new packet for the expected items, with all unknown values */
-    if (cif_packet_create_norm(&temp_packet, iterator->item_names, CIF_FALSE) == CIF_OK) {
-        /* populate the packet with values read from the DB */
-        while (CIF_TRUE) {
-            const UChar *name;
-            struct entry_s *entry;
-            int next_row;
-
-            /* For which item is this value? */
-
-            /* will be freed automatically by SQLite: */
-            name = (const UChar *) sqlite3_column_text16(stmt, 1);
-
-            if (!name) {
-                DEFAULT_FAIL(soft);
-            }
-            HASH_FIND(hh, temp_packet->map.head, name, U_BYTES(name), entry);
-            if ((entry == NULL) || entry->as_value.kind != CIF_UNK_KIND) {
-                /* The item was expected to have a dummy value pre-recorded in the packet */
-                FAIL(soft, CIF_INTERNAL_ERROR);
-            }
-
-            /* set value properties from the DB */
-            GET_VALUE_PROPS(stmt, 2, &(entry->as_value), soft);
-
-            /* check whether there are any more values for the current packet */
-            switch (sqlite3_step(stmt)) {
-                case SQLITE_ROW:
-                    next_row = sqlite3_column_int(stmt, 0);
-                    if (next_row == current_row) {
-                        /* there is another value for this packet; loop back to handle it */
-                        continue;
-                    } /* else that was the last value for the packet, but there is another packet after it */
-                    SET_RESULT(CIF_OK);
-                    break;
-                case SQLITE_DONE:
-                    /* that was the last value for the last packet */
-                    SET_RESULT(CIF_FINISHED);
-                    break;
-                default:
-                    DEFAULT_FAIL(soft);
-            }
-
-            /* the current packet has been fully read from the DB */
-            iterator->previous_row_num = current_row;
-
-            /* (Optionally) set the packet (or just its contents) in the result */
-            if (packet == NULL) {
-                /* do nothing -- the packet is simply dropped */
-            } else if (*packet == NULL) {
-                /* easy case: just give the caller a pointer to the packet we constructed */
-                *packet = temp_packet;
-            } else {
-                /* copy values into the existing packet */
-                struct entry_s *temp;
-
-                HASH_ITER(hh, temp_packet->map.head, entry, temp) {
-                    size_t name_len = (size_t) U_BYTES(entry->key);
-                    struct entry_s *target;
-
-                    HASH_FIND(hh, (*packet)->map.head, entry->key, name_len, target);
-                    HASH_DEL(temp_packet->map.head, entry);
-                    if (target != NULL) {
-                        /* we don't cif_value_clone() the value because we want a shallow copy instead of a deep one */
-
-                        /* release any resources held by the current value */
-                        (void) cif_value_clean(&(target->as_value));
-
-                        /* make a shallow copy of the value: */
-                        memcpy(&(target->as_value), &(entry->as_value), sizeof(cif_value_t));
-
-                        /* release the temporary entry itself, but not any resources it refers to */
-                        free(entry);
-                    } else if ((*packet)->map.is_standalone != 0) {
-                        /* convert the entry to standalone, for compatibility with the packet */
-                        entry->key = cif_u_strdup(entry->key);
-
-                        if (entry->key != NULL) {
-                            /* add the entry to the packet */
-                            HASH_ADD_KEYPTR(hh, (*packet)->map.head, entry->key, name_len, entry);
-                        } else {
-                            DEFAULT_FAIL(soft);
-                        }
-                    } else {
-                        FAIL(soft, CIF_ARGUMENT_ERROR);
-                    }
-                }
-
-                /* we copied the packet instead of assigning it out, so free whatever is left */
-                (void) cif_packet_free(temp_packet);
-            }
-
-            SUCCESS_TERMINUS;
+    if (iterator->finished != 0) {
+        return CIF_FINISHED;
+    } else {
+        FAILURE_HANDLING;
+        sqlite3_stmt *stmt = iterator->stmt;
+        int current_row = sqlite3_column_int(stmt, 0);
+        cif_packet_t *temp_packet;
+    
+        assert (iterator->item_names != NULL);
+    
+        if (sqlite3_get_autocommit(iterator->loop->container->cif->db) != 0) {
+            /* no transaction is active -- the provided iterator is stale */
+            return CIF_INVALID_HANDLE;
         }
-
-        FAILURE_HANDLER(soft):
-        (void) cif_packet_free(temp_packet);
+    
+        /* create a new packet for the expected items, with all unknown values */
+        if (cif_packet_create_norm(&temp_packet, iterator->item_names, CIF_FALSE) == CIF_OK) {
+            /* populate the packet with values read from the DB */
+            while (CIF_TRUE) {
+                const UChar *name;
+                struct entry_s *entry;
+                int next_row;
+    
+                /* For which item is this value? */
+    
+                /* will be freed automatically by SQLite: */
+                name = (const UChar *) sqlite3_column_text16(stmt, 1);
+    
+                if (!name) {
+                    DEFAULT_FAIL(soft);
+                }
+                HASH_FIND(hh, temp_packet->map.head, name, U_BYTES(name), entry);
+                if ((entry == NULL) || entry->as_value.kind != CIF_UNK_KIND) {
+                    /* The item was expected to have a dummy value pre-recorded in the packet */
+                    FAIL(soft, CIF_INTERNAL_ERROR);
+                }
+    
+                /* set value properties from the DB */
+                GET_VALUE_PROPS(stmt, 2, &(entry->as_value), soft);
+    
+                /* check whether there are any more values for the current packet */
+                switch (sqlite3_step(stmt)) {
+                    case SQLITE_ROW:
+                        next_row = sqlite3_column_int(stmt, 0);
+                        if (next_row == current_row) {
+                            /* there is another value for this packet; loop back to handle it */
+                            continue;
+                        } /* else that was the last value for the packet, but there is another packet after it */
+                        SET_RESULT(CIF_OK);
+                        break;
+                    case SQLITE_DONE:
+                        /* that was the last value for the last packet */
+                        iterator->finished = 1;
+                        SET_RESULT(CIF_OK);
+                        break;
+                    default:
+                        DEFAULT_FAIL(soft);
+                }
+    
+                /* the current packet has been fully read from the DB */
+                iterator->previous_row_num = current_row;
+    
+                /* (Optionally) set the packet (or just its contents) in the result */
+                if (packet == NULL) {
+                    /* do nothing -- the packet is simply dropped */
+                } else if (*packet == NULL) {
+                    /* easy case: just give the caller a pointer to the packet we constructed */
+                    *packet = temp_packet;
+                } else {
+                    /* copy values into the existing packet */
+                    struct entry_s *target;
+                    struct entry_s *temp;
+                    size_t name_len;
+    
+                    /*
+                     * Overwrite any needed target values already present in the result packet, and remove any that
+                     * are present but unwanted.
+                     */
+                    HASH_ITER(hh, (*packet)->map.head, target, temp) {
+                        name_len = (size_t) U_BYTES(target->key);
+                        HASH_FIND(hh, temp_packet->map.head, target->key, name_len, entry);
+                        if (entry == NULL) {
+                            /* remove current items not present in the temporary packet */
+                            HASH_DEL((*packet)->map.head, target);
+                        } else {
+                            /* remove the temp packet item from its packet */
+                            HASH_DEL(temp_packet->map.head, entry);
+    
+                            /* we don't cif_value_clone() the value because we want a shallow copy instead of a deep one */
+    
+                            /* release any resources held by the current value */
+                            (void) cif_value_clean(&(target->as_value));
+    
+                            /* make a shallow copy of the value: */
+                            memcpy(&(target->as_value), &(entry->as_value), sizeof(cif_value_t));
+    
+                            /* release the temporary entry itself, but not any resources it refers to */
+                            free(entry);
+                        }
+                    }
+    
+                    /* Move any remaining entries of the temp packet into the result packet */
+                    HASH_ITER(hh, temp_packet->map.head, entry, temp) {
+                        if ((*packet)->map.is_standalone == 0) {
+                            /* can't add new items to a dependent target packet */
+                            FAIL(soft, CIF_ARGUMENT_ERROR);
+                        } else {
+                            HASH_DEL(temp_packet->map.head, entry);
+                            name_len = (size_t) U_BYTES(entry->key);
+    
+                            /* convert the entry to standalone, for compatibility with the packet */
+                            entry->key = cif_u_strdup(entry->key);
+    
+                            if (entry->key != NULL) {
+                                /* add the entry to the packet */
+                                HASH_ADD_KEYPTR(hh, (*packet)->map.head, entry->key, name_len, entry);
+                            } else {
+                                DEFAULT_FAIL(soft);
+                            }
+                        }
+                    }
+    
+                    /* Free whatever is left of the temporary packet */
+                    (void) cif_packet_free(temp_packet);
+                }
+    
+                SUCCESS_TERMINUS;
+            }
+    
+            FAILURE_HANDLER(soft):
+            (void) cif_packet_free(temp_packet);
+        }
+    
+        FAILURE_TERMINUS;
     }
-
-    FAILURE_TERMINUS;
 }
 
 #define SET_ID_PROPS(stmt, ofs, container_id, item_name, row_num, onerr) do { \
