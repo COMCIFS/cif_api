@@ -7,7 +7,6 @@
 SUBDIRS = src
 
 EXTRA_DIST = \
-  Doxyfile \
   dox-html \
   dox-man \
   README \

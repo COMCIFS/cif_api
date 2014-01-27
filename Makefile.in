@@ -232,7 +232,6 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = src
 EXTRA_DIST = \
-  Doxyfile \
   dox-html \
   dox-man \
   README \
