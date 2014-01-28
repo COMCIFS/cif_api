@@ -26,10 +26,15 @@
  * standard C, so the API and reference implementation are written in a C form that is compliant with C89, C99, and
  * C++98.
  *
- * At this time the API definition and reference implementation remain works in progress.  The core API for
- * manipulating CIF data is complete, and a reference implementation is in early alpha testing at the time of this
- * writing, but the interfaces for CIF input and output are only stubbed out, and the interfaces for validation are not
- * yet defined at all.
+ * At this time the core, parsing, and formatting API definitions are fairly firm, though clarifications and minor
+ * modifications may yet be introduced before the first official release.  The reference implementation of those is
+ * feature-complete, but not fully tested.  In particular, the CIF parser and formatter are as-yet largely untested.
+ * The core API for manipulating in-memory CIF data is rather better tested, with automated tests covering most
+ * features and nearly all functions of that part of the API.  No API specifically supporting validation is yet
+ * defined as part of this effort, though the parsing API contains hooks that could be used to attach trans-parse
+ * validation functions.  Inasmuch as CIF validation is highly dependent on the relevant DDL -- which
+ * is out of scope for this API -- the extent of specific validation support that may ever be implemented herein is
+ * unclear.
  *
  * @section rights Rights and License
  * The documentation, interface definition, and reference implementation are copyright 2013-2014 John C. Bollinger.
