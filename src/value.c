@@ -509,11 +509,7 @@ static void cif_table_value_clean(struct table_value_s *table_value) {
 
     HASH_ITER(hh, table_value->map.head, entry, temp) {
         HASH_DEL(table_value->map.head, entry);
-        if (entry->key != entry->key_orig) {
-            CLEAN_PTR(entry->key);
-        }
-        CLEAN_PTR(entry->key_orig);
-        cif_value_free((cif_value_t *) entry);
+        cif_map_entry_free_internal(entry, &(table_value->map));
     }
 }
 
