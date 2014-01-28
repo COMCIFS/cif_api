@@ -595,6 +595,32 @@ int cif_normalize_table_index(
         ) INTERNAL;
 
 /*
+ * Releases the map metadata of an entry structure.  This allows the entry to be used as a fat value after removal from
+ * its map, without leaking the resources previously bound up in the metadata.
+ *
+ * entry: the entry object whose metadata are to be released
+ *
+ * map: the map from which the entry was extracted; this is necessary to determine which metadata belong to the entry
+ */
+CIF_VOIDFUNC_DECL(cif_map_entry_clean_metadata_internal, (
+        struct entry_s *entry,
+        cif_map_t *map
+        )) INTERNAL_VOID;
+
+/*
+ * Frees a map entry and all resources associated with it, including the value.  Should be used only after the entry
+ * is removed from its map.
+ *
+ * entry: the entry object to free
+ *
+ * map: the map from which the entry was extracted; this is necessary to determine which metadata belong to the entry
+ */
+CIF_VOIDFUNC_DECL(cif_map_entry_free_internal, (
+        struct entry_s *entry,
+        cif_map_t *map
+        )) INTERNAL_VOID;
+
+/*
  * Serializes a value to this library's internal serialization format.
  * Returns NULL if serialization fails (most likely because of insufficient memory).
  */

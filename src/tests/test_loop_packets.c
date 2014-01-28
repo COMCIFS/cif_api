@@ -132,6 +132,7 @@ int main(int argc, char *argv[]) {
         TEST(cif_pktitr_next_packet(pktitr, &packet), CIF_OK, test_name, test_counter++);
         TEST(cif_packet_get_names(packet, &names), CIF_OK, test_name, test_counter++);
         TEST(count_names(names), 3, test_name, test_counter++);
+        free(names);
 
         TEST(cif_packet_get_item(packet, item1l, &value), CIF_OK, test_name, test_counter++);
         TEST(cif_value_get_number(value, &key_double), CIF_OK, test_name, test_counter++);

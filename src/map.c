@@ -19,8 +19,6 @@
 #undef uthash_fatal
 #define uthash_fatal(msg) DEFAULT_FAIL(soft)
 
-/* TODO: can item->key be removed? */
-
 static int cif_map_clean(cif_map_t *map) {
     if (map != NULL) {
         struct entry_s *entry;
@@ -29,14 +27,7 @@ static int cif_map_clean(cif_map_t *map) {
         /* these hash operations do not use uthash_fatal(): */
         HASH_ITER(hh, map->head, entry, temp) {
             HASH_DEL(map->head, entry);
-            cif_value_clean(&(entry->as_value));
-            if (entry->key != entry->key_orig) {
-                free(entry->key);
-            }
-            if (map->is_standalone != 0) {
-                free(entry->key_orig);
-            }
-            free(entry);
+            cif_map_entry_free_internal(entry, map);
         }
     }
 
@@ -145,6 +136,10 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
         int different_key;
 
         HASH_FIND(hh, map->head, key_norm, key_bytes, item);
+        /*
+         * If the provided key is not identical to one of the existing _internal_ item keys, then the map must be
+         * (made) standalone to proceed.
+         */
         different_key = ((item == NULL) || (u_strcmp(key, item->key_orig) != 0));
         if ((different_key == 0) || (convert_to_standalone(map) == CIF_OK)) {
             if (item != NULL) {
@@ -159,16 +154,15 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                      */
                     cif_value_t *existing_value = &(item->as_value);
 
-                    assert(existing_value != NULL);
-
                     if (key_orig != item->key_orig) {
+                        assert(map->is_standalone != 0);
                         free(item->key_orig);
                         item->key_orig = key_orig;
                     }
 
                     /*
                      * Except if the value presented is the same object as is already in the map,
-                     * clone the new value onto the old or else just clean the old
+                     * make the existing entry's value a copy of the one presented
                      */
                     if ((value == existing_value)
                             || ((value == NULL) && (cif_value_clean(existing_value), CIF_TRUE))
@@ -180,8 +174,10 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
             } else {
                 /* This will be a new item for the map */
 
+                assert(map->is_standalone != 0);
                 item = (struct entry_s *) malloc(sizeof(struct entry_s));
                 if (item != NULL) {
+                    /* The map is standalone, so we need to copy the original key */
                     UChar *key_copy = cif_u_strdup(key);
 
                     if (key_copy != NULL) {
@@ -191,7 +187,6 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                          */
                         cif_value_t *new_value = &(item->as_value);
 
-                        assert(new_value != NULL);
                         new_value->kind = CIF_UNK_KIND;
                         if ((value == NULL) || cif_value_clone(value, &new_value) == CIF_OK) {
                             item->key = key_norm;
@@ -239,20 +234,17 @@ static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_t *
         if (item == NULL) {
             SET_RESULT(CIF_NOSUCH_ITEM);
         } else {
-            if (do_remove != 0) {
-                HASH_DEL(map->head, item);
-                if (item->key != item->key_orig) {
-                    free(item->key);
-                }
-                if (map->is_standalone != 0) {
-                    free(item->key_orig);
-                }
-            }
-
             if (value != NULL) {
                 *value = &(item->as_value);
-            } else if (do_remove != 0) {
-                cif_value_free(&(item->as_value));
+            }
+
+            if (do_remove != 0) {
+                HASH_DEL(map->head, item);
+                if (value != NULL) {
+                    cif_map_entry_clean_metadata_internal(item, map);
+                } else {
+                    cif_map_entry_free_internal(item, map);
+                }
             }
 
             return CIF_OK;
@@ -265,6 +257,20 @@ static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_t *
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void cif_map_entry_clean_metadata_internal(struct entry_s *entry, cif_map_t *map) {
+    if (entry->key != entry->key_orig) {
+        free(entry->key);
+    }
+    if (map->is_standalone != 0) {
+        free(entry->key_orig);
+    }
+}
+
+void cif_map_entry_free_internal(struct entry_s *entry, cif_map_t *map) {
+    cif_map_entry_clean_metadata_internal(entry, map);
+    cif_value_free(&(entry->as_value));
+}
 
 void cif_packet_free(cif_packet_t *packet) {
     if (packet != NULL) {

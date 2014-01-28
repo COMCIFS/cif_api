@@ -149,7 +149,8 @@ int cif_pktitr_next_packet(
     
                 /* (Optionally) set the packet (or just its contents) in the result */
                 if (packet == NULL) {
-                    /* do nothing -- the packet is simply dropped */
+                    /* drop the temporary packet */
+                    cif_packet_free(temp_packet);
                 } else if (*packet == NULL) {
                     /* easy case: just give the caller a pointer to the packet we constructed */
                     *packet = temp_packet;
@@ -167,21 +168,21 @@ int cif_pktitr_next_packet(
                         name_len = (size_t) U_BYTES(target->key);
                         HASH_FIND(hh, temp_packet->map.head, target->key, name_len, entry);
                         if (entry == NULL) {
-                            /* remove current items not present in the temporary packet */
+                            /* remove target packet item with no corresponding item in the temporary packet */
                             HASH_DEL((*packet)->map.head, target);
+                            cif_map_entry_free_internal(target, &((*packet)->map));
                         } else {
-                            /* remove the temp packet item from its packet */
+                            /* remove the source item from its packet */
                             HASH_DEL(temp_packet->map.head, entry);
     
-                            /* we don't cif_value_clone() the value because we want a shallow copy instead of a deep one */
-    
-                            /* release any resources held by the current value */
-                            (void) cif_value_clean(&(target->as_value));
-    
-                            /* make a shallow copy of the value: */
+                            /* release any resources held by the target value object */
+                            cif_value_clean(&(target->as_value));
+
+                            /* make the target value a *shallow* copy of the source value */
                             memcpy(&(target->as_value), &(entry->as_value), sizeof(cif_value_t));
     
                             /* release the temporary entry itself, but not any resources it refers to */
+                            cif_map_entry_clean_metadata_internal(entry, &(temp_packet->map));
                             free(entry);
                         }
                     }
