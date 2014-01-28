@@ -3,7 +3,7 @@
  *
  * Functions for testing assertions about CIF values
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdlib.h>

@@ -3,7 +3,7 @@
  *
  * Tests general function of the CIF API's cif_container_create_loop() function.
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdlib.h>

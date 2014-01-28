@@ -1,7 +1,7 @@
 --
 -- Database schema for arbitrary CIF
 --
--- Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+-- Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
 --
 -- This schema relies on and represents only the general, underlying data model
 -- of CIF.  As a design criterion, it is a closed schema, in the sense that it

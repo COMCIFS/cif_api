@@ -1,11 +1,10 @@
-dnl
-dnl Copyright (C) 2013 John C. Bollinger
-dnl
-dnl All rights reserved.
-dnl
+#
+# Copyright (C) 2013, 2014 John C. Bollinger
+#
+# All rights reserved.
+#
 
 dnl Process this file with autoconf to produce a configure script.
-
 AC_PREREQ([2.63])
 dnl quoting delimiters in the bug report address does not affect the generated
 dnl configure script, but may offer some protection against the address being

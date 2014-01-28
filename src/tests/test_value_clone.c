@@ -3,7 +3,7 @@
  *
  * Tests the behavior of the cif_value_clone() function.
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdio.h>

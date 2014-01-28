@@ -1,7 +1,7 @@
 /*
  * ciffile.c
  *
- * Copyright (C) 2013 John C. Bollinger
+ * Copyright (C) 2013, 2014 John C. Bollinger
  *
  * All rights reserved.
  */

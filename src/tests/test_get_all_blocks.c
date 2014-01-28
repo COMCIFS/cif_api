@@ -3,7 +3,7 @@
  *
  * Tests some details of the CIF API's cif_get_all_blocks() function
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdlib.h>

@@ -3,7 +3,7 @@
  *
  * Macros for CIF test fixture setup and teardown.
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
 
 #ifndef TESTS_TEST_H

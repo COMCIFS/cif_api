@@ -4,7 +4,7 @@
  * Tests behaviors of the CIF API's cif_container_get_category_loop() function that are not already tested in the
  * loop creation tests.
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdlib.h>

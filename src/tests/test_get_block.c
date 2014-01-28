@@ -4,7 +4,7 @@
  * Tests some details of the CIF API's cif_get_block() function that are not
  * covered by the cif_create_block() tests.
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdio.h>

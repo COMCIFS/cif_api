@@ -1,7 +1,7 @@
 ##
 ## tests.am
 ##
-## Copyright (C) 2013 John C. Bollinger
+## Copyright (C) 2013, 2014 John C. Bollinger
 ##
 ## All rights reserved.
 ##
@@ -41,8 +41,10 @@ compiled_tests = \
     $(testdir)/test_container_set_value1 \
     $(testdir)/test_packet_items \
     $(testdir)/test_loop_packets
+#    $(testdir)/test_multiple_cifs
 # test_loop_modification
 # nested complex values
+# multiple simultaneous CIFs
 # cif_container_get_value
 #   - invalid name
 #   - absent
@@ -65,21 +67,17 @@ compiled_tests = \
 #   - last item of its loop
 # cif_loop_add_item
 # cif_loop_add_packet
-#   - empty packet
-#   - some items
-#   - all items
-#   - item for wrong loop
-#   - loop initially empty
-#   - loop initially non-empty
 #   - scalar loop
-# cif_loop_get_packets
 # cif_pktitr_close
 #   - changes persist
 # cif_pktitr_abort
 #   - changes rolled back
-# cif_pktitr_next_packet
 # cif_pktitr_update_packet
 # cif_pktitr_remove_packet
+# cif_loop_set_category
+#   - general
+#   - scalar loop
+#   - deleted loop
 # cif_container_destroy
 # cif_loop_destroy
 # cif_parse

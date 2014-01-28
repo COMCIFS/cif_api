@@ -6,7 +6,7 @@
  * cif_value_insert_element_at(), cif_value_remove_element_at(),
  * and cif_value_get_element_count().
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdio.h>
