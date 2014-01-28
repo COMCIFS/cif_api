@@ -40,8 +40,8 @@ compiled_tests = \
     $(testdir)/test_packet_remove_item \
     $(testdir)/test_container_set_value1 \
     $(testdir)/test_packet_items \
-    $(testdir)/test_loop_packets
-#    $(testdir)/test_multiple_cifs
+    $(testdir)/test_loop_packets \
+    $(testdir)/test_multiple_cifs
 # test_loop_modification
 # nested complex values
 # multiple simultaneous CIFs

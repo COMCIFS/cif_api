@@ -116,7 +116,8 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_packet_remove_item$(EXEEXT) \
 	$(testdir)/test_container_set_value1$(EXEEXT) \
 	$(testdir)/test_packet_items$(EXEEXT) \
-	$(testdir)/test_loop_packets$(EXEEXT)
+	$(testdir)/test_loop_packets$(EXEEXT) \
+	$(testdir)/test_multiple_cifs$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -217,6 +218,11 @@ __testdir__test_loop_packets_SOURCES = $(testdir)/test_loop_packets.c
 __testdir__test_loop_packets_OBJECTS = test_loop_packets.$(OBJEXT)
 __testdir__test_loop_packets_LDADD = $(LDADD)
 __testdir__test_loop_packets_DEPENDENCIES = libcif.la
+__testdir__test_multiple_cifs_SOURCES =  \
+	$(testdir)/test_multiple_cifs.c
+__testdir__test_multiple_cifs_OBJECTS = test_multiple_cifs.$(OBJEXT)
+__testdir__test_multiple_cifs_LDADD = $(LDADD)
+__testdir__test_multiple_cifs_DEPENDENCIES = libcif.la
 __testdir__test_packet_create_SOURCES =  \
 	$(testdir)/test_packet_create.c
 __testdir__test_packet_create_OBJECTS = test_packet_create.$(OBJEXT)
@@ -317,8 +323,8 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
-	$(testdir)/test_loop_packets.c $(testdir)/test_packet_create.c \
-	$(testdir)/test_packet_items.c \
+	$(testdir)/test_loop_packets.c $(testdir)/test_multiple_cifs.c \
+	$(testdir)/test_packet_create.c $(testdir)/test_packet_items.c \
 	$(testdir)/test_packet_remove_item.c \
 	$(testdir)/test_packet_set_item.c \
 	$(testdir)/test_table_elements.c \
@@ -346,8 +352,8 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
 	$(testdir)/test_loop_get_names.c \
-	$(testdir)/test_loop_packets.c $(testdir)/test_packet_create.c \
-	$(testdir)/test_packet_items.c \
+	$(testdir)/test_loop_packets.c $(testdir)/test_multiple_cifs.c \
+	$(testdir)/test_packet_create.c $(testdir)/test_packet_items.c \
 	$(testdir)/test_packet_remove_item.c \
 	$(testdir)/test_packet_set_item.c \
 	$(testdir)/test_table_elements.c \
@@ -535,7 +541,8 @@ compiled_tests = \
     $(testdir)/test_packet_remove_item \
     $(testdir)/test_container_set_value1 \
     $(testdir)/test_packet_items \
-    $(testdir)/test_loop_packets
+    $(testdir)/test_loop_packets \
+    $(testdir)/test_multiple_cifs
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -722,6 +729,9 @@ $(testdir)/test_loop_get_names$(EXEEXT): $(__testdir__test_loop_get_names_OBJECT
 $(testdir)/test_loop_packets$(EXEEXT): $(__testdir__test_loop_packets_OBJECTS) $(__testdir__test_loop_packets_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_loop_packets$(EXEEXT)
 	$(LINK) $(__testdir__test_loop_packets_OBJECTS) $(__testdir__test_loop_packets_LDADD) $(LIBS)
+$(testdir)/test_multiple_cifs$(EXEEXT): $(__testdir__test_multiple_cifs_OBJECTS) $(__testdir__test_multiple_cifs_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_multiple_cifs$(EXEEXT)
+	$(LINK) $(__testdir__test_multiple_cifs_OBJECTS) $(__testdir__test_multiple_cifs_LDADD) $(LIBS)
 $(testdir)/test_packet_create$(EXEEXT): $(__testdir__test_packet_create_OBJECTS) $(__testdir__test_packet_create_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_packet_create$(EXEEXT)
 	$(LINK) $(__testdir__test_packet_create_OBJECTS) $(__testdir__test_packet_create_LDADD) $(LIBS)
@@ -795,6 +805,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_list_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_get_names.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_packets.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_multiple_cifs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_items.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_remove_item.Po@am__quote@
@@ -1083,6 +1094,20 @@ test_loop_packets.obj: $(testdir)/test_loop_packets.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_loop_packets.c' object='test_loop_packets.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_packets.obj `if test -f '$(testdir)/test_loop_packets.c'; then $(CYGPATH_W) '$(testdir)/test_loop_packets.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_loop_packets.c'; fi`
+
+test_multiple_cifs.o: $(testdir)/test_multiple_cifs.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_multiple_cifs.o -MD -MP -MF $(DEPDIR)/test_multiple_cifs.Tpo -c -o test_multiple_cifs.o `test -f '$(testdir)/test_multiple_cifs.c' || echo '$(srcdir)/'`$(testdir)/test_multiple_cifs.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_multiple_cifs.Tpo $(DEPDIR)/test_multiple_cifs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_multiple_cifs.c' object='test_multiple_cifs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_multiple_cifs.o `test -f '$(testdir)/test_multiple_cifs.c' || echo '$(srcdir)/'`$(testdir)/test_multiple_cifs.c
+
+test_multiple_cifs.obj: $(testdir)/test_multiple_cifs.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_multiple_cifs.obj -MD -MP -MF $(DEPDIR)/test_multiple_cifs.Tpo -c -o test_multiple_cifs.obj `if test -f '$(testdir)/test_multiple_cifs.c'; then $(CYGPATH_W) '$(testdir)/test_multiple_cifs.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_multiple_cifs.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_multiple_cifs.Tpo $(DEPDIR)/test_multiple_cifs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_multiple_cifs.c' object='test_multiple_cifs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_multiple_cifs.obj `if test -f '$(testdir)/test_multiple_cifs.c'; then $(CYGPATH_W) '$(testdir)/test_multiple_cifs.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_multiple_cifs.c'; fi`
 
 test_packet_create.o: $(testdir)/test_packet_create.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_packet_create.o -MD -MP -MF $(DEPDIR)/test_packet_create.Tpo -c -o test_packet_create.o `test -f '$(testdir)/test_packet_create.c' || echo '$(srcdir)/'`$(testdir)/test_packet_create.c
