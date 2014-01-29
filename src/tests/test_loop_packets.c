@@ -1,7 +1,9 @@
 /*
  * test_loop_packets.c
  *
- * Tests behaviors of the CIF API's cif_container_set_value() function for scalar values.
+ * Tests behavior of the CIF API's functions for adding and reading back
+ * loop packets, primarily cif_loop_add_packet(), cif_loop_get_packets(),
+ * and cif_pktitr_next_packet().
  *
  * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
  */

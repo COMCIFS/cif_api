@@ -1,7 +1,7 @@
 /*
  * test_multiple_cifs.c
  *
- * Tests behaviors of the CIF API's cif_container_set_value() function for scalar values.
+ * Tests to verify that CIFs created independently do not alias each other.
  *
  * Copyright (C) 2014 John C. Bollinger.  All rights reserved.
  */

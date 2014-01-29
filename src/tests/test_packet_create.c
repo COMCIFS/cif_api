@@ -1,9 +1,8 @@
 /*
  * test_packet_create.c
  *
- * Tests the CIF API's packet creation and manipulation functions
- * cif_packet_create(), cif_packet_get_names(), cif_packet_set_item(),
- * cif_packet_get_item(), and cif_packet_remove_item().
+ * Tests the CIF API's packet creation and inquiry functions
+ * cif_packet_create(), cif_packet_get_names(), and cif_packet_get_item().
  *
  * Copyright (C) 2014 John C. Bollinger.  All rights reserved.
  */

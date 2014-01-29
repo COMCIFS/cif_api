@@ -1,5 +1,5 @@
 /*
- * test_block_create_frame1.c
+ * test_block_create_frame2.c
  *
  * Tests general function of the CIF API's cif_block_create_frame() function.
  *

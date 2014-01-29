@@ -1,7 +1,7 @@
 /*
  * test_packet_remove_item.c
  *
- * Tests the CIF API's cif_packet_set_item() function, and incidentally
+ * Tests the CIF API's cif_packet_remove_item() function, and incidentally
  * tests other packet functions including cif_packet_get_item() and
  * cif_packet_get_names().
  *

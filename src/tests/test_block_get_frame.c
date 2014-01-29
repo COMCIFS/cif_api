@@ -1,8 +1,7 @@
 /*
- * test_get_block.c
+ * test_block_get_frame.c
  *
- * Tests some details of the CIF API's cif_get_block() function that are not
- * covered by the cif_create_block() tests.
+ * Tests operation of the CIF API's cif_block_get_frame() function
  *
  * Copyright (C) 2013, 2014 John C. Bollinger.  All rights reserved.
  */
