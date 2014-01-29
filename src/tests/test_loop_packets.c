@@ -5,7 +5,7 @@
  * loop packets, primarily cif_loop_add_packet(), cif_loop_get_packets(),
  * and cif_pktitr_next_packet().
  *
- * Copyright (C) 2013 John C. Bollinger.  All rights reserved.
+ * Copyright (C) 2014 John C. Bollinger.  All rights reserved.
  */
 
 #include <stdlib.h>
