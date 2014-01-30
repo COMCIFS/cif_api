@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
     TEST(!assert_packets(pktitr, reference_packets, item1l), 0, test_name, 50);
     TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 51);
 
-    /* test updating the second-iterated packet */
+    /* test updating the second-iterated packet with a partial packet */
 
     TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 52);
     TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 53);
@@ -156,115 +156,118 @@ int main(int argc, char *argv[]) {
     packet2 = lookup_packet(reference_packets, item1l, value);
     TEST((packet2 == NULL), 0, test_name, 59);
     TEST(cif_packet_set_item(packet2, item3l, value3), CIF_OK, test_name, 60);
-    /* update the loop */
-    TEST(cif_pktitr_update_packet(pktitr, packet), CIF_OK, test_name, 61);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 62);
+    /* update the loop via a partial packet */
+    TEST(cif_packet_create(&packet3, NULL), CIF_OK, test_name, 61);
+    TEST(cif_packet_set_item(packet3, item3u, value3), CIF_OK, test_name, 62);
+    TEST(cif_pktitr_update_packet(pktitr, packet3), CIF_OK, test_name, 63);
+    cif_packet_free(packet3);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 64);
     /* check that the loop contents are as expected */
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 63);
-    TEST(!assert_packets(pktitr, reference_packets, item1l), 0, test_name, 64);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 65);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 65);
+    TEST(!assert_packets(pktitr, reference_packets, item1l), 0, test_name, 66);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 67);
 
     /* test updating the last-iterated packet */
 
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 66);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 67);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 68);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 68);
     TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 69);
-    TEST(cif_pktitr_next_packet(pktitr, &packet), CIF_OK, test_name, 70);
-    TEST(cif_packet_get_item(packet, item3l, &value3), CIF_OK, test_name, 71);
-    TEST((cif_value_kind(value3) == CIF_CHAR_KIND), 0, test_name, 72);
-    TEST(cif_value_copy_char(value3, char_value1), CIF_OK, test_name, 73);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 70);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 71);
+    TEST(cif_pktitr_next_packet(pktitr, &packet), CIF_OK, test_name, 72);
+    TEST(cif_packet_get_item(packet, item3l, &value3), CIF_OK, test_name, 73);
+    TEST((cif_value_kind(value3) == CIF_CHAR_KIND), 0, test_name, 74);
+    TEST(cif_value_copy_char(value3, char_value1), CIF_OK, test_name, 75);
     /* Update the reference list */
-    TEST(cif_packet_get_item(packet, item1l, &value), CIF_OK, test_name, 74);
+    TEST(cif_packet_get_item(packet, item1l, &value), CIF_OK, test_name, 76);
     packet2 = lookup_packet(reference_packets, item1l, value);
-    TEST((packet2 == NULL), 0, test_name, 75);
-    TEST(cif_packet_set_item(packet2, item3l, value3), CIF_OK, test_name, 76);
+    TEST((packet2 == NULL), 0, test_name, 77);
+    TEST(cif_packet_set_item(packet2, item3l, value3), CIF_OK, test_name, 78);
     /* update the loop */
-    TEST(cif_pktitr_update_packet(pktitr, packet), CIF_OK, test_name, 77);
+    TEST(cif_pktitr_update_packet(pktitr, packet), CIF_OK, test_name, 79);
     /* verify that it was indeed the last packet updated */
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_FINISHED, test_name, 78);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 79);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_FINISHED, test_name, 80);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 81);
     /* check that the loop contents are as expected */
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 80);
-    TEST(!assert_packets(pktitr, reference_packets, item1l), 0, test_name, 81);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 82);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 82);
+    TEST(!assert_packets(pktitr, reference_packets, item1l), 0, test_name, 83);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 84);
 
     /* test removing the first-iterated packet */
 
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 83);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 84);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 85);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 86);
     /* update the loop */
-    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 85);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 86);
+    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 87);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 88);
     /* check that the loop contents are as expected */
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 87);
-    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 88);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 89);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 89);
+    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 90);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 91);
 
     /* test removing the second-iterated (middle) packet */
 
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 90);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 91);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 92);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 92);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 93);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 94);
     /* Update the reference list */
     cif_packet_free(reference_packets[2]);
     reference_packets[2] = reference_packets[3];
     reference_packets[3] = NULL;
     /* update the loop */
-    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 93);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 94);
+    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 95);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 96);
     /* check that the loop contents are as expected */
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 95);
-    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 96);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 97);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 97);
+    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 98);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 99);
 
     /* test removing the last-iterated packet */
 
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 98);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 99);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 100);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 100);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 101);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 102);
     /* Update the reference list */
     cif_packet_free(reference_packets[2]);
     reference_packets[2] = NULL;
     /* update the loop */
-    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 101);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 102);
+    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 103);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 104);
     /* check that the loop contents are as expected */
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 103);
-    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 104);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 105);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 105);
+    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 106);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 107);
 
     /* test updating the only remaining packet */
 
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 106);
-    TEST(cif_pktitr_next_packet(pktitr, &packet), CIF_OK, test_name, 107);
-    TEST(cif_packet_get_item(packet, item3l, &value3), CIF_OK, test_name, 108);
-    TEST((cif_value_kind(value3) == CIF_NUMB_KIND), 0, test_name, 109);
-    TEST(cif_value_autoinit_numb(value3, 42.0, 0.125, 19), CIF_OK, test_name, 110);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 108);
+    TEST(cif_pktitr_next_packet(pktitr, &packet), CIF_OK, test_name, 109);
+    TEST(cif_packet_get_item(packet, item3l, &value3), CIF_OK, test_name, 110);
+    TEST((cif_value_kind(value3) == CIF_NUMB_KIND), 0, test_name, 111);
+    TEST(cif_value_autoinit_numb(value3, 42.0, 0.125, 19), CIF_OK, test_name, 112);
     /* Update the reference list */
-    TEST(cif_packet_get_item(packet, item1l, &value), CIF_OK, test_name, 111);
+    TEST(cif_packet_get_item(packet, item1l, &value), CIF_OK, test_name, 113);
     packet2 = lookup_packet(reference_packets + 1, item1l, value);
-    TEST((packet2 == NULL), 0, test_name, 112);
-    TEST(cif_packet_set_item(packet2, item3l, value3), CIF_OK, test_name, 113);
+    TEST((packet2 == NULL), 0, test_name, 114);
+    TEST(cif_packet_set_item(packet2, item3l, value3), CIF_OK, test_name, 115);
     /* update the loop */
-    TEST(cif_pktitr_update_packet(pktitr, packet), CIF_OK, test_name, 114);
+    TEST(cif_pktitr_update_packet(pktitr, packet), CIF_OK, test_name, 116);
     /* verify that that was the only packet */
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_FINISHED, test_name, 115);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 116);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_FINISHED, test_name, 117);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 118);
     /* check that the loop contents are as expected */
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 117);
-    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 118);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 119);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 119);
+    TEST(!assert_packets(pktitr, reference_packets + 1, item1l), 0, test_name, 120);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 121);
 
     /* test removing the only remaining packet */
 
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 120);
-    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 121);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_OK, test_name, 122);
+    TEST(cif_pktitr_next_packet(pktitr, NULL), CIF_OK, test_name, 123);
     /* update the loop */
-    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 122);
-    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 123);
+    TEST(cif_pktitr_remove_packet(pktitr), CIF_OK, test_name, 124);
+    TEST(cif_pktitr_close(pktitr), CIF_OK, test_name, 125);
     /* check that the loop contents are as expected */
-    TEST(cif_loop_get_packets(loop, &pktitr), CIF_EMPTY_LOOP, test_name, 124);
+    TEST(cif_loop_get_packets(loop, &pktitr), CIF_EMPTY_LOOP, test_name, 126);
 
     for (counter = 0; counter < 4; counter += 1) {
         cif_packet_free(reference_packets[counter]);
