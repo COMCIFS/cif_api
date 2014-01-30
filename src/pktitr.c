@@ -252,8 +252,8 @@ int cif_pktitr_update_packet(
          * Create any needed prepared statements, or prepare the existing one(s)
          * for re-use, exiting this function with an error on failure.
          */
-        PREPARE_STMT(cif, update_packet_item, UPDATE_PACKET_ITEM_SQL);
-        PREPARE_STMT(cif, insert_packet_item, INSERT_PACKET_ITEM_SQL);
+        PREPARE_STMT(cif, insert_value, INSERT_VALUE_SQL);
+        PREPARE_STMT(cif, update_value, UPDATE_VALUE_SQL);
 
         if (SAVE(cif->db) == CIF_OK) {
             /* step through the items in the provided packet */
@@ -264,20 +264,19 @@ int cif_pktitr_update_packet(
                 if (element) { /* an item for the iterator's subject loop */
                     STEP_HANDLING;
 
-                    SET_VALUE_PROPS(cif->update_packet_item_stmt, 1, &(scalar->as_value), hard, soft);
-                    SET_ID_PROPS(cif->update_packet_item_stmt, 6, container->id, scalar->key,
+                    SET_VALUE_PROPS(cif->update_value_stmt, 0, &(scalar->as_value), hard, soft);
+                    SET_ID_PROPS(cif->update_value_stmt, 6, container->id, scalar->key,
                             iterator->previous_row_num, hard);
 
-                    if ((STEP_STMT(cif, update_packet_item) == SQLITE_DONE)
-                            && (sqlite3_clear_bindings(cif->update_packet_item_stmt) == SQLITE_OK)) {
-                        /* working here */
+                    if ((STEP_STMT(cif, update_value) == SQLITE_DONE)
+                            && (sqlite3_clear_bindings(cif->update_value_stmt) == SQLITE_OK)) {
                         switch (sqlite3_changes(cif->db)) {
                             case 0:  /* no rows updated -- item must be missing for the row */
-                                SET_VALUE_PROPS(cif->insert_packet_item_stmt, 1, &(scalar->as_value), hard, soft);
-                                SET_ID_PROPS(cif->insert_packet_item_stmt, 6, container->id, scalar->key,
+                                SET_VALUE_PROPS(cif->insert_value_stmt, 3, &(scalar->as_value), hard, soft);
+                                SET_ID_PROPS(cif->insert_value_stmt, 0, container->id, scalar->key,
                                         iterator->previous_row_num, hard);
-				if ((STEP_STMT(cif, insert_packet_item) != SQLITE_DONE)
-                                        || (sqlite3_clear_bindings(cif->insert_packet_item_stmt) != SQLITE_OK)) {
+				if ((STEP_STMT(cif, insert_value) != SQLITE_DONE)
+                                        || (sqlite3_clear_bindings(cif->insert_value_stmt) != SQLITE_OK)) {
                                     break;
                                 }
                             case 1:
@@ -301,8 +300,8 @@ int cif_pktitr_update_packet(
             }
 
             FAILURE_HANDLER(hard):
-            DROP_STMT(cif, update_packet_item);
-            DROP_STMT(cif, insert_packet_item);
+            DROP_STMT(cif, update_value);
+            DROP_STMT(cif, insert_value);
 
             FAILURE_HANDLER(soft):
             ROLLBACK_TO(cif->db);

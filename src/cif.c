@@ -121,8 +121,7 @@ int cif_create(cif_t **cif) {
                         INIT_STMT(temp, max_packet_num);
                         INIT_STMT(temp, check_item_loop);
                         INIT_STMT(temp, insert_value);
-                        INIT_STMT(temp, update_packet_item);
-                        INIT_STMT(temp, insert_packet_item);
+                        INIT_STMT(temp, update_value);
                         INIT_STMT(temp, remove_packet);
 
 #ifdef DEBUG

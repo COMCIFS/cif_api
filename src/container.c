@@ -666,11 +666,10 @@ int cif_container_set_all_values(
     PREPARE_STMT(cif, set_all_values, SET_ALL_VALUES_SQL);
     TRACELINE;
     if ((sqlite3_bind_int64(cif->set_all_values_stmt, 7, container->id) == SQLITE_OK)
-            && (sqlite3_bind_text16(cif->set_all_values_stmt, 8, item_name, -1, SQLITE_STATIC) == SQLITE_OK)
-            && (sqlite3_bind_int(cif->set_all_values_stmt, 1, val->kind) == SQLITE_OK)) {
+            && (sqlite3_bind_text16(cif->set_all_values_stmt, 8, item_name, -1, SQLITE_STATIC) == SQLITE_OK)) {
         STEP_HANDLING;
 
-        SET_VALUE_PROPS(cif->set_all_values_stmt, 1, val, hard, soft);
+        SET_VALUE_PROPS(cif->set_all_values_stmt, 0, val, hard, soft);
 
         /* Execute in an implicit transaction: */
         TRACELINE;

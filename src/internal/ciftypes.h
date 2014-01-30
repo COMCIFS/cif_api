@@ -107,8 +107,7 @@ struct cif_s {
    sqlite3_stmt *max_packet_num_stmt;
    sqlite3_stmt *check_item_loop_stmt;
    sqlite3_stmt *insert_value_stmt;
-   sqlite3_stmt *update_packet_item_stmt;
-   sqlite3_stmt *insert_packet_item_stmt;
+   sqlite3_stmt *update_value_stmt;
    sqlite3_stmt *remove_packet_stmt;
 };
 

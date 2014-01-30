@@ -453,10 +453,8 @@ int cif_loop_add_packet(
                             if ((sqlite3_bind_int64(cif->insert_value_stmt, 1, container->id) == SQLITE_OK)
                                     && (sqlite3_bind_text16(cif->insert_value_stmt, 2, item->key, -1, SQLITE_STATIC)
                                             == SQLITE_OK)
-                                    && (sqlite3_bind_int(cif->insert_value_stmt, 3, row_num) == SQLITE_OK)
-                                    && (sqlite3_bind_int(cif->insert_value_stmt, 4, item->as_value.kind)
-                                            == SQLITE_OK)) {
-                                SET_VALUE_PROPS(cif->insert_value_stmt, 4, &(item->as_value), hard, rb);
+                                    && (sqlite3_bind_int(cif->insert_value_stmt, 3, row_num) == SQLITE_OK)) {
+                                SET_VALUE_PROPS(cif->insert_value_stmt, 3, &(item->as_value), hard, rb);
                                 TRACELINE;
                                 switch (STEP_STMT(cif, insert_value)) {
                                     case SQLITE_DONE:

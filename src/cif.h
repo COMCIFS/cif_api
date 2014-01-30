@@ -1661,7 +1661,10 @@ CIF_INTFUNC_DECL(cif_loop_add_packet, (
  *
  * @param[in,out] iterator the location where a pointer to the iterator object should be written; must not be NULL
  *
- * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
+ * @return @c CIF_OK on success or an error code on failure, normally one of:
+ *         @li @c CIF_INVALID_HANDLE if the loop handle represents a loop that does not (any longer) exist;
+ *         @li @c CIF_EMPTY_LOOP if the target loop contains no packets; or
+ *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_loop_get_packets, (
         cif_loop_t *loop,

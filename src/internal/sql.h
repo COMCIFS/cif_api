@@ -86,6 +86,10 @@
 #define INSERT_VALUE_SQL "insert into item_value (container_id, name, row_num, " \
     "kind, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
+#define UPDATE_VALUE_SQL "update item_value " \
+        "set kind = ?, val_text = ?, val = ?, val_digits = ?, su_digits = ?, scale = ? " \
+        "where container_id = ? and name = ? and row_num = ?"
+
 /*
  * Note: there is no dedicated stmt in the cif struct corresponding to this SQL; a new statement is needed for each
  * loop iterated to allow multiple iterations to proceed simultaneously
@@ -95,14 +99,6 @@
     "from loop_item li join item_value iv using (container_id, name) " \
     "where container_id=? and loop_num=? " \
     "order by iv.row_num"
-
-#define UPDATE_PACKET_ITEM_SQL "update item_value " \
-        "set kind = ?, val_text = ?, val = ?, val_digits = ?, su_digits = ?, scale = ? " \
-        "where container_id = ? and name = ? and row_num = ?"
-
-#define INSERT_PACKET_ITEM_SQL "insert into item_value(kind, val_text, val, val_digits, su_digits, scale, " \
-        "container_id, name, row_num) " \
-        "values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 #define REMOVE_PACKET_SQL "delete from item_value where container_id = ?1 and row_num = ?3 " \
         "and name in (select name from loop_item where container_id = ?1 and loop_num = ?2)"

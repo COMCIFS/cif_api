@@ -15,6 +15,7 @@ compiled_tests = \
     $(testdir)/test_create_block2 \
     $(testdir)/test_get_block \
     $(testdir)/test_get_all_blocks \
+    $(testdir)/test_multiple_cifs \
     $(testdir)/test_block_create_frame1 \
     $(testdir)/test_block_create_frame2 \
     $(testdir)/test_block_get_frame \
@@ -41,10 +42,8 @@ compiled_tests = \
     $(testdir)/test_container_set_value1 \
     $(testdir)/test_packet_items \
     $(testdir)/test_loop_packets \
-    $(testdir)/test_multiple_cifs
-# test_loop_modification
+    $(testdir)/test_loop_modification
 # nested complex values
-# multiple simultaneous CIFs
 # cif_container_get_value
 #   - invalid name
 #   - absent
@@ -64,16 +63,16 @@ compiled_tests = \
 #   - item not present
 #   - present in multi-item loop
 #   - present in single-item loop
-#   - last item of its loop
+#   - last item of its loop (loop is removed; *_get_packets() indicates CIF_INVALID_HANDLE
 # cif_loop_add_item
 # cif_loop_add_packet
 #   - scalar loop
-# cif_pktitr_close
-#   - changes persist
 # cif_pktitr_abort
 #   - changes rolled back
 # cif_pktitr_update_packet
+#   - update the only packet of the scalar loop
 # cif_pktitr_remove_packet
+#   - remove the only packet of the scalar loop (allowed, does not remove the loop)
 # cif_loop_set_category
 #   - general
 #   - scalar loop

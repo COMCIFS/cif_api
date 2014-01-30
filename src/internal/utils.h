@@ -378,12 +378,13 @@ extern UFILE *ustderr;
 /*
  * Binds the fields of a value object to the parameters of a prepared statement in a manner appropriate to the
  * value's kind (but does not assign the kind itself).  Reseting the statement and / or clearing its bindings is
- * the responsibility of the macro user.
+ * the responsibility of the macro user.  Bindings should be cleared at least before updating a value with one
+ * of a different kind.
  *
  * stmt: a pointer to the sqlite3_stmt object whose parameters are to be updated.  It must have a consecutive
  *   sequence of parameters corresponding, respectively, to these columns of table item_value:
- *   val_text, val, val_digits, su_digits, scale
- * col_ofs: one less than the index of the prepared statement parameter corresponding to item_value.val_text
+ *   kind, val_text, val, val_digits, su_digits, scale
+ * col_ofs: one less than the index of the prepared statement parameter corresponding to item_value.kind
  * val: a pointer to the value object from which to fill statement parameters
  * onsqlerr: the code for the failure handler to invoke in the event that any of the parameter bindings fails
  * ondataerr: the code for the failure handler to invoke in the event of a data malformation (can only happen
@@ -395,20 +396,23 @@ extern UFILE *ustderr;
     cif_value_t *v = (val); \
     double svp_d; \
     buffer_t *buf; \
+    if (sqlite3_bind_int(s, 1 + ofs, v->kind) != SQLITE_OK) { \
+        DEFAULT_FAIL(onsqlerr); \
+    } \
     switch (v->kind) { \
         case CIF_CHAR_KIND: \
-            if ((sqlite3_bind_text16(s, 1 + ofs, v->as_char.text, -1, SQLITE_STATIC) != SQLITE_OK) \
-                    || (sqlite3_bind_text16(s, 2 + ofs, v->as_char.text, -1, SQLITE_STATIC)) != SQLITE_OK) { \
+            if ((sqlite3_bind_text16(s, 2 + ofs, v->as_char.text, -1, SQLITE_STATIC) != SQLITE_OK) \
+                    || (sqlite3_bind_text16(s, 3 + ofs, v->as_char.text, -1, SQLITE_STATIC)) != SQLITE_OK) { \
                 DEFAULT_FAIL(onsqlerr); \
             } \
             break; \
         case CIF_NUMB_KIND: \
-            if ((sqlite3_bind_text16(s, 1 + ofs, v->as_numb.text, -1, SQLITE_STATIC) != SQLITE_OK) \
+            if ((sqlite3_bind_text16(s, 2 + ofs, v->as_numb.text, -1, SQLITE_STATIC) != SQLITE_OK) \
                     || (cif_value_get_number(v, &svp_d) != CIF_OK) \
-                    || (sqlite3_bind_double(s, 2 + ofs, svp_d) != SQLITE_OK) \
-                    || (sqlite3_bind_text(s, 3 + ofs, v->as_numb.digits, -1, SQLITE_STATIC) != SQLITE_OK) \
-                    || (sqlite3_bind_text(s, 4 + ofs, v->as_numb.su_digits, -1, SQLITE_STATIC) != SQLITE_OK) \
-                    || (sqlite3_bind_int(s, 5 + ofs, v->as_numb.scale) != SQLITE_OK)) { \
+                    || (sqlite3_bind_double(s, 3 + ofs, svp_d) != SQLITE_OK) \
+                    || (sqlite3_bind_text(s, 4 + ofs, v->as_numb.digits, -1, SQLITE_STATIC) != SQLITE_OK) \
+                    || (sqlite3_bind_text(s, 5 + ofs, v->as_numb.su_digits, -1, SQLITE_STATIC) != SQLITE_OK) \
+                    || (sqlite3_bind_int(s, 6 + ofs, v->as_numb.scale) != SQLITE_OK)) { \
                 DEFAULT_FAIL(onsqlerr); \
             } \
             break; \
@@ -421,7 +425,7 @@ extern UFILE *ustderr;
                 char *blob = buf->for_writing.start; \
                 int limit = (int) buf->for_writing.limit; \
                 cif_buf_free_metadata(buf); \
-                if (sqlite3_bind_blob(s, 2 + ofs, blob, limit, free) != SQLITE_OK) { \
+                if (sqlite3_bind_blob(s, 3 + ofs, blob, limit, free) != SQLITE_OK) { \
                     DEFAULT_FAIL(onsqlerr); \
                 } \
             } \
