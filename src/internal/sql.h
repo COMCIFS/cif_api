@@ -61,15 +61,18 @@
  */
 #define SET_ALL_VALUES_SQL "insert or replace into item_value " \
   "(kind, val_text, val, val_digits, su_digits, scale, container_id, name, row_num) " \
-  "select distinct ?, ?, ?, ?, ?, ?, li1.container_id, li1.name, iv.row_num " \
-     "from loop_item li1 " \
-       "join loop_item li2 on li1.container_id = li2.container_id and li1.loop_num = li2.loop_num " \
-       "join item_value iv on li2.container_id = iv.container_id and li2.name = iv.name " \
-     "where li1.container_id = ? and li1.name = ?"
+  "select ?, ?, ?, ?, ?, ?, ?, ?, loop_row.row_num " \
+     "from (" \
+       "select distinct iv.row_num as row_num " \
+       "from loop_item li1 " \
+         "join loop_item li2 on li1.container_id = li2.container_id and li1.loop_num = li2.loop_num " \
+         "join item_value iv on li2.container_id = iv.container_id and li2.name = iv.name " \
+       "where li1.container_id = ?7 and li1.name = ?8" \
+     ") loop_row"
 
 #define GET_LOOP_SIZE_SQL "select loop_num, count(*) as size " \
         "from loop_item li1 join loop_item li2 using (container_id, loop_num) " \
-        "where container_id = ? and li1.name = ? " \
+        "where li1.container_id = ? and li1.name = ? " \
         "group by loop_num"
 
 #define REMOVE_ITEM_SQL "delete from loop_item where container_id = ? and name = ?"
@@ -79,20 +82,19 @@
 #define CHECK_ITEM_LOOP_SQL "select 1 from loop_item where container_id = ? and name = ? and loop_num = ?"
 
 #define MAX_PACKET_NUM_SQL "select max(iv.row_num) from loop_item li " \
-    "join item_value iv using (container_id, name) where container_id = ? and li.loop_num = ?"
+    "join item_value iv using (container_id, name) where li.container_id = ? and li.loop_num = ?"
 
 #define ADD_LOOP_ITEM_SQL "insert into loop_item (container_id, name, name_orig, loop_num) values (?, ?, ?, ?)"
 
 #define INSERT_VALUE_SQL "insert into item_value (container_id, name, row_num, " \
     "kind, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
-#define UPDATE_VALUE_SQL "update item_value " \
-        "set kind = ?, val_text = ?, val = ?, val_digits = ?, su_digits = ?, scale = ? " \
-        "where container_id = ? and name = ? and row_num = ?"
+#define UPDATE_VALUE_SQL "insert or replace into item_value (container_id, name, row_num, " \
+    "kind, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 /*
  * Note: there is no dedicated stmt in the cif struct corresponding to this SQL; a new statement is needed for each
- * loop iterated to allow multiple iterations to proceed simultaneously
+ * loop iterated to allow multiple iterations to proceed simultaneously (as if doing that were a good idea ...)
  */
 #define GET_LOOP_VALUES_SQL \
     "select iv.row_num, name, iv.kind, iv.val, iv.val_text, iv.val_digits, iv.su_digits, iv.scale " \

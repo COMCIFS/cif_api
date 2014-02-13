@@ -113,6 +113,12 @@ create table loop (
 );
 
 --
+-- This index supports queries by category, as well as the next two triggers.
+--
+create index ix1_loop
+  on loop (category, container_id);
+
+--
 -- Restrict each container to one scalar loop on insert
 --
 create trigger tr1_loop
@@ -263,7 +269,6 @@ create table item_value (
   primary key (container_id, name, row_num),
   foreign key (container_id, name)
     references loop_item(container_id, name)
-    on update cascade
     on delete cascade,
   check (row_num > 0),
   check (case when (val is null) then kind in (4, 5) else kind in (0, 1, 2, 3) end),
@@ -282,8 +287,8 @@ create trigger tr1_item_value
   when NEW.row_num > 1
   begin
     select raise(ABORT, 'Attempted to create multiple values for a scalar')
-      from loop l
-        join loop_item li using (container_id, loop_num)
+      from loop_item li
+        join loop l using (container_id, loop_num)
         where li.container_id = NEW.container_id
           and li.name = NEW.name
           and l.category = '';
@@ -297,8 +302,8 @@ create trigger tr2_item_value
   when (OLD.row_num = 1) and (NEW.row_num <> 1)
   begin
     select raise(ABORT, 'Attempted to create multiple values for a scalar')
-      from loop l
-        join loop_item li using (container_id, loop_num)
+      from loop_item li
+        join loop l using (container_id, loop_num)
         where li.container_id = NEW.container_id
           and li.name = NEW.name
           and l.category = '';
