@@ -42,7 +42,8 @@ compiled_tests = \
     $(testdir)/test_container_set_value1 \
     $(testdir)/test_packet_items \
     $(testdir)/test_loop_packets \
-    $(testdir)/test_loop_modification
+    $(testdir)/test_loop_modification \
+    $(testdir)/test_loop_set_category
 # nested complex values
 # cif_container_get_value
 #   - invalid name
@@ -73,10 +74,6 @@ compiled_tests = \
 #   - update the only packet of the scalar loop
 # cif_pktitr_remove_packet
 #   - remove the only packet of the scalar loop (allowed, does not remove the loop)
-# cif_loop_set_category
-#   - general
-#   - scalar loop
-#   - deleted loop
 # cif_container_destroy
 # cif_loop_destroy
 # cif_parse

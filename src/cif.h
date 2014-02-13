@@ -1568,11 +1568,17 @@ CIF_INTFUNC_DECL(cif_loop_get_category, (
 /**
  * @brief Sets the specified loop's category.
  *
+ * The zero-character string i(as distinguished from NULL) is RESERVED as a loop category.  No loop's category may be
+ * set to a zero-character string (unless that's what it already is), nor may a loop's category be changed if it is
+ * the zero-character string.
+ *
  * @param[in,out] loop a handle on the loop whose category is to be set
  *
  * @param[in] category the category string to set as a NUL-terminated Unicode string; does not need to be unique and
  *         may be NULL, but must not be a zero-length string.  Ownership of this string is not transferred by passing
  *         it to this function.
+ *
+ * @return @c CIF_OK on success, or an error code on failure, typically either @c CIF_RESERVED_LOOP or @c CIF_ERROR
  */
 CIF_INTFUNC_DECL(cif_loop_set_category, (
         cif_loop_t *loop,

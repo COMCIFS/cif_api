@@ -148,57 +148,91 @@ int cif_loop_get_category(cif_loop_t *loop, UChar **category) {
 }
 
 int cif_loop_set_category(cif_loop_t *loop, const UChar *category) {
-    UChar *category_temp = cif_u_strdup(category);
+    cif_container_t *container = loop->container;
+    UChar *category_temp;
 
-    if (category_temp == NULL) {
-        return CIF_ERROR;
+    if (category == NULL) {
+        category_temp = NULL;
+    } else if (*category == 0) {
+        return CIF_RESERVED_LOOP;
     } else {
-        cif_container_t *container = loop->container;
+        int temp = cif_loop_get_category(loop, &category_temp);
 
-        if (container == NULL) {
-            /* an unattached loop, such as may be synthesized temporarily during CIF parsing */
-            if (loop->category != NULL) {
-                free(loop->category);
+        if (temp != CIF_OK) {
+            return temp;
+        } else if (category_temp != NULL) {
+            temp = *category_temp;
+            free(category_temp);
+            if (temp == 0) {
+                return CIF_RESERVED_LOOP;
             }
-            loop->category = category_temp;
+        }
 
-            return CIF_OK;
+        category_temp = cif_u_strdup(category);
+        if (category_temp == NULL) {
+            return CIF_ERROR;
+        }
+    }
+
+    if (container == NULL) {
+        /* an unattached loop, such as may be synthesized temporarily during CIF parsing */
+        if (loop->category != NULL) {
+            free(loop->category);
+        }
+        loop->category = category_temp;
+
+        return CIF_OK;
+    } else {
+        cif_t *cif = container->cif;
+
+        if (cif == NULL) {
+            return CIF_ERROR;
         } else {
-            cif_t *cif = container->cif;
+            FAILURE_HANDLING;
+            STEP_HANDLING;
 
-            if (cif == NULL) {
-                return CIF_ERROR;
-            } else {
-                FAILURE_HANDLING;
-                STEP_HANDLING;
+            /*
+             * Create any needed prepared statements, or prepare the existing one(s)
+             * for re-use, exiting this function with an error on failure.
+             */
+            PREPARE_STMT(cif, set_loop_category, SET_CATEGORY_SQL);
 
-                /*
-                 * Create any needed prepared statements, or prepare the existing one(s)
-                 * for re-use, exiting this function with an error on failure.
-                 */
-                PREPARE_STMT(cif, set_loop_category, SET_CATEGORY_SQL);
+            /* set the category */
+            if ((sqlite3_bind_int64(cif->set_loop_category_stmt, 2, container->id) == SQLITE_OK)
+                    && (sqlite3_bind_int64(cif->set_loop_category_stmt, 3, loop->loop_num) == SQLITE_OK)
+                    && (sqlite3_bind_text16(cif->set_loop_category_stmt, 1, category_temp, -1, SQLITE_STATIC)
+                            == SQLITE_OK)
+                    && (STEP_STMT(cif, set_loop_category) == SQLITE_DONE)) {
 
-                /* set the category */
-                if ((sqlite3_bind_int64(cif->set_loop_category_stmt, 2, container->id) == SQLITE_OK)
-                        && (sqlite3_bind_int64(cif->set_loop_category_stmt, 3, loop->loop_num) == SQLITE_OK)
-                        && (sqlite3_bind_text16(cif->set_loop_category_stmt, 1, category_temp, -1, SQLITE_STATIC)
-                                == SQLITE_OK)
-                        && (STEP_STMT(cif, set_loop_category) == SQLITE_DONE)) {
-                    /* FIXME: could verify that exactly one row was modified */
-                    if (loop->category != NULL) {
-                        free(loop->category);
-                    }
-                    loop->category = category_temp;
-
-                    return CIF_OK;
+                if (loop->category != NULL) {
+                    free(loop->category);
                 }
+                loop->category = category_temp;
 
-                /* failed -- clean up */
-                DROP_STMT(cif, get_loop_names);
-                free(category_temp);
-
-                FAILURE_TERMINUS;
+                switch(sqlite3_changes(cif->db)) {
+                    case 0:
+                        /* The provided handle does not correspond to any existing loop */
+                        return CIF_INVALID_HANDLE;
+                    case 1:
+                        /*
+                         * Normal result
+                         *
+                         * NOTE: this relies on sqlite3_changes() to count all rows matching the selection predicate
+                         * of an UPDATE statement as "changed", even if all the values set in a given row are actually
+                         * equal to the corresponding values before the update.
+                         */
+                        return CIF_OK;
+                    default:
+                        /* should not happen because the query specifies the row to change by its full key */
+                        return CIF_INTERNAL_ERROR;
+                }
             }
+
+            /* failed -- clean up */
+            DROP_STMT(cif, get_loop_names);
+            free(category_temp);
+
+            FAILURE_TERMINUS;
         }
     }
 }
