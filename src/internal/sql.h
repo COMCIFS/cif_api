@@ -52,9 +52,6 @@
 
 #define PRUNE_SQL PRUNE_ALL_SQL " and l.container_id = ?"
 
-#define GET_VALUE_SQL "select kind, val, val_text, val_digits, su_digits, scale " \
-        "from item_value where container_id = ? and name = ?"
-
 /*
  * This statement both updates existing values and sets omitted values in all packets of the loop containing the
  * specified name in the specified container:
@@ -92,6 +89,9 @@
 #define UPDATE_VALUE_SQL "insert or replace into item_value (container_id, name, row_num, " \
     "kind, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
+#define GET_VALUE_SQL "select kind, val, val_text, val_digits, su_digits, scale " \
+        "from item_value where container_id = ? and name = ?"
+
 /*
  * Note: there is no dedicated stmt in the cif struct corresponding to this SQL; a new statement is needed for each
  * loop iterated to allow multiple iterations to proceed simultaneously (as if doing that were a good idea ...)
@@ -99,7 +99,7 @@
 #define GET_LOOP_VALUES_SQL \
     "select iv.row_num, name, iv.kind, iv.val, iv.val_text, iv.val_digits, iv.su_digits, iv.scale " \
     "from loop_item li join item_value iv using (container_id, name) " \
-    "where container_id=? and loop_num=? " \
+    "where li.container_id=? and li.loop_num=? " \
     "order by iv.row_num"
 
 #define REMOVE_PACKET_SQL "delete from item_value where container_id = ?1 and row_num = ?3 " \

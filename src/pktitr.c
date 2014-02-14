@@ -101,6 +101,7 @@ int cif_pktitr_next_packet(
         }
     
         /* create a new packet for the expected items, with all unknown values */
+        /* Relies on the item names to be pre-normalized */
         if (cif_packet_create_norm(&temp_packet, iterator->item_names, CIF_FALSE) == CIF_OK) {
             /* populate the packet with values read from the DB */
             while (CIF_TRUE) {

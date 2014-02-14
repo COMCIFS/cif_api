@@ -161,8 +161,8 @@ struct cif_packet_s {
 struct cif_pktitr_s {
     sqlite3_stmt *stmt;
     cif_loop_t *loop;
-    UChar **item_names;
-    struct set_element_s *name_set;
+    UChar **item_names;              /* must record _normalized_ names */
+    struct set_element_s *name_set;  /* a set representation of 'item_names' */
     int previous_row_num;
     int finished;
 };

@@ -1475,7 +1475,8 @@ CIF_INTFUNC_DECL(cif_container_get_value, (
  * as a scalar if it's not already present in the container.
  *
  * The given value is set for the item in every packet of the loop to which it belongs.  To set a value in just one
- * packet of a multi-packet loop, use a packet iterator.
+ * packet of a multi-packet loop, use a packet iterator.  Note that zero-packet loops are no exception: if an item
+ * belongs to a zero-packet loop, then setting its value(s) via this method updates all zero packets for no net effect.
  *
  * @param[in] container a handle on the container to modify; must be non-NULL and valid
  *

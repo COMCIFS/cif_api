@@ -674,12 +674,8 @@ int cif_container_set_all_values(
         /* Execute in an implicit transaction: */
         TRACELINE;
         if (STEP_STMT(cif, set_all_values) == SQLITE_DONE) {
-            /* NOTE: sqlite3_changes() is non-transactional and not thread-safe! */
-            if (sqlite3_changes(cif->db) > 0) {
-                return CIF_OK;
-            } else {
-                FAIL(soft, CIF_NOSUCH_ITEM);
-            }
+            /* OK even if zero rows changed => zero-packet loop */
+            return CIF_OK;
         }
     }
 

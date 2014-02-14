@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 static int dup_ustrings(UChar ***dest, UChar *src[]);
+static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, int normalize);
 
 static int dup_ustrings(UChar ***dest, UChar *src[]) {
     if (src == NULL) {
@@ -239,6 +240,10 @@ int cif_loop_set_category(cif_loop_t *loop, const UChar *category) {
 
 /* safe to be called by anyone */
 int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
+    return cif_loop_get_names_internal(loop, item_names, CIF_FALSE);
+}
+
+static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, int normalize) {
     cif_container_t *container = loop->container;
 
     if (item_names == NULL) {
@@ -297,13 +302,30 @@ int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
                                 temp_names[name_count] = NULL;
                                 LL_FOREACH_SAFE(name_list, next_name, temp_name) {
                                     LL_DELETE(name_list, next_name);
-                                    temp_names[--name_count] = next_name->string;
-                                    free(next_name);
+                                    name_count -= 1;
+                                    if (normalize) {
+                                        int result = cif_normalize_item_name(
+                                                next_name->string, -1, temp_names + name_count, CIF_INTERNAL_ERROR);
+
+                                        free(next_name->string);
+                                        free(next_name);
+                                        if (result != CIF_OK) {
+                                            FAIL(normalization, result);
+                                        }
+                                    } else {
+                                        temp_names[name_count] = next_name->string;
+                                        free(next_name);
+                                    }
                                 }
 
                                 /* Success */
                                 *item_names = temp_names;
                                 return CIF_OK;
+
+                                FAILURE_HANDLER(normalization):
+                                while (temp_names[++name_count] != NULL) {
+                                    free(temp_names[name_count]);
+                                }
                             } /* else drop out the bottom and fail */
                             break;
                     }
@@ -564,10 +586,9 @@ int cif_loop_get_packets(
         temp_it->name_set = NULL;
         temp_it->finished = 0;
 
-        if (cif_loop_get_names(loop, &(temp_it->item_names)) == CIF_OK) {
+        if (cif_loop_get_names_internal(loop, &(temp_it->item_names), CIF_TRUE) == CIF_OK) {
             UChar **name;
 
-            /* construct a set of item names for quick name-inclusion tests */
 #undef uthash_fatal
 #define uthash_fatal(msg) DEFAULT_FAIL(soft)
             for (name = temp_it->item_names; *name; name += 1) {
