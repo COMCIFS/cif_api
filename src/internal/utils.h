@@ -349,7 +349,7 @@ extern UFILE *ustderr;
         dest = (UChar *) malloc(value_bytes + sizeof(UChar)); \
         if (dest == NULL) goto onerr; \
         value_chars = (int32_t) (value_bytes / 2); \
-        (void) u_strncpy(dest, string_val, value_chars); \
+        u_strncpy(dest, string_val, value_chars); \
         dest[value_chars] = 0; \
     } \
 } while (0)

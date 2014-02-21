@@ -117,6 +117,7 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_packet_remove_item$(EXEEXT) \
 	$(testdir)/test_container_set_value1$(EXEEXT) \
 	$(testdir)/test_container_set_value2$(EXEEXT) \
+	$(testdir)/test_container_get_value$(EXEEXT) \
 	$(testdir)/test_packet_items$(EXEEXT) \
 	$(testdir)/test_loop_packets$(EXEEXT) \
 	$(testdir)/test_loop_modification$(EXEEXT) \
@@ -176,6 +177,12 @@ __testdir__test_container_get_item_loop_OBJECTS =  \
 	test_container_get_item_loop.$(OBJEXT)
 __testdir__test_container_get_item_loop_LDADD = $(LDADD)
 __testdir__test_container_get_item_loop_DEPENDENCIES = libcif.la
+__testdir__test_container_get_value_SOURCES =  \
+	$(testdir)/test_container_get_value.c
+__testdir__test_container_get_value_OBJECTS =  \
+	test_container_get_value.$(OBJEXT)
+__testdir__test_container_get_value_LDADD = $(LDADD)
+__testdir__test_container_get_value_DEPENDENCIES = libcif.la
 __testdir__test_container_set_value1_SOURCES =  \
 	$(testdir)/test_container_set_value1.c
 __testdir__test_container_set_value1_OBJECTS =  \
@@ -338,6 +345,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_container_get_all_loops.c \
 	$(testdir)/test_container_get_category_loop.c \
 	$(testdir)/test_container_get_item_loop.c \
+	$(testdir)/test_container_get_value.c \
 	$(testdir)/test_container_set_value1.c \
 	$(testdir)/test_container_set_value2.c \
 	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
@@ -371,6 +379,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_container_get_all_loops.c \
 	$(testdir)/test_container_get_category_loop.c \
 	$(testdir)/test_container_get_item_loop.c \
+	$(testdir)/test_container_get_value.c \
 	$(testdir)/test_container_set_value1.c \
 	$(testdir)/test_container_set_value2.c \
 	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
@@ -571,6 +580,7 @@ compiled_tests = \
     $(testdir)/test_packet_remove_item \
     $(testdir)/test_container_set_value1 \
     $(testdir)/test_container_set_value2 \
+    $(testdir)/test_container_get_value \
     $(testdir)/test_packet_items \
     $(testdir)/test_loop_packets \
     $(testdir)/test_loop_modification \
@@ -734,6 +744,9 @@ $(testdir)/test_container_get_category_loop$(EXEEXT): $(__testdir__test_containe
 $(testdir)/test_container_get_item_loop$(EXEEXT): $(__testdir__test_container_get_item_loop_OBJECTS) $(__testdir__test_container_get_item_loop_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_container_get_item_loop$(EXEEXT)
 	$(LINK) $(__testdir__test_container_get_item_loop_OBJECTS) $(__testdir__test_container_get_item_loop_LDADD) $(LIBS)
+$(testdir)/test_container_get_value$(EXEEXT): $(__testdir__test_container_get_value_OBJECTS) $(__testdir__test_container_get_value_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_container_get_value$(EXEEXT)
+	$(LINK) $(__testdir__test_container_get_value_OBJECTS) $(__testdir__test_container_get_value_LDADD) $(LIBS)
 $(testdir)/test_container_set_value1$(EXEEXT): $(__testdir__test_container_set_value1_OBJECTS) $(__testdir__test_container_set_value1_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_container_set_value1$(EXEEXT)
 	$(LINK) $(__testdir__test_container_set_value1_OBJECTS) $(__testdir__test_container_set_value1_LDADD) $(LIBS)
@@ -837,6 +850,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_all_loops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_category_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_item_loop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_value.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_set_value1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_set_value2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create.Po@am__quote@
@@ -1012,6 +1026,20 @@ test_container_get_item_loop.obj: $(testdir)/test_container_get_item_loop.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_get_item_loop.c' object='test_container_get_item_loop.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_item_loop.obj `if test -f '$(testdir)/test_container_get_item_loop.c'; then $(CYGPATH_W) '$(testdir)/test_container_get_item_loop.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_get_item_loop.c'; fi`
+
+test_container_get_value.o: $(testdir)/test_container_get_value.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_value.o -MD -MP -MF $(DEPDIR)/test_container_get_value.Tpo -c -o test_container_get_value.o `test -f '$(testdir)/test_container_get_value.c' || echo '$(srcdir)/'`$(testdir)/test_container_get_value.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_get_value.Tpo $(DEPDIR)/test_container_get_value.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_get_value.c' object='test_container_get_value.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_value.o `test -f '$(testdir)/test_container_get_value.c' || echo '$(srcdir)/'`$(testdir)/test_container_get_value.c
+
+test_container_get_value.obj: $(testdir)/test_container_get_value.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_value.obj -MD -MP -MF $(DEPDIR)/test_container_get_value.Tpo -c -o test_container_get_value.obj `if test -f '$(testdir)/test_container_get_value.c'; then $(CYGPATH_W) '$(testdir)/test_container_get_value.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_get_value.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_get_value.Tpo $(DEPDIR)/test_container_get_value.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_get_value.c' object='test_container_get_value.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_value.obj `if test -f '$(testdir)/test_container_get_value.c'; then $(CYGPATH_W) '$(testdir)/test_container_get_value.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_get_value.c'; fi`
 
 test_container_set_value1.o: $(testdir)/test_container_set_value1.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_set_value1.o -MD -MP -MF $(DEPDIR)/test_container_set_value1.Tpo -c -o test_container_set_value1.o `test -f '$(testdir)/test_container_set_value1.c' || echo '$(srcdir)/'`$(testdir)/test_container_set_value1.c

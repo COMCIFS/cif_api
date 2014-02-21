@@ -1450,7 +1450,7 @@ CIF_INTFUNC_DECL(cif_container_prune, (
  * values (@c CIF_AMBIGUOUS_ITEM), or absent (@c CIF_NOSUCH_ITEM).  Being present in a zero-packet loop is treated
  * the same as being absent altogether.  If there are any values for the item and the @c val parameter is non-NULL,
  * then one of the values is returned via @c val.  Name matching is performed via a caseless, Unicode-normalized
- * algorithm.
+ * algorithm, and invalid names are handled as absent.
  *
  * @param[in] container a handle on the data block or save frame in which to look up the item; must be non-NULL and
  *         valid

@@ -11,6 +11,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 #include <unicode/ustring.h>
 #include "cif.h"
 #include "internal/ciftypes.h"
@@ -703,7 +704,7 @@ int cif_container_get_value(
     PREPARE_STMT(cif, get_value, GET_VALUE_SQL);
 
     TRACELINE;
-    result = cif_normalize_item_name(name, -1, &name_norm, CIF_INVALID_ITEMNAME);
+    result = cif_normalize_item_name(name, -1, &name_norm, CIF_NOSUCH_ITEM);
     if (result != CIF_OK) {
         SET_RESULT(result);
     } else {
@@ -733,10 +734,10 @@ int cif_container_get_value(
                                 break;
                             } else {
                                 cif_value_clean(*val);
-                                if (cif_value_clone(temp, val) == CIF_OK) {
-                                    free(temp);
-                                    break;
-                                }
+                                /* make a _shallow_ copy of 'temp' where 'val' points */
+                                memcpy(*val, temp, sizeof(cif_value_t));
+                                free(temp);
+                                break;
                             }
 
                             FAILURE_HANDLER(inner):

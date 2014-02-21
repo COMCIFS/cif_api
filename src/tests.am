@@ -41,21 +41,12 @@ compiled_tests = \
     $(testdir)/test_packet_remove_item \
     $(testdir)/test_container_set_value1 \
     $(testdir)/test_container_set_value2 \
+    $(testdir)/test_container_get_value \
     $(testdir)/test_packet_items \
     $(testdir)/test_loop_packets \
     $(testdir)/test_loop_modification \
     $(testdir)/test_loop_set_category
 # nested complex values
-# cif_container_get_value
-#   - invalid name
-#   - absent
-#   - present in zero-packet loop
-#   - present in single-packet loop (not scalar)
-#   - present in multiple-packet loop
-#   - NULL value pointer pointer
-#   - non-NULL pointer to NULL value pointer
-#   - non-NULL pointer to non-NULL value pointer
-#   - child frames / parent blocks not read
 # cif_container_remove_item
 #   - item name invalid
 #   - item not present
