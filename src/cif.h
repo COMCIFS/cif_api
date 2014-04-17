@@ -1617,7 +1617,8 @@ CIF_INTFUNC_DECL(cif_loop_get_names, (
  * @param[in] item_name the name of the item to add as a NUL-terminated Unicode string; must be non-NULL and a valid
  *         CIF item name
  *
- * @param[in] val a pointer to the value object that serves as the the initial value for the item
+ * @param[in] val a pointer to the value object that serves as the the initial value for the item, or NULL to use a
+ *         CIF unknown value
  *
  * @return Returns @c CIF_OK on success or a characteristic error code on failure, normally one of:
  *         @li @c CIF_INVALID_ITEMNAME if the item name is not valid

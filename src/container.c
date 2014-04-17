@@ -322,9 +322,9 @@ int cif_container_create_loop(
                             DEFAULT_FAIL(soft);
                         case SQLITE_CONSTRAINT:
                             /*
-                             * The statement must be reset before the error message is retrieved, else only the generic message
-                             * associated with the error code is obtained, not the message emitted by raise() (when that's
-                             * applicable).  [SQLite 3.6.20]
+                             * The statement must be reset before the error message is retrieved, else only the generic
+                             * message associated with the error code is obtained, not the message emitted by raise()
+                             * (when that's applicable).  [SQLite 3.6.20]
                              */
                             /* Error code ignored, but it should reiterate SQLITE_COINSTRAINT: */
                             sqlite3_reset(cif->create_loop_stmt);

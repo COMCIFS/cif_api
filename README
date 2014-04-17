@@ -14,26 +14,27 @@ Refer to file COPYING for conditions for copying the contents of the
 package, in either source or binary form, except the contents of the uthash/
 directory.  See uthash/LICENSE for information about copying the contents of
 that directory; it is under those terms that uthash is herein distributed to
-you.  Note that the uthash license terms permit *binary* distribution without
-constraint.
+you.  Note in particular that the uthash license terms permit *binary*
+distribution without constraint, whereas source distribution is subject to
+modest constraints.
 
 Refer to file INSTALL for general installation instructions.  Build details
 specific to this package follow:
 
 * The package depends on the International Components for Unicode (ICU), so
-  its headers and development libraries are required to build the project,
-  and at least the ICU development libraries will be required to build
-  programs that use the CIF API library.  The CIF API was developed and tested
-  against ICU 3.6, and it is expected to be compatible also with more recent
-  versions.
+  its headers and development libraries are required to build the CIF API
+  library and tests.  At least the ICU development libraries will be required
+  to build programs that use the CIF API library.  The CIF API was developed
+  and tested against ICU 3.6, and it is expected to be compatible also with
+  subsequent versions.
 
 * The package depends on SQLite for its CIF storage engine.  It was developed
   and tested against SQLite 3.6.20, and is expected to work with many later
   versions.  It depends on foreign key support, which was introduced in
   version 3.6.19, so versions earlier than that are not supported.
 
-* Configuring the project requires the pkg-config program, and pkg-config data
-  for ICU.
+* Configuring the project for building requires the pkg-config program and
+  pkg-config data for ICU.
 
 * The reference C compiler employed for package development was GNU gcc 4.1.2.
   Considerable effort was devoted, however, to restricting implementation code

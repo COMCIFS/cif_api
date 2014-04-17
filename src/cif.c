@@ -86,7 +86,8 @@ int cif_create(cif_t **cif) {
 
                     /* Execute each statement in the 'schema_statements' array */
                     for (i = 0; i < DDL_STMT_COUNT; i++) {
-                        if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, schema_statements[i], NULL, NULL, NULL)) != SQLITE_OK) {
+                        if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, schema_statements[i], NULL, NULL, NULL))
+                                != SQLITE_OK) {
 #ifdef DEBUG
                             fprintf(stderr, "Error occurs in DDL statement %d:\n%s\n", i, schema_statements[i]);
 #endif
