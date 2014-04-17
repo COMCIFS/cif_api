@@ -45,7 +45,9 @@ compiled_tests = \
     $(testdir)/test_packet_items \
     $(testdir)/test_loop_packets \
     $(testdir)/test_loop_modification \
-    $(testdir)/test_loop_set_category
+    $(testdir)/test_loop_set_category \
+    $(testdir)/test_loop_destroy \
+    $(testdir)/test_loop_add_item
 # nested complex values
 # cif_container_remove_item
 #   - item name invalid
@@ -53,11 +55,6 @@ compiled_tests = \
 #   - present in multi-item loop
 #   - present in single-item loop
 #   - last item of its loop (loop is removed; *_get_packets() indicates CIF_INVALID_HANDLE
-# cif_loop_add_item
-#   - zero-packet loop
-#   - single-packet loop
-#     - scalar loop
-#   - multi-packet loop
 # cif_loop_add_packet
 #   - scalar loop
 # cif_pktitr_abort
@@ -67,7 +64,6 @@ compiled_tests = \
 # cif_pktitr_remove_packet
 #   - remove the only packet of the scalar loop (allowed, does not remove the loop)
 # cif_container_destroy
-# cif_loop_destroy
 # cif_parse
 # cif_write
 

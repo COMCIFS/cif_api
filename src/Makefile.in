@@ -121,7 +121,9 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_packet_items$(EXEEXT) \
 	$(testdir)/test_loop_packets$(EXEEXT) \
 	$(testdir)/test_loop_modification$(EXEEXT) \
-	$(testdir)/test_loop_set_category$(EXEEXT)
+	$(testdir)/test_loop_set_category$(EXEEXT) \
+	$(testdir)/test_loop_destroy$(EXEEXT) \
+	$(testdir)/test_loop_add_item$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -224,6 +226,15 @@ __testdir__test_list_elements_SOURCES =  \
 __testdir__test_list_elements_OBJECTS = test_list_elements.$(OBJEXT)
 __testdir__test_list_elements_LDADD = $(LDADD)
 __testdir__test_list_elements_DEPENDENCIES = libcif.la
+__testdir__test_loop_add_item_SOURCES =  \
+	$(testdir)/test_loop_add_item.c
+__testdir__test_loop_add_item_OBJECTS = test_loop_add_item.$(OBJEXT)
+__testdir__test_loop_add_item_LDADD = $(LDADD)
+__testdir__test_loop_add_item_DEPENDENCIES = libcif.la
+__testdir__test_loop_destroy_SOURCES = $(testdir)/test_loop_destroy.c
+__testdir__test_loop_destroy_OBJECTS = test_loop_destroy.$(OBJEXT)
+__testdir__test_loop_destroy_LDADD = $(LDADD)
+__testdir__test_loop_destroy_DEPENDENCIES = libcif.la
 __testdir__test_loop_get_names_SOURCES =  \
 	$(testdir)/test_loop_get_names.c
 __testdir__test_loop_get_names_OBJECTS =  \
@@ -352,6 +363,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_create_block2.c \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
+	$(testdir)/test_loop_add_item.c $(testdir)/test_loop_destroy.c \
 	$(testdir)/test_loop_get_names.c \
 	$(testdir)/test_loop_modification.c \
 	$(testdir)/test_loop_packets.c \
@@ -386,6 +398,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_create_block2.c \
 	$(testdir)/test_get_all_blocks.c $(testdir)/test_get_block.c \
 	$(testdir)/test_list_elements.c \
+	$(testdir)/test_loop_add_item.c $(testdir)/test_loop_destroy.c \
 	$(testdir)/test_loop_get_names.c \
 	$(testdir)/test_loop_modification.c \
 	$(testdir)/test_loop_packets.c \
@@ -584,7 +597,9 @@ compiled_tests = \
     $(testdir)/test_packet_items \
     $(testdir)/test_loop_packets \
     $(testdir)/test_loop_modification \
-    $(testdir)/test_loop_set_category
+    $(testdir)/test_loop_set_category \
+    $(testdir)/test_loop_destroy \
+    $(testdir)/test_loop_add_item
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -771,6 +786,12 @@ $(testdir)/test_get_block$(EXEEXT): $(__testdir__test_get_block_OBJECTS) $(__tes
 $(testdir)/test_list_elements$(EXEEXT): $(__testdir__test_list_elements_OBJECTS) $(__testdir__test_list_elements_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_list_elements$(EXEEXT)
 	$(LINK) $(__testdir__test_list_elements_OBJECTS) $(__testdir__test_list_elements_LDADD) $(LIBS)
+$(testdir)/test_loop_add_item$(EXEEXT): $(__testdir__test_loop_add_item_OBJECTS) $(__testdir__test_loop_add_item_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_loop_add_item$(EXEEXT)
+	$(LINK) $(__testdir__test_loop_add_item_OBJECTS) $(__testdir__test_loop_add_item_LDADD) $(LIBS)
+$(testdir)/test_loop_destroy$(EXEEXT): $(__testdir__test_loop_destroy_OBJECTS) $(__testdir__test_loop_destroy_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_loop_destroy$(EXEEXT)
+	$(LINK) $(__testdir__test_loop_destroy_OBJECTS) $(__testdir__test_loop_destroy_LDADD) $(LIBS)
 $(testdir)/test_loop_get_names$(EXEEXT): $(__testdir__test_loop_get_names_OBJECTS) $(__testdir__test_loop_get_names_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_loop_get_names$(EXEEXT)
 	$(LINK) $(__testdir__test_loop_get_names_OBJECTS) $(__testdir__test_loop_get_names_LDADD) $(LIBS)
@@ -859,6 +880,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_get_all_blocks.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_get_block.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_list_elements.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_add_item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_destroy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_get_names.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_modification.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_packets.Po@am__quote@
@@ -1152,6 +1175,34 @@ test_list_elements.obj: $(testdir)/test_list_elements.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_list_elements.c' object='test_list_elements.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_list_elements.obj `if test -f '$(testdir)/test_list_elements.c'; then $(CYGPATH_W) '$(testdir)/test_list_elements.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_list_elements.c'; fi`
+
+test_loop_add_item.o: $(testdir)/test_loop_add_item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_add_item.o -MD -MP -MF $(DEPDIR)/test_loop_add_item.Tpo -c -o test_loop_add_item.o `test -f '$(testdir)/test_loop_add_item.c' || echo '$(srcdir)/'`$(testdir)/test_loop_add_item.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_loop_add_item.Tpo $(DEPDIR)/test_loop_add_item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_loop_add_item.c' object='test_loop_add_item.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_add_item.o `test -f '$(testdir)/test_loop_add_item.c' || echo '$(srcdir)/'`$(testdir)/test_loop_add_item.c
+
+test_loop_add_item.obj: $(testdir)/test_loop_add_item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_add_item.obj -MD -MP -MF $(DEPDIR)/test_loop_add_item.Tpo -c -o test_loop_add_item.obj `if test -f '$(testdir)/test_loop_add_item.c'; then $(CYGPATH_W) '$(testdir)/test_loop_add_item.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_loop_add_item.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_loop_add_item.Tpo $(DEPDIR)/test_loop_add_item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_loop_add_item.c' object='test_loop_add_item.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_add_item.obj `if test -f '$(testdir)/test_loop_add_item.c'; then $(CYGPATH_W) '$(testdir)/test_loop_add_item.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_loop_add_item.c'; fi`
+
+test_loop_destroy.o: $(testdir)/test_loop_destroy.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_destroy.o -MD -MP -MF $(DEPDIR)/test_loop_destroy.Tpo -c -o test_loop_destroy.o `test -f '$(testdir)/test_loop_destroy.c' || echo '$(srcdir)/'`$(testdir)/test_loop_destroy.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_loop_destroy.Tpo $(DEPDIR)/test_loop_destroy.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_loop_destroy.c' object='test_loop_destroy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_destroy.o `test -f '$(testdir)/test_loop_destroy.c' || echo '$(srcdir)/'`$(testdir)/test_loop_destroy.c
+
+test_loop_destroy.obj: $(testdir)/test_loop_destroy.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_destroy.obj -MD -MP -MF $(DEPDIR)/test_loop_destroy.Tpo -c -o test_loop_destroy.obj `if test -f '$(testdir)/test_loop_destroy.c'; then $(CYGPATH_W) '$(testdir)/test_loop_destroy.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_loop_destroy.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_loop_destroy.Tpo $(DEPDIR)/test_loop_destroy.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_loop_destroy.c' object='test_loop_destroy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_destroy.obj `if test -f '$(testdir)/test_loop_destroy.c'; then $(CYGPATH_W) '$(testdir)/test_loop_destroy.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_loop_destroy.c'; fi`
 
 test_loop_get_names.o: $(testdir)/test_loop_get_names.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_get_names.o -MD -MP -MF $(DEPDIR)/test_loop_get_names.Tpo -c -o test_loop_get_names.o `test -f '$(testdir)/test_loop_get_names.c' || echo '$(srcdir)/'`$(testdir)/test_loop_get_names.c

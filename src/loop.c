@@ -409,11 +409,20 @@ int cif_loop_add_item(
                         TRACELINE;
                         sqlite3_reset(cif->add_loop_item_stmt);
                         break;
-                    case SQLITE_ERROR:
+                    case SQLITE_CONSTRAINT:
+                        TRACELINE;
+                        sqlite3_reset(cif->add_loop_item_stmt);
+                        ROLLBACK_NESTTX(cif->db);
+                        FAIL(soft, CIF_DUP_ITEMNAME);
+                    default:
+                        TRACELINE;
+                        sqlite3_reset(cif->add_loop_item_stmt);
+                        /* fall out the bottom and fail */
+/*                    case SQLITE_ERROR:
                         TRACELINE;
                         if (sqlite3_reset(cif->add_loop_item_stmt) == SQLITE_CONSTRAINT) {
                             FAIL(soft, CIF_DUP_ITEMNAME);
-                        } /* else drop out the bottom and fail */
+                        } *//* else drop out the bottom and fail */
                 }
             }
 
