@@ -123,7 +123,8 @@ am__EXEEXT_1 = $(testdir)/test_create$(EXEEXT) \
 	$(testdir)/test_loop_modification$(EXEEXT) \
 	$(testdir)/test_loop_set_category$(EXEEXT) \
 	$(testdir)/test_loop_destroy$(EXEEXT) \
-	$(testdir)/test_loop_add_item$(EXEEXT)
+	$(testdir)/test_loop_add_item$(EXEEXT) \
+	$(testdir)/test_container_remove_item$(EXEEXT)
 __testdir__test_block_create_frame1_SOURCES =  \
 	$(testdir)/test_block_create_frame1.c
 __testdir__test_block_create_frame1_OBJECTS =  \
@@ -185,6 +186,12 @@ __testdir__test_container_get_value_OBJECTS =  \
 	test_container_get_value.$(OBJEXT)
 __testdir__test_container_get_value_LDADD = $(LDADD)
 __testdir__test_container_get_value_DEPENDENCIES = libcif.la
+__testdir__test_container_remove_item_SOURCES =  \
+	$(testdir)/test_container_remove_item.c
+__testdir__test_container_remove_item_OBJECTS =  \
+	test_container_remove_item.$(OBJEXT)
+__testdir__test_container_remove_item_LDADD = $(LDADD)
+__testdir__test_container_remove_item_DEPENDENCIES = libcif.la
 __testdir__test_container_set_value1_SOURCES =  \
 	$(testdir)/test_container_set_value1.c
 __testdir__test_container_set_value1_OBJECTS =  \
@@ -357,6 +364,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(testdir)/test_container_get_category_loop.c \
 	$(testdir)/test_container_get_item_loop.c \
 	$(testdir)/test_container_get_value.c \
+	$(testdir)/test_container_remove_item.c \
 	$(testdir)/test_container_set_value1.c \
 	$(testdir)/test_container_set_value2.c \
 	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
@@ -392,6 +400,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) \
 	$(testdir)/test_container_get_category_loop.c \
 	$(testdir)/test_container_get_item_loop.c \
 	$(testdir)/test_container_get_value.c \
+	$(testdir)/test_container_remove_item.c \
 	$(testdir)/test_container_set_value1.c \
 	$(testdir)/test_container_set_value2.c \
 	$(testdir)/test_create.c $(testdir)/test_create_block1.c \
@@ -599,7 +608,8 @@ compiled_tests = \
     $(testdir)/test_loop_modification \
     $(testdir)/test_loop_set_category \
     $(testdir)/test_loop_destroy \
-    $(testdir)/test_loop_add_item
+    $(testdir)/test_loop_add_item \
+    $(testdir)/test_container_remove_item
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -762,6 +772,9 @@ $(testdir)/test_container_get_item_loop$(EXEEXT): $(__testdir__test_container_ge
 $(testdir)/test_container_get_value$(EXEEXT): $(__testdir__test_container_get_value_OBJECTS) $(__testdir__test_container_get_value_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_container_get_value$(EXEEXT)
 	$(LINK) $(__testdir__test_container_get_value_OBJECTS) $(__testdir__test_container_get_value_LDADD) $(LIBS)
+$(testdir)/test_container_remove_item$(EXEEXT): $(__testdir__test_container_remove_item_OBJECTS) $(__testdir__test_container_remove_item_DEPENDENCIES) $(testdir)/$(am__dirstamp)
+	@rm -f $(testdir)/test_container_remove_item$(EXEEXT)
+	$(LINK) $(__testdir__test_container_remove_item_OBJECTS) $(__testdir__test_container_remove_item_LDADD) $(LIBS)
 $(testdir)/test_container_set_value1$(EXEEXT): $(__testdir__test_container_set_value1_OBJECTS) $(__testdir__test_container_set_value1_DEPENDENCIES) $(testdir)/$(am__dirstamp)
 	@rm -f $(testdir)/test_container_set_value1$(EXEEXT)
 	$(LINK) $(__testdir__test_container_set_value1_OBJECTS) $(__testdir__test_container_set_value1_LDADD) $(LIBS)
@@ -872,6 +885,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_category_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_item_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_value.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_remove_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_set_value1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_set_value2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create.Po@am__quote@
@@ -1063,6 +1077,20 @@ test_container_get_value.obj: $(testdir)/test_container_get_value.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_get_value.c' object='test_container_get_value.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_value.obj `if test -f '$(testdir)/test_container_get_value.c'; then $(CYGPATH_W) '$(testdir)/test_container_get_value.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_get_value.c'; fi`
+
+test_container_remove_item.o: $(testdir)/test_container_remove_item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_remove_item.o -MD -MP -MF $(DEPDIR)/test_container_remove_item.Tpo -c -o test_container_remove_item.o `test -f '$(testdir)/test_container_remove_item.c' || echo '$(srcdir)/'`$(testdir)/test_container_remove_item.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_remove_item.Tpo $(DEPDIR)/test_container_remove_item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_remove_item.c' object='test_container_remove_item.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_remove_item.o `test -f '$(testdir)/test_container_remove_item.c' || echo '$(srcdir)/'`$(testdir)/test_container_remove_item.c
+
+test_container_remove_item.obj: $(testdir)/test_container_remove_item.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_remove_item.obj -MD -MP -MF $(DEPDIR)/test_container_remove_item.Tpo -c -o test_container_remove_item.obj `if test -f '$(testdir)/test_container_remove_item.c'; then $(CYGPATH_W) '$(testdir)/test_container_remove_item.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_remove_item.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_remove_item.Tpo $(DEPDIR)/test_container_remove_item.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(testdir)/test_container_remove_item.c' object='test_container_remove_item.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_remove_item.obj `if test -f '$(testdir)/test_container_remove_item.c'; then $(CYGPATH_W) '$(testdir)/test_container_remove_item.c'; else $(CYGPATH_W) '$(srcdir)/$(testdir)/test_container_remove_item.c'; fi`
 
 test_container_set_value1.o: $(testdir)/test_container_set_value1.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_set_value1.o -MD -MP -MF $(DEPDIR)/test_container_set_value1.Tpo -c -o test_container_set_value1.o `test -f '$(testdir)/test_container_set_value1.c' || echo '$(srcdir)/'`$(testdir)/test_container_set_value1.c

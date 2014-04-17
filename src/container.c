@@ -46,9 +46,9 @@ static int cif_container_validate(cif_container_t *container);
  * the caller is responsible for releasing these when appropriate.
  */
 static int cif_container_get_item_loop_internal (
-        /*@temp@*/ cif_container_t *container,
-        /*@temp@*/ const UChar *name,
-        /*@temp@*/ cif_loop_t *loop
+        cif_container_t *container,
+        const UChar *name,
+        cif_loop_t *loop
         );
 
 /*
@@ -56,10 +56,10 @@ static int cif_container_get_item_loop_internal (
  * normalized and valid.  The container and value are assumed valid.  No transaction management is performed.
  */
 static int cif_container_add_scalar(
-        /*@temp@*/ cif_container_t *container,
-        /*@temp@*/ const UChar *item_name,
-        /*@temp@*/ const UChar *name_orig,
-        /*@temp@*/ cif_value_t *val
+        cif_container_t *container,
+        const UChar *item_name,
+        const UChar *name_orig,
+        cif_value_t *val
         );
 
 /*
@@ -138,7 +138,7 @@ static int cif_container_get_item_loop_internal (
                     case SQLITE_DONE:
                         return CIF_OK;
                     case SQLITE_ROW:
-                        (void) sqlite3_reset(cif->get_item_loop_stmt);
+                        sqlite3_reset(cif->get_item_loop_stmt);
                         FAIL(soft, CIF_INTERNAL_ERROR);
                 }
         } /* else fall-through / fail */
@@ -185,9 +185,9 @@ static int cif_container_add_scalar(
                     if (result == CIF_OK) {
                       result = cif_loop_add_packet(loop, packet);
                     }
-                    (void) cif_packet_free(packet);
+                    cif_packet_free(packet);
                 }
-                (void) cif_loop_free(loop);
+                cif_loop_free(loop);
             }
             break;
 
@@ -196,7 +196,7 @@ static int cif_container_add_scalar(
             /* FIXME: avoid re-normalizing the name */
             TRACELINE;
             result = cif_loop_add_item(loop, name_orig, val);
-            (void) cif_loop_free(loop);
+            cif_loop_free(loop);
             break;
     }
     SET_RESULT(result);
@@ -413,7 +413,7 @@ int cif_container_create_loop(
                 ROLLBACK_NESTTX(cif->db);
             }
         }
-        (void) cif_loop_free(temp);
+        cif_loop_free(temp);
     } /* else memory allocation failure */
 
     /* error return */
@@ -828,6 +828,8 @@ int cif_container_remove_item(
         ) {
     FAILURE_HANDLING;
     cif_t *cif;
+    UChar *normalized_name;
+    int result;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
     if (item_name == NULL) return CIF_INVALID_ITEMNAME;
@@ -842,8 +844,12 @@ int cif_container_remove_item(
     PREPARE_STMT(cif, remove_item, REMOVE_ITEM_SQL);
     PREPARE_STMT(cif, destroy_loop, DESTROY_LOOP_SQL);
 
-    if ((sqlite3_bind_int64(cif->get_loop_size_stmt, 1, container->id) == SQLITE_OK) 
-            && (sqlite3_bind_text16(cif->get_loop_size_stmt, 2, item_name, -1, SQLITE_STATIC) == SQLITE_OK)) {
+    /* Note: this code assumes that items bearing invalid names cannot be introduced into the DB */
+    result = cif_normalize_item_name(item_name, -1, &normalized_name, CIF_NOSUCH_ITEM);
+    if (result != CIF_OK) {
+        FAIL(soft, result);
+    } else if ((sqlite3_bind_int64(cif->get_loop_size_stmt, 1, container->id) == SQLITE_OK) 
+            && (sqlite3_bind_text16(cif->get_loop_size_stmt, 2, normalized_name, -1, SQLITE_STATIC) == SQLITE_OK)) {
         int size;
 
         /*
@@ -860,28 +866,28 @@ int cif_container_remove_item(
             switch (STEP_STMT(cif, get_loop_size)) {
                 case SQLITE_DONE:
                     /* The container does not have the specified item */
-                    (void) ROLLBACK(cif->db);
+                    ROLLBACK(cif->db);
                     FAIL(soft, CIF_NOSUCH_ITEM);
                 case SQLITE_ROW:
                     size = sqlite3_column_int(cif->get_loop_size_stmt, 1);
                     loop_num = sqlite3_column_int(cif->get_loop_size_stmt, 0);
-                    (void) sqlite3_reset(cif->get_loop_size_stmt); 
+                    sqlite3_reset(cif->get_loop_size_stmt); 
 
                     if (size == 1) {
                         /* the item is the only one in its loop, so remove the loop altogether */
                         if ((sqlite3_bind_int64(cif->destroy_loop_stmt, 1, container->id) != SQLITE_OK)
                                 || (sqlite3_bind_int(cif->destroy_loop_stmt, 2, loop_num) != SQLITE_OK)
                                 || (STEP_STMT(cif, destroy_loop) != SQLITE_DONE)) {
-                            (void) sqlite3_reset(cif->destroy_loop_stmt);
+                            sqlite3_reset(cif->destroy_loop_stmt);
                             DEFAULT_FAIL(hard);
                         }
                     } else {
                         /* there are other items in the same loop, so remove just the target item */
                         if ((sqlite3_bind_int64(cif->remove_item_stmt, 1, container->id) != SQLITE_OK) 
-                                || (sqlite3_bind_text16(cif->remove_item_stmt, 2, item_name, -1, SQLITE_STATIC)
+                                || (sqlite3_bind_text16(cif->remove_item_stmt, 2, normalized_name, -1, SQLITE_STATIC)
                                         != SQLITE_OK)
                                 || (STEP_STMT(cif, remove_item) != SQLITE_DONE)) {
-                            (void) sqlite3_reset(cif->remove_item_stmt);
+                            sqlite3_reset(cif->remove_item_stmt);
                             DEFAULT_FAIL(hard);
                         }
                     }
@@ -890,7 +896,7 @@ int cif_container_remove_item(
                     }
             }
             FAILURE_HANDLER(hard):
-            (void) ROLLBACK(cif->db);
+            ROLLBACK(cif->db);
         }
     }
 

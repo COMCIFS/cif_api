@@ -594,8 +594,11 @@ int cif_loop_get_packets(
         temp_it->item_names = NULL;
         temp_it->name_set = NULL;
         temp_it->finished = 0;
+        int result;
 
-        if (cif_loop_get_names_internal(loop, &(temp_it->item_names), CIF_TRUE) == CIF_OK) {
+        if ((result = cif_loop_get_names_internal(loop, &(temp_it->item_names), CIF_TRUE)) != CIF_OK) {
+            SET_RESULT(result);
+        } else {
             UChar **name;
 
 #undef uthash_fatal
