@@ -231,6 +231,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = src
+ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = \
   dox-html \
   dox-man \
@@ -249,7 +250,6 @@ EXTRA_DIST = \
   uthash/utlist.h \
   uthash/utstring.h
 
-ACLOCAL_AMFLAGS = -I m4
 @make_docs_FALSE@doxygen_html_targets = 
 @make_docs_TRUE@doxygen_html_targets = dox-html
 @make_docs_FALSE@doxygen_man_targets = 
@@ -260,7 +260,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 # The chmod in the below command is needed to work around weirdness in the behavior of the
 # "distcheck" target
-@install_docs_TRUE@html_install = test -d dox-html && html_dir=dox-html || html_dir=$(top_srcdir)/dox-html; \
+@install_docs_TRUE@html_install = test -d dox-html && html_dir=dox-html || html_dir=$(srcdir)/dox-html; \
 @install_docs_TRUE@  $(MKDIR_P) $(DESTDIR)$(pkgdocdir); \
 @install_docs_TRUE@  cp -pR $${html_dir} $(DESTDIR)$(pkgdocdir)/html; \
 @install_docs_TRUE@  chmod -R u+w $(DESTDIR)$(pkgdocdir)/html

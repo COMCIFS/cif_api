@@ -6,6 +6,8 @@
 
 SUBDIRS = src
 
+ACLOCAL_AMFLAGS = -I m4
+
 EXTRA_DIST = \
   dox-html \
   dox-man \
@@ -24,8 +26,6 @@ EXTRA_DIST = \
   uthash/utlist.h \
   uthash/utstring.h
 
-ACLOCAL_AMFLAGS = -I m4
-
 if make_docs
 doxygen_html_targets = dox-html
 doxygen_man_targets = dox-man
@@ -39,7 +39,7 @@ endif
 if install_docs
 # The chmod in the below command is needed to work around weirdness in the behavior of the
 # "distcheck" target
-html_install = test -d dox-html && html_dir=dox-html || html_dir=$(top_srcdir)/dox-html; \
+html_install = test -d dox-html && html_dir=dox-html || html_dir=$(srcdir)/dox-html; \
   $(MKDIR_P) $(DESTDIR)$(pkgdocdir); \
   cp -pR $${html_dir} $(DESTDIR)$(pkgdocdir)/html; \
   chmod -R u+w $(DESTDIR)$(pkgdocdir)/html

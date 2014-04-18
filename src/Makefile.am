@@ -48,10 +48,9 @@ AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)
 
 BUILT_SOURCES = internal/schema.h
 
-CLEANFILES =
-DISTCLEANFILES = $(BUILT_SOURCES)
+CLEANFILES = $(BUILT_SOURCES)
+DISTCLEANFILES =
 
-testdir = tests
 clean_local_targets =
 include tests.am
 
@@ -70,6 +69,7 @@ libcif_la_SOURCES = \
   cif.h \
   internal/buffer.h \
   internal/ciftypes.h \
+  internal/schema.h \
   internal/sql.h \
   internal/utils.h \
   internal/value.h

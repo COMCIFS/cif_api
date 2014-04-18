@@ -10,45 +10,45 @@ VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=exec
 # --error-exitcode=<number>
 
 compiled_tests = \
-    $(testdir)/test_create \
-    $(testdir)/test_create_block1 \
-    $(testdir)/test_create_block2 \
-    $(testdir)/test_get_block \
-    $(testdir)/test_get_all_blocks \
-    $(testdir)/test_multiple_cifs \
-    $(testdir)/test_block_create_frame1 \
-    $(testdir)/test_block_create_frame2 \
-    $(testdir)/test_block_get_frame \
-    $(testdir)/test_block_get_all_frames \
-    $(testdir)/test_container_create_loop1 \
-    $(testdir)/test_container_create_loop2 \
-    $(testdir)/test_container_get_category_loop \
-    $(testdir)/test_container_get_item_loop \
-    $(testdir)/test_container_get_all_loops \
-    $(testdir)/test_loop_get_names \
-    $(testdir)/test_value_create \
-    $(testdir)/test_value_get_number \
-    $(testdir)/test_value_init_char \
-    $(testdir)/test_value_copy_char \
-    $(testdir)/test_value_init_numb \
-    $(testdir)/test_value_autoinit_numb \
-    $(testdir)/test_value_parse_numb \
-    $(testdir)/test_list_elements \
-    $(testdir)/test_table_elements \
-    $(testdir)/test_value_clone \
-    $(testdir)/test_packet_create \
-    $(testdir)/test_packet_set_item \
-    $(testdir)/test_packet_remove_item \
-    $(testdir)/test_container_set_value1 \
-    $(testdir)/test_container_set_value2 \
-    $(testdir)/test_container_get_value \
-    $(testdir)/test_packet_items \
-    $(testdir)/test_loop_packets \
-    $(testdir)/test_loop_modification \
-    $(testdir)/test_loop_set_category \
-    $(testdir)/test_loop_destroy \
-    $(testdir)/test_loop_add_item \
-    $(testdir)/test_container_remove_item
+    tests/test_create \
+    tests/test_create_block1 \
+    tests/test_create_block2 \
+    tests/test_get_block \
+    tests/test_get_all_blocks \
+    tests/test_multiple_cifs \
+    tests/test_block_create_frame1 \
+    tests/test_block_create_frame2 \
+    tests/test_block_get_frame \
+    tests/test_block_get_all_frames \
+    tests/test_container_create_loop1 \
+    tests/test_container_create_loop2 \
+    tests/test_container_get_category_loop \
+    tests/test_container_get_item_loop \
+    tests/test_container_get_all_loops \
+    tests/test_loop_get_names \
+    tests/test_value_create \
+    tests/test_value_get_number \
+    tests/test_value_init_char \
+    tests/test_value_copy_char \
+    tests/test_value_init_numb \
+    tests/test_value_autoinit_numb \
+    tests/test_value_parse_numb \
+    tests/test_list_elements \
+    tests/test_table_elements \
+    tests/test_value_clone \
+    tests/test_packet_create \
+    tests/test_packet_set_item \
+    tests/test_packet_remove_item \
+    tests/test_container_set_value1 \
+    tests/test_container_set_value2 \
+    tests/test_container_get_value \
+    tests/test_packet_items \
+    tests/test_loop_packets \
+    tests/test_loop_modification \
+    tests/test_loop_set_category \
+    tests/test_loop_destroy \
+    tests/test_loop_add_item \
+    tests/test_container_remove_item
 # nested complex values
 #   - list / list
 #   - list / table
@@ -66,10 +66,10 @@ compiled_tests = \
 # cif_write
 
 check_PROGRAMS = $(compiled_tests)
-EXTRA_DIST += tests/assert_value.h
+EXTRA_DIST += tests/test.h tests/assert_value.h
 
 TESTS = \
-  $(testdir)/link.test \
+  tests/link.test \
   $(compiled_tests)
 
 XFAIL_TESTS =
@@ -78,17 +78,12 @@ XFAIL_TESTS =
 TESTS_ENVIRONMENT = \
   CIF_HEADER_DIR="$(top_srcdir)/src" \
   CIF_LA=libcif.la \
-  testdir="$(testdir)" \
+  testdir="tests" \
   CC="$(CC)" \
   CCLD="$(CCLD)" \
   LIBTOOL="$(LIBTOOL)"
 
-EXTRA_DIST += $(testdir)/link.test $(testdir)/test.h
+EXTRA_DIST += tests/link.test
 
-CLEANFILES += $(testdir)/linktest.c $(testdir)/linktest.lo $(testdir)/linktest
-
-clean_local_targets += clean-local-lt_tests
-
-clean-local-lt_tests:
-	$(RM) -rf $(testdir)/.libs
+CLEANFILES += tests/linktest.c tests/linktest.lo tests/linktest
 
