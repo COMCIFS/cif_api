@@ -52,8 +52,8 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
         }
         names_norm[element_count] = NULL;
 
-        /* pretend it's going to be a dependent packet to avoid making unneeded key copies */
-        result = cif_packet_create_norm(packet, names_norm, 0);
+        /* avoid making unneeded key copies by allowing the packet to alias the normalized keys */
+        result = cif_packet_create_norm(packet, names_norm, CIF_FALSE);
         if (result == CIF_OK) {
             struct entry_s *entry;
             size_t counter2;
@@ -76,7 +76,7 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
                 }
             }
 
-            /* we're about to abandon our copies of the name pointers; the names now belong to the packet */
+            /* we're about to abandon our copies of the name pointers; the names now belong exclusively to the packet */
             (*packet)->map.is_standalone = 1;
             /* free the array, but not its elements */
             free(names_norm);
@@ -102,7 +102,7 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
  * this function is hard to use because it does not record the original item
  * names; instead, it just sets them to the (provided) normalized names.
  */
-int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int standalone) {
+int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int avoid_aliasing) {
     FAILURE_HANDLING;
     cif_packet_t *temp_packet;
 
@@ -114,7 +114,7 @@ int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int standalone)
         UChar **name;
 
         temp_packet->map.normalizer = cif_normalize_item_name;
-        temp_packet->map.is_standalone = standalone;
+        temp_packet->map.is_standalone = avoid_aliasing;
         temp_packet->map.head = NULL;
         for (name = names; *name; name += 1) {
             struct entry_s *scalar = (struct entry_s *) malloc(sizeof(struct entry_s));
@@ -123,7 +123,7 @@ int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int standalone)
                 DEFAULT_FAIL(soft);
             } else {
                 scalar->as_value.kind = CIF_UNK_KIND;
-                if (standalone == 0) {
+                if (avoid_aliasing == 0) {
                     scalar->key = *name;
                 } else {
                     scalar->key = cif_u_strdup(*name);

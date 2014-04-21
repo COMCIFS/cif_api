@@ -22,6 +22,8 @@
 extern "C" {
 #endif
 
+static const char MULTIPLE_SCALAR_MESSAGE[49] = "Attempted to create multiple values for a scalar";
+
 static int dup_ustrings(UChar ***dest, UChar *src[]);
 static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, int normalize);
 
@@ -358,82 +360,87 @@ int cif_loop_add_item(
         const UChar *item_name,
         cif_value_t *val
         ) {
-    FAILURE_HANDLING;
     UChar *norm_name;
+    int changes;  /* ignored */
     int result;
 
-    TRACELINE;
-    result = cif_normalize_item_name(item_name, -1, &norm_name, CIF_INVALID_ITEMNAME);
-    if (result != CIF_OK) {
-        SET_RESULT(result);
+    if ((loop == NULL) || (loop->container == NULL) || (loop->container->cif == NULL)) {
+        return CIF_INVALID_HANDLE;
     } else {
-        cif_container_t *container = loop->container;
-        cif_t *cif;
-        NESTTX_HANDLING;
-
-        if (container == NULL) {
-            FAIL(soft, CIF_INVALID_HANDLE);
-        } else {
-            cif = container->cif;
+        if ((result = cif_normalize_item_name(item_name, -1, &norm_name, CIF_INVALID_ITEMNAME)) == CIF_OK) {
+            result = cif_loop_add_item_internal(loop, item_name, norm_name, val, &changes);
+            free(norm_name);
         }
-
-        /*
-         * Create any needed prepared statements, or prepare the existing one(s)
-         * for re-use, exiting this function with an error on failure.
-         */
-        PREPARE_STMT(cif, add_loop_item, ADD_LOOP_ITEM_SQL);
-
-        TRACELINE;
-        assert(norm_name != NULL);
-        if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
-            TRACELINE;
-            if ((DEBUG_WRAP(cif->db, sqlite3_bind_int64(cif->add_loop_item_stmt, 1, container->id)) == SQLITE_OK)
-                    && (DEBUG_WRAP(cif->db, sqlite3_bind_text16(cif->add_loop_item_stmt, 2, norm_name, -1, SQLITE_STATIC)) == SQLITE_OK)
-                    && (DEBUG_WRAP(cif->db, sqlite3_bind_text16(cif->add_loop_item_stmt, 3, item_name, -1, SQLITE_STATIC)) == SQLITE_OK)
-                    && (DEBUG_WRAP(cif->db, sqlite3_bind_int(cif->add_loop_item_stmt, 4, loop->loop_num)) == SQLITE_OK)
-                    ) {
-                STEP_HANDLING;
-
-                TRACELINE;
-                switch (STEP_STMT(cif, add_loop_item)) {
-                    case SQLITE_DONE:
-                        TRACELINE;
-                        if ((cif_container_set_all_values(container, norm_name, val) == CIF_OK)
-                                && (COMMIT_NESTTX(cif->db) == SQLITE_OK)) {
-                            free(norm_name);
-                            return CIF_OK;
-                        }
-                        break;
-                    case SQLITE_ROW:
-                        /* should not happen -- the insert statement should not return any rows */
-                        TRACELINE;
-                        sqlite3_reset(cif->add_loop_item_stmt);
-                        break;
-                    case SQLITE_CONSTRAINT:
-                        TRACELINE;
-                        sqlite3_reset(cif->add_loop_item_stmt);
-                        ROLLBACK_NESTTX(cif->db);
-                        FAIL(soft, CIF_DUP_ITEMNAME);
-                    default:
-                        TRACELINE;
-                        sqlite3_reset(cif->add_loop_item_stmt);
-                        /* fall out the bottom and fail */
-/*                    case SQLITE_ERROR:
-                        TRACELINE;
-                        if (sqlite3_reset(cif->add_loop_item_stmt) == SQLITE_CONSTRAINT) {
-                            FAIL(soft, CIF_DUP_ITEMNAME);
-                        } *//* else drop out the bottom and fail */
-                }
-            }
-
-            ROLLBACK_NESTTX(cif->db);
-        }
-
-        DROP_STMT(cif, add_loop_item);
-
-        FAILURE_HANDLER(soft):
-        free(norm_name);
+        return result;
     }
+}
+
+int cif_loop_add_item_internal(
+        cif_loop_t *loop,
+        const UChar *item_name,
+        const UChar *norm_name,
+        cif_value_t *val,
+        int *changes
+        ) {
+    FAILURE_HANDLING;
+    NESTTX_HANDLING;
+    cif_container_t *container = loop->container;
+    cif_t *cif = container->cif;
+    int result;
+
+    /*
+     * Create any needed prepared statements, or prepare the existing one(s)
+     * for re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, add_loop_item, ADD_LOOP_ITEM_SQL);
+
+    TRACELINE;
+    assert(norm_name != NULL);
+    if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
+        TRACELINE;
+        if ((DEBUG_WRAP(cif->db, sqlite3_bind_int64(cif->add_loop_item_stmt, 1, container->id)) == SQLITE_OK)
+                && (DEBUG_WRAP(cif->db, sqlite3_bind_text16(cif->add_loop_item_stmt, 2, norm_name, -1, SQLITE_STATIC))
+                        == SQLITE_OK)
+                && (DEBUG_WRAP(cif->db, sqlite3_bind_text16(cif->add_loop_item_stmt, 3, item_name, -1, SQLITE_STATIC))
+                        == SQLITE_OK)
+                && (DEBUG_WRAP(cif->db, sqlite3_bind_int(cif->add_loop_item_stmt, 4, loop->loop_num)) == SQLITE_OK)
+                ) {
+            STEP_HANDLING;
+
+            TRACELINE;
+            switch (STEP_STMT(cif, add_loop_item)) {
+                case SQLITE_DONE:
+                    TRACELINE;
+                    if ((cif_container_set_all_values(container, norm_name, val) == CIF_OK)
+                            /* NOTE: sqlite3_changes() is not thread-safe */
+                            && ((*changes = sqlite3_changes(cif->db)) || CIF_TRUE)
+                            && (COMMIT_NESTTX(cif->db) == SQLITE_OK)) {
+                        return CIF_OK;
+                    }
+                    break;
+                case SQLITE_ROW:
+                    /* should not happen -- the insert statement should not return any rows */
+                    TRACELINE;
+                    sqlite3_reset(cif->add_loop_item_stmt);
+                    break;
+                case SQLITE_CONSTRAINT:
+                    TRACELINE;
+                    sqlite3_reset(cif->add_loop_item_stmt);
+                    ROLLBACK_NESTTX(cif->db);
+                    FAIL(soft, CIF_DUP_ITEMNAME);
+                default:
+                    TRACELINE;
+                    sqlite3_reset(cif->add_loop_item_stmt);
+                    /* fall out the bottom and fail */
+            }
+        }
+
+        ROLLBACK_NESTTX(cif->db);
+    }
+
+    DROP_STMT(cif, add_loop_item);
+
+    FAILURE_HANDLER(soft):
 
     FAILURE_TERMINUS;
 }
@@ -514,6 +521,7 @@ int cif_loop_add_packet(
                                 }
                             }
 
+                            /* insert this item's value for this packet */
                             TRACELINE;
                             if ((sqlite3_bind_int64(cif->insert_value_stmt, 1, container->id) == SQLITE_OK)
                                     && (sqlite3_bind_text16(cif->insert_value_stmt, 2, item->key, -1, SQLITE_STATIC)
@@ -533,6 +541,14 @@ int cif_loop_add_packet(
                                         /* should not happen: insert statements do not return rows */
                                         TRACELINE;
                                         FAIL(rb, CIF_INTERNAL_ERROR);
+                                    case SQLITE_CONSTRAINT:
+                                        TRACELINE;
+                                        sqlite3_reset(cif->insert_value_stmt);
+                                        /* Note: sqlite3_errmsg() is not thread-safe */
+                                        if (strcmp(DEBUG_MSG("sqlite3 error message", sqlite3_errmsg(cif->db)),
+                                                MULTIPLE_SCALAR_MESSAGE) == 0) {
+                                            FAIL(rb, CIF_RESERVED_LOOP);
+                                        } /* else fall through */
                                     default:
                                         TRACELINE;
                                         break; /* falls out of the switch, ultimately to fail hard */

@@ -124,7 +124,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_loop_set_category$(EXEEXT) \
 	tests/test_loop_destroy$(EXEEXT) \
 	tests/test_loop_add_item$(EXEEXT) \
-	tests/test_container_remove_item$(EXEEXT)
+	tests/test_container_remove_item$(EXEEXT) \
+	tests/test_loop_misc$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -238,6 +239,10 @@ tests_test_loop_get_names_SOURCES = tests/test_loop_get_names.c
 tests_test_loop_get_names_OBJECTS = test_loop_get_names.$(OBJEXT)
 tests_test_loop_get_names_LDADD = $(LDADD)
 tests_test_loop_get_names_DEPENDENCIES = libcif.la
+tests_test_loop_misc_SOURCES = tests/test_loop_misc.c
+tests_test_loop_misc_OBJECTS = test_loop_misc.$(OBJEXT)
+tests_test_loop_misc_LDADD = $(LDADD)
+tests_test_loop_misc_DEPENDENCIES = libcif.la
 tests_test_loop_modification_SOURCES = tests/test_loop_modification.c
 tests_test_loop_modification_OBJECTS =  \
 	test_loop_modification.$(OBJEXT)
@@ -342,15 +347,15 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_get_all_blocks.c tests/test_get_block.c \
 	tests/test_list_elements.c tests/test_loop_add_item.c \
 	tests/test_loop_destroy.c tests/test_loop_get_names.c \
-	tests/test_loop_modification.c tests/test_loop_packets.c \
-	tests/test_loop_set_category.c tests/test_multiple_cifs.c \
-	tests/test_packet_create.c tests/test_packet_items.c \
-	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_table_elements.c tests/test_value_autoinit_numb.c \
-	tests/test_value_clone.c tests/test_value_copy_char.c \
-	tests/test_value_create.c tests/test_value_get_number.c \
-	tests/test_value_init_char.c tests/test_value_init_numb.c \
-	tests/test_value_parse_numb.c
+	tests/test_loop_misc.c tests/test_loop_modification.c \
+	tests/test_loop_packets.c tests/test_loop_set_category.c \
+	tests/test_multiple_cifs.c tests/test_packet_create.c \
+	tests/test_packet_items.c tests/test_packet_remove_item.c \
+	tests/test_packet_set_item.c tests/test_table_elements.c \
+	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
+	tests/test_value_copy_char.c tests/test_value_create.c \
+	tests/test_value_get_number.c tests/test_value_init_char.c \
+	tests/test_value_init_numb.c tests/test_value_parse_numb.c
 DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
@@ -367,15 +372,15 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_get_all_blocks.c tests/test_get_block.c \
 	tests/test_list_elements.c tests/test_loop_add_item.c \
 	tests/test_loop_destroy.c tests/test_loop_get_names.c \
-	tests/test_loop_modification.c tests/test_loop_packets.c \
-	tests/test_loop_set_category.c tests/test_multiple_cifs.c \
-	tests/test_packet_create.c tests/test_packet_items.c \
-	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_table_elements.c tests/test_value_autoinit_numb.c \
-	tests/test_value_clone.c tests/test_value_copy_char.c \
-	tests/test_value_create.c tests/test_value_get_number.c \
-	tests/test_value_init_char.c tests/test_value_init_numb.c \
-	tests/test_value_parse_numb.c
+	tests/test_loop_misc.c tests/test_loop_modification.c \
+	tests/test_loop_packets.c tests/test_loop_set_category.c \
+	tests/test_multiple_cifs.c tests/test_packet_create.c \
+	tests/test_packet_items.c tests/test_packet_remove_item.c \
+	tests/test_packet_set_item.c tests/test_table_elements.c \
+	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
+	tests/test_value_copy_char.c tests/test_value_create.c \
+	tests/test_value_get_number.c tests/test_value_init_char.c \
+	tests/test_value_init_numb.c tests/test_value_parse_numb.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -559,7 +564,8 @@ compiled_tests = \
     tests/test_loop_set_category \
     tests/test_loop_destroy \
     tests/test_loop_add_item \
-    tests/test_container_remove_item
+    tests/test_container_remove_item \
+    tests/test_loop_misc
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -759,6 +765,9 @@ tests/test_loop_destroy$(EXEEXT): $(tests_test_loop_destroy_OBJECTS) $(tests_tes
 tests/test_loop_get_names$(EXEEXT): $(tests_test_loop_get_names_OBJECTS) $(tests_test_loop_get_names_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_loop_get_names$(EXEEXT)
 	$(LINK) $(tests_test_loop_get_names_OBJECTS) $(tests_test_loop_get_names_LDADD) $(LIBS)
+tests/test_loop_misc$(EXEEXT): $(tests_test_loop_misc_OBJECTS) $(tests_test_loop_misc_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_loop_misc$(EXEEXT)
+	$(LINK) $(tests_test_loop_misc_OBJECTS) $(tests_test_loop_misc_LDADD) $(LIBS)
 tests/test_loop_modification$(EXEEXT): $(tests_test_loop_modification_OBJECTS) $(tests_test_loop_modification_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_loop_modification$(EXEEXT)
 	$(LINK) $(tests_test_loop_modification_OBJECTS) $(tests_test_loop_modification_LDADD) $(LIBS)
@@ -848,6 +857,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_add_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_destroy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_get_names.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_misc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_modification.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_packets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_set_category.Po@am__quote@
@@ -1196,6 +1206,20 @@ test_loop_get_names.obj: tests/test_loop_get_names.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_loop_get_names.c' object='test_loop_get_names.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_get_names.obj `if test -f 'tests/test_loop_get_names.c'; then $(CYGPATH_W) 'tests/test_loop_get_names.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_loop_get_names.c'; fi`
+
+test_loop_misc.o: tests/test_loop_misc.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_misc.o -MD -MP -MF $(DEPDIR)/test_loop_misc.Tpo -c -o test_loop_misc.o `test -f 'tests/test_loop_misc.c' || echo '$(srcdir)/'`tests/test_loop_misc.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_loop_misc.Tpo $(DEPDIR)/test_loop_misc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_loop_misc.c' object='test_loop_misc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_misc.o `test -f 'tests/test_loop_misc.c' || echo '$(srcdir)/'`tests/test_loop_misc.c
+
+test_loop_misc.obj: tests/test_loop_misc.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_misc.obj -MD -MP -MF $(DEPDIR)/test_loop_misc.Tpo -c -o test_loop_misc.obj `if test -f 'tests/test_loop_misc.c'; then $(CYGPATH_W) 'tests/test_loop_misc.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_loop_misc.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_loop_misc.Tpo $(DEPDIR)/test_loop_misc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_loop_misc.c' object='test_loop_misc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_loop_misc.obj `if test -f 'tests/test_loop_misc.c'; then $(CYGPATH_W) 'tests/test_loop_misc.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_loop_misc.c'; fi`
 
 test_loop_modification.o: tests/test_loop_modification.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_loop_modification.o -MD -MP -MF $(DEPDIR)/test_loop_modification.Tpo -c -o test_loop_modification.o `test -f 'tests/test_loop_modification.c' || echo '$(srcdir)/'`tests/test_loop_modification.c

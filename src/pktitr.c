@@ -102,7 +102,7 @@ int cif_pktitr_next_packet(
     
         /* create a new packet for the expected items, with all unknown values */
         /* Relies on the item names to be pre-normalized */
-        if (cif_packet_create_norm(&temp_packet, iterator->item_names, CIF_FALSE) == CIF_OK) {
+        if (cif_packet_create_norm(&temp_packet, iterator->item_names, CIF_TRUE) == CIF_OK) {
             /* populate the packet with values read from the DB */
             while (CIF_TRUE) {
                 const UChar *name;
@@ -169,6 +169,7 @@ int cif_pktitr_next_packet(
                         name_len = (size_t) U_BYTES(target->key);
                         HASH_FIND(hh, temp_packet->map.head, target->key, name_len, entry);
                         if (entry == NULL) {
+                            /* FIXME: is this OK for a dependent packet? */
                             /* remove target packet item with no corresponding item in the temporary packet */
                             HASH_DEL((*packet)->map.head, target);
                             cif_map_entry_free_internal(target, &((*packet)->map));
@@ -191,6 +192,7 @@ int cif_pktitr_next_packet(
                     /* Move any remaining entries of the temp packet into the result packet */
                     HASH_ITER(hh, temp_packet->map.head, entry, temp) {
                         if ((*packet)->map.is_standalone == 0) {
+                            /* FIXME: change it to independent instead of failing? */
                             /* can't add new items to a dependent target packet */
                             FAIL(soft, CIF_ARGUMENT_ERROR);
                         } else {

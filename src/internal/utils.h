@@ -508,19 +508,32 @@ int cif_block_create_frame_internal(
         ) INTERNAL ;
 
 /*
+ * An internal version of cif_loop_add_item that performs no validation or normalization and provides the number
+ * of changes (== the number of loop packets) back to the caller
+ */
+int cif_loop_add_item_internal(
+        cif_loop_t *loop,
+        const UChar *item_name,
+        const UChar *norm_name,
+        cif_value_t *val,
+        int *changes
+        ) INTERNAL ;
+
+/*
  * Creates a new packet for the given item names, and records a pointer to it where the given pointer points.  The
  * names are assumed already normalized, as if by cif_normalize_name()
  *
  * packet: a pointer to the location were the address of the new packet should be written
  * names:  a pointer to a NULL-terminated array of Unicode string pointers containing the data names to be
  *         represented in the new packet; may contain zero names
- * standalone: if this argument evaluates as true, then the given names are copied into the new packet; otherwise
- *         the pointers to them are copied.
+ * avoid_aliasing: if this argument evaluates to true, then the given names must be copied into the new packet;
+ *         otherwise, the pointers to them may be copied.  In the latter case, this function acquires responsibility
+ *         for the provided names.
  */
 int cif_packet_create_norm(
         cif_packet_t **packet,
         UChar **names,
-        int standalone
+        int avoid_aliasing
         ) INTERNAL;
 
 /*

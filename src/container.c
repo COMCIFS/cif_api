@@ -26,13 +26,28 @@
 static const char scalar_errmsg[22] = "duplicate scalar loop";
 
 /*
- * Tests whether the specified container handle is valid.  No transaction management is performed, so the test will
- * be performed in the scope of the current transaction if there is one, or in its own transaction otherwise.
- *
- * Returns CIF_OK if the handle is valid, CIF_INVALID_HANDLE if it is determined to be invalid, or CIF_ERROR if an
- * error occurs while determining the handle's validity.
+ * Adds a scalar item to the specified container, with the given name and value.  The name is assumed
+ * normalized and valid.  The container and value are assumed valid.  No transaction management is performed.
  */
-static int cif_container_validate(cif_container_t *container);
+static int cif_container_add_scalar(
+        cif_container_t *container,
+        const UChar *item_name,
+        const UChar *name_orig,
+        cif_value_t *val
+        );
+
+/*
+ * Creates a new loop in the specified container, labeled with the specified category, and having original and
+ * normalized item names as specified.  No argument checking or additional normalization is performed, not even
+ * a check that there is at least one name.  The loop does not initially contain any packets.
+ */
+static int cif_container_create_loop_internal(
+        cif_container_t *container,
+        const UChar *category,
+        UChar *names[],
+        UChar *names_norm[],
+        cif_loop_t **loop
+        );
 
 /*
  * A common back-end for retrieving the loop of a given item in a given
@@ -52,15 +67,13 @@ static int cif_container_get_item_loop_internal (
         );
 
 /*
- * Adds a scalar item to the specified container, with the given name and value.  The name is assumed
- * normalized and valid.  The container and value are assumed valid.  No transaction management is performed.
+ * Tests whether the specified container handle is valid.  No transaction management is performed, so the test will
+ * be performed in the scope of the current transaction if there is one, or in its own transaction otherwise.
+ *
+ * Returns CIF_OK if the handle is valid, CIF_INVALID_HANDLE if it is determined to be invalid, or CIF_ERROR if an
+ * error occurs while determining the handle's validity.
  */
-static int cif_container_add_scalar(
-        cif_container_t *container,
-        const UChar *item_name,
-        const UChar *name_orig,
-        cif_value_t *val
-        );
+static int cif_container_validate(cif_container_t *container);
 
 /*
  * Tests whether the specified container handle is valid.  No transaction management is performed, so the test will
@@ -159,43 +172,35 @@ static int cif_container_add_scalar(
         ) {
     FAILURE_HANDLING;
     cif_loop_t *loop;
-    UChar *names[2] = { NULL, NULL };
-    UChar *norm_names[2] = { NULL, NULL };
     UChar null_char = 0;
+    UChar *none = NULL;
+    cif_packet_t *packet = NULL;
     int result;
+    int num_packets;
 
     TRACELINE;
     result = cif_container_get_category_loop(container, &null_char, &loop);
     switch(result) {
         case CIF_NOSUCH_LOOP:
             /* first create the scalar loop */
-            /* FIXME: avoid re-normalizing the name */
-            /* FIXME: assignment discards 'const' qualifier: */
             TRACELINE;
-            names[0] = name_orig;
-            result = cif_container_create_loop(container, &null_char, names, &loop);
-            if (result == CIF_OK) {
-                cif_packet_t *packet;
-
-                /* FIXME: assignment discards 'const' qualifier: */
-                norm_names[0] = item_name;
-                result = cif_packet_create_norm(&packet, norm_names, CIF_FALSE);
-                if (result == CIF_OK) {
-                    result = cif_packet_set_item(packet, item_name, val);
-                    if (result == CIF_OK) {
-                      result = cif_loop_add_packet(loop, packet);
-                    }
-                    cif_packet_free(packet);
-                }
-                cif_loop_free(loop);
+            if ((result = cif_container_create_loop_internal(container, &null_char, &none, &none, &loop)) != CIF_OK) {
+                break;
             }
-            break;
-
+            /* fall through to add the item */
         case CIF_OK:
             /* add the item */
-            /* FIXME: avoid re-normalizing the name */
             TRACELINE;
-            result = cif_loop_add_item(loop, name_orig, val);
+            result = cif_loop_add_item_internal(loop, name_orig, item_name, val, &num_packets);
+
+            if ((result == CIF_OK) && (num_packets == 0) && ((result = cif_packet_create(&packet, NULL)) == CIF_OK)) {
+                if ((result = cif_packet_set_item(packet, item_name, val)) == CIF_OK) {
+                    /* No need to specify values for any other scalars here, even if the loop defines some */
+                    result = cif_loop_add_packet(loop, packet);
+                }
+                cif_packet_free(packet);
+            }
+
             cif_loop_free(loop);
             break;
     }
@@ -265,7 +270,10 @@ int cif_container_assert_block(cif_container_t *container) {
     return ((container == NULL) ? CIF_ERROR : (container->block_id < 0) ? CIF_OK : CIF_ARGUMENT_ERROR);
 }
 
-/* safe to be called by anyone */
+/*
+ * Safe to be called by anyone; this is an argument-checking, name-normalizing
+ * wrapper around cif_container_create_loop_internal
+ */
 int cif_container_create_loop(
         cif_container_t *container,
         const UChar *category,
@@ -273,12 +281,63 @@ int cif_container_create_loop(
         cif_loop_t **loop
         ) {
     FAILURE_HANDLING;
-    cif_loop_t *temp;
-    cif_t *cif;
+    UChar **name_orig_p;
+    UChar **names_norm;
+
+    TRACELINE;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
     if (names == NULL)     return CIF_ARGUMENT_ERROR;
     if (*names == NULL)    return CIF_NULL_LOOP;
+
+    /* count the names */
+    for (name_orig_p = names; *name_orig_p; name_orig_p += 1) {
+        /* do nothing */
+    }
+
+    names_norm = (UChar **) malloc((1 + (name_orig_p - names)) * sizeof(UChar *));
+    if (names_norm != NULL) {
+        UChar **name_norm_p = names_norm;
+        int result;
+
+        /* validate and normalize the names */
+        for (name_orig_p = names; *name_orig_p; name_orig_p += 1) {
+            UChar *name;
+
+            /* validate and normalize the name */
+            if ((result = cif_normalize_item_name(*name_orig_p, -1, &name, CIF_INVALID_ITEMNAME)) != CIF_OK) {
+                FAIL(cleanup, result);
+            }
+            *(name_norm_p++) = name;
+        }
+        *(name_norm_p++) = NULL;
+
+        SET_RESULT(cif_container_create_loop_internal(container, category, names, names_norm, loop));
+
+        FAILURE_HANDLER(cleanup):  /* Reached on success, too */
+        while (name_norm_p > names_norm) {
+            free(*(--name_norm_p));
+        }
+        free(names_norm);
+    }
+
+    FAILURE_TERMINUS;
+}
+
+/*
+ * The main implementation of loop creation; assumes arguments are valid and
+ * consistent.
+ */
+static int cif_container_create_loop_internal(
+        cif_container_t *container,
+        const UChar *category,
+        UChar *names[],
+        UChar *names_norm[],
+        cif_loop_t **loop
+        ) {
+    FAILURE_HANDLING;
+    cif_loop_t *temp;
+    cif_t *cif;
 
     cif = container->cif;
 
@@ -351,23 +410,15 @@ int cif_container_create_loop(
                                         && (sqlite3_bind_int64(cif->add_loop_item_stmt, 1, container->id) == SQLITE_OK)
                                         && (sqlite3_bind_int(cif->add_loop_item_stmt, 4, temp->loop_num) == SQLITE_OK)) {
                                     UChar **name_orig_p;
+                                    int name_index;
 
                                     TRACELINE;
 
-                                    for (name_orig_p = names; *name_orig_p; name_orig_p++) {
-                                        UChar *name;
-
-                                        /* validate and normalize the name; bind the normalized and original names */
-                                        result = cif_normalize_item_name(*name_orig_p, -1, &name, CIF_INVALID_ITEMNAME);
-
-                                        TRACELINE;
-
-                                        if (result != CIF_OK) {
-                                            FAIL(soft, result);
-                                        } else if ((sqlite3_bind_text16(cif->add_loop_item_stmt, 2, name, -1, free) != SQLITE_OK)
-                                                || (sqlite3_bind_text16(cif->add_loop_item_stmt, 3, *name_orig_p,
+                                    for (name_index = 0; names[name_index] != NULL; name_index += 1) {
+                                        if ((sqlite3_bind_text16(cif->add_loop_item_stmt, 2, names_norm[name_index],
+                                                -1, SQLITE_STATIC) != SQLITE_OK)
+                                                || (sqlite3_bind_text16(cif->add_loop_item_stmt, 3, names[name_index],
                                                         -1, SQLITE_STATIC) != SQLITE_OK)) {
-                                            /* name is free()d by sqlite3_bind_text16, even on error */
                                             DEFAULT_FAIL(hard);
                                         }
     

@@ -48,20 +48,13 @@ compiled_tests = \
     tests/test_loop_set_category \
     tests/test_loop_destroy \
     tests/test_loop_add_item \
-    tests/test_container_remove_item
+    tests/test_container_remove_item \
+    tests/test_loop_misc
 # nested complex values
 #   - list / list
 #   - list / table
 #   - table / list
 #   - table / table
-# cif_loop_add_packet
-#   - scalar loop
-# cif_pktitr_abort
-#   - changes rolled back
-# cif_pktitr_update_packet
-#   - update the only packet of the scalar loop
-# cif_pktitr_remove_packet
-#   - remove the only packet of the scalar loop (allowed, does not remove the loop)
 # cif_parse
 # cif_write
 

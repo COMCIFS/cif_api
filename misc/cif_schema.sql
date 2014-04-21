@@ -228,8 +228,8 @@ create index ix1_loop_item
 --
 -- Note also that this schema does not enforce the presence of an explicit value
 -- for each item in each loop packet.  Where a loop contains an item (as defined
--- by table loop_item) but no value is given for it in this table for any
--- particular row_num, it should be interpreted as if a value existed in that
+-- by table loop_item) but no value is given for it in this table for a
+-- given row_num, it should be interpreted as if a value existed in that
 -- row with kind = 5, except as described next.
 --
 -- Row / packet numbers are not guaranteed to be consecutive for any given
@@ -246,7 +246,7 @@ create index ix1_loop_item
 -- 2. It must readily support selection predicates pertaining to the character
 --    or numeric values represented by rows.
 -- 3. Deletions from this table must suffice to effect loop packet deletions.
---    Updates must not be required for that purpose.
+--    Updates to this or any other table must not be required for that purpose.
 -- 4. Some denormalization is preferrable to requiring common queries to
 --    perform extra joins, especially outer joins.
 -- 5. Selection predicates pertaining to the contents of list or table values
@@ -281,6 +281,7 @@ create table item_value (
 
 --
 -- Restrict scalar loops to one row on value insert
+-- Note: the error message text is significant to the API implementation
 --
 create trigger tr1_item_value
   before insert on item_value
@@ -296,6 +297,7 @@ create trigger tr1_item_value
 
 --
 -- Restrict scalar loops to one row on value update
+-- Note: the error message text is significant to the API implementation
 --
 create trigger tr2_item_value
   before update of row_num on item_value
