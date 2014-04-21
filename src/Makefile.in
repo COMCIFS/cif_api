@@ -125,7 +125,7 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_loop_destroy$(EXEEXT) \
 	tests/test_loop_add_item$(EXEEXT) \
 	tests/test_container_remove_item$(EXEEXT) \
-	tests/test_loop_misc$(EXEEXT)
+	tests/test_loop_misc$(EXEEXT) tests/test_nesting$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -261,6 +261,10 @@ tests_test_multiple_cifs_SOURCES = tests/test_multiple_cifs.c
 tests_test_multiple_cifs_OBJECTS = test_multiple_cifs.$(OBJEXT)
 tests_test_multiple_cifs_LDADD = $(LDADD)
 tests_test_multiple_cifs_DEPENDENCIES = libcif.la
+tests_test_nesting_SOURCES = tests/test_nesting.c
+tests_test_nesting_OBJECTS = test_nesting.$(OBJEXT)
+tests_test_nesting_LDADD = $(LDADD)
+tests_test_nesting_DEPENDENCIES = libcif.la
 tests_test_packet_create_SOURCES = tests/test_packet_create.c
 tests_test_packet_create_OBJECTS = test_packet_create.$(OBJEXT)
 tests_test_packet_create_LDADD = $(LDADD)
@@ -349,13 +353,14 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_loop_destroy.c tests/test_loop_get_names.c \
 	tests/test_loop_misc.c tests/test_loop_modification.c \
 	tests/test_loop_packets.c tests/test_loop_set_category.c \
-	tests/test_multiple_cifs.c tests/test_packet_create.c \
-	tests/test_packet_items.c tests/test_packet_remove_item.c \
-	tests/test_packet_set_item.c tests/test_table_elements.c \
-	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
-	tests/test_value_copy_char.c tests/test_value_create.c \
-	tests/test_value_get_number.c tests/test_value_init_char.c \
-	tests/test_value_init_numb.c tests/test_value_parse_numb.c
+	tests/test_multiple_cifs.c tests/test_nesting.c \
+	tests/test_packet_create.c tests/test_packet_items.c \
+	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
+	tests/test_table_elements.c tests/test_value_autoinit_numb.c \
+	tests/test_value_clone.c tests/test_value_copy_char.c \
+	tests/test_value_create.c tests/test_value_get_number.c \
+	tests/test_value_init_char.c tests/test_value_init_numb.c \
+	tests/test_value_parse_numb.c
 DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
@@ -374,13 +379,14 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_loop_destroy.c tests/test_loop_get_names.c \
 	tests/test_loop_misc.c tests/test_loop_modification.c \
 	tests/test_loop_packets.c tests/test_loop_set_category.c \
-	tests/test_multiple_cifs.c tests/test_packet_create.c \
-	tests/test_packet_items.c tests/test_packet_remove_item.c \
-	tests/test_packet_set_item.c tests/test_table_elements.c \
-	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
-	tests/test_value_copy_char.c tests/test_value_create.c \
-	tests/test_value_get_number.c tests/test_value_init_char.c \
-	tests/test_value_init_numb.c tests/test_value_parse_numb.c
+	tests/test_multiple_cifs.c tests/test_nesting.c \
+	tests/test_packet_create.c tests/test_packet_items.c \
+	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
+	tests/test_table_elements.c tests/test_value_autoinit_numb.c \
+	tests/test_value_clone.c tests/test_value_copy_char.c \
+	tests/test_value_create.c tests/test_value_get_number.c \
+	tests/test_value_init_char.c tests/test_value_init_numb.c \
+	tests/test_value_parse_numb.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -565,7 +571,8 @@ compiled_tests = \
     tests/test_loop_destroy \
     tests/test_loop_add_item \
     tests/test_container_remove_item \
-    tests/test_loop_misc
+    tests/test_loop_misc \
+    tests/test_nesting
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -780,6 +787,9 @@ tests/test_loop_set_category$(EXEEXT): $(tests_test_loop_set_category_OBJECTS) $
 tests/test_multiple_cifs$(EXEEXT): $(tests_test_multiple_cifs_OBJECTS) $(tests_test_multiple_cifs_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_multiple_cifs$(EXEEXT)
 	$(LINK) $(tests_test_multiple_cifs_OBJECTS) $(tests_test_multiple_cifs_LDADD) $(LIBS)
+tests/test_nesting$(EXEEXT): $(tests_test_nesting_OBJECTS) $(tests_test_nesting_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_nesting$(EXEEXT)
+	$(LINK) $(tests_test_nesting_OBJECTS) $(tests_test_nesting_LDADD) $(LIBS)
 tests/test_packet_create$(EXEEXT): $(tests_test_packet_create_OBJECTS) $(tests_test_packet_create_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_packet_create$(EXEEXT)
 	$(LINK) $(tests_test_packet_create_OBJECTS) $(tests_test_packet_create_LDADD) $(LIBS)
@@ -862,6 +872,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_packets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_set_category.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_multiple_cifs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nesting.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_items.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_remove_item.Po@am__quote@
@@ -1276,6 +1287,20 @@ test_multiple_cifs.obj: tests/test_multiple_cifs.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_multiple_cifs.c' object='test_multiple_cifs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_multiple_cifs.obj `if test -f 'tests/test_multiple_cifs.c'; then $(CYGPATH_W) 'tests/test_multiple_cifs.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_multiple_cifs.c'; fi`
+
+test_nesting.o: tests/test_nesting.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_nesting.o -MD -MP -MF $(DEPDIR)/test_nesting.Tpo -c -o test_nesting.o `test -f 'tests/test_nesting.c' || echo '$(srcdir)/'`tests/test_nesting.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_nesting.Tpo $(DEPDIR)/test_nesting.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_nesting.c' object='test_nesting.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_nesting.o `test -f 'tests/test_nesting.c' || echo '$(srcdir)/'`tests/test_nesting.c
+
+test_nesting.obj: tests/test_nesting.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_nesting.obj -MD -MP -MF $(DEPDIR)/test_nesting.Tpo -c -o test_nesting.obj `if test -f 'tests/test_nesting.c'; then $(CYGPATH_W) 'tests/test_nesting.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_nesting.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_nesting.Tpo $(DEPDIR)/test_nesting.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_nesting.c' object='test_nesting.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_nesting.obj `if test -f 'tests/test_nesting.c'; then $(CYGPATH_W) 'tests/test_nesting.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_nesting.c'; fi`
 
 test_packet_create.o: tests/test_packet_create.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_packet_create.o -MD -MP -MF $(DEPDIR)/test_packet_create.Tpo -c -o test_packet_create.o `test -f 'tests/test_packet_create.c' || echo '$(srcdir)/'`tests/test_packet_create.c

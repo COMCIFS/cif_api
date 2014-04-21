@@ -47,8 +47,6 @@ int fegetround(void);
 #include "internal/value.h"
 
 #define DEFAULT_SERIALIZATION_CAP 512
-#define SERIAL_TABLE_TERMINATOR -1
-#define SERIAL_ENTRY_SEPARATOR 0
 
 /**
  * @brief The base-10 logarithm of the smallest positive representable double (a de-normalized number),
@@ -657,24 +655,31 @@ static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf) {
  */
 static int cif_table_serialize(struct table_value_s *table, write_buffer_t *buf) {
     FAILURE_HANDLING;
-    int separator = SERIAL_ENTRY_SEPARATOR;
-    int terminator = SERIAL_TABLE_TERMINATOR;
     struct entry_s *element;
     struct entry_s *temp;
+    int flag;
 
     HASH_ITER(hh, table->map.head, element, temp) {
-        /*
-         * a separator isn't really needed, especially before the first entry, but using one simplifies
-         * deserialization by reserving the same amount of space before each entry that is consumed by the
-         * final terminator.
-         */
-        if(cif_buf_write(buf, &separator, sizeof(int)) != CIF_OK) DEFAULT_FAIL(element);
-        SERIALIZE_USTRING(element->key, buf, HANDLER_LABEL(element));
-        SERIALIZE_USTRING(((element->key_orig == element->key) ? NULL : element->key_orig), buf,
-                HANDLER_LABEL(element));
-        SERIALIZE(element, buf, HANDLER_LABEL(element));
+        int result;
+
+        /* serialize a flag indicating that another entry follows */
+        flag = 0;
+        if ((result = cif_buf_write(buf, &flag, sizeof(int))) != CIF_OK) {
+            FAIL(element, result);
+        } else {
+            /* serialize the key */
+            SERIALIZE_USTRING(element->key, buf, HANDLER_LABEL(element));
+            /* serialize the un-normalized key, or NULL if it is the same object as the key */
+            SERIALIZE_USTRING(((element->key_orig == element->key) ? NULL : element->key_orig), buf,
+                    HANDLER_LABEL(element));
+            /* serialize the value */
+            SERIALIZE(element, buf, HANDLER_LABEL(element));
+        }
     }
-    return cif_buf_write(buf, &terminator, sizeof(int));
+
+    /* Serialize a flag indicating that no more entries follow */
+    flag = -1;
+    return cif_buf_write(buf, &flag, sizeof(int));
 
     FAILURE_HANDLER(element):
     FAILURE_TERMINUS;
@@ -749,11 +754,11 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
             DEFAULT_FAIL(key);
         } else {
             switch (flag) {
-                case SERIAL_TABLE_TERMINATOR:
+                case -1:  /* no more entries */
                     cif_table_init(table);
                     table->map.head = temp.as_table.map.head;
                     return CIF_OK;
-                case SERIAL_ENTRY_SEPARATOR:
+                case 0:  /* another entry is available */
                     key = NULL;
                     DESERIALIZE_USTRING(key, buf, HANDLER_LABEL(key));
                     key_orig = NULL;

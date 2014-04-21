@@ -49,12 +49,8 @@ compiled_tests = \
     tests/test_loop_destroy \
     tests/test_loop_add_item \
     tests/test_container_remove_item \
-    tests/test_loop_misc
-# nested complex values
-#   - list / list
-#   - list / table
-#   - table / list
-#   - table / table
+    tests/test_loop_misc \
+    tests/test_nesting
 # cif_parse
 # cif_write
 
