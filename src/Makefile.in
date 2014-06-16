@@ -125,7 +125,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_loop_destroy$(EXEEXT) \
 	tests/test_loop_add_item$(EXEEXT) \
 	tests/test_container_remove_item$(EXEEXT) \
-	tests/test_loop_misc$(EXEEXT) tests/test_nesting$(EXEEXT)
+	tests/test_loop_misc$(EXEEXT) tests/test_nesting$(EXEEXT) \
+	tests/test_container_assert_block$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -149,6 +150,12 @@ tests_test_block_get_frame_SOURCES = tests/test_block_get_frame.c
 tests_test_block_get_frame_OBJECTS = test_block_get_frame.$(OBJEXT)
 tests_test_block_get_frame_LDADD = $(LDADD)
 tests_test_block_get_frame_DEPENDENCIES = libcif.la
+tests_test_container_assert_block_SOURCES =  \
+	tests/test_container_assert_block.c
+tests_test_container_assert_block_OBJECTS =  \
+	test_container_assert_block.$(OBJEXT)
+tests_test_container_assert_block_LDADD = $(LDADD)
+tests_test_container_assert_block_DEPENDENCIES = libcif.la
 tests_test_container_create_loop1_SOURCES =  \
 	tests/test_container_create_loop1.c
 tests_test_container_create_loop1_OBJECTS =  \
@@ -338,6 +345,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
+	tests/test_container_assert_block.c \
 	tests/test_container_create_loop1.c \
 	tests/test_container_create_loop2.c \
 	tests/test_container_get_all_loops.c \
@@ -364,6 +372,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
+	tests/test_container_assert_block.c \
 	tests/test_container_create_loop1.c \
 	tests/test_container_create_loop2.c \
 	tests/test_container_get_all_loops.c \
@@ -572,7 +581,8 @@ compiled_tests = \
     tests/test_loop_add_item \
     tests/test_container_remove_item \
     tests/test_loop_misc \
-    tests/test_nesting
+    tests/test_nesting \
+    tests/test_container_assert_block
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -718,6 +728,9 @@ tests/test_block_get_all_frames$(EXEEXT): $(tests_test_block_get_all_frames_OBJE
 tests/test_block_get_frame$(EXEEXT): $(tests_test_block_get_frame_OBJECTS) $(tests_test_block_get_frame_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_block_get_frame$(EXEEXT)
 	$(LINK) $(tests_test_block_get_frame_OBJECTS) $(tests_test_block_get_frame_LDADD) $(LIBS)
+tests/test_container_assert_block$(EXEEXT): $(tests_test_container_assert_block_OBJECTS) $(tests_test_container_assert_block_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_container_assert_block$(EXEEXT)
+	$(LINK) $(tests_test_container_assert_block_OBJECTS) $(tests_test_container_assert_block_LDADD) $(LIBS)
 tests/test_container_create_loop1$(EXEEXT): $(tests_test_container_create_loop1_OBJECTS) $(tests_test_container_create_loop1_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_container_create_loop1$(EXEEXT)
 	$(LINK) $(tests_test_container_create_loop1_OBJECTS) $(tests_test_container_create_loop1_LDADD) $(LIBS)
@@ -849,6 +862,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_get_all_frames.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_get_frame.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_assert_block.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_create_loop1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_create_loop2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_all_loops.Po@am__quote@
@@ -965,6 +979,20 @@ test_block_get_frame.obj: tests/test_block_get_frame.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_block_get_frame.c' object='test_block_get_frame.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_block_get_frame.obj `if test -f 'tests/test_block_get_frame.c'; then $(CYGPATH_W) 'tests/test_block_get_frame.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_block_get_frame.c'; fi`
+
+test_container_assert_block.o: tests/test_container_assert_block.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_assert_block.o -MD -MP -MF $(DEPDIR)/test_container_assert_block.Tpo -c -o test_container_assert_block.o `test -f 'tests/test_container_assert_block.c' || echo '$(srcdir)/'`tests/test_container_assert_block.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_assert_block.Tpo $(DEPDIR)/test_container_assert_block.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_assert_block.c' object='test_container_assert_block.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_assert_block.o `test -f 'tests/test_container_assert_block.c' || echo '$(srcdir)/'`tests/test_container_assert_block.c
+
+test_container_assert_block.obj: tests/test_container_assert_block.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_assert_block.obj -MD -MP -MF $(DEPDIR)/test_container_assert_block.Tpo -c -o test_container_assert_block.obj `if test -f 'tests/test_container_assert_block.c'; then $(CYGPATH_W) 'tests/test_container_assert_block.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_assert_block.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_assert_block.Tpo $(DEPDIR)/test_container_assert_block.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_assert_block.c' object='test_container_assert_block.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_assert_block.obj `if test -f 'tests/test_container_assert_block.c'; then $(CYGPATH_W) 'tests/test_container_assert_block.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_assert_block.c'; fi`
 
 test_container_create_loop1.o: tests/test_container_create_loop1.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_create_loop1.o -MD -MP -MF $(DEPDIR)/test_container_create_loop1.Tpo -c -o test_container_create_loop1.o `test -f 'tests/test_container_create_loop1.c' || echo '$(srcdir)/'`tests/test_container_create_loop1.c

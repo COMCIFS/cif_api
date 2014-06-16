@@ -50,8 +50,58 @@ compiled_tests = \
     tests/test_loop_add_item \
     tests/test_container_remove_item \
     tests/test_loop_misc \
-    tests/test_nesting
+    tests/test_nesting \
+    tests/test_container_assert_block
+# cif_walk
+# cif_u_strdup
+# cif_normalize
+# cif_container_prune
 # cif_parse
+# - parse into existing CIF
+#   - duplicate block code
+#   - updates the CIF in-place
+# - parse into new CIF
+#   - empty CIF
+#   - WS-only
+#     - with or without version comment
+#   - empty block
+#   - block w/frame
+#     - empty frame
+#     - populated frame
+#   - block w/loop
+#   - block w/scalars
+#   - block w/loop + scalars
+#   - UNK and NA values
+#   - NUMB values
+#     - w/ su
+#     - w/o su
+#     - w/ scientific notation
+#     - w/o scientific notation
+#     - w/ decimal point
+#     - w/o decimal point
+#   - CHAR values
+#     - bare
+#       - w/ backslashes
+#     - SQ/DQ
+#       - empty
+#       - containing other quote
+#       - containing whitespace
+#       - w/ backslashes
+#     - Text block
+#       - empty
+#       - w/ text
+#       - w/ data name
+#       - w/ line wrapping
+#       - w/ text prefixing
+#       - w/ text prefixing & line wrapping
+#     - Multibyte characters
+#   - LIST values
+#     - empty
+#     - mixed value
+#     - nested
+#   - TABLE
+# - syntax-only mode
+#
 # cif_write
 
 check_PROGRAMS = $(compiled_tests)
