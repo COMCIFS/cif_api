@@ -51,9 +51,9 @@ compiled_tests = \
     tests/test_container_remove_item \
     tests/test_loop_misc \
     tests/test_nesting \
-    tests/test_container_assert_block
+    tests/test_container_assert_block \
+    tests/test_ustrdup
 # cif_walk
-# cif_u_strdup
 # cif_normalize
 # cif_container_prune
 # cif_parse

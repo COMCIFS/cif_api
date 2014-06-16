@@ -126,7 +126,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_loop_add_item$(EXEEXT) \
 	tests/test_container_remove_item$(EXEEXT) \
 	tests/test_loop_misc$(EXEEXT) tests/test_nesting$(EXEEXT) \
-	tests/test_container_assert_block$(EXEEXT)
+	tests/test_container_assert_block$(EXEEXT) \
+	tests/test_ustrdup$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -294,6 +295,10 @@ tests_test_table_elements_SOURCES = tests/test_table_elements.c
 tests_test_table_elements_OBJECTS = test_table_elements.$(OBJEXT)
 tests_test_table_elements_LDADD = $(LDADD)
 tests_test_table_elements_DEPENDENCIES = libcif.la
+tests_test_ustrdup_SOURCES = tests/test_ustrdup.c
+tests_test_ustrdup_OBJECTS = test_ustrdup.$(OBJEXT)
+tests_test_ustrdup_LDADD = $(LDADD)
+tests_test_ustrdup_DEPENDENCIES = libcif.la
 tests_test_value_autoinit_numb_SOURCES =  \
 	tests/test_value_autoinit_numb.c
 tests_test_value_autoinit_numb_OBJECTS =  \
@@ -364,11 +369,11 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_multiple_cifs.c tests/test_nesting.c \
 	tests/test_packet_create.c tests/test_packet_items.c \
 	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_table_elements.c tests/test_value_autoinit_numb.c \
-	tests/test_value_clone.c tests/test_value_copy_char.c \
-	tests/test_value_create.c tests/test_value_get_number.c \
-	tests/test_value_init_char.c tests/test_value_init_numb.c \
-	tests/test_value_parse_numb.c
+	tests/test_table_elements.c tests/test_ustrdup.c \
+	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
+	tests/test_value_copy_char.c tests/test_value_create.c \
+	tests/test_value_get_number.c tests/test_value_init_char.c \
+	tests/test_value_init_numb.c tests/test_value_parse_numb.c
 DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
@@ -391,11 +396,11 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_multiple_cifs.c tests/test_nesting.c \
 	tests/test_packet_create.c tests/test_packet_items.c \
 	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_table_elements.c tests/test_value_autoinit_numb.c \
-	tests/test_value_clone.c tests/test_value_copy_char.c \
-	tests/test_value_create.c tests/test_value_get_number.c \
-	tests/test_value_init_char.c tests/test_value_init_numb.c \
-	tests/test_value_parse_numb.c
+	tests/test_table_elements.c tests/test_ustrdup.c \
+	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
+	tests/test_value_copy_char.c tests/test_value_create.c \
+	tests/test_value_get_number.c tests/test_value_init_char.c \
+	tests/test_value_init_numb.c tests/test_value_parse_numb.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -582,7 +587,8 @@ compiled_tests = \
     tests/test_container_remove_item \
     tests/test_loop_misc \
     tests/test_nesting \
-    tests/test_container_assert_block
+    tests/test_container_assert_block \
+    tests/test_ustrdup
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -818,6 +824,9 @@ tests/test_packet_set_item$(EXEEXT): $(tests_test_packet_set_item_OBJECTS) $(tes
 tests/test_table_elements$(EXEEXT): $(tests_test_table_elements_OBJECTS) $(tests_test_table_elements_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_table_elements$(EXEEXT)
 	$(LINK) $(tests_test_table_elements_OBJECTS) $(tests_test_table_elements_LDADD) $(LIBS)
+tests/test_ustrdup$(EXEEXT): $(tests_test_ustrdup_OBJECTS) $(tests_test_ustrdup_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_ustrdup$(EXEEXT)
+	$(LINK) $(tests_test_ustrdup_OBJECTS) $(tests_test_ustrdup_LDADD) $(LIBS)
 tests/test_value_autoinit_numb$(EXEEXT): $(tests_test_value_autoinit_numb_OBJECTS) $(tests_test_value_autoinit_numb_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_value_autoinit_numb$(EXEEXT)
 	$(LINK) $(tests_test_value_autoinit_numb_OBJECTS) $(tests_test_value_autoinit_numb_LDADD) $(LIBS)
@@ -892,6 +901,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_remove_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_set_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_table_elements.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_ustrdup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_autoinit_numb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_clone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_copy_char.Po@am__quote@
@@ -1399,6 +1409,20 @@ test_table_elements.obj: tests/test_table_elements.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_table_elements.c' object='test_table_elements.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_table_elements.obj `if test -f 'tests/test_table_elements.c'; then $(CYGPATH_W) 'tests/test_table_elements.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_table_elements.c'; fi`
+
+test_ustrdup.o: tests/test_ustrdup.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_ustrdup.o -MD -MP -MF $(DEPDIR)/test_ustrdup.Tpo -c -o test_ustrdup.o `test -f 'tests/test_ustrdup.c' || echo '$(srcdir)/'`tests/test_ustrdup.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_ustrdup.Tpo $(DEPDIR)/test_ustrdup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_ustrdup.c' object='test_ustrdup.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_ustrdup.o `test -f 'tests/test_ustrdup.c' || echo '$(srcdir)/'`tests/test_ustrdup.c
+
+test_ustrdup.obj: tests/test_ustrdup.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_ustrdup.obj -MD -MP -MF $(DEPDIR)/test_ustrdup.Tpo -c -o test_ustrdup.obj `if test -f 'tests/test_ustrdup.c'; then $(CYGPATH_W) 'tests/test_ustrdup.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_ustrdup.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_ustrdup.Tpo $(DEPDIR)/test_ustrdup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_ustrdup.c' object='test_ustrdup.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_ustrdup.obj `if test -f 'tests/test_ustrdup.c'; then $(CYGPATH_W) 'tests/test_ustrdup.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_ustrdup.c'; fi`
 
 test_value_autoinit_numb.o: tests/test_value_autoinit_numb.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_value_autoinit_numb.o -MD -MP -MF $(DEPDIR)/test_value_autoinit_numb.Tpo -c -o test_value_autoinit_numb.o `test -f 'tests/test_value_autoinit_numb.c' || echo '$(srcdir)/'`tests/test_value_autoinit_numb.c
