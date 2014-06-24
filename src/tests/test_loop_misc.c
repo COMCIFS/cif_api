@@ -16,6 +16,7 @@
 #include "test.h"
 #include "assert_value.h"
 
+static cif_packet_t *lookup_packet(cif_packet_t **packets, const UChar *key_name, cif_value_t *find);
 static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2);
 static int assert_packets(cif_pktitr_t *pktitr, cif_packet_t *expected[], const UChar *key_name);
 
@@ -159,6 +160,29 @@ int main(int argc, char *argv[]) {
     DESTROY_CIF(test_name, cif);
 
     return 0;
+}
+
+/*
+ * Searches a NULL-terminated array of packets for the first one having the
+ * specified 'find' value for item 'key_name'.  Returns a pointer to the first
+ * such packet in the array, or NULL if none is found or if an error occurs.
+ *
+ * All packets should have an item of the specified key_name.
+ */
+static cif_packet_t *lookup_packet(cif_packet_t **packets, const UChar *key_name, cif_value_t *find) {
+    cif_packet_t **packet_p;
+
+    for (packet_p = packets; *packet_p != NULL; packet_p += 1) {
+        cif_value_t *value;
+
+        if (cif_packet_get_item(*packet_p, key_name, &value) != CIF_OK) {
+            return NULL;
+        } else if (assert_values_equal(value, find)) {
+            break;
+        }
+    }
+
+    return *packet_p; 
 }
 
 /*
