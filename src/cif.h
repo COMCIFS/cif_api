@@ -2627,9 +2627,12 @@ CIF_FUNC_DECL(UChar *, cif_u_strdup, (
  *
  * @param[in] src the Unicode string to normalize; must not be NULL
  * @param[in] srclen the maximum length of the input to normalize; if less than zero then the whole string is
- *     normalized up to the first NUL character (which otherwise does not need to be present)
+ *     normalized up to the first NUL character (which otherwise does not need to be present); must not exceed
+ *     the actual number of UChars in the source string
  * @param[in,out] normalized a pointer to a location to record the result; if NULL then the result is discarded, but
- *     the return code still indicates whether normalization was successful
+ *     the return code still indicates whether normalization was successful.  If non-NULL, then the pointer at the
+ *     specified location is overwritten, and the caller assumes responsibility for freeing the memory to which the
+ *     new value points.
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */

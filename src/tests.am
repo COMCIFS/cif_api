@@ -52,9 +52,9 @@ compiled_tests = \
     tests/test_loop_misc \
     tests/test_nesting \
     tests/test_container_assert_block \
-    tests/test_ustrdup
+    tests/test_ustrdup \
+    tests/test_normalize
 # cif_walk
-# cif_normalize
 # cif_container_prune
 # cif_parse
 # - parse into existing CIF
