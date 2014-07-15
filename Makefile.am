@@ -19,7 +19,8 @@ EXTRA_DIST = \
   misc/dox.css \
   misc/footer.html \
   misc/main.dox \
-  misc/third_party_lib.supp \
+  misc/third_party_lib32.supp \
+  misc/third_party_lib64.supp \
   uthash/LICENSE \
   uthash/utarray.h \
   uthash/uthash.h \
