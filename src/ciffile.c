@@ -106,7 +106,6 @@ static struct cif_parse_opts_s DEFAULT_OPTIONS =
 
 /* The basic magic code identifying many CIFs (including all well-formed CIF 2.0 CIFs): "#\#CIF_" */
 #define MAGIC_LENGTH 7
-static const UChar MAGIC_CODE[MAGIC_LENGTH] = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f };
 
 /* The number of additional characters in a CIF 2.0 magic code that are not covered by the basic magic code */
 #define MAGIC_EXTRA 3

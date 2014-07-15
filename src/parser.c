@@ -243,8 +243,6 @@
 
 /* static data */
 
-static const UChar eol_chars[3] = { LF_CHAR, CR_CHAR, 0 };
-
 #define MAGIC_LENGTH 10
 static const UChar CIF1_MAGIC[MAGIC_LENGTH]
         = { 0x23, 0x5c, 0x23, 0x43, 0x49, 0x46, 0x5f, 0x31, 0x2e, 0x31 }; /* #\#CIF_1.1 */
