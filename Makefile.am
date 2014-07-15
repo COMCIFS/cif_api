@@ -21,6 +21,19 @@ EXTRA_DIST = \
   misc/main.dox \
   misc/third_party_lib32.supp \
   misc/third_party_lib64.supp \
+  test-data/bom.cif \
+  test-data/bom_ver2.cif \
+  test-data/cif_expanded_oct09.dic \
+  test-data/complex_data.cif \
+  test-data/empty.cif \
+  test-data/list_data.cif \
+  test-data/simple_containers.cif \
+  test-data/simple_data.cif \
+  test-data/simple_loops.cif \
+  test-data/table_data.cif \
+  test-data/unicode.cif \
+  test-data/ver1.cif \
+  test-data/ver2.cif \
   uthash/LICENSE \
   uthash/utarray.h \
   uthash/uthash.h \
