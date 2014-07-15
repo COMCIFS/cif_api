@@ -53,9 +53,9 @@ compiled_tests = \
     tests/test_nesting \
     tests/test_container_assert_block \
     tests/test_ustrdup \
-    tests/test_normalize
+    tests/test_normalize \
+    tests/test_container_prune
 # cif_walk
-# cif_container_prune
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
@@ -64,6 +64,7 @@ compiled_tests = \
 #   - empty CIF
 #   - WS-only
 #     - with or without version comment
+#     - with or without BOM
 #   - empty block
 #   - block w/frame
 #     - empty frame

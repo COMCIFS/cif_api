@@ -47,10 +47,8 @@
 
 #define GET_ALL_LOOPS_SQL "select loop_num, category from loop where container_id = ?"
 
-#define PRUNE_ALL_SQL "delete from loop l where not exists " \
-        "(select 1 from loop_item li where li.container_id = l.container_id and li.loop_num = l.loop_num)"
-
-#define PRUNE_SQL PRUNE_ALL_SQL " and l.container_id = ?"
+#define PRUNE_SQL "delete from loop where container_id = ? and loop_num not in " \
+        "(select distinct loop_num from loop_item li join item_value using (container_id, name) where container_id = ?1)"
 
 /*
  * This statement both updates existing values and sets omitted values in all packets of the loop containing the

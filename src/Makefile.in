@@ -127,7 +127,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_container_remove_item$(EXEEXT) \
 	tests/test_loop_misc$(EXEEXT) tests/test_nesting$(EXEEXT) \
 	tests/test_container_assert_block$(EXEEXT) \
-	tests/test_ustrdup$(EXEEXT) tests/test_normalize$(EXEEXT)
+	tests/test_ustrdup$(EXEEXT) tests/test_normalize$(EXEEXT) \
+	tests/test_container_prune$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -193,6 +194,10 @@ tests_test_container_get_value_OBJECTS =  \
 	test_container_get_value.$(OBJEXT)
 tests_test_container_get_value_LDADD = $(LDADD)
 tests_test_container_get_value_DEPENDENCIES = libcif.la
+tests_test_container_prune_SOURCES = tests/test_container_prune.c
+tests_test_container_prune_OBJECTS = test_container_prune.$(OBJEXT)
+tests_test_container_prune_LDADD = $(LDADD)
+tests_test_container_prune_DEPENDENCIES = libcif.la
 tests_test_container_remove_item_SOURCES =  \
 	tests/test_container_remove_item.c
 tests_test_container_remove_item_OBJECTS =  \
@@ -360,7 +365,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_container_get_all_loops.c \
 	tests/test_container_get_category_loop.c \
 	tests/test_container_get_item_loop.c \
-	tests/test_container_get_value.c \
+	tests/test_container_get_value.c tests/test_container_prune.c \
 	tests/test_container_remove_item.c \
 	tests/test_container_set_value1.c \
 	tests/test_container_set_value2.c tests/test_create.c \
@@ -388,7 +393,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_container_get_all_loops.c \
 	tests/test_container_get_category_loop.c \
 	tests/test_container_get_item_loop.c \
-	tests/test_container_get_value.c \
+	tests/test_container_get_value.c tests/test_container_prune.c \
 	tests/test_container_remove_item.c \
 	tests/test_container_set_value1.c \
 	tests/test_container_set_value2.c tests/test_create.c \
@@ -595,7 +600,8 @@ compiled_tests = \
     tests/test_nesting \
     tests/test_container_assert_block \
     tests/test_ustrdup \
-    tests/test_normalize
+    tests/test_normalize \
+    tests/test_container_prune
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -762,6 +768,9 @@ tests/test_container_get_item_loop$(EXEEXT): $(tests_test_container_get_item_loo
 tests/test_container_get_value$(EXEEXT): $(tests_test_container_get_value_OBJECTS) $(tests_test_container_get_value_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_container_get_value$(EXEEXT)
 	$(LINK) $(tests_test_container_get_value_OBJECTS) $(tests_test_container_get_value_LDADD) $(LIBS)
+tests/test_container_prune$(EXEEXT): $(tests_test_container_prune_OBJECTS) $(tests_test_container_prune_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_container_prune$(EXEEXT)
+	$(LINK) $(tests_test_container_prune_OBJECTS) $(tests_test_container_prune_LDADD) $(LIBS)
 tests/test_container_remove_item$(EXEEXT): $(tests_test_container_remove_item_OBJECTS) $(tests_test_container_remove_item_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_container_remove_item$(EXEEXT)
 	$(LINK) $(tests_test_container_remove_item_OBJECTS) $(tests_test_container_remove_item_LDADD) $(LIBS)
@@ -888,6 +897,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_category_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_item_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_value.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_prune.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_remove_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_set_value1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_set_value2.Po@am__quote@
@@ -1098,6 +1108,20 @@ test_container_get_value.obj: tests/test_container_get_value.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_get_value.c' object='test_container_get_value.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_value.obj `if test -f 'tests/test_container_get_value.c'; then $(CYGPATH_W) 'tests/test_container_get_value.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_get_value.c'; fi`
+
+test_container_prune.o: tests/test_container_prune.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_prune.o -MD -MP -MF $(DEPDIR)/test_container_prune.Tpo -c -o test_container_prune.o `test -f 'tests/test_container_prune.c' || echo '$(srcdir)/'`tests/test_container_prune.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_prune.Tpo $(DEPDIR)/test_container_prune.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_prune.c' object='test_container_prune.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_prune.o `test -f 'tests/test_container_prune.c' || echo '$(srcdir)/'`tests/test_container_prune.c
+
+test_container_prune.obj: tests/test_container_prune.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_prune.obj -MD -MP -MF $(DEPDIR)/test_container_prune.Tpo -c -o test_container_prune.obj `if test -f 'tests/test_container_prune.c'; then $(CYGPATH_W) 'tests/test_container_prune.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_prune.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_prune.Tpo $(DEPDIR)/test_container_prune.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_prune.c' object='test_container_prune.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_prune.obj `if test -f 'tests/test_container_prune.c'; then $(CYGPATH_W) 'tests/test_container_prune.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_prune.c'; fi`
 
 test_container_remove_item.o: tests/test_container_remove_item.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_remove_item.o -MD -MP -MF $(DEPDIR)/test_container_remove_item.Tpo -c -o test_container_remove_item.o `test -f 'tests/test_container_remove_item.c' || echo '$(srcdir)/'`tests/test_container_remove_item.c
