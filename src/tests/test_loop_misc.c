@@ -18,7 +18,6 @@
 
 static cif_packet_t *lookup_packet(cif_packet_t **packets, const UChar *key_name, cif_value_t *find);
 static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2);
-static int assert_packets(cif_pktitr_t *pktitr, cif_packet_t *expected[], const UChar *key_name);
 
 int main(int argc, char *argv[]) {
     char test_name[80] = "test_loop_misc";
@@ -266,76 +265,3 @@ static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2) {
 
     return rval;
 }
-
-/*
- * Tests the assertion that the packets available for iteration via 'pktitr'
- * correspond exactly to those in the NULL-terminated 'expected' array, albeit
- * not necessarily in the same order.  'key_name' is the name of an item to be
- * used to match iterated packets with putative equal packets in the 'expected'
- * array.
- *
- * Returns a non-zero value if the assertion is true, or zero if it is false.
- *
- * This function is inherently destructive in that it iterates over some or all
- * of the packets available from the given iterator.
- */
-static int assert_packets(cif_pktitr_t *pktitr, cif_packet_t *expected[], const UChar *key_name) {
-    unsigned int count;
-    unsigned int expected_mask;
-    cif_packet_t *packet = NULL;
-    int rval = 0;
-
-    /*
-     * Count the expected packets, and prepare a bitmask by which to track
-     * which ones have been matched.
-     */
-    for (count = 0; expected[count] != NULL; count += 1) {}
-    expected_mask = ~((~0) << count);  /* one bit set for each expected packet */
-
-    /* iterate over the available packets */
-    for (;;) {
-        cif_value_t *key;
-        cif_packet_t *expected_packet;
-
-        switch (cif_pktitr_next_packet(pktitr, &packet)) {
-            default:            /* error */
-                goto cleanup;
-            case CIF_FINISHED:  /* no more packets */
-                goto end_packets;
-            case CIF_OK:        /* retrieved a packet */
-                /* compare the retrieved packet to the expected one (if any) bearing the same key value */
-                if ((cif_packet_get_item(packet, key_name, &key) != CIF_OK)
-                        || ((expected_packet = lookup_packet(expected, key_name, key)) == NULL)
-                        || !assert_packets_equal(packet, expected_packet)) {
-                    /* no match */
-                    goto cleanup;
-                } else {
-                    /* update the mask to mark the packet seen */
-                    unsigned int bit;
-
-                    for (count = 0; expected[count] != expected_packet; count += 1) {
-                        if (expected[count] == NULL) goto cleanup;
-                    }
-                    bit = (1 << count);
-                    if ((expected_mask & bit) == bit) {
-                        expected_mask ^= bit;
-                    } else {
-                        /* the matching expected packet was matched previously */
-                        goto cleanup;
-                    }
-                }
-        }
-    }
-
-    end_packets:  /* normal end of packet iteration */
-    /* The assertion is satisfied if and only if 'expected_mask' is zero */
-    rval = (expected_mask == 0);
-
-    cleanup:
-    if (packet != NULL) {
-        cif_packet_free(packet);
-    }
-
-    return rval;
-}
-
