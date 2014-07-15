@@ -29,13 +29,20 @@ extern "C" {
 #endif
 
 static int cif_create_callback(void *context, int n_columns, char **column_texts, char **column_names);
-static void debug_sql(void *context, const char *text);
 static int walk_block(cif_container_t *block, cif_handler_t *handler, void *context);
 static int walk_frame(cif_container_t *frame, cif_handler_t *handler, void *context);
 static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *context);
 static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context);
 static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *context);
 static int walk_item(UChar *name, cif_value_t *value, cif_handler_t *handler, void *context);
+
+#ifdef DEBUG
+static void debug_sql(void *context, const char *text);
+
+static void debug_sql(void *context UNUSED, const char *text) {
+    fprintf(stderr, "debug: beginning to execute \"%s\"\n", text);
+}
+#endif
 
 /*
  * An SQLite callback function used by cif_create() at runtime to detect whether foreign key support is available
@@ -45,12 +52,6 @@ static int cif_create_callback(void *context, int n_columns UNUSED, char **colum
     *((int *) context) = (((*column_texts != NULL) && (**column_texts == '1')) ? 1 : 0);
     return 0;
 }
-
-#ifdef DEBUG
-static void debug_sql(void *context UNUSED, const char *text) {
-    fprintf(stderr, "debug: beginning to execute \"%s\"\n", text);
-}
-#endif
 
 int cif_create(cif_t **cif) {
     FAILURE_HANDLING;
