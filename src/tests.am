@@ -55,7 +55,8 @@ compiled_tests = \
     tests/test_ustrdup \
     tests/test_normalize \
     tests/test_container_prune \
-    tests/test_parse_simple_data
+    tests/test_parse_simple_data \
+    tests/test_parse_list_data
 # cif_walk
 # cif_parse
 # - parse into existing CIF
@@ -71,18 +72,11 @@ compiled_tests = \
 #     - empty frame
 #     - populated frame
 #   - block w/loop
-#   - block w/scalars
 #   - block w/loop + scalars
-#   - UNK and NA values
 #   - NUMB values
-#     - w/ su
-#     - w/o su
-#     - w/ scientific notation
 #     - w/o scientific notation
-#     - w/ decimal point
 #     - w/o decimal point
 #   - CHAR values
-#     - bare
 #       - w/ backslashes
 #     - SQ/DQ
 #       - empty
@@ -91,7 +85,6 @@ compiled_tests = \
 #       - w/ backslashes
 #     - Text block
 #       - empty
-#       - w/ text
 #       - w/ data name
 #       - w/ line wrapping
 #       - w/ text prefixing
