@@ -54,7 +54,8 @@ compiled_tests = \
     tests/test_container_assert_block \
     tests/test_ustrdup \
     tests/test_normalize \
-    tests/test_container_prune
+    tests/test_container_prune \
+    tests/test_parse_simple_data
 # cif_walk
 # cif_parse
 # - parse into existing CIF
@@ -116,6 +117,7 @@ XFAIL_TESTS =
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
 TESTS_ENVIRONMENT = \
+  CIFAPI_SRC="$(top_srcdir)" \
   CIF_HEADER_DIR="$(top_srcdir)/src" \
   CIF_LA=libcif.la \
   testdir="tests" \

@@ -925,7 +925,9 @@ extern "C" {
  * or may yield less information in this mode.
  *
  * @param[in,out] stream a @c FILE @c * from which to read the raw CIF data; must be a non-NULL pointer to a readable
- *         stream, which will typically be read to its end.  The caller retains ownership of this stream.
+ *         stream, which will typically be read to its end.  It is advisable for this file to be opened in BINARY mode
+ *         (e.g. fopen() mode "rb") on any system where that could make a difference.  The caller retains
+ *         ownership of this stream.
  *
  * @param[in] options a pointer to a @c struct @c cif_parse_opts_s object describing options to use while parsing, or
  *         @c NULL to use default values for all options

@@ -398,7 +398,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 #define POSN_LINE(s) ((s)->line)
 
 /* increments the given scanner's line number by the specified amount and resets its column number to zero */
-#define POSN_INCLINE(s, n) do { (s)->line += (n); (s)->column = 0; } while (CIF_FALSE)
+#define POSN_INCLINE(s, n) do { struct scanner_s *_s = (s); _s->line += (n); _s->column = 0; } while (CIF_FALSE)
 
 /* expands to the value of the given scanner's current column number */
 #define POSN_COLUMN(s) ((s)->column)
@@ -428,6 +428,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     struct scanner_s *_s_nc = (s); \
     ENSURE_CHARS(_s_nc, ev); \
     c = *(_s_nc->next_char++); \
+    POSN_INCCOLUMN(_s_nc, 1); \
 } while (CIF_FALSE)
 
 /*
@@ -439,6 +440,17 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     ENSURE_CHARS(_s_pc, ev); \
     c = *(_s_pc->next_char); \
 } while (CIF_FALSE)
+
+/*
+ * Backs up the scanner by one code unit.  Assumes the previous code unit is still available in the buffer.
+ * Performs column accounting, but no line-number accounting.
+ */
+#define PUSHBACK_CHAR(s) do { \
+    struct scanner_s *_s_pbc = (s); \
+    assert(_s_pbc->next_char > _s_pbc->buffer); \
+    _s_pbc->next_char -= 1; \
+    POSN_INCCOLUMN(_s_pbc, -1); \
+} while (0)
 
 /*
  * Consumes the current token, if any, from the scanner.  When next asked for a token, the scanner will provide
@@ -575,7 +587,6 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
             /* NOTE: assumes that the character decoder, if any, does not also consume an initial BOM */
             if (c == BOM_CHAR) {
                 CONSUME_TOKEN(scanner);
-                scanner->column = 0;  /* A BOM does not count toward the first line's length */
                 NEXT_CHAR(scanner, c, FAILURE_VARIABLE);
             }
 
@@ -1765,6 +1776,7 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
         if ((value != NULL) || ((result = cif_value_create(CIF_UNK_KIND, &value)) == CIF_OK)) {
             UChar *token_value = TVALUE_START(scanner);
             size_t token_length = TVALUE_LENGTH(scanner);
+            UChar *string;
 
             switch (scanner->ttype) {
                 case OLIST: /* opening delimiter of a list value */
@@ -1781,13 +1793,18 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
                     CONSUME_TOKEN(scanner);  /* consume the token _after_ parsing its value */
                     break;
                 case QVALUE:
-                    /* overwrite the closing delimiter with a string terminator */
-                    token_value[token_length - 1] = 0;
-                    /* advance token start past the opening delimiter */
-                    token_value += 1;
-                    /* copy the input string into the value object */
-                    result = cif_value_copy_char(value, token_value);
-                    CONSUME_TOKEN(scanner);  /* consume the token _after_ parsing its value */
+                    /* overwrite the closing delimiter (not included in the length) with a string terminator */
+                    string = (UChar *) malloc((token_length + 1) * sizeof(UChar));
+                    if (string != NULL) {
+                        /* copy the input string into the value object */
+                        u_strncpy(string, token_value, token_length);
+                        string[token_length] = 0;
+                        result = cif_value_init_char(value, string);
+                        /* ownership of 'string' is transferred to 'value' */
+                        CONSUME_TOKEN(scanner);  /* consume the token _after_ parsing its value */
+                    } else {
+                        result = CIF_ERROR;
+                    }
                    break;
                 case VALUE:
                     /* special cases for unquoted question mark (?) and period (.) */
@@ -1801,22 +1818,20 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
                         } /* else an ordinary value */
                     }
         
-                    if ((result = cif_value_parse_numb(value, token_value)) == CIF_INVALID_NUMBER) {
-                        /* failed to parse the value as a number; record it as a string */
-                        int32_t temp_length = token_length + 1;
-                        UChar *temp = (UChar *) malloc((temp_length) * sizeof(UChar));
+                    string = (UChar *) malloc((token_length + 1) * sizeof(UChar));
+                    if (string == NULL) {
+                        result = CIF_ERROR;
+                    } else {
+                        /* copy the token value into a separate buffer, with terminator */
+                        *string = 0;
+                        u_strncat(string, token_value, token_length);  /* ensures NUL termination */
 
-                        if (temp == NULL) {
-                            result = CIF_ERROR;
-                        } else {
-                            /* copy the token value into a separate buffer, with terminator */
-                            *temp = 0;
-                            u_strncat(temp, token_value, temp_length);  /* ensures NUL termination */
-                            /* assign the terminated string into the value object */
-                            if ((result = cif_value_init_char(value, temp)) != CIF_OK) {
-                                /* assignment failed; free the string */
-                                free(temp);
-                            }
+                        /* Record the value as a number then it parses that way; otherwise as a string */
+                        /* In either case, the value object takes ownership of the string */
+                        if (((result = cif_value_parse_numb(value, string)) == CIF_INVALID_NUMBER) &&
+                                ((result = cif_value_init_char(value, string)) != CIF_OK)) {
+                            /* assignment failed; free the string */
+                            free(string);
                         }
                     }
 
@@ -1888,7 +1903,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
                     /* scan the first line of the text for a prefix and/or line-folding signature */
                     prefix_length = -1;
-                    for (; in_pos < in_limit; in_pos += 1) {
+                    for (; in_pos < in_limit; ) {
                         UChar c = *(in_pos++);
 
                         /* prospectively copy the input character to the buffer */
@@ -2051,18 +2066,19 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
  */
 static int next_token(struct scanner_s *scanner) {
     int result = CIF_OK;
-    int last_ttype = scanner->ttype;
+    enum token_type last_ttype = scanner->ttype;
+    enum token_type ttype = last_ttype;
 
     /* any token may follow these without intervening whitespace: */
     int after_ws = ((last_ttype == END) || (last_ttype == OLIST) || (last_ttype == OTABLE) || (last_ttype == KEY)
             || (last_ttype == TKEY));
 
-    while ((scanner->text_start >= scanner->next_char) /* else there is already a token waiting */
+    while ((scanner->text_start >= scanner->next_char) /* else there is a token ready */
             && (result == CIF_OK)) {
-        enum token_type ttype = ERROR;  /* it would be an internal error for this token type to escape this function */
         UChar c;
         int clazz;
 
+        ttype = ERROR;  /* it would be an internal error for this token type to escape this function */
         TVALUE_SETSTART(scanner, scanner->text_start);
         TVALUE_SETLENGTH(scanner, 0);
         NEXT_CHAR(scanner, c, result);
@@ -2091,8 +2107,11 @@ static int next_token(struct scanner_s *scanner) {
         }
 
         switch (clazz) {
-            case WS_CLASS:
             case EOL_CLASS:
+                /* back up the scanner to ensure that scan_ws() performs correct line and column accounting */
+                PUSHBACK_CHAR(scanner);
+                /* fall through */
+            case WS_CLASS:
                 result = scan_ws(scanner);
                 if (result == CIF_OK) {
                     /* notify the configured whitespace callback, if any */
@@ -2100,7 +2119,7 @@ static int next_token(struct scanner_s *scanner) {
                             TVALUE_START(scanner), TVALUE_LENGTH(scanner), scanner->user_data));
 
                     /* move on */
-                    CONSUME_TOKEN(scanner);
+                    CONSUME_TOKEN(scanner); /* FIXME: is this redundant? */
                     after_ws = CIF_TRUE;
                     continue;  /* cycle the LOOP */
                 } else {
@@ -2114,7 +2133,7 @@ static int next_token(struct scanner_s *scanner) {
                             TVALUE_START(scanner), TVALUE_LENGTH(scanner), scanner->user_data));
 
                     /* move on */
-                    CONSUME_TOKEN(scanner);
+                    CONSUME_TOKEN(scanner); /* FIXME: is this redundant? */
                     continue;  /* cycle the LOOP */
                 } else {
                     break;     /* break from the SWITCH */
@@ -2163,16 +2182,12 @@ static int next_token(struct scanner_s *scanner) {
                         } else {
                             ttype = QVALUE;
                         }
-
-                        /* either way, the logical token value starts after the opening quote */
-                        TVALUE_INCSTART(scanner, 1);
                     }
                 }
                 break;
             case SEMI_CLASS:
                 if (POSN_COLUMN(scanner) == 1) {  /* semicolon was in column 1 */
                     if ((result = scan_text(scanner)) == CIF_OK) {
-                        TVALUE_INCSTART(scanner, 1);
                         ttype = TVALUE;
 
                         if (scanner->cif_version >= 2) {
@@ -2181,6 +2196,7 @@ static int next_token(struct scanner_s *scanner) {
 
                             if (result == CIF_OK) {
                                 if (c == COLON_CHAR) {
+                                    /* FIXME: is it necessary to diagnose this as an error? */
                                     scanner->next_char += 1;
                                     ttype = TKEY;
                                 }
@@ -2206,6 +2222,10 @@ static int next_token(struct scanner_s *scanner) {
                 /* recover by scanning it as the start of a ws-delimited value anyway */
                 /* fall through */
             default:
+                if ((c & 0xf800) == 0xd800) {
+                    /* a surrogate code unit; back up to ensure proper handling in scan_unquoted() */
+                    PUSHBACK_CHAR(scanner);
+                }
                 result = scan_unquoted(scanner);
                 ttype = VALUE;
                 break;
@@ -2278,12 +2298,20 @@ static int next_token(struct scanner_s *scanner) {
                 /* prepare to recover by dropping it */
                 CONSUME_TOKEN(scanner);
             }
+
+            /* Set the (possibly-corrected) token type in the scanner */
         } /* endif result == CIF_OK && ttype == VALUE */
     } /* end while */
+
+    scanner->ttype = ttype;
 
     return result;
 }
 
+/*
+ * Scans a run of whitespace.  Proper line and column counting depends on all line terminators being seen by this
+ * function.
+ */
 static int scan_ws(struct scanner_s *scanner) {
     int sol = 0;
 
@@ -2361,7 +2389,8 @@ static int scan_to_ws(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
+    /* We've scanned one code unit too far; back off */
+    TVALUE_SETLENGTH(scanner, (--scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
 
@@ -2394,7 +2423,8 @@ static int scan_to_eol(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
+    /* We've scanned one code unit too far; back off */
+    TVALUE_SETLENGTH(scanner, (--scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
 
@@ -2436,7 +2466,8 @@ static int scan_unquoted(struct scanner_s *scanner) {
     }
 
     end_of_token:
-    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
+    /* We've scanned one code unit too far; back off */
+    TVALUE_SETLENGTH(scanner, (--scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
 
@@ -2501,8 +2532,11 @@ static int scan_delim_string(struct scanner_s *scanner) {
     }
 
     end_of_token:
+    /* The token value starts after the opening delimiter */
     TVALUE_INCSTART(scanner, 1);
+    /* The token length excludes the closing delimiter (if any) */
     TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)) - delim_size);
+
     return CIF_OK;
 }
 
@@ -2597,7 +2631,7 @@ static int get_more_chars(struct scanner_s *scanner) {
     int read_error;
 
     assert(chars_read < SSIZE_T_MAX);
-    assert(chars_consumed < chars_read);
+    assert((chars_consumed < chars_read) || (chars_read == 0));
     if (chars_consumed >= scanner->buffer_limit) {
         /* the buffer is empty; reset it to the beginning */
         assert(scanner->next_char == scanner->text_start);

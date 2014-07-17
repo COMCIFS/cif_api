@@ -6,7 +6,7 @@ _unknown_value   ?
 _na_value        .
 _unquoted_string unquoted
 _sq_string       'sq'
-_dq_string       'dq'
+_dq_string       "dq"
 _text_string
 ;text
 ;

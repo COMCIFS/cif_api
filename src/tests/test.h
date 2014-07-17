@@ -9,12 +9,20 @@
 #ifndef TESTS_TEST_H
 #define TESTS_TEST_H
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include <sqlite3.h>
 #include "uthash.h"
 #include "../cif.h"
+
+/*
+ * The name of the directory containing the test files it is evaluated relative to the working directory unless the
+ * environment variable CIFAPI_SRC is set, in which case it is evaluated relative to the directory named by that
+ * environment variable
+ */
+#define DATA_DIR "test-data"
 
 /*
  * Standardized result codes.  Any other return code represents a normal failure.
@@ -174,5 +182,18 @@ static UFILE *ustderr = NULL;
     } \
 } while (0)
 
-#endif
+/*
+ * Records a path to the test data directory.  Despite the term "resolve" in the macro name, this may still be a
+ * relative path.  'dest' is a pointer to a char buffer into which the result should be written, and 'len' is the space
+ * available in the buffer.  len must be greater than zero, else the behavior of this macro is undefined.  All the
+ * storage from dest[0] to dest[len - 1] must belong to the same object, else the behavior of this macro is undefined.
+ */
+#define RESOLVE_DATADIR(dest, len) do { \
+    const char *_cifapi_src = getenv("CIFAPI_SRC"); \
+    char *_d = (dest); \
+    ssize_t _l = (len); \
+    if (!_cifapi_src) { _cifapi_src = "."; } \
+    if (snprintf(_d, _l, "%s/" DATA_DIR "/", _cifapi_src) == _l) { _d[0] = 0; }; \
+} while (0)
 
+#endif
