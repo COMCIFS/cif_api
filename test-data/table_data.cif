@@ -30,13 +30,13 @@ _digit3_map {
 _space_keys {
  '':0
  " ":1
- '   ':2
+ '   ':3
 }
 
 _type_examples {
   "char":"char"
   "unknown":?
-  "n/a":.
-  "numb":-123.4(5)e+67
+  "N/A":.
+  "numb":-123.4e+67(5)
 }
 
