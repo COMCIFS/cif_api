@@ -131,7 +131,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_container_prune$(EXEEXT) \
 	tests/test_parse_simple_data$(EXEEXT) \
 	tests/test_parse_list_data$(EXEEXT) \
-	tests/test_parse_table_data$(EXEEXT)
+	tests/test_parse_table_data$(EXEEXT) \
+	tests/test_parse_complex_data$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -303,6 +304,12 @@ tests_test_packet_set_item_SOURCES = tests/test_packet_set_item.c
 tests_test_packet_set_item_OBJECTS = test_packet_set_item.$(OBJEXT)
 tests_test_packet_set_item_LDADD = $(LDADD)
 tests_test_packet_set_item_DEPENDENCIES = libcif.la
+tests_test_parse_complex_data_SOURCES =  \
+	tests/test_parse_complex_data.c
+tests_test_parse_complex_data_OBJECTS =  \
+	test_parse_complex_data.$(OBJEXT)
+tests_test_parse_complex_data_LDADD = $(LDADD)
+tests_test_parse_complex_data_DEPENDENCIES = libcif.la
 tests_test_parse_list_data_SOURCES = tests/test_parse_list_data.c
 tests_test_parse_list_data_OBJECTS = test_parse_list_data.$(OBJEXT)
 tests_test_parse_list_data_LDADD = $(LDADD)
@@ -394,13 +401,14 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_multiple_cifs.c tests/test_nesting.c \
 	tests/test_normalize.c tests/test_packet_create.c \
 	tests/test_packet_items.c tests/test_packet_remove_item.c \
-	tests/test_packet_set_item.c tests/test_parse_list_data.c \
-	tests/test_parse_simple_data.c tests/test_parse_table_data.c \
-	tests/test_table_elements.c tests/test_ustrdup.c \
-	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
-	tests/test_value_copy_char.c tests/test_value_create.c \
-	tests/test_value_get_number.c tests/test_value_init_char.c \
-	tests/test_value_init_numb.c tests/test_value_parse_numb.c
+	tests/test_packet_set_item.c tests/test_parse_complex_data.c \
+	tests/test_parse_list_data.c tests/test_parse_simple_data.c \
+	tests/test_parse_table_data.c tests/test_table_elements.c \
+	tests/test_ustrdup.c tests/test_value_autoinit_numb.c \
+	tests/test_value_clone.c tests/test_value_copy_char.c \
+	tests/test_value_create.c tests/test_value_get_number.c \
+	tests/test_value_init_char.c tests/test_value_init_numb.c \
+	tests/test_value_parse_numb.c
 DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
@@ -423,13 +431,14 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_multiple_cifs.c tests/test_nesting.c \
 	tests/test_normalize.c tests/test_packet_create.c \
 	tests/test_packet_items.c tests/test_packet_remove_item.c \
-	tests/test_packet_set_item.c tests/test_parse_list_data.c \
-	tests/test_parse_simple_data.c tests/test_parse_table_data.c \
-	tests/test_table_elements.c tests/test_ustrdup.c \
-	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
-	tests/test_value_copy_char.c tests/test_value_create.c \
-	tests/test_value_get_number.c tests/test_value_init_char.c \
-	tests/test_value_init_numb.c tests/test_value_parse_numb.c
+	tests/test_packet_set_item.c tests/test_parse_complex_data.c \
+	tests/test_parse_list_data.c tests/test_parse_simple_data.c \
+	tests/test_parse_table_data.c tests/test_table_elements.c \
+	tests/test_ustrdup.c tests/test_value_autoinit_numb.c \
+	tests/test_value_clone.c tests/test_value_copy_char.c \
+	tests/test_value_create.c tests/test_value_get_number.c \
+	tests/test_value_init_char.c tests/test_value_init_numb.c \
+	tests/test_value_parse_numb.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -572,7 +581,7 @@ CLEANFILES = $(BUILT_SOURCES) tests/linktest.c tests/linktest.lo \
 	tests/linktest
 DISTCLEANFILES = 
 clean_local_targets = 
-VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes --suppressions=$(top_srcdir)/misc/third_party_lib.supp
+VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes --suppressions=$(top_srcdir)/misc/third_party_lib64.supp
 # --error-exitcode=<number>
 compiled_tests = \
     tests/test_create \
@@ -622,7 +631,8 @@ compiled_tests = \
     tests/test_container_prune \
     tests/test_parse_simple_data \
     tests/test_parse_list_data \
-    tests/test_parse_table_data
+    tests/test_parse_table_data \
+    tests/test_parse_complex_data
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -862,6 +872,9 @@ tests/test_packet_remove_item$(EXEEXT): $(tests_test_packet_remove_item_OBJECTS)
 tests/test_packet_set_item$(EXEEXT): $(tests_test_packet_set_item_OBJECTS) $(tests_test_packet_set_item_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_packet_set_item$(EXEEXT)
 	$(LINK) $(tests_test_packet_set_item_OBJECTS) $(tests_test_packet_set_item_LDADD) $(LIBS)
+tests/test_parse_complex_data$(EXEEXT): $(tests_test_parse_complex_data_OBJECTS) $(tests_test_parse_complex_data_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_parse_complex_data$(EXEEXT)
+	$(LINK) $(tests_test_parse_complex_data_OBJECTS) $(tests_test_parse_complex_data_LDADD) $(LIBS)
 tests/test_parse_list_data$(EXEEXT): $(tests_test_parse_list_data_OBJECTS) $(tests_test_parse_list_data_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_list_data$(EXEEXT)
 	$(LINK) $(tests_test_parse_list_data_OBJECTS) $(tests_test_parse_list_data_LDADD) $(LIBS)
@@ -952,6 +965,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_items.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_remove_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_set_item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_complex_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_list_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_simple_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_table_data.Po@am__quote@
@@ -1478,6 +1492,20 @@ test_packet_set_item.obj: tests/test_packet_set_item.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_packet_set_item.c' object='test_packet_set_item.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_packet_set_item.obj `if test -f 'tests/test_packet_set_item.c'; then $(CYGPATH_W) 'tests/test_packet_set_item.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_packet_set_item.c'; fi`
+
+test_parse_complex_data.o: tests/test_parse_complex_data.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_complex_data.o -MD -MP -MF $(DEPDIR)/test_parse_complex_data.Tpo -c -o test_parse_complex_data.o `test -f 'tests/test_parse_complex_data.c' || echo '$(srcdir)/'`tests/test_parse_complex_data.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_complex_data.Tpo $(DEPDIR)/test_parse_complex_data.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_complex_data.c' object='test_parse_complex_data.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_complex_data.o `test -f 'tests/test_parse_complex_data.c' || echo '$(srcdir)/'`tests/test_parse_complex_data.c
+
+test_parse_complex_data.obj: tests/test_parse_complex_data.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_complex_data.obj -MD -MP -MF $(DEPDIR)/test_parse_complex_data.Tpo -c -o test_parse_complex_data.obj `if test -f 'tests/test_parse_complex_data.c'; then $(CYGPATH_W) 'tests/test_parse_complex_data.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_complex_data.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_complex_data.Tpo $(DEPDIR)/test_parse_complex_data.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_complex_data.c' object='test_parse_complex_data.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_complex_data.obj `if test -f 'tests/test_parse_complex_data.c'; then $(CYGPATH_W) 'tests/test_parse_complex_data.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_complex_data.c'; fi`
 
 test_parse_list_data.o: tests/test_parse_list_data.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_list_data.o -MD -MP -MF $(DEPDIR)/test_parse_list_data.Tpo -c -o test_parse_list_data.o `test -f 'tests/test_parse_list_data.c' || echo '$(srcdir)/'`tests/test_parse_list_data.c
