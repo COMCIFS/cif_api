@@ -443,9 +443,9 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
 /*
  * Backs up the scanner by one code unit.  Assumes the previous code unit is still available in the buffer.
- * Performs column accounting, but no line-number accounting.
+ * Performs column accounting, but no line-number or token start/length accounting.
  */
-#define PUSHBACK_CHAR(s) do { \
+#define BACK_UP(s) do { \
     struct scanner_s *_s_pbc = (s); \
     assert(_s_pbc->next_char > _s_pbc->buffer); \
     _s_pbc->next_char -= 1; \
@@ -2109,7 +2109,7 @@ static int next_token(struct scanner_s *scanner) {
         switch (clazz) {
             case EOL_CLASS:
                 /* back up the scanner to ensure that scan_ws() performs correct line and column accounting */
-                PUSHBACK_CHAR(scanner);
+                BACK_UP(scanner);
                 /* fall through */
             case WS_CLASS:
                 result = scan_ws(scanner);
@@ -2224,7 +2224,7 @@ static int next_token(struct scanner_s *scanner) {
             default:
                 if ((c & 0xf800) == 0xd800) {
                     /* a surrogate code unit; back up to ensure proper handling in scan_unquoted() */
-                    PUSHBACK_CHAR(scanner);
+                    BACK_UP(scanner);
                 }
                 result = scan_unquoted(scanner);
                 ttype = VALUE;
