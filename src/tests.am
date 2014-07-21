@@ -60,7 +60,8 @@ compiled_tests = \
     tests/test_parse_table_data \
     tests/test_parse_complex_data \
     tests/test_parse_simple_containers \
-    tests/test_parse_minimal_v2
+    tests/test_parse_minimal_v2 \
+    tests/test_parse_simple_loops
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code

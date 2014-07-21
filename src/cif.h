@@ -1695,17 +1695,18 @@ CIF_INTFUNC_DECL(cif_loop_get_packets, (
  *
  * The life cycle of an iterator contains several states:
  * @li @b NEW - The initial state of every iterator.  An iterator remains in this state until it is destroyed via
- *         @c cif_pktitr_close() or @c cif_pktitr_abort(), or it is moved to the @b ITERATED state via
- *         @c cif_pktitr_next_packet(); no other operations are valid for a packet iterator in this state.
+ *         @c cif_pktitr_close() or @c cif_pktitr_abort(), or it is moved to the @b ITERATED state (or, under special
+ *         circumstances, directly to the @b FINISHED state; see below) via @c cif_pktitr_next_packet(); no other
+ *         operations are valid for a packet iterator in this state.
  * @li @b ITERATED - The state of an iterator that has a valid previous packet.  An iterator enters this state
  *         via @c cif_pktitr_next_packet() (when that function returns @c CIF_OK), and leaves it via
  *         @c cif_pktitr_remove_packet() [to the @b REMOVED state] or via @c cif_pktitr_next_packet() [to the
- *         @c FINISHED state] when that function returns @c CIF_FINISHED.  All packet iterator functions are valid
+ *         @b FINISHED state] when that function returns @c CIF_FINISHED.  All packet iterator functions are valid
  *         for an iterator in this state; some leave it in this state.
  * @li @b REMOVED - The state of an iterator after its most recently iterated packet is removed via
  *         @c cif_pktitr_remove_packet().  From a forward-looking perspective, this state is nearly equivalent
- *         to the @b NEW state; the only functional difference is that it is possible for an iterator to proceed
- *         directly from this state to the @b FINISHED state.
+ *         to the @b NEW state; the primary difference is that it is not extraordinary for an iterator to
+ *         proceed directly from this state to the @b FINISHED state.
  * @li @b FINISHED - The state of an iterator after @c cif_pktitr_next_packet() returns @c CIF_FINISHED to signal
  *         that no more packets are available.  The only valid operations on such an iterator are to destroy it via
  *         @c cif_pktitr_close() or @c cif_pktitr_abort(), and one of those operations should be performed in a timely
@@ -1714,8 +1715,12 @@ CIF_INTFUNC_DECL(cif_loop_get_packets, (
  * Inasmuch as CIF loops are only incidentally ordered, the sequence in which loop packets are presented by an iterator
  * is not defined by these specifications.
  *
- * While iteration of a given loop is under way, it is implementation-defined what effect, if any, modifications
+ * While iteration of a given loop is underway, it is implementation-defined what effect, if any, modifications
  * to that loop other than by the iterator itself (including by a different iterator) have on the iteration results.
+ *
+ * The CIF data model does not accommodate loops without any packets, but the CIF API definition requires such
+ * loops to be accommodated in memory, at least transiently.  It is for such packetless loops alone that
+ * a packet iterator can proceed directly from @b NEW to @b FINISHED.
  */
 
 /**

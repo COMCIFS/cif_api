@@ -644,6 +644,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
                                 }
                                 temp_loops[loop_count] = NULL;
                                 *loops = temp_loops;
+                                ROLLBACK_NESTTX(cif->db);
                                 return CIF_OK;
                             }
                     }

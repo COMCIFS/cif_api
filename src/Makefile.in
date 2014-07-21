@@ -134,7 +134,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_parse_table_data$(EXEEXT) \
 	tests/test_parse_complex_data$(EXEEXT) \
 	tests/test_parse_simple_containers$(EXEEXT) \
-	tests/test_parse_minimal_v2$(EXEEXT)
+	tests/test_parse_minimal_v2$(EXEEXT) \
+	tests/test_parse_simple_loops$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -331,6 +332,12 @@ tests_test_parse_simple_data_OBJECTS =  \
 	test_parse_simple_data.$(OBJEXT)
 tests_test_parse_simple_data_LDADD = $(LDADD)
 tests_test_parse_simple_data_DEPENDENCIES = libcif.la
+tests_test_parse_simple_loops_SOURCES =  \
+	tests/test_parse_simple_loops.c
+tests_test_parse_simple_loops_OBJECTS =  \
+	test_parse_simple_loops.$(OBJEXT)
+tests_test_parse_simple_loops_LDADD = $(LDADD)
+tests_test_parse_simple_loops_DEPENDENCIES = libcif.la
 tests_test_parse_table_data_SOURCES = tests/test_parse_table_data.c
 tests_test_parse_table_data_OBJECTS = test_parse_table_data.$(OBJEXT)
 tests_test_parse_table_data_LDADD = $(LDADD)
@@ -416,12 +423,13 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_packet_set_item.c tests/test_parse_complex_data.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal_v2.c \
 	tests/test_parse_simple_containers.c \
-	tests/test_parse_simple_data.c tests/test_parse_table_data.c \
-	tests/test_table_elements.c tests/test_ustrdup.c \
-	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
-	tests/test_value_copy_char.c tests/test_value_create.c \
-	tests/test_value_get_number.c tests/test_value_init_char.c \
-	tests/test_value_init_numb.c tests/test_value_parse_numb.c
+	tests/test_parse_simple_data.c tests/test_parse_simple_loops.c \
+	tests/test_parse_table_data.c tests/test_table_elements.c \
+	tests/test_ustrdup.c tests/test_value_autoinit_numb.c \
+	tests/test_value_clone.c tests/test_value_copy_char.c \
+	tests/test_value_create.c tests/test_value_get_number.c \
+	tests/test_value_init_char.c tests/test_value_init_numb.c \
+	tests/test_value_parse_numb.c
 DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
@@ -447,12 +455,13 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_packet_set_item.c tests/test_parse_complex_data.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal_v2.c \
 	tests/test_parse_simple_containers.c \
-	tests/test_parse_simple_data.c tests/test_parse_table_data.c \
-	tests/test_table_elements.c tests/test_ustrdup.c \
-	tests/test_value_autoinit_numb.c tests/test_value_clone.c \
-	tests/test_value_copy_char.c tests/test_value_create.c \
-	tests/test_value_get_number.c tests/test_value_init_char.c \
-	tests/test_value_init_numb.c tests/test_value_parse_numb.c
+	tests/test_parse_simple_data.c tests/test_parse_simple_loops.c \
+	tests/test_parse_table_data.c tests/test_table_elements.c \
+	tests/test_ustrdup.c tests/test_value_autoinit_numb.c \
+	tests/test_value_clone.c tests/test_value_copy_char.c \
+	tests/test_value_create.c tests/test_value_get_number.c \
+	tests/test_value_init_char.c tests/test_value_init_numb.c \
+	tests/test_value_parse_numb.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -648,7 +657,8 @@ compiled_tests = \
     tests/test_parse_table_data \
     tests/test_parse_complex_data \
     tests/test_parse_simple_containers \
-    tests/test_parse_minimal_v2
+    tests/test_parse_minimal_v2 \
+    tests/test_parse_simple_loops
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -903,6 +913,9 @@ tests/test_parse_simple_containers$(EXEEXT): $(tests_test_parse_simple_container
 tests/test_parse_simple_data$(EXEEXT): $(tests_test_parse_simple_data_OBJECTS) $(tests_test_parse_simple_data_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_simple_data$(EXEEXT)
 	$(LINK) $(tests_test_parse_simple_data_OBJECTS) $(tests_test_parse_simple_data_LDADD) $(LIBS)
+tests/test_parse_simple_loops$(EXEEXT): $(tests_test_parse_simple_loops_OBJECTS) $(tests_test_parse_simple_loops_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_parse_simple_loops$(EXEEXT)
+	$(LINK) $(tests_test_parse_simple_loops_OBJECTS) $(tests_test_parse_simple_loops_LDADD) $(LIBS)
 tests/test_parse_table_data$(EXEEXT): $(tests_test_parse_table_data_OBJECTS) $(tests_test_parse_table_data_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_table_data$(EXEEXT)
 	$(LINK) $(tests_test_parse_table_data_OBJECTS) $(tests_test_parse_table_data_LDADD) $(LIBS)
@@ -992,6 +1005,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_minimal_v2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_simple_containers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_simple_data.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_simple_loops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_table_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_table_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_ustrdup.Po@am__quote@
@@ -1586,6 +1600,20 @@ test_parse_simple_data.obj: tests/test_parse_simple_data.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_simple_data.c' object='test_parse_simple_data.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_simple_data.obj `if test -f 'tests/test_parse_simple_data.c'; then $(CYGPATH_W) 'tests/test_parse_simple_data.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_simple_data.c'; fi`
+
+test_parse_simple_loops.o: tests/test_parse_simple_loops.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_simple_loops.o -MD -MP -MF $(DEPDIR)/test_parse_simple_loops.Tpo -c -o test_parse_simple_loops.o `test -f 'tests/test_parse_simple_loops.c' || echo '$(srcdir)/'`tests/test_parse_simple_loops.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_simple_loops.Tpo $(DEPDIR)/test_parse_simple_loops.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_simple_loops.c' object='test_parse_simple_loops.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_simple_loops.o `test -f 'tests/test_parse_simple_loops.c' || echo '$(srcdir)/'`tests/test_parse_simple_loops.c
+
+test_parse_simple_loops.obj: tests/test_parse_simple_loops.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_simple_loops.obj -MD -MP -MF $(DEPDIR)/test_parse_simple_loops.Tpo -c -o test_parse_simple_loops.obj `if test -f 'tests/test_parse_simple_loops.c'; then $(CYGPATH_W) 'tests/test_parse_simple_loops.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_simple_loops.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_simple_loops.Tpo $(DEPDIR)/test_parse_simple_loops.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_simple_loops.c' object='test_parse_simple_loops.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_simple_loops.obj `if test -f 'tests/test_parse_simple_loops.c'; then $(CYGPATH_W) 'tests/test_parse_simple_loops.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_simple_loops.c'; fi`
 
 test_parse_table_data.o: tests/test_parse_table_data.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_table_data.o -MD -MP -MF $(DEPDIR)/test_parse_table_data.Tpo -c -o test_parse_table_data.o `test -f 'tests/test_parse_table_data.c' || echo '$(srcdir)/'`tests/test_parse_table_data.c
