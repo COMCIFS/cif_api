@@ -13,7 +13,7 @@ save_§1
 # Unicode in a data name:
 loop_
  _formula _ΔHf
- 'C O2'   −393.509 
+ 'C O2'   −393.509  # and in a value: that's a U+2212, not an ASCII minus sign
 
 # Unicode in a value (code points U+1063E U+16A0 U+2820)
 _uvalue   𐘾ᚠ⠠
