@@ -62,7 +62,8 @@ compiled_tests = \
     tests/test_parse_simple_containers \
     tests/test_parse_minimal_v2 \
     tests/test_parse_simple_loops \
-    tests/test_parse_unicode
+    tests/test_parse_unicode \
+    tests/test_parse_text_fields
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
@@ -72,19 +73,10 @@ compiled_tests = \
 #   - WS-only
 #     - with or without version comment
 #     - with or without BOM
-#   - block w/loop + scalars
 #   - CHAR values
 #       - w/ backslashes
 #     - SQ/DQ
-#       - empty
 #       - w/ backslashes
-#     - Text block
-#       - empty
-#       - w/ data name
-#       - w/ line wrapping
-#       - w/ text prefixing
-#       - w/ text prefixing & line wrapping
-#     - Multibyte characters
 # - syntax-only mode
 #
 # cif_walk

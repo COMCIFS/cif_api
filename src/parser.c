@@ -1983,16 +1983,19 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                         UChar *buf_temp = NULL;
 
                         /* consume the prefix, if any */
-                        if (((in_limit - in_pos) <= prefix_length) && (u_strncmp(text, in_pos, prefix_length) == 0)) {
-                            in_pos += prefix_length;
-                        } else {
-                            /* error: missing prefix */
-                            result = scanner->error_callback(CIF_MISSING_PREFIX, scanner->line,
-                                    1, TVALUE_START(scanner), 0, scanner->user_data);
-                            if (result != CIF_OK) {
-                                FAIL(late, result);
+                        if (prefix_length > 0) {
+                            if (((in_limit - in_pos) >= prefix_length)
+                                    && (u_strncmp(text, in_pos, prefix_length) == 0)) {
+                                in_pos += prefix_length;
+                            } else {
+                                /* error: missing prefix */
+                                result = scanner->error_callback(CIF_MISSING_PREFIX, scanner->line,
+                                        1, TVALUE_START(scanner), 0, scanner->user_data);
+                                if (result != CIF_OK) {
+                                    FAIL(late, result);
+                                }
+                                /* recover by copying the un-prefixed text (no special action required for that) */
                             }
-                            /* recover by copying the un-prefixed text (no special action required for that) */
                         }
 
                         /* copy from input to buffer, up to and including EOL, accounting for folding if applicable */
