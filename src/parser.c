@@ -592,11 +592,13 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
         FAILURE_VARIABLE = get_first_char(scanner);
 
         if (FAILURE_VARIABLE == CIF_OK) {
+            int scanned_bom;
+
             c = *(scanner->next_char++);
 
             /* consume an initial BOM, if present, regardless of the actual source encoding */
             /* NOTE: assumes that the character decoder, if any, does not also consume an initial BOM */
-            if (c == BOM_CHAR) {
+            if ((scanned_bom = (c == BOM_CHAR))) {
                 CONSUME_TOKEN(scanner);
                 NEXT_CHAR(scanner, c, FAILURE_VARIABLE);
             }
@@ -625,18 +627,22 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
                 scanner->column = 0;
 
                 if (scanner->cif_version == 1) {
+                    if (scanned_bom) {
+                        /* error: disallowed CIF 1 character */
+                        FAILURE_VARIABLE = scanner->error_callback(CIF_DISALLOWED_CHAR, 1, 0,
+                                scanner->next_char - 1, 1, scanner->user_data);
+                        /* recover, if necessary, by ignoring the problem */
+                    }
                     SET_V1(scanner);
                 } else if ((scanner->cif_version == 2) && (not_utf8 != 0)) {
                     /* error: CIF2 but not UTF-8 */
                     FAILURE_VARIABLE = scanner->error_callback(CIF_WRONG_ENCODING, 1, 1, scanner->next_char, 0,
                             scanner->user_data);
-                    if (FAILURE_VARIABLE != CIF_OK) {
-                        DEFAULT_FAIL(early);
-                    }
-                    /* recover by ignoring the problem */
+                    /* recover, if necessary, by ignoring the problem */
                 }
-
-                SET_RESULT(parse_cif(scanner, dest));
+                if (FAILURE_VARIABLE == CIF_OK) {
+                    SET_RESULT(parse_cif(scanner, dest));
+                }
             }
         }
 
