@@ -241,14 +241,15 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
 
     ustream.converter = ucnv_open(encoding_name, &error_code); /* FIXME: is any other customization needed? */
     if (U_SUCCESS(error_code)) {
-        /* FIXME: this test is probably too simplistic: */
-        int is_utf8 = strcmp("UTF-8", ucnv_getName(ustream.converter, &error_code));
+        char *converter_name = ucnv_getName(ustream.converter, &error_code);  /* belongs to ustream.converter */
 
         ucnv_setToUCallBack(ustream.converter, ustream_to_unicode_callback, &scanner, NULL, NULL, &error_code);
 
         if (U_FAILURE(error_code)) {
             result = CIF_ERROR;
         } else {
+            /* FIXME: this test is probably too simplistic: */
+            int not_utf8 = strcmp("UTF-8", converter_name);
 
             /* set up those properties of the scanner that derive from caller input */
 
@@ -276,10 +277,10 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
             scanner.user_data = options->user_data;  /* may be NULL */
 
             /* perform the actual parse */
-
-            result = cif_parse_internal(&scanner, is_utf8, cif);
+            result = cif_parse_internal(&scanner, not_utf8, cif);
         }
 
+        FAILURE_HANDLER(late):
         ucnv_close(ustream.converter);
 
         return result;

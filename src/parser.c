@@ -234,6 +234,10 @@
 #define BOM_CHAR      0xFEFF
 #define EOF_CHAR      0xFFFF
 
+#if CHAR_TABLE_MAX <= CIF1_MAX_CHAR
+#error "character class table is too small"
+#endif
+
 /* character metaclass codes */
 #define NO_META       0
 #define GENERAL_META  1
@@ -273,6 +277,7 @@ static int scan_to_eol(struct scanner_s *scanner);
 static int scan_unquoted(struct scanner_s *scanner);
 static int scan_delim_string(struct scanner_s *scanner);
 static int scan_text(struct scanner_s *scanner);
+static int get_first_char(struct scanner_s *scanner);
 static int get_more_chars(struct scanner_s *scanner);
 
 /* other functions */
@@ -580,8 +585,14 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
         scanner->tvalue_start = scanner->buffer;
         scanner->tvalue_length = 0;
 
-        NEXT_CHAR(scanner, c, FAILURE_VARIABLE);
+        /*
+         * We must avoid get_more_chars() here (and also NEXT_CHAR, which uses it, because we want -- here only -- to
+         * accept a byte-order mark.
+         */
+        FAILURE_VARIABLE = get_first_char(scanner);
+
         if (FAILURE_VARIABLE == CIF_OK) {
+            c = *(scanner->next_char++);
 
             /* consume an initial BOM, if present, regardless of the actual source encoding */
             /* NOTE: assumes that the character decoder, if any, does not also consume an initial BOM */
@@ -2621,10 +2632,57 @@ static int scan_text(struct scanner_s *scanner) {
 }
 
 /*
+ * Transfers one character from the provided scanner's character source into its working character buffer, provided
+ * that any are available.  Assumes that no characters have yet been transferred, and that the CIF version being parsed
+ * may not yet be known.  Will insert an EOF_CHAR into the buffer if called when there no more characters are available.
+ * Returns CIF_OK if any characters are transferred (including an EOF marker), otherwise CIF_ERROR.
+ *
+ * Unlike get_more_chars(), this function accepts a Unicode byte-order mark, U+FEFF.
+ */
+static int get_first_char(struct scanner_s *scanner) {
+    ssize_t nread;
+    int read_error;
+
+    assert(scanner->next_char == scanner->buffer);
+    assert(scanner->text_start == scanner->buffer);
+    assert(scanner->buffer_limit == 0);
+    TVALUE_SETSTART(scanner, scanner->buffer);
+
+    /* convert one character */
+    nread = scanner->read_func(scanner->char_source, scanner->buffer, 1, &read_error);
+
+    if (nread < 0) {
+        return read_error;
+    } else if (nread == 0) {
+        *scanner->buffer = EOF_CHAR;
+        scanner->buffer_limit += 1;
+        scanner->at_eof = CIF_TRUE;
+        return CIF_OK;
+    } else {
+        UChar ch = *scanner->buffer;
+        int result;
+
+        assert (nread == 1);
+        if ((ch > CIF1_MAX_CHAR) ? (ch != BOM_CHAR) : (scanner->char_class[ch] == NO_CLASS)) {
+            /* error: disallowed character */
+            result = scanner->error_callback(CIF_DISALLOWED_INITIAL_CHAR, 1, 0,
+                    scanner->buffer, 1, scanner->user_data);
+            if (result != CIF_OK) {
+                return result;
+            }
+            /* recover by accepting the character (for the moment) */
+        }
+
+        scanner->buffer_limit += 1;
+        return CIF_OK;
+    }
+}
+
+/*
  * Transfers characters from the provided scanner's character source into its working character buffer, provided that
  * any are available.  May move unconsumed data within the buffer (adjusting the rest of the scanner's internal state
  * appropriately) and/or may increase the size of the buffer.  Will insert an EOF_CHAR into the buffer if called when
- * there are no more characters are available.  Returns CIF_OK if anny characters are transferred (including an EOF
+ * there no more characters are available.  Returns CIF_OK if any characters are transferred (including an EOF
  * marker), otherwise CIF_ERROR.
  */
 static int get_more_chars(struct scanner_s *scanner) {
@@ -2634,7 +2692,7 @@ static int get_more_chars(struct scanner_s *scanner) {
     int read_error;
 
     assert(chars_read < SSIZE_T_MAX);
-    assert((chars_consumed < chars_read) || (chars_read == 0));
+    assert(chars_consumed <= chars_read); /* chars_consumed == chars_read only at the beginning of a parse */
     if (chars_consumed >= scanner->buffer_limit) {
         /* the buffer is empty; reset it to the beginning */
         assert(scanner->next_char == scanner->text_start);
@@ -2700,7 +2758,7 @@ static int get_more_chars(struct scanner_s *scanner) {
 
         for (; start < end; start += 1) {
             if ((*start < CHAR_TABLE_MAX) ? (scanner->char_class[*start] == NO_CLASS)
-                    : ((*start > 0xFFFD) || (*start == 0xFEFF) || ((*start >= 0xFDD0) && (*start <= 0xFDEF)))) {
+                    : ((*start > 0xFFFD) || (*start == BOM_CHAR) || ((*start >= 0xFDD0) && (*start <= 0xFDEF)))) {
                 /* error: disallowed BMP character */
                 result = scanner->error_callback(CIF_DISALLOWED_CHAR, scanner->line, scanner->column,
                         scanner->next_char - 1, 1, scanner->user_data);
@@ -2730,4 +2788,3 @@ static int get_more_chars(struct scanner_s *scanner) {
         return CIF_OK;
     }
 }
-

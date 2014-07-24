@@ -392,6 +392,14 @@
 #define CIF_OVERLENGTH_LINE   108
 
 /**
+ * @brief A result code indicating that a well-formed code sequence encountered at the beginning of CIF I/O decodes to
+ * a character that is not allowed to appear as the initial character of a CIF.  At the point where this error is
+ * encountered, it may not yet be known which version of CIF is being parsed.  The normal recovery path is to leave
+ * the character alone, likely allowing it to trigger a different, more specific error later.
+ */
+#define CIF_DISALLOWED_INITIAL_CHAR 109
+
+/**
  * @brief A result code indicating that input is being parsed according to CIF-2 syntax, but being decoded according to
  *         a different encoding form than UTF-8
  */
