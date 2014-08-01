@@ -23,14 +23,17 @@ EXTRA_DIST = \
   misc/third_party_lib64.supp \
   test-data/bom.cif \
   test-data/bom_ver2.cif \
-  test-data/cif_expanded_oct09.dic \
+  test-data/cif_core.dic \
+  test-data/comment_only.cif \
   test-data/complex_data.cif \
+  test-data/ddl.dic \
   test-data/empty.cif \
   test-data/list_data.cif \
   test-data/simple_containers.cif \
   test-data/simple_data.cif \
   test-data/simple_loops.cif \
   test-data/table_data.cif \
+  test-data/text_fields.cif \
   test-data/unicode.cif \
   test-data/ver1.cif \
   test-data/ver2.cif \
@@ -86,10 +89,10 @@ maintainer-clean-local:
 
 dox-man: dox-html
 	test -d $@ && $(RM) -rf $@
-	$(DOXYGEN) Doxyfile
+	$(DOXYGEN) $(srcdir)/Doxyfile
 
 dox-html: $(dox_deps)
 	$(RM) -rf dox-html
 	$(RM) -rf dox-man
-	$(DOXYGEN) Doxyfile
+	$(DOXYGEN) $(srcdir)/Doxyfile
 
