@@ -15313,7 +15313,7 @@ save_refine_ls.hydrogen_treatment
     _enumeration_set.detail
       refall  'refined all H-atom parameters'
       refxyz  'refined H-atom coordinates only'
-      refU    'refined H-atom U's only'
+      refU    "refined H-atom U's only"
       noref   'no refinement of H-atom parameters'
       constr  'H-atom parameters constrained'
       hetero

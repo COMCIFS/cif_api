@@ -276,6 +276,7 @@ static int scan_to_ws(struct scanner_s *scanner);
 static int scan_to_eol(struct scanner_s *scanner);
 static int scan_unquoted(struct scanner_s *scanner);
 static int scan_delim_string(struct scanner_s *scanner);
+static int scan_triple_delim_string(struct scanner_s *scanner);
 static int scan_text(struct scanner_s *scanner);
 static int get_first_char(struct scanner_s *scanner);
 static int get_more_chars(struct scanner_s *scanner);
@@ -2508,14 +2509,22 @@ static int scan_delim_string(struct scanner_s *scanner) {
             }
 
             if (c == delim) {
-                if (scanner->cif_version < 2) {
+                PEEK_CHAR(scanner, c, result);
+
+                if (result != CIF_OK) {
+                    return result;
+                } else if (scanner->cif_version < 2) {
                     /* look ahead for whitespace */
-                    PEEK_CHAR(scanner, c, result);
-                    if (result != CIF_OK) {
-                        return result;
-                    } else if (METACLASS_OF(c, scanner) != WS_META) {
+                    if (METACLASS_OF(c, scanner) != WS_META) {
                         /* the current character is part of the value */
                         continue;
+                    }
+                } else if (scanner->next_char - scanner->text_start == 2) {
+                    /* test for the opening delimiter of a single-quoted string */
+                    if (c == delim) {
+                        /* TODO */
+                        scanner->next_char += 1;
+                        return scan_triple_delim_string(scanner);
                     }
                 }
                 delim_size = 1;
@@ -2552,6 +2561,69 @@ static int scan_delim_string(struct scanner_s *scanner) {
     return CIF_OK;
 }
 
+/*
+ * Scans a string delimited by a tripled delimiter character.  The scanned string may contain
+ * any character or character sequence, including whitespace, other than the closing
+ * triple-delimiter.
+ *
+ * On entry, the text start position is assumed to be at the first character of the opening
+ * delimiter, and the scan position is assumed to be immediately after the last character of
+ * the opening delimiter.
+ */
+static int scan_triple_delim_string(struct scanner_s *scanner) {
+    UChar delim = *(scanner->text_start);
+    int delim_count = 0;
+    int lead_surrogate = CIF_FALSE;
+    int delim_size;
+
+    for (;;) {
+        UChar *top = scanner->buffer + scanner->buffer_limit;
+        int result;
+
+        while (scanner->next_char < top) {
+            UChar c;
+
+            /* Scan and validate the next code unit, incrementing the column number as appropriate */
+            SCAN_UCHAR(scanner, c, lead_surrogate, result);
+            if (result != CIF_OK) {
+                return result;
+            }
+
+            if (c == delim) {
+                if (++delim_count >= 3) {
+                    delim_size = 3;
+                    goto end_of_token;
+                }
+            } else {
+                delim_count = 0;
+                if ((CLASS_OF(c, scanner)) == EOF_CLASS) {
+                    /* error: unterminated quoted string */
+                    result = scanner->error_callback(CIF_MISSING_ENDQUOTE, scanner->line,
+                            scanner->column, scanner->next_char - 1, 0, scanner->user_data);
+                    if (result != CIF_OK) {
+                        return result;
+                    }
+                    /* recover by assuming a trailing close-quote */
+                    delim_size = 0;
+                    goto end_of_token;
+                }
+            }
+        }
+
+        result = get_more_chars(scanner);
+        if (result != CIF_OK) {
+            return result;
+        }
+    }
+
+    end_of_token:
+    /* The token value starts after the opening delimiter */
+    TVALUE_INCSTART(scanner, 3);
+    /* The token length excludes the closing delimiter (if any) */
+    TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)) - delim_size);
+
+    return CIF_OK;
+}
 
 /*
  * Scans a text block.  Sets the token parameters to mark the block contents, exclusive of delimiters, assuming the
