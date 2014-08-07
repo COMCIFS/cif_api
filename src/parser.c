@@ -857,6 +857,16 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                 } else { 
                     UChar saved = *(token_value + token_length);
 
+                    if (scanner->cif_version < 2) {
+                        /* CIF 1 does not permit nested save frames  */
+                        result = scanner->error_callback(CIF_NO_FRAME_TERM, scanner->line,
+                             scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
+                             TVALUE_LENGTH(scanner), scanner->user_data);
+                        /* recover, if so directed, by assuming the missing terminator */
+                        /* do not consume the token */
+                        goto container_end;
+                    }
+
                     /* insert a string terminator into the input buffer, after the current token */
                     *(token_value + token_length) = 0;
 
