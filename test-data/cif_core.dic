@@ -1,3 +1,4 @@
+#\#CIF_2.0
 ##############################################################################
 #                                                                            #
 #                      CIF CORE DICTIONARY                                   #
@@ -33,7 +34,7 @@ save_CIF_CORE
     _name.category_id            CIF_DIC
     _name.object_id              CIF_CORE
  
- 
+save_ 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
  
@@ -50,7 +51,7 @@ save_EXPERIMENTAL
     _name.category_id            CIF_CORE
     _name.object_id              EXPERIMENTAL
  
- 
+save_ 
 #============================================================================
  
 save_EXPERIMENTS
@@ -87,7 +88,7 @@ save_EXPERIMENTS
                            ${"frame":"exptl_blue"}$
                            ${"frame":"exptl_red"}$
 ;
- 
+save_ 
  
 save_experiments.key
     _definition.id             '_experiments.key'
@@ -126,7 +127,7 @@ save_EXPTL
     _name.category_id            EXPERIMENTS
     _name.object_id              EXPTL
  
- 
+save_ 
  
 save_exptl.id
     _definition.id             '_exptl.id'
@@ -331,7 +332,7 @@ save_EXPTL_CRYSTALS
                            ${"frame":"crystal_1"}$
                            ${"frame":"crystal_2"}$
 ;
- 
+save_ 
  
 save_exptl_crystals.key
     _definition.id             '_exptl_crystals.key'
@@ -368,7 +369,7 @@ save_EXPTL_CRYSTAL
 ;
     _name.category_id            EXPTL_CRYSTALS
     _name.object_id              EXPTL_CRYSTAL
- 
+save_ 
  
 save_exptl_crystal.id
     _definition.id             '_exptl_crystal.id'
@@ -409,7 +410,7 @@ save_exptl_crystal.colour
     _type.contents               Code
     _type.dimension              [3]
      loop_
-    _description_example.case    "[transluscent, pale, green]"
+    _description_example.case    "[transluscent pale green]"
      loop_
     _method.purpose
     _method.expression
@@ -928,7 +929,7 @@ save_EXPTL_CRYSTAL_FACE
     _name.object_id              EXPTL_CRYSTAL_FACE
     _category.key_id           '_exptl_crystal_face.key'
     _category.key_list        ['_exptl_crystal_face.id']
- 
+save_ 
  
 save_exptl_crystal_face.key
     _definition.id             '_exptl_crystal_face.key'
@@ -981,7 +982,7 @@ save_exptl_crystal_face.diffr_chi
      loop_
     _alias.definition_id       '_exptl_crystal_face.diffr_chi'
                                '_exptl_crystal_face_diffr_chi'
-    _import.get        [{"file":'templ_attr.cif',"save":'face_angle'}]
+    _import.get        [{"file":'templ_attr.cif' "save":'face_angle'}]
     _name.category_id            exptl_crystal_face
     _name.object_id              diffr_chi
      save_
@@ -992,7 +993,7 @@ save_exptl_crystal_face.diffr_kappa
      loop_
     _alias.definition_id       '_exptl_crystal_face.diffr_kappa'
                                '_exptl_crystal_face_diffr_kappa'
-    _import.get        [{"file":'templ_attr.cif',"save":'face_angle'}]
+    _import.get        [{"file":'templ_attr.cif' "save":'face_angle'}]
     _name.category_id            exptl_crystal_face
     _name.object_id              diffr_kappa
      save_
@@ -1003,7 +1004,7 @@ save_exptl_crystal_face.diffr_phi
      loop_
     _alias.definition_id       '_exptl_crystal_face.diffr_phi'
                                '_exptl_crystal_face_diffr_phi'
-    _import.get        [{"file":'templ_attr.cif',"save":'face_angle'}]
+    _import.get        [{"file":'templ_attr.cif' "save":'face_angle'}]
     _name.category_id            exptl_crystal_face
     _name.object_id              diffr_phi
      save_
@@ -1014,7 +1015,7 @@ save_exptl_crystal_face.diffr_psi
      loop_
     _alias.definition_id       '_exptl_crystal_face.diffr_psi'
                                '_exptl_crystal_face_diffr_psi'
-    _import.get         [{"file":'templ_attr.cif',"save":'face_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'face_angle'}]
     _name.category_id            exptl_crystal_face
     _name.object_id              diffr_psi
      save_
@@ -1053,7 +1054,7 @@ save_exptl_crystal_face.index_h
      loop_
     _alias.definition_id       '_exptl_crystal_face.index_h'
                                '_exptl_crystal_face_index_h'
-    _import.get       [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            exptl_crystal_face
     _name.object_id              index_h
      save_
@@ -1064,7 +1065,7 @@ save_exptl_crystal_face.index_k
      loop_
     _alias.definition_id       '_exptl_crystal_face.index_k'
                                '_exptl_crystal_face_index_k'
-    _import.get        [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get        [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            exptl_crystal_face
     _name.object_id              index_k
      save_
@@ -1075,7 +1076,7 @@ save_exptl_crystal_face.index_l
      loop_
     _alias.definition_id       '_exptl_crystal_face.index_l'
                                '_exptl_crystal_face_index_l'
-    _import.get        [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get        [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            exptl_crystal_face
     _name.object_id              index_l
      save_
@@ -1130,8 +1131,6 @@ save_exptl_crystal_face.perp_dist
     _units.code                  millimetres
      save_
  
-     save_    #----------- close of EXPTL_CRYSTAL_FACE category
- 
 #-------------------------------------------------------------------------------
  
 save_EXPTL_CRYSTAL_APPEARANCE
@@ -1147,7 +1146,7 @@ save_EXPTL_CRYSTAL_APPEARANCE
 ;
     _name.category_id            EXPTL_CRYSTAL
     _name.object_id              EXPTL_CRYSTAL_APPEARANCE
- 
+save_ 
  
 save_exptl_crystal_appearance.general
     _definition.id             '_exptl_crystal_appearance.general'
@@ -1220,13 +1219,9 @@ save_exptl_crystal_appearance.hue
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Code
-    _import.get       [{"file":'templ_enum.cif',"save":'colour_RGB'}]
+    _import.get       [{"file":'templ_enum.cif' "save":'colour_RGB'}]
     _enumeration.default        'white'
      save_
- 
-     save_    #------ close EXPTL_CRYSTAL_APPEARANCE category
- 
-     save_    #------ close EXPTL_CRYSTAL category
  
 #---------------------------------------------------------------------------
  
@@ -1244,7 +1239,7 @@ save_EXPTL_ABSORPT
 ;
     _name.category_id            EXPTL_CRYSTALS
     _name.object_id              EXPTL_ABSORPT
- 
+save_ 
  
 save_exptl_absorpt.coefficient_mu
     _definition.id             '_exptl_absorpt.coefficient_mu'
@@ -1388,11 +1383,6 @@ save_exptl_absorpt.process_details
                                 '(North, Phillips & Mathews, 1968)'
      save_
  
-     save_    #------ close EXPTL_ABSORPT category
- 
-     save_    #------ close EXPTL_CRYSTALS category
- 
- 
 #============================================================================
  
 save_CELL
@@ -1408,7 +1398,7 @@ save_CELL
 ;
     _name.category_id            EXPTL
     _name.object_id              CELL
- 
+save_ 
  
 save_cell.atomic_mass
     _definition.id             '_cell.atomic_mass'
@@ -1483,7 +1473,7 @@ save_cell.metric_tensor
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -1515,7 +1505,7 @@ save_cell.orthogonal_matrix
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -1623,7 +1613,7 @@ save_CELL_ANGLE
 ;
     _name.category_id            CELL
     _name.object_id              CELL_ANGLE
- 
+save_ 
  
 save_cell_angle.alpha
     _definition.id             '_cell_angle.alpha'
@@ -1631,7 +1621,7 @@ save_cell_angle.alpha
     _alias.definition_id       '_cell_angle.alpha'
                                '_cell_angle_alpha'
                                '_cell.angle_alpha'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_angle'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_angle'}]
     _name.category_id            cell_angle
     _name.object_id              alpha
      save_
@@ -1643,7 +1633,7 @@ save_cell_angle.beta
     _alias.definition_id       '_cell_angle.beta'
                                '_cell_angle_beta'
                                '_cell.angle_beta'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_angle'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_angle'}]
     _name.category_id            cell_angle
     _name.object_id              beta
      save_
@@ -1655,7 +1645,7 @@ save_cell_angle.gamma
     _alias.definition_id       '_cell_angle.gamma'
                                '_cell_angle_gamma'
                                '_cell.angle_gamma'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_angle'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_angle'}]
     _name.category_id            cell_angle
     _name.object_id              gamma
      save_
@@ -1667,7 +1657,7 @@ save_cell_angle.alpha_su
     _alias.definition_id       '_cell_angle.alpha_su'
                                '_cell_angle_alpha_su'
                                '_cell.angle_alpha_esd'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_angle_su'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_angle_su'}]
     _name.category_id            cell_angle
     _name.object_id              alpha_su
     _name.linked_item_id       '_cell_angle.alpha'
@@ -1680,7 +1670,7 @@ save_cell_angle.beta_su
     _alias.definition_id       '_cell_angle.beta_su'
                                '_cell_angle_beta_su'
                                '_cell.angle_beta_esd'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_angle_su'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_angle_su'}]
     _name.category_id            cell_angle
     _name.object_id              beta_su
     _name.linked_item_id       '_cell_angle.beta'
@@ -1693,14 +1683,11 @@ save_cell_angle.gamma_su
     _alias.definition_id       '_cell_angle.gamma_su'
                                '_cell_angle_gamma_su'
                                '_cell.angle_gamma_esd'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_angle_su'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_angle_su'}]
     _name.category_id            cell_angle
     _name.object_id              gamma_su
     _name.linked_item_id       '_cell_angle.gamma'
      save_
- 
-     save_     #-------- close of CELL_ANGLE category
- 
  
 #----------------------------------------------------------------------------
  
@@ -1717,7 +1704,7 @@ save_CELL_LENGTH
 ;
     _name.category_id            CELL
     _name.object_id              CELL_LENGTH
- 
+save_ 
  
 save_cell_length.a
     _definition.id             '_cell_length.a'
@@ -1725,7 +1712,7 @@ save_cell_length.a
     _alias.definition_id       '_cell_length.a'
                                '_cell_length_a'
                                '_cell.length_a'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_length'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_length'}]
     _name.category_id            cell_length
     _name.object_id              a
      save_
@@ -1737,7 +1724,7 @@ save_cell_length.b
     _alias.definition_id       '_cell_length.b'
                                '_cell_length_b'
                                '_cell.length_b'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_length'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_length'}]
     _name.category_id            cell_length
     _name.object_id              b
      save_
@@ -1749,7 +1736,7 @@ save_cell_length.c
     _alias.definition_id       '_cell_length.c'
                                '_cell_length_c'
                                '_cell.length_c'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_length'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_length'}]
     _name.category_id            cell_length
     _name.object_id              c
      save_
@@ -1761,7 +1748,7 @@ save_cell_length.a_su
     _alias.definition_id       '_cell_length.a_su'
                                '_cell_length_a_su'
                                '_cell.length_a_esd'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_length_su'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_length_su'}]
     _name.category_id            cell_length
     _name.object_id              a_su
     _name.linked_item_id       '_cell_length.a'    
@@ -1774,7 +1761,7 @@ save_cell_length.b_su
     _alias.definition_id       '_cell_length.b_su'
                                '_cell_length_b_su'
                                '_cell.length_b_esd'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_length_su'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_length_su'}]
     _name.category_id            cell_length
     _name.object_id              b_su
     _name.linked_item_id       '_cell_length.b'    
@@ -1787,15 +1774,11 @@ save_cell_length.c_su
     _alias.definition_id       '_cell_length.c_su'
                                '_cell_length_c_su'
                                '_cell.length_c_esd'
-    _import.get       [{"file":'templ_attr.cif',"save":'cell_length_su'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'cell_length_su'}]
     _name.category_id            cell_length
     _name.object_id              c_su
     _name.linked_item_id       '_cell_length.c'    
      save_
- 
- 
-     save_     #-------- close of CELL_LENGTH category
- 
  
 #----------------------------------------------------------------------------
  
@@ -1812,7 +1795,7 @@ save_CELL_VECTOR
 ;
     _name.category_id            CELL
     _name.object_id              CELL_VECTOR
- 
+save_ 
  
 save_cell_vector.a
     _definition.id             '_cell_vector.a'
@@ -1891,8 +1874,6 @@ save_cell_vector.c
 ;
      save_
  
-     save_    #------- close of CELL_VECTOR category
- 
 #----------------------------------------------------------------------------
  
 save_CELL_MEASUREMENT
@@ -1908,7 +1889,7 @@ save_CELL_MEASUREMENT
 ;
     _name.category_id            CELL
     _name.object_id              CELL_MEASUREMENT
- 
+save_ 
  
 save_cell_measurement.pressure
     _definition.id             '_cell_measurement.pressure'
@@ -2129,10 +2110,10 @@ save_CELL_MEASUREMENT_REFLN
     _name.category_id            CELL_MEASUREMENT
     _name.object_id              CELL_MEASUREMENT_REFLN
     _category.key_id           '_cell_measurement_refln.key'
-    _category.key_list        ['_cell_measurement_refln.index_h',
-                               '_cell_measurement_refln.index_k',
+    _category.key_list        ['_cell_measurement_refln.index_h' 
+                               '_cell_measurement_refln.index_k' 
                                '_cell_measurement_refln.index_l']
- 
+save_ 
  
 save_cell_measurement_refln.key
     _definition.id             '_cell_measurement_refln.key'
@@ -2216,7 +2197,7 @@ save_cell_measurement_refln.index_h
      loop_
     _alias.definition_id       '_cell_measurement_refln.index_h'
                                '_cell_measurement_refln_index_h'
-    _import.get       [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            cell_measurement_refln
     _name.object_id              index_h
      save_
@@ -2227,7 +2208,7 @@ save_cell_measurement_refln.index_k
      loop_
     _alias.definition_id       '_cell_measurement_refln.index_k'
                                '_cell_measurement_refln_index_k'
-    _import.get       [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get       [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            cell_measurement_refln
     _name.object_id              index_k
      save_
@@ -2238,14 +2219,10 @@ save_cell_measurement_refln.index_l
      loop_
     _alias.definition_id       '_cell_measurement_refln.index_l'
                                '_cell_measurement_refln_index_l'
-    _import.get        [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get        [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            cell_measurement_refln
     _name.object_id              index_l
      save_
- 
-     save_    #------- close of CELL_MEASUREMENT_REFLN category
- 
-     save_    #------- close of CELL_MEASUREMENT category
  
  
 #----------------------------------------------------------------------------
@@ -2264,7 +2241,7 @@ save_CELL_RECIPROCAL
 ;
     _name.category_id            CELL
     _name.object_id              CELL_RECIPROCAL
- 
+save_ 
  
 save_cell_reciprocal.convert_Uij_to_betaij
     _definition.id             '_cell_reciprocal.convert_Uij_to_betaij'
@@ -2293,7 +2270,7 @@ save_cell_reciprocal.convert_Uij_to_betaij
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -2330,7 +2307,7 @@ save_cell_reciprocal.convert_Uiso_to_Uij
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -2363,7 +2340,7 @@ save_cell_reciprocal.metric_tensor
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -2397,7 +2374,7 @@ save_cell_reciprocal.orthogonal_matrix
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -2426,7 +2403,7 @@ save_CELL_RECIPROCAL_ANGLE
 ;
     _name.category_id            CELL_RECIPROCAL
     _name.object_id              CELL_RECIPROCAL_ANGLE
- 
+save_ 
  
 save_cell_reciprocal_angle.alpha
     _definition.id             '_cell_reciprocal_angle.alpha'
@@ -2601,9 +2578,6 @@ save_cell_reciprocal_angle.gamma_su
     save_
  
  
-     save_   #--------- close of CELL_RECIPROCAL_ANGLE category
- 
- 
 #----------------------------------------------------------------------------
  
 save_CELL_RECIPROCAL_LENGTH
@@ -2619,7 +2593,7 @@ save_CELL_RECIPROCAL_LENGTH
 ;
     _name.category_id            CELL_RECIPROCAL
     _name.object_id              CELL_RECIPROCAL_LENGTH
- 
+save_ 
  
 save_cell_reciprocal_length.a
     _definition.id             '_cell_reciprocal_length.a'
@@ -2776,9 +2750,6 @@ save_cell_reciprocal_length.c_su
      save_
  
  
-     save_   #--------- close of CELL_RECIPROCAL_LENGTH category
- 
- 
 #----------------------------------------------------------------------------
  
 save_CELL_RECIPROCAL_VECTOR
@@ -2794,7 +2765,7 @@ save_CELL_RECIPROCAL_VECTOR
 ;
     _name.category_id            CELL_RECIPROCAL
     _name.object_id              CELL_RECIPROCAL_VECTOR
- 
+save_ 
  
 save_cell_reciprocal_vector.a
     _definition.id             '_cell_reciprocal_vector.a'
@@ -2879,13 +2850,6 @@ save_cell_reciprocal_vector.c
 ;
      save_
  
-     save_   #--------- close of CELL_RECIPROCAL_VECTOR category
- 
-     save_   #--------- close of CELL_RECIPROCAL category
- 
-     save_   #--------- close of CELL category
- 
- 
 #============================================================================
  
 save_CHEMICAL
@@ -2902,7 +2866,7 @@ save_CHEMICAL
 ;
     _name.category_id            EXPTL
     _name.object_id              CHEMICAL
- 
+save_ 
  
 save_chemical.absolute_configuration
     _definition.id             '_chemical.absolute_configuration'
@@ -3622,7 +3586,7 @@ save_CHEMICAL_CONN_ATOM
     _name.object_id              CHEMICAL_CONN_ATOM
     _category.key_id           '_chemical_conn_atom.key'
     _category.key_list        ['_chemical_conn_atom.number']
- 
+save_ 
  
 save_chemical_conn_atom.key
     _definition.id             '_chemical_conn_atom.key'
@@ -3800,8 +3764,6 @@ save_chemical_conn_atom.type_symbol
     _type.contents               Code
      save_
  
-     save_    #------ close the CHEMICAL_CONN_ATOM category
- 
 #----------------------------------------------------------------------------
  
 save_CHEMICAL_CONN_BOND
@@ -3824,7 +3786,7 @@ save_CHEMICAL_CONN_BOND
     _name.category_id            CHEMICAL
     _name.object_id              CHEMICAL_CONN_BOND
     _category.key_id           '_chemical_conn_bond.key'
-    _category.key_list        ['_chemical_conn_bond.atom_1',
+    _category.key_list        ['_chemical_conn_bond.atom_1'
                                '_chemical_conn_bond.atom_2']
  
  
@@ -4952,7 +4914,7 @@ save_symmetry_equiv.R
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -4987,7 +4949,7 @@ save_symmetry_equiv.RT
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -5019,7 +4981,7 @@ save_symmetry_equiv.Seitz_matrix
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [4,4]
+    _type.dimension              [4 4]
      loop_
     _method.purpose
     _method.expression
@@ -5964,7 +5926,7 @@ save_diffrn_orient_matrix.UBIJ
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -5985,7 +5947,7 @@ save_diffrn_orient_matrix.UB_11
     _alias.definition_id       '_diffrn_orient_matrix.UB_11'
                                '_diffrn_orient_matrix_UB_11'
                                '_diffrn_orient_matrix.UB[1][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_11
      save_
@@ -5997,7 +5959,7 @@ save_diffrn_orient_matrix.UB_12
     _alias.definition_id       '_diffrn_orient_matrix.UB_12'
                                '_diffrn_orient_matrix_UB_12'
                                '_diffrn_orient_matrix.UB[1][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_12
      save_
@@ -6009,7 +5971,7 @@ save_diffrn_orient_matrix.UB_13
     _alias.definition_id       '_diffrn_orient_matrix.UB_13'
                                '_diffrn_orient_matrix_UB_13'
                                '_diffrn_orient_matrix.UB[1][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_13
      save_
@@ -6021,7 +5983,7 @@ save_diffrn_orient_matrix.UB_21
     _alias.definition_id       '_diffrn_orient_matrix.UB_21'
                                '_diffrn_orient_matrix_UB_21'
                                '_diffrn_orient_matrix.UB[2][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_21
      save_
@@ -6033,7 +5995,7 @@ save_diffrn_orient_matrix.UB_22
     _alias.definition_id       '_diffrn_orient_matrix.UB_22'
                                '_diffrn_orient_matrix_UB_22'
                                '_diffrn_orient_matrix.UB[2][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_22
      save_
@@ -6045,7 +6007,7 @@ save_diffrn_orient_matrix.UB_23
     _alias.definition_id       '_diffrn_orient_matrix.UB_23'
                                '_diffrn_orient_matrix_UB_23'
                                '_diffrn_orient_matrix.UB[2][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_23
      save_
@@ -6057,7 +6019,7 @@ save_diffrn_orient_matrix.UB_31
     _alias.definition_id       '_diffrn_orient_matrix.UB_31'
                                '_diffrn_orient_matrix_UB_31'
                                '_diffrn_orient_matrix.UB[3][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_31
      save_
@@ -6069,7 +6031,7 @@ save_diffrn_orient_matrix.UB_32
     _alias.definition_id       '_diffrn_orient_matrix.UB_32'
                                '_diffrn_orient_matrix_UB_32'
                                '_diffrn_orient_matrix.UB[3][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_32
      save_
@@ -6081,7 +6043,7 @@ save_diffrn_orient_matrix.UB_33
     _alias.definition_id       '_diffrn_orient_matrix.UB_33'
                                '_diffrn_orient_matrix_UB_33'
                                '_diffrn_orient_matrix.UB[3][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_matrix'}]
     _name.category_id            diffrn_orient_matrix
     _name.object_id              UB_33
      save_
@@ -6106,8 +6068,8 @@ save_DIFFRN_ORIENT_REFLN
     _name.category_id            DIFFRN_ORIENT
     _name.object_id              DIFFRN_ORIENT_REFLN
     _category.key_id           '_diffrn_orient_refln.key'
-    _category.key_list        ['_diffrn_orient_refln.index_h',
-                               '_diffrn_orient_refln.index_k',
+    _category.key_list        ['_diffrn_orient_refln.index_h'
+                               '_diffrn_orient_refln.index_k'
                                '_diffrn_orient_refln.index_l']
  
  
@@ -6144,7 +6106,7 @@ save_diffrn_orient_refln.angle_chi
      loop_
     _alias.definition_id       '_diffrn_orient_refln.angle_chi'
                                '_diffrn_orient_refln_angle_chi'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_angle'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              angle_chi
      save_
@@ -6155,7 +6117,7 @@ save_diffrn_orient_refln.angle_kappa
      loop_
     _alias.definition_id       '_diffrn_orient_refln.angle_kappa'
                                '_diffrn_orient_refln_angle_kappa'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_angle'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              angle_kappa
      save_
@@ -6166,7 +6128,7 @@ save_diffrn_orient_refln.angle_omega
      loop_
     _alias.definition_id       '_diffrn_orient_refln.angle_omega'
                                '_diffrn_orient_refln_angle_omega'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_angle'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              angle_omega
      save_
@@ -6177,7 +6139,7 @@ save_diffrn_orient_refln.angle_phi
      loop_
     _alias.definition_id       '_diffrn_orient_refln.angle_phi'
                                '_diffrn_orient_refln_angle_phi'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_angle'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              angle_phi
      save_
@@ -6188,7 +6150,7 @@ save_diffrn_orient_refln.angle_psi
      loop_
     _alias.definition_id       '_diffrn_orient_refln.angle_psi'
                                '_diffrn_orient_refln_angle_psi'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_angle'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              angle_psi
      save_
@@ -6199,7 +6161,7 @@ save_diffrn_orient_refln.angle_theta
      loop_
     _alias.definition_id       '_diffrn_orient_refln.angle_theta'
                                '_diffrn_orient_refln_angle_theta'
-    _import.get         [{"file":'templ_attr.cif',"save":'orient_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'orient_angle'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              angle_theta
      save_
@@ -6238,7 +6200,7 @@ save_diffrn_orient_refln.index_h
      loop_
     _alias.definition_id       '_diffrn_orient_refln.index_h'
                                '_diffrn_orient_refln_index_h'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              index_h
      save_
@@ -6249,7 +6211,7 @@ save_diffrn_orient_refln.index_k
      loop_
     _alias.definition_id       '_diffrn_orient_refln.index_k'
                                '_diffrn_orient_refln_index_k'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              index_k
      save_
@@ -6260,7 +6222,7 @@ save_diffrn_orient_refln.index_l
      loop_
     _alias.definition_id       '_diffrn_orient_refln.index_l'
                                '_diffrn_orient_refln_index_l'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_orient_refln
     _name.object_id              index_l
      save_
@@ -6685,8 +6647,8 @@ save_DIFFRN_REFLN
     _name.category_id            DIFFRN
     _name.object_id              DIFFRN_REFLN
     _category.key_id           '_diffrn_refln.key'
-    _category.key_list        ['_diffrn_refln.index_h',
-                               '_diffrn_refln.index_k',
+    _category.key_list        ['_diffrn_refln.index_h'
+                               '_diffrn_refln.index_k'
                                '_diffrn_refln.index_l']
  
  
@@ -6723,7 +6685,7 @@ save_diffrn_refln.angle_chi
      loop_
     _alias.definition_id       '_diffrn_refln.angle_chi'
                                '_diffrn_refln_angle_chi'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_angle'}]
     _name.category_id            diffrn_refln
     _name.object_id              angle_chi
      save_
@@ -6734,7 +6696,7 @@ save_diffrn_refln.angle_kappa
      loop_
     _alias.definition_id       '_diffrn_refln.angle_kappa'
                                '_diffrn_refln_angle_kappa'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_angle'}]
     _name.category_id            diffrn_refln
     _name.object_id              angle_kappa
      save_
@@ -6745,7 +6707,7 @@ save_diffrn_refln.angle_omega
      loop_
     _alias.definition_id       '_diffrn_refln.angle_omega'
                                '_diffrn_refln_angle_omega'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_angle'}]
     _name.category_id            diffrn_refln
     _name.object_id              angle_omega
      save_
@@ -6756,7 +6718,7 @@ save_diffrn_refln.angle_phi
      loop_
     _alias.definition_id       '_diffrn_refln.angle_phi'
                                '_diffrn_refln_angle_phi'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_angle'}]
     _name.category_id            diffrn_refln
     _name.object_id              angle_phi
      save_
@@ -6767,7 +6729,7 @@ save_diffrn_refln.angle_psi
      loop_
     _alias.definition_id       '_diffrn_refln.angle_psi'
                                '_diffrn_refln_angle_psi'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_angle'}]
     _name.category_id            diffrn_refln
     _name.object_id              angle_psi
      save_
@@ -6778,7 +6740,7 @@ save_diffrn_refln.angle_theta
      loop_
     _alias.definition_id       '_diffrn_refln.angle_theta'
                                '_diffrn_refln_angle_theta'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_angle'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_angle'}]
     _name.category_id            diffrn_refln
     _name.object_id              angle_theta
      save_
@@ -6829,7 +6791,7 @@ save_diffrn_refln.counts_bg_1
      loop_
     _alias.definition_id       '_diffrn_refln.counts_bg_1'
                                '_diffrn_refln_counts_bg_1'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_counts'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_counts'}]
     _name.category_id            diffrn_refln
     _name.object_id              counts_bg_1
      save_
@@ -6840,7 +6802,7 @@ save_diffrn_refln.counts_bg_2
      loop_
     _alias.definition_id       '_diffrn_refln.counts_bg_2'
                                '_diffrn_refln_counts_bg_2'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_counts'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_counts'}]
     _name.category_id            diffrn_refln
     _name.object_id              counts_bg_2
      save_
@@ -6851,7 +6813,7 @@ save_diffrn_refln.counts_net
      loop_
     _alias.definition_id       '_diffrn_refln.counts_net'
                                '_diffrn_refln_counts_net'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_counts'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_counts'}]
     _name.category_id            diffrn_refln
     _name.object_id              counts_net
      save_
@@ -6862,7 +6824,7 @@ save_diffrn_refln.counts_peak
      loop_
     _alias.definition_id       '_diffrn_refln.counts_peak'
                                '_diffrn_refln_counts_peak'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_counts'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_counts'}]
     _name.category_id            diffrn_refln
     _name.object_id              counts_peak
      save_
@@ -6873,7 +6835,7 @@ save_diffrn_refln.counts_total
      loop_
     _alias.definition_id       '_diffrn_refln.counts_total'
                                '_diffrn_refln_counts_total'
-    _import.get         [{"file":'templ_attr.cif',"save":'diffr_counts'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'diffr_counts'}]
     _name.category_id            diffrn_refln
     _name.object_id              counts_total
      save_
@@ -6997,7 +6959,7 @@ save_diffrn_refln.index_h
      loop_
     _alias.definition_id       '_diffrn_refln.index_h'
                                '_diffrn_refln_index_h'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_refln
     _name.object_id              index_h
      save_
@@ -7008,7 +6970,7 @@ save_diffrn_refln.index_k
      loop_
     _alias.definition_id       '_diffrn_refln.index_k'
                                '_diffrn_refln_index_k'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_refln
     _name.object_id              index_k
      save_
@@ -7019,7 +6981,7 @@ save_diffrn_refln.index_l
      loop_
     _alias.definition_id       '_diffrn_refln.index_l'
                                '_diffrn_refln_index_l'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_refln
     _name.object_id              index_l
      save_
@@ -7533,7 +7495,7 @@ save_diffrn_reflns.limit_h_max
      loop_
     _alias.definition_id       '_diffrn_reflns.limit_h_max'
                                '_diffrn_reflns_limit_h_max'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_reflns
     _name.object_id              limit_h_max
      save_
@@ -7544,7 +7506,7 @@ save_diffrn_reflns.limit_h_min
      loop_
     _alias.definition_id       '_diffrn_reflns.limit_h_min'
                                '_diffrn_reflns_limit_h_min'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_reflns
     _name.object_id              limit_h_min
      save_
@@ -7555,7 +7517,7 @@ save_diffrn_reflns.limit_k_max
      loop_
     _alias.definition_id       '_diffrn_reflns.limit_k_max'
                                '_diffrn_reflns_limit_k_max'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_reflns
     _name.object_id              limit_k_max
      save_
@@ -7566,7 +7528,7 @@ save_diffrn_reflns.limit_k_min
      loop_
     _alias.definition_id       '_diffrn_reflns.limit_k_min'
                                '_diffrn_reflns_limit_k_min'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_reflns
     _name.object_id              limit_k_min
      save_
@@ -7577,7 +7539,7 @@ save_diffrn_reflns.limit_l_max
      loop_
     _alias.definition_id       '_diffrn_reflns.limit_l_max'
                                '_diffrn_reflns_limit_l_max'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_reflns
     _name.object_id              limit_l_max
      save_
@@ -7588,7 +7550,7 @@ save_diffrn_reflns.limit_l_min
      loop_
     _alias.definition_id       '_diffrn_reflns.limit_l_min'
                                '_diffrn_reflns_limit_l_min'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_reflns
     _name.object_id              limit_l_min
      save_
@@ -7788,7 +7750,7 @@ save_diffrn_reflns_transf_matrix.TIJ
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -7809,7 +7771,7 @@ save_diffrn_reflns_transf_matrix.11
     _alias.definition_id       '_diffrn_reflns_transf_matrix.11'
                                '_diffrn_reflns_transf_matrix_11'
                                '_diffrn_reflns.transf_matrix[1][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '11'
      save_
@@ -7821,7 +7783,7 @@ save_diffrn_reflns_transf_matrix.12
     _alias.definition_id       '_diffrn_reflns_transf_matrix.12'
                                '_diffrn_reflns_transf_matrix_12'
                                '_diffrn_reflns.transf_matrix[1][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '12'
      save_
@@ -7833,7 +7795,7 @@ save_diffrn_reflns_transf_matrix.13
     _alias.definition_id       '_diffrn_reflns_transf_matrix.13'
                                '_diffrn_reflns_transf_matrix_13'
                                '_diffrn_reflns.transf_matrix[1][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '13'
      save_
@@ -7845,7 +7807,7 @@ save_diffrn_reflns_transf_matrix.21
     _alias.definition_id       '_diffrn_reflns_transf_matrix.21'
                                '_diffrn_reflns_transf_matrix_21'
                                '_diffrn_reflns.transf_matrix[2][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '21'
      save_
@@ -7857,7 +7819,7 @@ save_diffrn_reflns_transf_matrix.22
     _alias.definition_id       '_diffrn_reflns_transf_matrix.22'
                                '_diffrn_reflns_transf_matrix_22'
                                '_diffrn_reflns.transf_matrix[2][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '22'
      save_
@@ -7869,7 +7831,7 @@ save_diffrn_reflns_transf_matrix.23
     _alias.definition_id       '_diffrn_reflns_transf_matrix.23'
                                '_diffrn_reflns_transf_matrix_23'
                                '_diffrn_reflns.transf_matrix[2][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '23'
      save_
@@ -7881,7 +7843,7 @@ save_diffrn_reflns_transf_matrix.31
     _alias.definition_id       '_diffrn_reflns_transf_matrix.31'
                                '_diffrn_reflns_transf_matrix_31'
                                '_diffrn_reflns.transf_matrix[3][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '31'
      save_
@@ -7893,7 +7855,7 @@ save_diffrn_reflns_transf_matrix.32
     _alias.definition_id       '_diffrn_reflns_transf_matrix.32'
                                '_diffrn_reflns_transf_matrix_32'
                                '_diffrn_reflns.transf_matrix[3][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '32'
      save_
@@ -7905,7 +7867,7 @@ save_diffrn_reflns_transf_matrix.33
     _alias.definition_id       '_diffrn_reflns_transf_matrix.33'
                                '_diffrn_reflns_transf_matrix_33'
                                '_diffrn_reflns.transf_matrix[3][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'transf_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'transf_matrix'}]
     _name.category_id            diffrn_reflns_transf_matrix
     _name.object_id              '33'
      save_
@@ -8386,7 +8348,7 @@ save_diffrn_source.target
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Code
-    _import.get         [{"file":'templ_enum.cif',"save":'element_symbol'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'element_symbol'}]
     _enumeration.default         Cu
      save_
  
@@ -8597,8 +8559,8 @@ save_DIFFRN_STANDARD_REFLN
     _name.category_id            DIFFRN_STANDARD
     _name.object_id              DIFFRN_STANDARD_REFLN
     _category.key_id           '_diffrn_standard_refln.key'
-    _category.key_list        ['_diffrn_standard_refln.index_h',
-                               '_diffrn_standard_refln.index_k',
+    _category.key_list        ['_diffrn_standard_refln.index_h'
+                               '_diffrn_standard_refln.index_k'
                                '_diffrn_standard_refln.index_l']
  
  
@@ -8688,7 +8650,7 @@ save_diffrn_standard_refln.index_h
      loop_
     _alias.definition_id       '_diffrn_standard_refln.index_h'
                                '_diffrn_standard_refln_index_h'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_standard_refln
     _name.object_id              index_h
      save_
@@ -8699,7 +8661,7 @@ save_diffrn_standard_refln.index_k
      loop_
     _alias.definition_id       '_diffrn_standard_refln.index_k'
                                '_diffrn_standard_refln_index_k'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_standard_refln
     _name.object_id              index_k
      save_
@@ -8710,7 +8672,7 @@ save_diffrn_standard_refln.index_l
      loop_
     _alias.definition_id       '_diffrn_standard_refln.index_l'
                                '_diffrn_standard_refln_index_l'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            diffrn_standard_refln
     _name.object_id              index_l
      save_
@@ -8737,8 +8699,8 @@ save_REFLN
     _name.category_id            DIFFRACTION
     _name.object_id              REFLN
     _category.key_id           '_refln.key'
-    _category.key_list        ['_refln.index_h',
-                               '_refln.index_k',
+    _category.key_list        ['_refln.index_h'
+                               '_refln.index_k'
                                '_refln.index_l']
  
  
@@ -9384,7 +9346,7 @@ save_refln.index_h
      loop_
     _alias.definition_id       '_refln.index_h'
                                '_refln_index_h'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            refln
     _name.object_id              index_h
      save_
@@ -9395,7 +9357,7 @@ save_refln.index_k
      loop_
     _alias.definition_id       '_refln.index_k'
                                '_refln_index_k'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            refln
     _name.object_id              index_k
      save_
@@ -9406,7 +9368,7 @@ save_refln.index_l
      loop_
     _alias.definition_id       '_refln.index_l'
                                '_refln_index_l'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            refln
     _name.object_id              index_l
      save_
@@ -10014,7 +9976,7 @@ save_reflns.limit_h_max
      loop_
     _alias.definition_id       '_reflns.limit_h_max'
                                '_reflns_limit_h_max'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            reflns
     _name.object_id              limit_h_max
      save_
@@ -10025,7 +9987,7 @@ save_reflns.limit_h_min
      loop_
     _alias.definition_id       '_reflns.limit_h_min'
                                '_reflns_limit_h_min'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            reflns
     _name.object_id              limit_h_min
      save_
@@ -10036,7 +9998,7 @@ save_reflns.limit_k_max
      loop_
     _alias.definition_id       '_reflns.limit_k_max'
                                '_reflns_limit_k_max'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            reflns
     _name.object_id              limit_k_max
      save_
@@ -10047,7 +10009,7 @@ save_reflns.limit_k_min
      loop_
     _alias.definition_id       '_reflns.limit_k_min'
                                '_reflns_limit_k_min'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            reflns
     _name.object_id              limit_k_min
      save_
@@ -10058,7 +10020,7 @@ save_reflns.limit_l_max
      loop_
     _alias.definition_id       '_reflns.limit_l_max'
                                '_reflns_limit_l_max'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            reflns
     _name.object_id              limit_l_max
      save_
@@ -10069,7 +10031,7 @@ save_reflns.limit_l_min
      loop_
     _alias.definition_id       '_reflns.limit_l_min'
                                '_reflns_limit_l_min'
-    _import.get         [{"file":'templ_attr.cif',"save":'Miller_index'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Miller_index'}]
     _name.category_id            reflns
     _name.object_id              limit_l_min
      save_
@@ -10667,7 +10629,7 @@ save_REFLNS_SHELL
     _name.category_id            REFLNS
     _name.object_id              REFLNS_SHELL
     _category.key_id           '_reflns_shell.key'
-    _category.key_list        ['_reflns_shell.d_res_low',
+    _category.key_list        ['_reflns_shell.d_res_low'
                                '_reflns_shell.d_res_high']
  
  
@@ -11234,7 +11196,7 @@ save_atom_site.tensor_beta
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -11501,7 +11463,7 @@ save_atom_site.Cartn_x
      loop_
     _alias.definition_id       '_atom_site.Cartn_x'
                                '_atom_site_Cartn_x'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_coord'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_coord'}]
     _name.category_id            atom_site
     _name.object_id              Cartn_x
      save_
@@ -11512,7 +11474,7 @@ save_atom_site.Cartn_y
      loop_
     _alias.definition_id       '_atom_site.Cartn_y'
                                '_atom_site_Cartn_y'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_coord'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_coord'}]
     _name.category_id            atom_site
     _name.object_id              Cartn_y
      save_
@@ -11523,7 +11485,7 @@ save_atom_site.Cartn_z
      loop_
     _alias.definition_id       '_atom_site.Cartn_z'
                                '_atom_site_Cartn_z'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_coord'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_coord'}]
     _name.category_id            atom_site
     _name.object_id              Cartn_z
      save_
@@ -11535,7 +11497,7 @@ save_atom_site.Cartn_x_su
     _alias.definition_id       '_atom_site.Cartn_x_su'
                                '_atom_site_Cartn_x_su'
                                '_atom_site.Cartn_x_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_coord_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_coord_su'}]
     _name.category_id            atom_site
     _name.object_id              Cartn_x_su
     _name.linked_item_id       '_atom_site.Cartn_x'
@@ -11548,7 +11510,7 @@ save_atom_site.Cartn_y_su
     _alias.definition_id       '_atom_site.Cartn_y_su'
                                '_atom_site_Cartn_y_su'
                                '_atom_site.Cartn_y_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_coord_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_coord_su'}]
     _name.category_id            atom_site
     _name.object_id              Cartn_y_su
     _name.linked_item_id       '_atom_site.Cartn_y'
@@ -11561,7 +11523,7 @@ save_atom_site.Cartn_z_su
     _alias.definition_id       '_atom_site.Cartn_z_su'
                                '_atom_site_Cartn_z_su'
                                '_atom_site.Cartn_z_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_coord_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_coord_su'}]
     _name.category_id            atom_site
     _name.object_id              Cartn_z_su
     _name.linked_item_id       '_atom_site.Cartn_z'
@@ -11733,7 +11695,7 @@ save_atom_site.fract_x
      loop_
     _alias.definition_id       '_atom_site.fract_x'
                                '_atom_site_fract_x'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_coord'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_coord'}]
     _name.category_id            atom_site
     _name.object_id              fract_x
      save_
@@ -11744,7 +11706,7 @@ save_atom_site.fract_y
      loop_
     _alias.definition_id       '_atom_site.fract_y'
                                '_atom_site_fract_y'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_coord'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_coord'}]
     _name.category_id            atom_site
     _name.object_id              fract_y
      save_
@@ -11755,7 +11717,7 @@ save_atom_site.fract_z
      loop_
     _alias.definition_id       '_atom_site.fract_z'
                                '_atom_site_fract_z'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_coord'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_coord'}]
     _name.category_id            atom_site
     _name.object_id              fract_z
      save_
@@ -11767,7 +11729,7 @@ save_atom_site.fract_x_su
     _alias.definition_id       '_atom_site.fract_x_su'
                                '_atom_site_fract_x_su'
                                '_atom_site.fract_x_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_coord_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_coord_su'}]
     _name.category_id            atom_site
     _name.object_id              fract_x_su
     _name.linked_item_id       '_atom_site.fract_x'
@@ -11780,7 +11742,7 @@ save_atom_site.fract_y_su
     _alias.definition_id       '_atom_site.fract_y_su'
                                '_atom_site_fract_y_su'
                                '_atom_site.fract_y_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_coord_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_coord_su'}]
     _name.category_id            atom_site
     _name.object_id              fract_y_su
     _name.linked_item_id       '_atom_site.fract_y'
@@ -11793,7 +11755,7 @@ save_atom_site.fract_z_su
     _alias.definition_id       '_atom_site.fract_z_su'
                                '_atom_site_fract_z_su'
                                '_atom_site.fract_z_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_coord_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_coord_su'}]
     _name.category_id            atom_site
     _name.object_id              fract_z_su
     _name.linked_item_id       '_atom_site.fract_z'
@@ -11806,7 +11768,7 @@ save_atom_site.label
     _alias.definition_id       '_atom_site.label'
                                '_atom_site_label'
                                '_atom_site.id'
-    _import.get         [{"file":'templ_attr.cif',"save":'atom_site_label'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'atom_site_label'}]
     _name.category_id            atom_site
     _name.object_id              label
      save_
@@ -11817,7 +11779,7 @@ save_atom_site.label_component_0
      loop_
     _alias.definition_id       '_atom_site.label_component_0'
                                '_atom_site_label_component_0'
-    _import.get         [{"file":'templ_attr.cif',"save":'label_component'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'label_component'}]
     _name.category_id            atom_site
     _name.object_id              label_component_0
      save_
@@ -11828,7 +11790,7 @@ save_atom_site.label_component_1
      loop_
     _alias.definition_id       '_atom_site.label_component_1'
                                '_atom_site_label_component_1'
-    _import.get         [{"file":'templ_attr.cif',"save":'label_comp'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'label_comp'}]
     _name.category_id            atom_site
     _name.object_id              label_component_1
      save_
@@ -11839,7 +11801,7 @@ save_atom_site.label_component_2
      loop_
     _alias.definition_id       '_atom_site.label_component_2'
                                '_atom_site_label_component_2'
-    _import.get         [{"file":'templ_attr.cif',"save":'label_comp'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'label_comp'}]
     _name.category_id            atom_site
     _name.object_id              label_component_2
      save_
@@ -11850,7 +11812,7 @@ save_atom_site.label_component_3
      loop_
     _alias.definition_id       '_atom_site.label_component_3'
                                '_atom_site_label_component_3'
-    _import.get         [{"file":'templ_attr.cif',"save":'label_comp'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'label_comp'}]
     _name.category_id            atom_site
     _name.object_id              label_component_3
      save_
@@ -11861,7 +11823,7 @@ save_atom_site.label_component_4
      loop_
     _alias.definition_id       '_atom_site.label_component_4'
                                '_atom_site_label_component_4'
-    _import.get         [{"file":'templ_attr.cif',"save":'label_comp'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'label_comp'}]
     _name.category_id            atom_site
     _name.object_id              label_component_4
      save_
@@ -11872,7 +11834,7 @@ save_atom_site.label_component_5
      loop_
     _alias.definition_id       '_atom_site.label_component_5'
                                '_atom_site_label_component_5'
-    _import.get         [{"file":'templ_attr.cif',"save":'label_comp'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'label_comp'}]
     _name.category_id            atom_site
     _name.object_id              label_component_5
      save_
@@ -11883,7 +11845,7 @@ save_atom_site.label_component_6
      loop_
     _alias.definition_id       '_atom_site.label_component_6'
                                '_atom_site_label_component_6'
-    _import.get         [{"file":'templ_attr.cif',"save":'label_comp'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'label_comp'}]
     _name.category_id            atom_site
     _name.object_id              label_component_6
      save_
@@ -12457,7 +12419,7 @@ save_atom_site_aniso.matrix_B
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -12479,7 +12441,7 @@ save_atom_site_aniso.B_11
                                '_atom_site_aniso_B_11'
                                '_atom_site.aniso_B[1][1]'
                                '_atom_site_anisotrop.B[1][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_11
      save_
@@ -12492,7 +12454,7 @@ save_atom_site_aniso.B_12
                                '_atom_site_aniso_B_12'
                                '_atom_site.aniso_B[1][2]'
                                '_atom_site_anisotrop.B[1][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_12
      save_
@@ -12505,7 +12467,7 @@ save_atom_site_aniso.B_13
                                '_atom_site_aniso_B_13'
                                '_atom_site.aniso_B[1][3]'
                                '_atom_site_anisotrop.B[1][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_13
      save_
@@ -12518,7 +12480,7 @@ save_atom_site_aniso.B_22
                                '_atom_site_aniso_B_22'
                                '_atom_site.aniso_B[2][2]'
                                '_atom_site_anisotrop.B[2][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_22
      save_
@@ -12531,7 +12493,7 @@ save_atom_site_aniso.B_23
                                '_atom_site_aniso_B_23'
                                '_atom_site.aniso_B[2][3]'
                                '_atom_site_anisotrop.B[2][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_23
      save_
@@ -12544,7 +12506,7 @@ save_atom_site_aniso.B_33
                                '_atom_site_aniso_B_33'
                                '_atom_site.aniso_B[3][3]'
                                '_atom_site_anisotrop.B[3][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_33
      save_
@@ -12557,7 +12519,7 @@ save_atom_site_aniso.B_11_su
                                '_atom_site_aniso_B_11_su'
                                '_atom_site.aniso_B[1][1]_esd'
                                '_atom_site_anisotrop.B[1][1]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_11_su
     _name.linked_item_id       '_atom_site_aniso.B_11'
@@ -12571,7 +12533,7 @@ save_atom_site_aniso.B_12_su
                                '_atom_site_aniso_B_12_su'
                                '_atom_site.aniso_B[1][2]_esd'
                                '_atom_site_anisotrop.B[1][2]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_12_su
     _name.linked_item_id       '_atom_site_aniso.B_12'
@@ -12585,7 +12547,7 @@ save_atom_site_aniso.B_13_su
                                '_atom_site_aniso_B_13_su'
                                '_atom_site.aniso_B[1][3]_esd'
                                '_atom_site_anisotrop.B[1][3]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_13_su
     _name.linked_item_id       '_atom_site_aniso.B_13'
@@ -12599,7 +12561,7 @@ save_atom_site_aniso.B_22_su
                                '_atom_site_aniso_B_22_su'
                                '_atom_site.aniso_B[2][2]_esd'
                                '_atom_site_anisotrop.B[2][2]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_22_su
     _name.linked_item_id       '_atom_site_aniso.B_22'
@@ -12613,7 +12575,7 @@ save_atom_site_aniso.B_23_su
                                '_atom_site_aniso_B_23_su'
                                '_atom_site.aniso_B[2][3]_esd'
                                '_atom_site_anisotrop.B[2][3]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_23_su
     _name.linked_item_id       '_atom_site_aniso.B_23'
@@ -12627,7 +12589,7 @@ save_atom_site_aniso.B_33_su
                                '_atom_site_aniso_B_33_su'
                                '_atom_site.aniso_B[3][3]_esd'
                                '_atom_site_anisotrop.B[3][3]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_BIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_BIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              B_33_su
     _name.linked_item_id       '_atom_site_aniso.B_33'
@@ -12648,7 +12610,7 @@ save_atom_site_aniso.matrix_U
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -12670,7 +12632,7 @@ save_atom_site_aniso.U_11
                                '_atom_site_aniso_U_11'
                                '_atom_site.aniso_U[1][1]'
                                '_atom_site_anisotrop.U[1][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_11
      save_
@@ -12683,7 +12645,7 @@ save_atom_site_aniso.U_12
                                '_atom_site_aniso_U_12'
                                '_atom_site.aniso_U[1][2]'
                                '_atom_site_anisotrop.U[1][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_12
      save_
@@ -12696,7 +12658,7 @@ save_atom_site_aniso.U_13
                                '_atom_site_aniso_U_13'
                                '_atom_site.aniso_U[1][3]'
                                '_atom_site_anisotrop.U[1][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_13
      save_
@@ -12709,7 +12671,7 @@ save_atom_site_aniso.U_22
                                '_atom_site_aniso_U_22'
                                '_atom_site.aniso_U[2][2]'
                                '_atom_site_anisotrop.U[2][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_22
      save_
@@ -12722,7 +12684,7 @@ save_atom_site_aniso.U_23
                                '_atom_site_aniso_U_23'
                                '_atom_site.aniso_U[2][3]'
                                '_atom_site_anisotrop.U[2][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_23
      save_
@@ -12735,7 +12697,7 @@ save_atom_site_aniso.U_33
                                '_atom_site_aniso_U_33'
                                '_atom_site.aniso_U[3][3]'
                                '_atom_site_anisotrop.U[3][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_33
      save_
@@ -12748,7 +12710,7 @@ save_atom_site_aniso.U_11_su
                                '_atom_site_aniso_U_11_su'
                                '_atom_site.aniso_U[1][1]_esd'
                                '_atom_site_anisotrop.U[1][1]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_11_su
     _name.linked_item_id       '_atom_site_aniso.U_11'
@@ -12762,7 +12724,7 @@ save_atom_site_aniso.U_12_su
                                '_atom_site_aniso_U_12_su'
                                '_atom_site.aniso_U[1][2]_esd'
                                '_atom_site_anisotrop.U[1][2]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_12_su
     _name.linked_item_id       '_atom_site_aniso.U_12'
@@ -12776,7 +12738,7 @@ save_atom_site_aniso.U_13_su
                                '_atom_site_aniso_U_13_su'
                                '_atom_site.aniso_U[1][3]_esd'
                                '_atom_site_anisotrop.U[1][3]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_13_su
     _name.linked_item_id       '_atom_site_aniso.U_13'
@@ -12790,7 +12752,7 @@ save_atom_site_aniso.U_22_su
                                '_atom_site_aniso_U_22_su'
                                '_atom_site.aniso_U[2][2]_esd'
                                '_atom_site_anisotrop.U[2][2]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_22_su
     _name.linked_item_id       '_atom_site_aniso.U_22'
@@ -12804,7 +12766,7 @@ save_atom_site_aniso.U_23_su
                                '_atom_site_aniso_U_23_su'
                                '_atom_site.aniso_U[2][3]_esd'
                                '_atom_site_anisotrop.U[2][3]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_23_su
     _name.linked_item_id       '_atom_site_aniso.U_23'
@@ -12818,7 +12780,7 @@ save_atom_site_aniso.U_33_su
                                '_atom_site_aniso_U_33_su'
                                '_atom_site.aniso_U[3][3]_esd'
                                '_atom_site_anisotrop.U[3][3]_esd'
-    _import.get         [{"file":'templ_attr.cif',"save":'aniso_UIJ_su'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'aniso_UIJ_su'}]
     _name.category_id            atom_site_aniso
     _name.object_id              U_33_su
     _name.linked_item_id       '_atom_site_aniso.U_33'
@@ -13076,7 +13038,7 @@ save_atom_sites_Cartn_transform.matrix
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -13097,7 +13059,7 @@ save_atom_sites_Cartn_transform.mat_11
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_11'
                                '_atom_sites_Cartn_tran_matrix_11'
                                '_atom_sites.Cartn_transf_matrix[1][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_11
     loop_
@@ -13120,7 +13082,7 @@ save_atom_sites_Cartn_transform.mat_12
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_12'
                                '_atom_sites_Cartn_tran_matrix_12'
                                '_atom_sites.Cartn_transf_matrix[1][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_12
     loop_
@@ -13139,7 +13101,7 @@ save_atom_sites_Cartn_transform.mat_13
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_13'
                                '_atom_sites_Cartn_tran_matrix_13'
                                '_atom_sites.Cartn_transf_matrix[1][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_13
     loop_
@@ -13158,7 +13120,7 @@ save_atom_sites_Cartn_transform.mat_21
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_21'
                                '_atom_sites_Cartn_tran_matrix_21'
                                '_atom_sites.Cartn_transf_matrix[2][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_21
     loop_
@@ -13181,7 +13143,7 @@ save_atom_sites_Cartn_transform.mat_22
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_22'
                                '_atom_sites_Cartn_tran_matrix_22'
                                '_atom_sites.Cartn_transf_matrix[2][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_22
     loop_
@@ -13202,7 +13164,7 @@ save_atom_sites_Cartn_transform.mat_23
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_23'
                                '_atom_sites_Cartn_tran_matrix_23'
                                '_atom_sites.Cartn_transf_matrix[2][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_23
     loop_
@@ -13221,7 +13183,7 @@ save_atom_sites_Cartn_transform.mat_31
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_31'
                                '_atom_sites_Cartn_tran_matrix_31'
                                '_atom_sites.Cartn_transf_matrix[3][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_31
     loop_
@@ -13242,7 +13204,7 @@ save_atom_sites_Cartn_transform.mat_32
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_32'
                                '_atom_sites_Cartn_tran_matrix_32'
                                '_atom_sites.Cartn_transf_matrix[3][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_32
     loop_
@@ -13263,7 +13225,7 @@ save_atom_sites_Cartn_transform.mat_33
     _alias.definition_id       '_atom_sites_Cartn_transform.mat_33'
                                '_atom_sites_Cartn_tran_matrix_33'
                                '_atom_sites.Cartn_transf_matrix[3][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              mat_33
     loop_
@@ -13313,7 +13275,7 @@ save_atom_sites_Cartn_transform.vec_1
     _alias.definition_id       '_atom_sites_Cartn_transform.vec_1'
                                '_atom_sites_Cartn_tran_vector_1'
                                '_atom_sites.Cartn_transf_vector[1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              vec_1
      save_
@@ -13325,7 +13287,7 @@ save_atom_sites_Cartn_transform.vec_2
     _alias.definition_id       '_atom_sites_Cartn_transform.vec_2'
                                '_atom_sites_Cartn_tran_vector_2'
                                '_atom_sites.Cartn_transf_vector[2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              vec_2
      save_
@@ -13337,7 +13299,7 @@ save_atom_sites_Cartn_transform.vec_3
     _alias.definition_id       '_atom_sites_Cartn_transform.vec_3'
                                '_atom_sites_Cartn_tran_vector_3'
                                '_atom_sites.Cartn_transf_vector[3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cartn_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cartn_matrix'}]
     _name.category_id            atom_sites_Cartn_transform
     _name.object_id              vec_3
      save_
@@ -13414,7 +13376,7 @@ save_atom_sites_fract_transform.matrix
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -13435,7 +13397,7 @@ save_atom_sites_fract_transform.mat_11
     _alias.definition_id       '_atom_sites_fract_transform.mat_11'
                                '_atom_sites_fract_tran_matrix_11'
                                '_atom_sites.fract_transf_matrix[1][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_11
      save_
@@ -13447,7 +13409,7 @@ save_atom_sites_fract_transform.mat_12
     _alias.definition_id       '_atom_sites_fract_transform.mat_12'
                                '_atom_sites_fract_tran_matrix_12'
                                '_atom_sites.fract_transf_matrix[1][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_12
      save_
@@ -13459,7 +13421,7 @@ save_atom_sites_fract_transform.mat_13
     _alias.definition_id       '_atom_sites_fract_transform.mat_13'
                                '_atom_sites_fract_tran_matrix_13'
                                '_atom_sites.fract_transf_matrix[1][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_13
      save_
@@ -13471,7 +13433,7 @@ save_atom_sites_fract_transform.mat_21
     _alias.definition_id       '_atom_sites_fract_transform.mat_21'
                                '_atom_sites_fract_tran_matrix_21'
                                '_atom_sites.fract_transf_matrix[2][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_21
      save_
@@ -13483,7 +13445,7 @@ save_atom_sites_fract_transform.mat_22
     _alias.definition_id       '_atom_sites_fract_transform.mat_22'
                                '_atom_sites_fract_tran_matrix_22'
                                '_atom_sites.fract_transf_matrix[2][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_22
      save_
@@ -13495,7 +13457,7 @@ save_atom_sites_fract_transform.mat_23
     _alias.definition_id       '_atom_sites_fract_transform.mat_23'
                                '_atom_sites_fract_tran_matrix_23'
                                '_atom_sites.fract_transf_matrix[2][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_23
      save_
@@ -13507,7 +13469,7 @@ save_atom_sites_fract_transform.mat_31
     _alias.definition_id       '_atom_sites_fract_transform.mat_31'
                                '_atom_sites_fract_tran_matrix_31'
                                '_atom_sites.fract_transf_matrix[3][1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_31
      save_
@@ -13519,7 +13481,7 @@ save_atom_sites_fract_transform.mat_32
     _alias.definition_id       '_atom_sites_fract_transform.mat_32'
                                '_atom_sites_fract_tran_matrix_32'
                                '_atom_sites.fract_transf_matrix[3][2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_32
      save_
@@ -13531,7 +13493,7 @@ save_atom_sites_fract_transform.mat_33
     _alias.definition_id       '_atom_sites_fract_transform.mat_33'
                                '_atom_sites_fract_tran_matrix_33'
                                '_atom_sites.fract_transf_matrix[3][3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              mat_33
      save_
@@ -13574,7 +13536,7 @@ save_atom_sites_fract_transform.vec_1
     _alias.definition_id       '_atom_sites_fract_transform.vec_1'
                                '_atom_sites_fract_tran_vector_1'
                                '_atom_sites.fract_transf_vector[1]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              vec_1
      save_
@@ -13586,7 +13548,7 @@ save_atom_sites_fract_transform.vec_2
     _alias.definition_id       '_atom_sites_fract_transform.vec_2'
                                '_atom_sites_fract_tran_vector_2'
                                '_atom_sites.fract_transf_vector[2]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              vec_2
      save_
@@ -13598,7 +13560,7 @@ save_atom_sites_fract_transform.vec_3
     _alias.definition_id       '_atom_sites_fract_transform.vec_3'
                                '_atom_sites_fract_tran_vector_3'
                                '_atom_sites.fract_transf_vector[3]'
-    _import.get         [{"file":'templ_attr.cif',"save":'fract_matrix'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'fract_matrix'}]
     _name.category_id            atom_sites_fract_transform
     _name.object_id              vec_3
      save_
@@ -13709,7 +13671,7 @@ save_atom_type.atomic_mass
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Real
-    _import.get         [{"file":'templ_enum.cif',"save":'atomic_mass'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'atomic_mass'}]
     _enumeration.def_index_id  '_atom_type.symbol'
     _units.code                  dalton
      save_
@@ -13730,7 +13692,7 @@ save_atom_type.atomic_number
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Index
-    _import.get         [{"file":'templ_enum.cif',"save":'atomic_number'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'atomic_number'}]
     _enumeration.def_index_id  '_atom_type.symbol'
      save_
  
@@ -13776,8 +13738,8 @@ save_atom_type.display_colour
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Code
-    _import.get         [{"file":'templ_enum.cif',"save":'colour_rgb'},
-                         {"file":'templ_enum.cif',"save":'colour_hue'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'colour_rgb'}
+                         {"file":'templ_enum.cif' "save":'colour_hue'}]
     _enumeration.def_index_id  '_atom_type.symbol'
      save_
  
@@ -13797,7 +13759,7 @@ save_atom_type.electron_count
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Index
-    _import.get         [{"file":'templ_enum.cif',"save":'electron_count'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'electron_count'}]
     _enumeration.def_index_id  '_atom_type.symbol'
     _enumeration.range           1:
      save_
@@ -13820,8 +13782,8 @@ save_atom_type.element_symbol
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Code
-    _import.get         [{"file":'templ_enum.cif',"save":'element_symbol'},
-                         {"file":'templ_enum.cif',"save":'ion_to_element'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'element_symbol'}
+                         {"file":'templ_enum.cif' "save":'ion_to_element'}]
     _enumeration.def_index_id  '_atom_type.symbol'
      save_
  
@@ -13901,7 +13863,7 @@ save_atom_type.radius_bond
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Real
-    _import.get         [{"file":'templ_enum.cif',"save":'radius_bond'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'radius_bond'}]
     _enumeration.def_index_id  '_atom_type.symbol'
     _enumeration.range           0.0:5.0
     _units.code                  angstroms
@@ -14051,8 +14013,8 @@ save_atom_type_scat.Cromer_Mann_a1
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_a1'
                                '_atom_type_scat_Cromer_Mann_a1'
                                '_atom_type.scat_Cromer_Mann_a1'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_a1'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_a1'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_a1
      save_
@@ -14064,8 +14026,8 @@ save_atom_type_scat.Cromer_Mann_a2
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_a2'
                                '_atom_type_scat_Cromer_Mann_a2'
                                '_atom_type.scat_Cromer_Mann_a2'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_a2'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_a2'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_a2
      save_
@@ -14077,8 +14039,8 @@ save_atom_type_scat.Cromer_Mann_a3
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_a3'
                                '_atom_type_scat_Cromer_Mann_a3'
                                '_atom_type.scat_Cromer_Mann_a3'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_a3'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_a3'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_a3
      save_
@@ -14090,8 +14052,8 @@ save_atom_type_scat.Cromer_Mann_a4
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_a4'
                                '_atom_type_scat_Cromer_Mann_a4'
                                '_atom_type.scat_Cromer_Mann_a4'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_a4'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_a4'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_a4
      save_
@@ -14103,8 +14065,8 @@ save_atom_type_scat.Cromer_Mann_b1
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_b1'
                                '_atom_type_scat_Cromer_Mann_b1'
                                '_atom_type.scat_Cromer_Mann_b1'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_b1'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_b1'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_b1
      save_
@@ -14116,8 +14078,8 @@ save_atom_type_scat.Cromer_Mann_b2
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_b2'
                                '_atom_type_scat_Cromer_Mann_b2'
                                '_atom_type.scat_Cromer_Mann_b2'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_b2'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_b2'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_b2
      save_
@@ -14129,8 +14091,8 @@ save_atom_type_scat.Cromer_Mann_b3
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_b3'
                                '_atom_type_scat_Cromer_Mann_b3'
                                '_atom_type.scat_Cromer_Mann_b3'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_b3'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_b3'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_b3
      save_
@@ -14142,8 +14104,8 @@ save_atom_type_scat.Cromer_Mann_b4
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_b4'
                                '_atom_type_scat_Cromer_Mann_b4'
                                '_atom_type.scat_Cromer_Mann_b4'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_b4'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_b4'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_b4
      save_
@@ -14155,8 +14117,8 @@ save_atom_type_scat.Cromer_Mann_c
     _alias.definition_id       '_atom_type_scat.Cromer_Mann_c'
                                '_atom_type_scat_Cromer_Mann_c'
                                '_atom_type.scat_Cromer_Mann_c'
-    _import.get         [{"file":'templ_attr.cif',"save":'Cromer_Mann_coeff'},
-                         {"file":'templ_enum.cif',"save":'Cromer_Mann_c'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'Cromer_Mann_coeff'}
+                         {"file":'templ_enum.cif' "save":'Cromer_Mann_c'}]
     _name.category_id            atom_type_scat
     _name.object_id              Cromer_Mann_c
      save_
@@ -14247,7 +14209,7 @@ save_atom_type_scat.dispersion_imag_cu
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Real
-    _import.get         [{"file":'templ_enum.cif',"save":'dispersion_imag_cu'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'dispersion_imag_cu'}]
     _enumeration.def_index_id  '_atom_type.symbol'
     _units.code                  none
      save_
@@ -14269,7 +14231,7 @@ save_atom_type_scat.dispersion_imag_mo
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Real
-    _import.get         [{"file":'templ_enum.cif',"save":'dispersion_imag_mo'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'dispersion_imag_mo'}]
     _enumeration.def_index_id  '_atom_type.symbol'
     _units.code                  none
      save_
@@ -14326,7 +14288,7 @@ save_atom_type_scat.dispersion_real_cu
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Real
-    _import.get         [{"file":'templ_enum.cif',"save":'dispersion_real_cu'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'dispersion_real_cu'}]
     _enumeration.def_index_id  '_atom_type.symbol'
     _units.code                  none
      save_
@@ -14348,7 +14310,7 @@ save_atom_type_scat.dispersion_real_mo
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Real
-    _import.get         [{"file":'templ_enum.cif',"save":'dispersion_real_mo'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'dispersion_real_mo'}]
     _enumeration.def_index_id  '_atom_type.symbol'
     _units.code                  none
      save_
@@ -14414,8 +14376,8 @@ save_atom_type_scat.hi_ang_Fox_c0
     _definition.id             '_atom_type_scat.hi_ang_Fox_c0'
      loop_
     _alias.definition_id       '_atom_type_scat.hi_ang_Fox_c0'
-    _import.get         [{"file":'templ_attr.cif',"save":'hi_ang_Fox_coeffs'},
-                         {"file":'templ_enum.cif',"save":'hi_ang_Fox_c0'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'hi_ang_Fox_coeffs'}
+                         {"file":'templ_enum.cif' "save":'hi_ang_Fox_c0'}]
     _name.category_id            atom_type_scat
     _name.object_id              hi_ang_Fox_c0
      save_
@@ -14425,8 +14387,8 @@ save_atom_type_scat.hi_ang_Fox_c1
     _definition.id             '_atom_type_scat.hi_ang_Fox_c1'
      loop_
     _alias.definition_id       '_atom_type_scat.hi_ang_Fox_c1'
-    _import.get         [{"file":'templ_attr.cif',"save":'hi_ang_Fox_coeffs'},
-                         {"file":'templ_enum.cif',"save":'hi_ang_Fox_c1'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'hi_ang_Fox_coeffs'}
+                         {"file":'templ_enum.cif' "save":'hi_ang_Fox_c1'}]
     _name.category_id            atom_type_scat
     _name.object_id              hi_ang_Fox_c1
      save_
@@ -14436,8 +14398,8 @@ save_atom_type_scat.hi_ang_Fox_c2
     _definition.id             '_atom_type_scat.hi_ang_Fox_c2'
      loop_
     _alias.definition_id       '_atom_type_scat.hi_ang_Fox_c2'
-    _import.get         [{"file":'templ_attr.cif',"save":'hi_ang_Fox_coeffs'},
-                         {"file":'templ_enum.cif',"save":'hi_ang_Fox_c2'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'hi_ang_Fox_coeffs'}
+                         {"file":'templ_enum.cif' "save":'hi_ang_Fox_c2'}]
     _name.category_id            atom_type_scat
     _name.object_id              hi_ang_Fox_c2
      save_
@@ -14447,8 +14409,8 @@ save_atom_type_scat.hi_ang_Fox_c3
     _definition.id             '_atom_type_scat.hi_ang_Fox_c3'
      loop_
     _alias.definition_id       '_atom_type_scat.hi_ang_Fox_c3'
-    _import.get         [{"file":'templ_attr.cif',"save":'hi_ang_Fox_coeffs'},
-                         {"file":'templ_enum.cif',"save":'hi_ang_Fox_c3'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'hi_ang_Fox_coeffs'}
+                         {"file":'templ_enum.cif' "save":'hi_ang_Fox_c3'}]
     _name.category_id            atom_type_scat
     _name.object_id              hi_ang_Fox_c3
      save_
@@ -16347,7 +16309,7 @@ save_MODEL_SITE
     _name.category_id            MODEL
     _name.object_id              MODEL_SITE
     _category.key_id           '_model_site.key'
-    _category.key_list        ['_model_site.label',
+    _category.key_list        ['_model_site.label'
                                '_model_site.symop']
  
      loop_
@@ -16469,8 +16431,8 @@ save_model_site.display_colour
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Code
-    _import.get          [{"file":'templ_enum.cif',"save":'colour_RGB'},
-                          {"file":'templ_enum.cif',"save":'colour_hue'}]
+    _import.get          [{"file":'templ_enum.cif' "save":'colour_RGB'}
+                          {"file":'templ_enum.cif' "save":'colour_hue'}]
     _enumeration.def_index_id  '_model_site.type_symbol'
      save_
  
@@ -16519,7 +16481,7 @@ save_model_site.adp_matrix_beta
     _type.source                 Derived
     _type.container              Matrix
     _type.contents               Real
-    _type.dimension              [3,3]
+    _type.dimension              [3 3]
      loop_
     _method.purpose
     _method.expression
@@ -16758,7 +16720,7 @@ save_model_site.symop
     _definition.id             '_model_site.symop'
      loop_
     _alias.definition_id       '_model_site.symop'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            model_site
     _name.object_id              symop
      loop_
@@ -16944,11 +16906,11 @@ save_GEOM_ANGLE
     _name.category_id            GEOM
     _name.object_id              GEOM_ANGLE
     _category.key_id           '_geom_angle.key'
-    _category.key_list        ['_geom_angle.atom_site_label_1',
-                               '_geom_angle.atom_site_label_2',
-                               '_geom_angle.atom_site_label_3',
-                               '_geom_angle.site_symmetry_1',
-                               '_geom_angle.site_symmetry_2',
+    _category.key_list        ['_geom_angle.atom_site_label_1'
+                               '_geom_angle.atom_site_label_2'
+                               '_geom_angle.atom_site_label_3'
+                               '_geom_angle.site_symmetry_1'
+                               '_geom_angle.site_symmetry_2'
                                '_geom_angle.site_symmetry_3']
  
      loop_
@@ -17023,7 +16985,7 @@ save_geom_angle.atom_site_label_1
     _alias.definition_id       '_geom_angle.atom_site_label_1'
                                '_geom_angle_atom_site_label_1'
                                '_geom_angle.atom_site_id_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_angle
     _name.object_id              atom_site_label_1
      save_
@@ -17035,7 +16997,7 @@ save_geom_angle.atom_site_label_2
     _alias.definition_id       '_geom_angle.atom_site_label_2'
                                '_geom_angle_atom_site_label_2'
                                '_geom_angle.atom_site_id_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_angle
     _name.object_id              atom_site_label_2
      save_
@@ -17047,7 +17009,7 @@ save_geom_angle.atom_site_label_3
     _alias.definition_id       '_geom_angle.atom_site_label_3'
                                '_geom_angle_atom_site_label_3'
                                '_geom_angle.atom_site_id_3'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_angle
     _name.object_id              atom_site_label_3
      save_
@@ -17138,7 +17100,7 @@ save_geom_angle.site_symmetry_1
      loop_
     _alias.definition_id       '_geom_angle.site_symmetry_1'
                                '_geom_angle_site_symmetry_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_angle
     _name.object_id              site_symmetry_1
      save_
@@ -17149,7 +17111,7 @@ save_geom_angle.site_symmetry_2
      loop_
     _alias.definition_id       '_geom_angle.site_symmetry_2'
                                '_geom_angle_site_symmetry_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_angle
     _name.object_id              site_symmetry_2
      save_
@@ -17160,7 +17122,7 @@ save_geom_angle.site_symmetry_3
      loop_
     _alias.definition_id       '_geom_angle.site_symmetry_3'
                                '_geom_angle_site_symmetry_3'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_angle
     _name.object_id              site_symmetry_3
      save_
@@ -17247,9 +17209,9 @@ save_GEOM_BOND
     _name.category_id            GEOM
     _name.object_id              GEOM_BOND
     _category.key_id           '_geom_bond.key'
-    _category.key_list        ['_geom_bond.atom_site_label_1',
-                               '_geom_bond.atom_site_label_2',
-                               '_geom_bond.site_symmetry_1',
+    _category.key_list        ['_geom_bond.atom_site_label_1'
+                               '_geom_bond.atom_site_label_2'
+                               '_geom_bond.site_symmetry_1'
                                '_geom_bond.site_symmetry_2']
  
     loop_
@@ -17311,7 +17273,7 @@ save_geom_bond.atom_site_label_1
     _alias.definition_id       '_geom_bond.atom_site_label_1'
                                '_geom_bond_atom_site_label_1'
                                '_geom_bond.atom_site_id_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_bond
     _name.object_id              atom_site_label_1
      save_
@@ -17323,7 +17285,7 @@ save_geom_bond.atom_site_label_2
     _alias.definition_id       '_geom_bond.atom_site_label_2'
                                '_geom_bond_atom_site_label_2'
                                '_geom_bond.atom_site_id_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_bond
     _name.object_id              atom_site_label_2
      save_
@@ -17501,7 +17463,7 @@ save_geom_bond.site_symmetry_1
      loop_
     _alias.definition_id       '_geom_bond.site_symmetry_1'
                                '_geom_bond_site_symmetry_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_bond
     _name.object_id              site_symmetry_1
      save_
@@ -17512,7 +17474,7 @@ save_geom_bond.site_symmetry_2
      loop_
     _alias.definition_id       '_geom_bond.site_symmetry_2'
                                '_geom_bond_site_symmetry_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_bond
     _name.object_id              site_symmetry_2
      save_
@@ -17535,9 +17497,9 @@ save_GEOM_CONTACT
     _name.category_id            GEOM
     _name.object_id              GEOM_CONTACT
     _category.key_id           '_geom_contact.key'
-    _category.key_list        ['_geom_contact.atom_site_label_1',
-                               '_geom_contact.atom_site_label_2',
-                               '_geom_contact.site_symmetry_1',
+    _category.key_list        ['_geom_contact.atom_site_label_1'
+                               '_geom_contact.atom_site_label_2'
+                               '_geom_contact.site_symmetry_1'
                                '_geom_contact.site_symmetry_2']
  
      loop_
@@ -17612,7 +17574,7 @@ save_geom_contact.atom_site_label_1
     _alias.definition_id       '_geom_contact.atom_site_label_1'
                                '_geom_contact_atom_site_label_1'
                                '_geom_contact.atom_site_id_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_contact
     _name.object_id              atom_site_label_1
      save_
@@ -17624,7 +17586,7 @@ save_geom_contact.atom_site_label_2
     _alias.definition_id       '_geom_contact.atom_site_label_2'
                                '_geom_contact_atom_site_label_2'
                                '_geom_contact.atom_site_id_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_contact
     _name.object_id              atom_site_label_2
      save_
@@ -17757,7 +17719,7 @@ save_geom_contact.site_symmetry_1
      loop_
     _alias.definition_id       '_geom_contact.site_symmetry_1'
                                '_geom_contact_site_symmetry_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_contact
     _name.object_id              site_symmetry_1
      save_
@@ -17768,7 +17730,7 @@ save_geom_contact.site_symmetry_2
      loop_
     _alias.definition_id       '_geom_contact.site_symmetry_2'
                                '_geom_contact_site_symmetry_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_contact
     _name.object_id              site_symmetry_2
      save_
@@ -17791,11 +17753,11 @@ save_GEOM_HBOND
     _name.category_id            GEOM
     _name.object_id              GEOM_HBOND
     _category.key_id           '_geom_hbond.key'
-    _category.key_list        ['_geom_hbond.atom_site_label_D',
-                               '_geom_hbond.atom_site_label_H',
-                               '_geom_hbond.atom_site_label_A',
-                               '_geom_hbond.site_symmetry_D',
-                               '_geom_hbond.site_symmetry_H',
+    _category.key_list        ['_geom_hbond.atom_site_label_D'
+                               '_geom_hbond.atom_site_label_H'
+                               '_geom_hbond.atom_site_label_A'
+                               '_geom_hbond.site_symmetry_D'
+                               '_geom_hbond.site_symmetry_H'
                                '_geom_hbond.site_symmetry_A']
  
  
@@ -17897,7 +17859,7 @@ save_geom_hbond.atom_site_label_A
     _alias.definition_id       '_geom_hbond.atom_site_label_A'
                                '_geom_hbond_atom_site_label_A'
                                '_geom_hbond.atom_site_id_A'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_hbond
     _name.object_id              atom_site_label_A
      save_
@@ -17909,7 +17871,7 @@ save_geom_hbond.atom_site_label_D
     _alias.definition_id       '_geom_hbond.atom_site_label_D'
                                '_geom_hbond_atom_site_label_D'
                                '_geom_hbond.atom_site_id_D'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_hbond
     _name.object_id              atom_site_label_D
      save_
@@ -17921,7 +17883,7 @@ save_geom_hbond.atom_site_label_H
     _alias.definition_id       '_geom_hbond.atom_site_label_H'
                                '_geom_hbond_atom_site_label_H'
                                '_geom_hbond.atom_site_id_H'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_hbond
     _name.object_id              atom_site_label_H
      save_
@@ -18179,7 +18141,7 @@ save_geom_hbond.site_symmetry_A
      loop_
     _alias.definition_id       '_geom_hbond.site_symmetry_A'
                                '_geom_hbond_site_symmetry_A'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_hbond
     _name.object_id              site_symmetry_A
      save_
@@ -18190,7 +18152,7 @@ save_geom_hbond.site_symmetry_D
      loop_
     _alias.definition_id       '_geom_hbond.site_symmetry_D'
                                '_geom_hbond_site_symmetry_D'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_hbond
     _name.object_id              site_symmetry_D
      save_
@@ -18201,7 +18163,7 @@ save_geom_hbond.site_symmetry_H
      loop_
     _alias.definition_id       '_geom_hbond.site_symmetry_H'
                                '_geom_hbond_site_symmetry_H'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_hbond
     _name.object_id              site_symmetry_H
      save_
@@ -18224,13 +18186,13 @@ save_GEOM_TORSION
     _name.category_id            GEOM
     _name.object_id              GEOM_TORSION
     _category.key_id           '_geom_torsion.key'
-    _category.key_list        ['_geom_torsion.atom_site_label_1',
-                               '_geom_torsion.atom_site_label_2',
-                               '_geom_torsion.atom_site_label_3',
-                               '_geom_torsion.atom_site_label_4',
-                               '_geom_torsion.site_symmetry_1',
-                               '_geom_torsion.site_symmetry_2',
-                               '_geom_torsion.site_symmetry_3',
+    _category.key_list        ['_geom_torsion.atom_site_label_1'
+                               '_geom_torsion.atom_site_label_2'
+                               '_geom_torsion.atom_site_label_3'
+                               '_geom_torsion.atom_site_label_4'
+                               '_geom_torsion.site_symmetry_1'
+                               '_geom_torsion.site_symmetry_2'
+                               '_geom_torsion.site_symmetry_3'
                                '_geom_torsion.site_symmetry_4']
  
      loop_
@@ -18318,7 +18280,7 @@ save_geom_torsion.atom_site_label_1
     _alias.definition_id       '_geom_torsion.atom_site_label_1'
                                '_geom_torsion_atom_site_label_1'
                                '_geom_torsion.atom_site_id_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_torsion
     _name.object_id              atom_site_label_1
      save_
@@ -18330,7 +18292,7 @@ save_geom_torsion.atom_site_label_2
     _alias.definition_id       '_geom_torsion.atom_site_label_2'
                                '_geom_torsion_atom_site_label_2'
                                '_geom_torsion.atom_site_id_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_torsion
     _name.object_id              atom_site_label_2
      save_
@@ -18342,7 +18304,7 @@ save_geom_torsion.atom_site_label_3
     _alias.definition_id       '_geom_torsion.atom_site_label_3'
                                '_geom_torsion_atom_site_label_3'
                                '_geom_torsion.atom_site_id_3'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_torsion
     _name.object_id              atom_site_label_3
      save_
@@ -18354,7 +18316,7 @@ save_geom_torsion.atom_site_label_4
     _alias.definition_id       '_geom_torsion.atom_site_label_4'
                                '_geom_torsion_atom_site_label_4'
                                '_geom_torsion.atom_site_id_4'
-    _import.get          [{"file":'templ_attr.cif',"save":'atom_site_id'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'atom_site_id'}]
     _name.category_id            geom_torsion
     _name.object_id              atom_site_label_4
      save_
@@ -18494,7 +18456,7 @@ save_geom_torsion.site_symmetry_1
      loop_
     _alias.definition_id       '_geom_torsion.site_symmetry_1'
                                '_geom_torsion_site_symmetry_1'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_torsion
     _name.object_id              site_symmetry_1
      save_
@@ -18505,7 +18467,7 @@ save_geom_torsion.site_symmetry_2
      loop_
     _alias.definition_id       '_geom_torsion.site_symmetry_2'
                                '_geom_torsion_site_symmetry_2'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_torsion
     _name.object_id              site_symmetry_2
      save_
@@ -18516,7 +18478,7 @@ save_geom_torsion.site_symmetry_3
      loop_
     _alias.definition_id       '_geom_torsion.site_symmetry_3'
                                '_geom_torsion_site_symmetry_3'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_torsion
     _name.object_id              site_symmetry_3
      save_
@@ -18527,7 +18489,7 @@ save_geom_torsion.site_symmetry_4
      loop_
     _alias.definition_id       '_geom_torsion.site_symmetry_4'
                                '_geom_torsion_site_symmetry_4'
-    _import.get          [{"file":'templ_attr.cif',"save":'site_symmetry'}]
+    _import.get          [{"file":'templ_attr.cif' "save":'site_symmetry'}]
     _name.category_id            geom_torsion
     _name.object_id              site_symmetry_4
      save_
@@ -23056,7 +23018,7 @@ save_display_colour.hue
     _type.source                 Assigned
     _type.container              Single
     _type.contents               Code
-    _import.get         [{"file":'templ_enum.cif',"save":'colour_RGB'}]
+    _import.get         [{"file":'templ_enum.cif' "save":'colour_RGB'}]
     _enumeration.default        'black'
      save_
  
@@ -23093,7 +23055,7 @@ save_display_colour.red
     _definition.id             '_display_colour.red'
      loop_
     _alias.definition_id       '_display_colour.red'
-    _import.get         [{"file":'templ_attr.cif',"save":'display_colour'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'display_colour'}]
     _name.category_id            display_colour
     _name.object_id              red
      save_
@@ -23103,7 +23065,7 @@ save_display_colour.green
     _definition.id             '_display_colour.green'
      loop_
     _alias.definition_id       '_display_colour.green'
-    _import.get         [{"file":'templ_attr.cif',"save":'display_colour'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'display_colour'}]
     _name.category_id            display_colour
     _name.object_id              green
      save_
@@ -23113,7 +23075,7 @@ save_display_colour.blue
     _definition.id             '_display_colour.blue'
      loop_
     _alias.definition_id       '_display_colour.blue'
-    _import.get         [{"file":'templ_attr.cif',"save":'display_colour'}]
+    _import.get         [{"file":'templ_attr.cif' "save":'display_colour'}]
     _name.category_id            display_colour
     _name.object_id              blue
      save_
