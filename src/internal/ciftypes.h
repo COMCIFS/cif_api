@@ -118,7 +118,7 @@ struct cif_container_s {
     sqlite_int64 id;
     UChar *code;
     UChar *code_orig;
-    sqlite_int64 block_id;
+    sqlite_int64 parent_id;
 };
 
 /* loops */

@@ -77,8 +77,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libcif_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_libcif_la_OBJECTS = cif.lo ciffile.lo container.lo datablock.lo \
-	loop.lo map.lo packet.lo parser.lo pktitr.lo utils.lo value.lo
+am_libcif_la_OBJECTS = cif.lo ciffile.lo container.lo loop.lo map.lo \
+	packet.lo parser.lo pktitr.lo utils.lo value.lo
 am__objects_1 =
 nodist_libcif_la_OBJECTS = $(am__objects_1)
 libcif_la_OBJECTS = $(am_libcif_la_OBJECTS) \
@@ -698,7 +698,6 @@ libcif_la_SOURCES = \
   cif.c \
   ciffile.c \
   container.c \
-  datablock.c \
   loop.c \
   map.c \
   packet.c \
@@ -991,7 +990,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cif.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ciffile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/container.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/datablock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/loop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/packet.Plo@am__quote@

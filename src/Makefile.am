@@ -58,7 +58,6 @@ libcif_la_SOURCES = \
   cif.c \
   ciffile.c \
   container.c \
-  datablock.c \
   loop.c \
   map.c \
   packet.c \

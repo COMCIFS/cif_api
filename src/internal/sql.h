@@ -21,11 +21,11 @@
 
 #define GET_ALL_BLOCKS_SQL "select container_id as id, name, name_orig from data_block"
 
-#define CREATE_FRAME_SQL "insert into save_frame(container_id, data_block_id, name, name_orig) values (?, ?, ?, ?)"
+#define CREATE_FRAME_SQL "insert into save_frame(container_id, parent_id, name, name_orig) values (?, ?, ?, ?)"
 
-#define GET_FRAME_SQL "select container_id as id, name_orig from save_frame where data_block_id = ? and name = ?"
+#define GET_FRAME_SQL "select container_id as id, name_orig from save_frame where parent_id = ? and name = ?"
 
-#define GET_ALL_FRAMES_SQL "select container_id as id, name, name_orig from save_frame where data_block_id = ?"
+#define GET_ALL_FRAMES_SQL "select container_id as id, name, name_orig from save_frame where parent_id = ?"
 
 #define VALIDATE_CONTAINER_SQL "select 1 from container where id = ?"
 

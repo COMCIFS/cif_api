@@ -1,7 +1,7 @@
 /*
  * cif.h
  *
- * Copyright (C) 2013, 2014 John C. Bollinger
+ * Copyright (C) 2012, 2013, 2014 John C. Bollinger
  *
  * All rights reserved.
  */
@@ -12,7 +12,7 @@
  *        library users to manipulate.
  *
  * @author John C. Bollinger
- * @date   2012-2013
+ * @date   2012-2014
  */
 
 #ifndef CIF_H
@@ -1181,72 +1181,25 @@ CIF_INTFUNC_DECL(cif_walk, (
 #define cif_block_destroy cif_container_destroy
 
 /**
- * @brief Creates a new save frame bearing the specified frame code in the specified data block.
+ * @brief An alias for cif_container_create_frame
  *
- * This function can optionally return a handle on the new frame via the @c frame argument.  When that option
- * is used, the caller assumes responsibility for cleaning up the provided handle via either @c cif_container_free()
- * (to clean up only the handle) or @c cif_container_destroy() (to also remove the frame from the managed CIF).
- *
- * @param[in] block a handle on the managed data block object to which a new block should be added; must be
- *        non-NULL and valid.
- *
- * @param[in] code the frame code of the frame to add, as a NUL-terminated Unicode string; the frame code must
- *        comply with CIF constraints on frame codes.
- *
- * @param[in,out] frame if not NULL, then a location where a handle on the new frame should be recorded.
- *
- * @return @c CIF_OK on success or an error code on failure, normally one of:
- *        @li @c CIF_INVALID_FRAMECODE  if the provided frame code is invalid
- *        @li @c CIF_DUP_FRAMECODE if the specified data block already contains a frame having the given code (note that
- *                frame codes are compared in a Unicode-normalized and caseless form)
- *        @li @c CIF_ERROR for most other failures
+ * @hideinitializer
  */
-CIF_INTFUNC_DECL(cif_block_create_frame, (
-        cif_block_t *block,
-        const UChar *code,
-        cif_frame_t **frame
-        ));
+#define cif_block_create_frame cif_container_create_frame
 
 /**
- * @brief Looks up and optionally returns the save frame bearing the specified code, if any, in the specified data
- *         block.
+ * @brief An alias for cif_container_get_frame
  *
- * Note that CIF frame codes are matched in caseless and Unicode-normalized form.
- *
- * @param[in] block a handle on the managed data block object in which to look up the specified frame code; must be
- *         non-NULL and valid.
- *
- * @param[in] code the frame code to look up, as a NUL-terminated Unicode string.
- *
- * @param[in,out] frame if not NULL and a frame matching the specified code is found, then a handle on it is
- *         written where this parameter points.  The caller assumes responsibility for releasing this handle.
- *       
- * @return @c CIF_OK on a successful lookup (even if @c frame is NULL), @c CIF_NOSUCH_FRAME if there is no save frame
- *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
+ * @hideinitializer
  */
-CIF_INTFUNC_DECL(cif_block_get_frame, (
-        cif_block_t *block,
-        const UChar *code,
-        cif_frame_t **frame
-        ));
+#define cif_block_get_frame cif_container_get_frame
 
 /**
- * @brief Provides a null-terminated array of save frame handles, one for each frame in the specified data block.
+ * @brief An alias for cif_container_get_all_frames
  *
- * The caller takes responsibility for cleaning up the provided frame handles and the dynamic array containing them.
- *
- * @param[in] block a handle on the managed data block object from which to draw save frame handles; must be non-NULL
- *         and valid.
- *
- * @param[in,out] frames a pointer to the location where a pointer to the resulting array of frame handles should be
- *         recorded.  Must not be NULL.
- *
- * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ * @hideinitializer
  */
-CIF_INTFUNC_DECL(cif_block_get_all_frames, (
-        cif_block_t *block,
-        cif_frame_t ***frames
-        ));
+#define cif_block_get_all_frames cif_container_get_all_frames
 
 /**
  * @}
@@ -1279,6 +1232,33 @@ CIF_INTFUNC_DECL(cif_block_get_all_frames, (
  */
 
 /**
+ * @brief Creates a new save frame bearing the specified frame code in the specified container.
+ *
+ * This function can optionally return a handle on the new frame via the @c frame argument.  When that option
+ * is used, the caller assumes responsibility for cleaning up the provided handle via either @c cif_container_free()
+ * (to clean up only the handle) or @c cif_container_destroy() (to also remove the frame from the managed CIF).
+ *
+ * @param[in] container a handle on the managed data block object to which a new block should be added; must be
+ *        non-NULL and valid.
+ *
+ * @param[in] code the frame code of the frame to add, as a NUL-terminated Unicode string; the frame code must
+ *        comply with CIF constraints on frame codes.
+ *
+ * @param[in,out] frame if not NULL, then a location where a handle on the new frame should be recorded.
+ *
+ * @return @c CIF_OK on success or an error code on failure, normally one of:
+ *        @li @c CIF_INVALID_FRAMECODE  if the provided frame code is invalid
+ *        @li @c CIF_DUP_FRAMECODE if the specified data block already contains a frame having the given code (note that
+ *                frame codes are compared in a Unicode-normalized and caseless form)
+ *        @li @c CIF_ERROR for most other failures
+ */
+CIF_INTFUNC_DECL(cif_container_create_frame, (
+        cif_container_t *container,
+        const UChar *code,
+        cif_frame_t **frame
+        ));
+
+/**
  * @brief Frees any resources associated with the specified container handle without
  * modifying the associated managed CIF
  *
@@ -1300,6 +1280,47 @@ CIF_VOIDFUNC_DECL(cif_container_free, (
  */
 CIF_INTFUNC_DECL(cif_container_destroy, (
         cif_container_t *container
+        ));
+
+/**
+ * @brief Looks up and optionally returns the save frame bearing the specified code, if any, in the specified data
+ *         block or save frame.
+ *
+ * Note that CIF frame codes are matched in caseless and Unicode-normalized form.
+ *
+ * @param[in] container a handle on the managed data block or save frame object
+ *         in which to look up the specified frame code; must be non-NULL and valid.
+ *
+ * @param[in] code the frame code to look up, as a NUL-terminated Unicode string.
+ *
+ * @param[in,out] frame if not NULL and a frame matching the specified code is found, then a handle on it is
+ *         written where this parameter points.  The caller assumes responsibility for releasing this handle.
+ *       
+ * @return @c CIF_OK on a successful lookup (even if @c frame is NULL), @c CIF_NOSUCH_FRAME if there is no save frame
+ *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
+ */
+CIF_INTFUNC_DECL(cif_container_get_frame, (
+        cif_container_t *container,
+        const UChar *code,
+        cif_frame_t **frame
+        ));
+
+/**
+ * @brief Provides a null-terminated array of save frame handles, one for each frame in the specified data block or save frame.
+ *
+ * The caller takes responsibility for cleaning up the provided frame handles and the dynamic array containing them.
+ *
+ * @param[in] container a handle on the managed data block or save frame object from which to draw save frame
+ *         handles; must be non-NULL and valid.
+ *
+ * @param[in,out] frames a pointer to the location where a pointer to the resulting array of frame handles should be
+ *         recorded.  Must not be NULL.
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+CIF_INTFUNC_DECL(cif_container_get_all_frames, (
+        cif_container_t *container,
+        cif_frame_t ***frames
         ));
 
 /**

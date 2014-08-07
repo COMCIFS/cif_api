@@ -497,11 +497,11 @@ int cif_create_block_internal(
         ) INTERNAL ;
 
 /*
- * An internal version of cif_block_create_frame() that allows frame code validation to be suppressed (when 'lenient' is
- * nonzero)
+ * An internal version of cif_container_create_frame() that allows frame code
+ * validation to be suppressed (when 'lenient' is nonzero)
  */
-int cif_block_create_frame_internal(
-        cif_block_t *block,
+int cif_container_create_frame_internal(
+        cif_container_t *container,
         const UChar *code,
         int lenient,
         cif_frame_t **frame

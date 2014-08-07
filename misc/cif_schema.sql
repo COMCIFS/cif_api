@@ -70,26 +70,24 @@ create table data_block (
 
 --
 -- Represents a container that is a save frame, rather than a data block.  Each
--- is associated with a data block that contains it.  All save frames
--- associated with the same data block must have distinct, nonempty names.
---
--- In the event that nested save frames are added to CIF, the container_id
--- foreign key can be pointed at the 'container' table instead of 'data_block'.
+-- is associated with a parent data block or save frame that contains it.  Save
+-- frame names (frame codes) must be distinct within their containers and nonempty.
 --
 create table save_frame (
   container_id integer primary key,
-  data_block_id integer not null,
+  parent_id integer not null,
   name varchar(80) not null,
   name_orig varchar(80) not null,
   
   foreign key (container_id)
     references container(id)
     on delete cascade,
-  foreign key (data_block_id)
-    references data_block(container_id)
+  foreign key (parent_id)
+    references container(id)
     on delete cascade,
   -- A UNIQUE constraint will cause an unique index to be created automatically
-  unique (data_block_id, name)
+  unique (parent_id, name),
+  check (container_id != parent_id)
 );
 
 --

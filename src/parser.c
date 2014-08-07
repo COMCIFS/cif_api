@@ -829,6 +829,7 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
         UChar *token_value;
         UChar *name;
         enum token_type alt_ttype = QVALUE;
+        cif_container_t *frame;
 
         if ((result = next_token(scanner)) != CIF_OK) {
             break;
@@ -848,65 +849,56 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                 /* do not consume the token */
                 goto container_end;
             case FRAME_HEAD:
-                if (!is_block) {
-                    /* error: unterminated save frame */
-                    result = scanner->error_callback(CIF_NO_FRAME_TERM, scanner->line,
-                            scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner), TVALUE_LENGTH(scanner),
-                            scanner->user_data);
-                    /* recover, if so directed, by forcing closure of the current frame without consuming the token */
-                    goto container_end;
-                } else {
-                    cif_container_t *frame = NULL;
+                frame = NULL;
 
-                    if ((container == NULL) || (scanner->skip_depth > 0)) {
-                        result = CIF_OK;
-                    } else { 
-                        UChar saved = *(token_value + token_length);
+                if ((container == NULL) || (scanner->skip_depth > 0)) {
+                    result = CIF_OK;
+                } else { 
+                    UChar saved = *(token_value + token_length);
 
-                        /* insert a string terminator into the input buffer, after the current token */
-                        *(token_value + token_length) = 0;
+                    /* insert a string terminator into the input buffer, after the current token */
+                    *(token_value + token_length) = 0;
 
-                        result = cif_block_create_frame(container, token_value, &frame);
-                        switch (result) {
-                            case CIF_INVALID_FRAMECODE:
-                                /* syntax error: invalid frame code */
-                                result = scanner->error_callback(result, scanner->line,
-                                        scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
-                                        TVALUE_LENGTH(scanner), scanner->user_data);
-                                if (result != CIF_OK) {
-                                    goto container_end;
-                                }
-                                /* recover by using the frame code anyway */
-                                if ((result = (cif_block_create_frame_internal(container, token_value, 1, &frame)))
-                                        != CIF_DUP_FRAMECODE) {
-                                    break;
-                                }
-                                /* else result == CIF_DUP_BLOCKCODE, so fall through */
-                            case CIF_DUP_FRAMECODE:
-                                /* error: duplicate frame code */
-                                result = scanner->error_callback(result, scanner->line,
-                                        scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
-                                        TVALUE_LENGTH(scanner), scanner->user_data);
-                                if (result != CIF_OK) {
-                                    goto container_end;
-                                }
-                                /* recover by using the existing frame */
-                                result = cif_block_get_frame(container, token_value, &frame);
+                    result = cif_container_create_frame(container, token_value, &frame);
+                    switch (result) {
+                        case CIF_INVALID_FRAMECODE:
+                            /* syntax error: invalid frame code */
+                            result = scanner->error_callback(result, scanner->line,
+                                    scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
+                                    TVALUE_LENGTH(scanner), scanner->user_data);
+                            if (result != CIF_OK) {
+                                goto container_end;
+                            }
+                            /* recover by using the frame code anyway */
+                            if ((result = (cif_container_create_frame_internal(container, token_value, 1, &frame)))
+                                    != CIF_DUP_FRAMECODE) {
                                 break;
-                            /* default: do nothing */
-                        }
-
-                        /* restore the next character in the input buffer */
-                        *(token_value + token_length) = saved;
+                            }
+                            /* else result == CIF_DUP_BLOCKCODE, so fall through */
+                        case CIF_DUP_FRAMECODE:
+                            /* error: duplicate frame code */
+                            result = scanner->error_callback(result, scanner->line,
+                                    scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
+                                    TVALUE_LENGTH(scanner), scanner->user_data);
+                            if (result != CIF_OK) {
+                                goto container_end;
+                            }
+                            /* recover by using the existing frame */
+                            result = cif_container_get_frame(container, token_value, &frame);
+                            break;
+                        /* default: do nothing */
                     }
+
+                    /* restore the next character in the input buffer */
+                    *(token_value + token_length) = saved;
+                }
     
-                    CONSUME_TOKEN(scanner);
-    
-                    if (result == CIF_OK) {
-                        result = parse_container(scanner, frame, CIF_FALSE);
-                        if (frame != NULL) {
-                            cif_frame_free(frame);  /* ignore any error */
-                        }
+                CONSUME_TOKEN(scanner);
+
+                if (result == CIF_OK) {
+                    result = parse_container(scanner, frame, CIF_FALSE);
+                    if (frame != NULL) {
+                        cif_frame_free(frame);  /* ignore any error */
                     }
                 }
                 break;
@@ -2027,9 +2019,9 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                                 /* buf_temp tracks the position of the backslash in the output buffer */
                                 buf_temp = buf_pos - 1;
                             } else {
-                                int class = CLASS_OF(c, scanner);
+                                int klass = CLASS_OF(c, scanner);
 
-                                if (class == EOL_CLASS) {
+                                if (klass == EOL_CLASS) {
                                     /* convert CR and CR LF to LF */
                                     if (c == CR_CHAR) {
                                         *(buf_pos - 1) = LF_CHAR;
@@ -2045,7 +2037,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                                     }
 
                                     break;
-                                } else if (class != WS_CLASS) {
+                                } else if (klass != WS_CLASS) {
                                     buf_temp = NULL;
                                 }
                             }

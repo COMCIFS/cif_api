@@ -92,12 +92,6 @@ int main(int argc, char *argv[]) {
     /* This should not fail because we already tested it */
     if (cif_block_create_frame(block, TO_U(code_pairs[0][0]), &frame) != CIF_OK) return HARD_FAIL;
 
-    TEST(
-        cif_block_create_frame(frame, TO_U(code_pairs[1][0]), NULL),
-        CIF_INVALID_HANDLE,
-        test_name,
-        NUM_PATTERNS + 3 * NUM_PAIRS + 2);
-
     /* done */
 
     DESTROY_BLOCK(test_name, block2);
