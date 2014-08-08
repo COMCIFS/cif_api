@@ -64,7 +64,8 @@ compiled_tests = \
     tests/test_parse_unicode \
     tests/test_parse_text_fields \
     tests/test_parse_minimal \
-    tests/test_parse_core
+    tests/test_parse_core \
+    tests/test_parse_triple
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
