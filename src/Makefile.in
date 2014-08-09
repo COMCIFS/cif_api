@@ -139,7 +139,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_parse_text_fields$(EXEEXT) \
 	tests/test_parse_minimal$(EXEEXT) \
 	tests/test_parse_core$(EXEEXT) \
-	tests/test_parse_triple$(EXEEXT)
+	tests/test_parse_triple$(EXEEXT) \
+	tests/test_nested_frames$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -285,6 +286,10 @@ tests_test_multiple_cifs_SOURCES = tests/test_multiple_cifs.c
 tests_test_multiple_cifs_OBJECTS = test_multiple_cifs.$(OBJEXT)
 tests_test_multiple_cifs_LDADD = $(LDADD)
 tests_test_multiple_cifs_DEPENDENCIES = libcif.la
+tests_test_nested_frames_SOURCES = tests/test_nested_frames.c
+tests_test_nested_frames_OBJECTS = test_nested_frames.$(OBJEXT)
+tests_test_nested_frames_LDADD = $(LDADD)
+tests_test_nested_frames_DEPENDENCIES = libcif.la
 tests_test_nesting_SOURCES = tests/test_nesting.c
 tests_test_nesting_OBJECTS = test_nesting.$(OBJEXT)
 tests_test_nesting_LDADD = $(LDADD)
@@ -438,12 +443,12 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_loop_destroy.c tests/test_loop_get_names.c \
 	tests/test_loop_misc.c tests/test_loop_modification.c \
 	tests/test_loop_packets.c tests/test_loop_set_category.c \
-	tests/test_multiple_cifs.c tests/test_nesting.c \
-	tests/test_normalize.c tests/test_packet_create.c \
-	tests/test_packet_items.c tests/test_packet_remove_item.c \
-	tests/test_packet_set_item.c tests/test_parse_complex_data.c \
-	tests/test_parse_core.c tests/test_parse_list_data.c \
-	tests/test_parse_minimal.c \
+	tests/test_multiple_cifs.c tests/test_nested_frames.c \
+	tests/test_nesting.c tests/test_normalize.c \
+	tests/test_packet_create.c tests/test_packet_items.c \
+	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
+	tests/test_parse_complex_data.c tests/test_parse_core.c \
+	tests/test_parse_list_data.c tests/test_parse_minimal.c \
 	tests/test_parse_simple_containers.c \
 	tests/test_parse_simple_data.c tests/test_parse_simple_loops.c \
 	tests/test_parse_table_data.c tests/test_parse_text_fields.c \
@@ -472,12 +477,12 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_loop_destroy.c tests/test_loop_get_names.c \
 	tests/test_loop_misc.c tests/test_loop_modification.c \
 	tests/test_loop_packets.c tests/test_loop_set_category.c \
-	tests/test_multiple_cifs.c tests/test_nesting.c \
-	tests/test_normalize.c tests/test_packet_create.c \
-	tests/test_packet_items.c tests/test_packet_remove_item.c \
-	tests/test_packet_set_item.c tests/test_parse_complex_data.c \
-	tests/test_parse_core.c tests/test_parse_list_data.c \
-	tests/test_parse_minimal.c \
+	tests/test_multiple_cifs.c tests/test_nested_frames.c \
+	tests/test_nesting.c tests/test_normalize.c \
+	tests/test_packet_create.c tests/test_packet_items.c \
+	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
+	tests/test_parse_complex_data.c tests/test_parse_core.c \
+	tests/test_parse_list_data.c tests/test_parse_minimal.c \
 	tests/test_parse_simple_containers.c \
 	tests/test_parse_simple_data.c tests/test_parse_simple_loops.c \
 	tests/test_parse_table_data.c tests/test_parse_text_fields.c \
@@ -687,7 +692,8 @@ compiled_tests = \
     tests/test_parse_text_fields \
     tests/test_parse_minimal \
     tests/test_parse_core \
-    tests/test_parse_triple
+    tests/test_parse_triple \
+    tests/test_nested_frames
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
@@ -908,6 +914,9 @@ tests/test_loop_set_category$(EXEEXT): $(tests_test_loop_set_category_OBJECTS) $
 tests/test_multiple_cifs$(EXEEXT): $(tests_test_multiple_cifs_OBJECTS) $(tests_test_multiple_cifs_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_multiple_cifs$(EXEEXT)
 	$(LINK) $(tests_test_multiple_cifs_OBJECTS) $(tests_test_multiple_cifs_LDADD) $(LIBS)
+tests/test_nested_frames$(EXEEXT): $(tests_test_nested_frames_OBJECTS) $(tests_test_nested_frames_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_nested_frames$(EXEEXT)
+	$(LINK) $(tests_test_nested_frames_OBJECTS) $(tests_test_nested_frames_LDADD) $(LIBS)
 tests/test_nesting$(EXEEXT): $(tests_test_nesting_OBJECTS) $(tests_test_nesting_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_nesting$(EXEEXT)
 	$(LINK) $(tests_test_nesting_OBJECTS) $(tests_test_nesting_LDADD) $(LIBS)
@@ -1033,6 +1042,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_packets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_set_category.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_multiple_cifs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nested_frames.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_nesting.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_normalize.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_create.Po@am__quote@
@@ -1489,6 +1499,20 @@ test_multiple_cifs.obj: tests/test_multiple_cifs.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_multiple_cifs.c' object='test_multiple_cifs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_multiple_cifs.obj `if test -f 'tests/test_multiple_cifs.c'; then $(CYGPATH_W) 'tests/test_multiple_cifs.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_multiple_cifs.c'; fi`
+
+test_nested_frames.o: tests/test_nested_frames.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_nested_frames.o -MD -MP -MF $(DEPDIR)/test_nested_frames.Tpo -c -o test_nested_frames.o `test -f 'tests/test_nested_frames.c' || echo '$(srcdir)/'`tests/test_nested_frames.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_nested_frames.Tpo $(DEPDIR)/test_nested_frames.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_nested_frames.c' object='test_nested_frames.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_nested_frames.o `test -f 'tests/test_nested_frames.c' || echo '$(srcdir)/'`tests/test_nested_frames.c
+
+test_nested_frames.obj: tests/test_nested_frames.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_nested_frames.obj -MD -MP -MF $(DEPDIR)/test_nested_frames.Tpo -c -o test_nested_frames.obj `if test -f 'tests/test_nested_frames.c'; then $(CYGPATH_W) 'tests/test_nested_frames.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_nested_frames.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_nested_frames.Tpo $(DEPDIR)/test_nested_frames.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_nested_frames.c' object='test_nested_frames.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_nested_frames.obj `if test -f 'tests/test_nested_frames.c'; then $(CYGPATH_W) 'tests/test_nested_frames.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_nested_frames.c'; fi`
 
 test_nesting.o: tests/test_nesting.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_nesting.o -MD -MP -MF $(DEPDIR)/test_nesting.Tpo -c -o test_nesting.o `test -f 'tests/test_nesting.c' || echo '$(srcdir)/'`tests/test_nesting.c
