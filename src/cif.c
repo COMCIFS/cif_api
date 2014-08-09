@@ -29,8 +29,7 @@ extern "C" {
 #endif
 
 static int cif_create_callback(void *context, int n_columns, char **column_texts, char **column_names);
-static int walk_block(cif_container_t *block, cif_handler_t *handler, void *context);
-static int walk_frame(cif_container_t *frame, cif_handler_t *handler, void *context);
+static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context);
 static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *context);
 static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context);
 static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *context);
@@ -416,9 +415,9 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
 
                 for (current_block = blocks; *current_block; current_block += 1) {
                     if (handle_blocks) {
-                        result = walk_block(*current_block, handler, context);
+                        result = walk_container(*current_block, 0, handler, context);
 
-                        switch (walk_block(*current_block, handler, context)) {
+                        switch (result) {
                             case CIF_TRAVERSE_SKIP_SIBLINGS:
                             case CIF_TRAVERSE_END:
                                 result = CIF_OK;
@@ -460,17 +459,18 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
     return result;
 }
 
-static int walk_block(cif_container_t *block, cif_handler_t *handler, void *context) {
+static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context) {
     /* call the handler for this element */
-    int result = HANDLER_RESULT(block_start, (block, context), CIF_TRAVERSE_CONTINUE);
+    int result = (depth ? HANDLER_RESULT(frame_start, (container, context), CIF_TRAVERSE_CONTINUE)
+                       : HANDLER_RESULT(block_start, (container, context), CIF_TRAVERSE_CONTINUE));
 
     if (result != CIF_TRAVERSE_CONTINUE) {
         return result;
     } else {
-        /* handle this block's save frames */
+        /* handle this container's save frames */
         cif_container_t **frames;
 
-        result = cif_block_get_all_frames(block, &frames);
+        result = cif_container_get_all_frames(container, &frames);
         if (result != CIF_OK) {
             return result;
         } else {
@@ -481,7 +481,7 @@ static int walk_block(cif_container_t *block, cif_handler_t *handler, void *cont
             for (current_frame = frames; *current_frame; current_frame += 1) {
                 if (handle_frames) {
                     /* 'result' can only change within this loop while 'handle_frames' is true */
-                    result = walk_frame(*current_frame, handler, context);
+                    result = walk_container(*current_frame, depth + 1, handler, context);
                     switch (result) {
                         case CIF_TRAVERSE_CONTINUE:
                         case CIF_TRAVERSE_SKIP_CURRENT:
@@ -507,32 +507,12 @@ static int walk_block(cif_container_t *block, cif_handler_t *handler, void *cont
         }
 
         /* handle this block's loops */
-        result = walk_loops(block, handler, context);
+        result = walk_loops(container, handler, context);
         switch (result) {
             case CIF_TRAVERSE_CONTINUE:
             case CIF_TRAVERSE_SKIP_CURRENT:
-                return HANDLER_RESULT(block_end, (block, context), CIF_TRAVERSE_CONTINUE);
-            case CIF_TRAVERSE_SKIP_SIBLINGS:
-                return CIF_TRAVERSE_CONTINUE;
-            default:
-                return result;
-        }
-    }
-}
-
-static int walk_frame(cif_container_t *frame, cif_handler_t *handler, void *context) {
-    /* call the handler for this element */
-    int result = HANDLER_RESULT(frame_start, (frame, context), CIF_TRAVERSE_CONTINUE);
-
-    if (result != CIF_TRAVERSE_CONTINUE) {
-        return result;
-    } else {
-        /* handle this frame's loops */
-        result = walk_loops(frame, handler, context);
-        switch (result) {
-            case CIF_TRAVERSE_CONTINUE:
-            case CIF_TRAVERSE_SKIP_CURRENT:
-                return HANDLER_RESULT(frame_end, (frame, context), CIF_TRAVERSE_CONTINUE);
+                return (depth ? HANDLER_RESULT(frame_end, (container, context), CIF_TRAVERSE_CONTINUE)
+                              : HANDLER_RESULT(block_end, (container, context), CIF_TRAVERSE_CONTINUE));
             case CIF_TRAVERSE_SKIP_SIBLINGS:
                 return CIF_TRAVERSE_CONTINUE;
             default:
