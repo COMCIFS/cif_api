@@ -55,6 +55,12 @@ typedef struct {
     int last_column;
 } write_context_t;
 
+/* Unicode strings important for determining possible output formats for char values */
+static const UChar dq3[4] = { '"', '"', '"', 0 };
+static const UChar sq3[4] = { '\'', '\'', '\'', 0 };
+static const UChar nl[2] = { '\n', 0 };
+static const UChar nl_semi[2] = { '\n', ';', 0 };
+
 /* the true data type of the CIF walker context pointers used by the CIF-writing functions */
 #define CONTEXT_S write_context_t
 #define CONTEXT_T CONTEXT_S *
@@ -74,27 +80,121 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
         int32_t length, UConverterCallbackReason reason, UErrorCode *error_code);
 static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count, int *error_code);
 
+/*
+ * CIF handler functions used by write_cif()
+ */
+
+/*
+ * Handles the beginning of a CIF by outputting a CIF version comment
+ */
 static int write_cif_start(cif_t *cif, void *context);
+
+/*
+ * Handles the end of a CIF by outputting a newline
+ */
 static int write_cif_end(cif_t *cif, void *context);
+
+/*
+ * Handles the beginning of a CIF data block by outputting a block header
+ */
 static int write_block_start(cif_container_t *block, void *context);
+
+/*
+ * Handles the end of a CIF data block by outputting a newline
+ */
 static int write_block_end(cif_container_t *block, void *context);
+
+/*
+ * Handles the beginning of a save frame by outputting a frame header
+ */
 static int write_frame_start(cif_container_t *frame, void *context);
+
+/*
+ * Handles the end of a save frame by outputting a frame terminator
+ */
 static int write_frame_end(cif_container_t *frame, void *context);
+
+/*
+ * Handles the beginning of a loop by outputting a loop header
+ * (unless it is the scalar loop)
+ */
 static int write_loop_start(cif_loop_t *loop, void *context);
+
+/*
+ * Handles the end of a loop by outputting a newline
+ */
 static int write_loop_end(cif_loop_t *loop, void *context);
+
+/*
+ * Handles the beginning of a loop packet by doing nothing
+ */
 static int write_packet_start(cif_packet_t *packet, void *context);
+
+/*
+ * Handles the end of a loop packet by outputting a newline
+ */
 static int write_packet_end(cif_packet_t *packet, void *context);
+
+/*
+ * Handles a data item by outputting it, possibly preceeded by its
+ * data name
+ */
 static int write_item(UChar *name, cif_value_t *value, void *context);
 
+/*
+ * An internal function for writing a list value
+ */
 static int write_list(void *context, cif_value_t *char_value);
+
+/*
+ * An internal function for writing a table value
+ */
 static int write_table(void *context, cif_value_t *char_value);
+
+/*
+ * An internal function for writing a char value in an appropriate form
+ */
 static int write_char(void *context, cif_value_t *char_value, int allow_text);
+
+/*
+ * An internal function for writing a text block
+ */
 static int write_text(void *context, UChar *text, int32_t length, int fold, int prefix);
+
+/*
+ * An internal function for performing line folding in a text block
+ */
 static int fold_line(const UChar *line, int do_fold, int target_length, int window);
+
+/*
+ * An internal function for writing a character value in quoted form
+ */
 static int write_quoted(void *context, const UChar *text, int32_t length, char delimiter);
+
+/*
+ * An internal function for writing a character value in triple-quoted form
+ */
+static int write_triple_quoted(void *context, const UChar *text, int32_t line1_length, char delimiter) {
+
+/*
+ * An internal function for writing a NUMB value
+ */
 static int write_numb(void *context, cif_value_t *numb_value);
+
+/*
+ * An internal function for outputting a literal byte string
+ */
 static int32_t write_literal(void *context, const char *text, int length, int wrap);
+
+/*
+ * An internal function for outputting a Unicode string literal
+ */
 static int32_t write_uliteral(void *context, const UChar *text, int length, int wrap);
+
+/*
+ * An internal function for outputting a newline; helps keep track of the
+ * current column to which output is being directed.
+ */
 static int write_newline(void *context);
 
 /* A CIF handler that handles nothing */
@@ -482,7 +582,9 @@ static int write_loop_start(cif_loop_t *loop, void *context) {
                     result = CIF_TRAVERSE_CONTINUE;
                     for (next_name = item_names; *next_name != NULL; next_name += 1) {
                         if (result == CIF_TRAVERSE_CONTINUE) {
-                            if (u_fprintf(CONTEXT_UFILE(context), " %S\n", *next_name) < 4) result = CIF_ERROR;
+                            if (u_fprintf(CONTEXT_UFILE(context), " %S\n", *next_name) < 4) {
+                                result = CIF_ERROR;
+                            }
                             SET_LAST_COLUMN(context, 0);
                         }
                         /* need to free all item names even after an error is detected */
@@ -519,16 +621,17 @@ static int write_item(UChar *name, cif_value_t *value, void *context) {
 
     /* output the data name if the context so indicates */
     if (IS_WRITE_ITEM_NAMES(context)) {
+        /* write the name at the beginning of the line, with no newline */
         if ((LAST_COLUMN(context) > 0) && !write_newline(context)) {
             FAIL(soft, CIF_ERROR);
         }
-
         if (write_uliteral(context, name, -1, CIF_NOWRAP) < 2) {
             FAIL(soft, CIF_ERROR);
         }
     }
 
     if (LAST_COLUMN(context) > 0) {
+        /* Precede the value with a single space or newline */
         switch (write_literal(context, " ", 1, CIF_NOWRAP)) {
             case 1:
                 break;
@@ -677,44 +780,106 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
     UChar *text;
 
     if (cif_value_get_text(char_value, &text) == CIF_OK) {
-        /* choose delimiters */
-        int32_t length = u_countChar32(text, -1);
-        int fold = (length > (LINE_LENGTH(context) - 2));
-        UChar *nl = u_strchr(text, '\n');
+        /* choose delimiters (never outputs whitespace-delimited strings) */
+        int32_t char_counts[129];
+        int32_t first_line;
+        int32_t this_line = 0;
+        int32_t max_line = 1;
+        int32_t length = 0;
+        UChar *ch;
 
-        if (nl != NULL) {
-            if (allow_text) {
-                /* write as a text block, possibly with line-folding and/or prefixing  */
-
-                int prefix = CIF_FALSE;
-
-                /* scan the value for embedded newline + semicolon */
-                do {
-                    if (*(++nl) == ';') {
-                        prefix = CIF_TRUE;
-                        break;
-                    }
-                    nl = u_strchr(nl, '\n');
-                } while (nl);
-
-                result = write_text(context, text, length, fold, prefix);
-            } else {
-                result = CIF_DISALLOWED_VALUE;
+        /* Analyze the text */
+        memset(char_counts, 0, sizeof(char_counts));
+        for (ch = text[length]; ch; ch = text[++length]) {
+            char_counts[(ch < 128) ? ch : 128] += 1;
+            this_line += 1;
+            if (ch == '\n') {
+                if (this_line > max_line) {
+                    max_line = this_line;
+                }
+                this_line = 0;
             }
-        } else if (fold) {
-            /* write the value as a line-folded text block */
-            result = (allow_text ? write_text(context, text, length, CIF_TRUE, CIF_FALSE) : CIF_DISALLOWED_VALUE);
-        } else if (u_strchr(text, '\'') == NULL) {
-            /* write the value as an apostrophe-delimited string */
-            result = write_quoted(context, text, length, '\'');
-        } else if (u_strchr(text, '"') == NULL) {
-            /* write the value as a quote-delimited string */
-            result = write_quoted(context, text, length, '"');
+        }
+        if (char_counts['\n'] == 0) {
+            max_line = this_line;
         } else {
-            /* write the value as a text block */
-            result = (allow_text ? write_text(context, text, length, CIF_FALSE, CIF_FALSE) : CIF_DISALLOWED_VALUE);
+            max_line -= 1;
+            if ((length > 0) && (text[length - 1] == '\n')) {
+                this_line -= 1;
+            }
         }
 
+        /*
+         * If the longest line surpasses the length limit then we cannot use anything other than a text block
+         */
+        if (max_line <= (LINE_LENGTH(context))) {
+            if (char_counts['\n'] == 0) {
+                /* Maybe single-delimited */
+                if (char_counts['\''] == 0) {
+                    /* write the value as an apostrophe-delimited string */
+                    result = write_quoted(context, text, length, '\'');
+                    goto done;
+                } else if (char_counts['"'] == 0) {
+                    result = write_quoted(context, text, length, '"');
+                    goto done;
+                } /* else neither (single) apostrophe or quotation mark is suitable */
+
+                /* maybe triple-delimited */
+                if (max_line <= (LINE_LENGTH(context)) - 6) {
+                    /* 
+                     * line 1 lengths expressed to write_triple_quoted() include the closing delimiter, because it
+                     * will appear on the first line.  Line 1 lengths NEVER include the opening delimiter.
+                     */
+                    if (u_strstr(text, sq3) == NULL) {
+                        result = write_triple_quoted(context, text, length + 3, '\'');
+                        goto done;
+                    } else if (u_strstr(text, dq3) == NULL) {
+                        result = write_triple_quoted(context, text, length + 3, '"');
+                        goto done;
+                    }
+                }
+
+                first_line = max_line;
+            } else 
+
+            /*
+             * We can use triple quotes if neither the first line nor the last is too long, and if the text does not
+             * contain both triple delimiters.
+             */
+            if (((first_line = max_line) < (LINE_LENGTH(context) - 3)) 
+                    || ((this_line < (LINE_LENGTH(context) - 3))
+                            && ((first_line = u_strcspn(text, nl)) < (LINE_LENGTH(context - 3))))) {
+                if (u_strstr(text, sq3) == NULL) {
+                    result = write_triple_quoted(context, text, first_line, '\'');
+                    goto done;
+                } else if (u_strstr(text, dq3) == NULL) {
+                    result = write_triple_quoted(context, text, first_line, '"');
+                    goto done;
+                }
+            }
+        }
+
+        if (allow_text) {
+            /* write as a text block, possibly with line-folding and/or prefixing  */
+            int fold;
+            int prefix;
+
+            if ((char_counts[';'] > 0) && (char_counts['\n'] > 0)) {
+                /* scan the value for embedded newline + semicolon */
+                prefix = (u_strstr(text, nl_semi) != NULL);
+            } else {
+                prefix = CIF_FALSE;
+            }
+
+            fold = ((max_line > LINE_LENGTH(context))
+                || ((!prefix) && ((first_line + 1) > LINE_LENGTH(context))));
+
+            result = write_text(context, text, length, fold, prefix);
+        } else {
+            result = CIF_DISALLOWED_VALUE;
+        }
+
+        done:
         free(text);
     } else {
         result = CIF_ERROR;
@@ -738,6 +903,7 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
  * @param[in] prefix if true, the prefix fold protocol should be applied to the block contents
  */
 static int write_text(void *context, UChar *text, int32_t length, int fold, int prefix) {
+    /* TODO: test on text containing surrogate pairs -- the expected lengths may be wrong */
     int expected = 2 + (prefix ? (PREFIX_LENGTH + 1) : 0) + (fold ? 1 : 0);
     int32_t nchars;
 
@@ -900,6 +1066,26 @@ static int write_quoted(void *context, const UChar *text, int32_t length, char d
     return (nchars == (length + 2)) ? CIF_OK : CIF_ERROR;
 }
 
+static int write_triple_quoted(void *context, const UChar *text, int32_t line1_length, char delimiter) {
+    int32_t nchars;
+    int last_column = LAST_COLUMN(context);
+
+    if ((last_column + length + 6) > LINE_LENGTH(context)) {
+        if (write_newline(context)) {
+            last_column = 0;
+        } else {
+            return CIF_ERROR;
+        }
+    }
+
+    nchars = u_fprintf(CONTEXT_UFILE(context), "%c%c%c%*.*S%c%c%c", delimiter, delimiter, delimiter, length, length,
+            text, delimiter, delimiter, delimiter);
+
+    SET_LAST_COLUMN(context, last_column + nchars);
+
+    return (nchars == (length + 6)) ? CIF_OK : CIF_ERROR;
+}
+
 static int write_numb(void *context, cif_value_t *numb_value) {
     int32_t result;
     UChar *text;
@@ -947,6 +1133,7 @@ static int32_t write_literal(void *context, const char *text, int length, int wr
                 if (write_newline(context)) {
                     last_column = 0;
                 } else {
+                    /* Failed to write a newline */
                     return -CIF_ERROR;
                 }
             } else {
