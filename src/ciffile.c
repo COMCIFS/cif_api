@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <limits.h>
+#include <assert.h>
 
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
@@ -59,7 +60,6 @@ typedef struct {
 static const UChar dq3[4] = { '"', '"', '"', 0 };
 static const UChar sq3[4] = { '\'', '\'', '\'', 0 };
 static const UChar nl[2] = { '\n', 0 };
-static const UChar nl_semi[2] = { '\n', ';', 0 };
 
 /* the true data type of the CIF walker context pointers used by the CIF-writing functions */
 #define CONTEXT_S write_context_t
@@ -174,7 +174,8 @@ static int write_quoted(void *context, const UChar *text, int32_t length, char d
 /*
  * An internal function for writing a character value in triple-quoted form
  */
-static int write_triple_quoted(void *context, const UChar *text, int32_t line1_length, char delimiter) {
+static int write_triple_quoted(void *context, const UChar *text, int32_t line1_length, int32_t last_line_length,
+        char delimiter);
 
 /*
  * An internal function for writing a NUMB value
@@ -341,7 +342,7 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
 
     ustream.converter = ucnv_open(encoding_name, &error_code); /* FIXME: is any other customization needed? */
     if (U_SUCCESS(error_code)) {
-        char *converter_name = ucnv_getName(ustream.converter, &error_code);  /* belongs to ustream.converter */
+        const char *converter_name = ucnv_getName(ustream.converter, &error_code);  /* belongs to ustream.converter */
 
         ucnv_setToUCallBack(ustream.converter, ustream_to_unicode_callback, &scanner, NULL, NULL, &error_code);
 
@@ -380,7 +381,6 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
             result = cif_parse_internal(&scanner, not_utf8, cif);
         }
 
-        FAILURE_HANDLER(late):
         ucnv_close(ustream.converter);
 
         return result;
@@ -780,38 +780,35 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
     UChar *text;
 
     if (cif_value_get_text(char_value, &text) == CIF_OK) {
-        /* choose delimiters (never outputs whitespace-delimited strings) */
+        /* uses signed 32-bit integer character counters -- could overflow for very (very!) long text blocks */
         int32_t char_counts[129];
         int32_t first_line;
         int32_t this_line = 0;
-        int32_t max_line = 1;
+        int32_t max_line = 0;
         int32_t length = 0;
-        UChar *ch;
+        int has_nl_semi = CIF_FALSE;
+        UChar ch;
 
-        /* Analyze the text */
+        /* Analyze the text to inform the choice of delimiters */
         memset(char_counts, 0, sizeof(char_counts));
         for (ch = text[length]; ch; ch = text[++length]) {
             char_counts[(ch < 128) ? ch : 128] += 1;
-            this_line += 1;
             if (ch == '\n') {
+                has_nl_semi = (has_nl_semi || (text[length + 1] == ';'));
                 if (this_line > max_line) {
                     max_line = this_line;
                 }
                 this_line = 0;
+            } else {
+                this_line += 1;
             }
         }
         if (char_counts['\n'] == 0) {
             max_line = this_line;
-        } else {
-            max_line -= 1;
-            if ((length > 0) && (text[length - 1] == '\n')) {
-                this_line -= 1;
-            }
         }
+        first_line = max_line;  /* an initial approximation; we may not need any better */
 
-        /*
-         * If the longest line surpasses the length limit then we cannot use anything other than a text block
-         */
+        /* If the longest line surpasses the length limit then we cannot use anything other than a text block */
         if (max_line <= (LINE_LENGTH(context))) {
             if (char_counts['\n'] == 0) {
                 /* Maybe single-delimited */
@@ -831,50 +828,41 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
                      * will appear on the first line.  Line 1 lengths NEVER include the opening delimiter.
                      */
                     if (u_strstr(text, sq3) == NULL) {
-                        result = write_triple_quoted(context, text, length + 3, '\'');
+                        result = write_triple_quoted(context, text, length + 3, this_line, '\'');
                         goto done;
                     } else if (u_strstr(text, dq3) == NULL) {
-                        result = write_triple_quoted(context, text, length + 3, '"');
+                        result = write_triple_quoted(context, text, length + 3, this_line, '"');
                         goto done;
                     }
                 }
 
-                first_line = max_line;
             } else 
 
             /*
              * We can use triple quotes if neither the first line nor the last is too long, and if the text does not
              * contain both triple delimiters.
              */
-            if (((first_line = max_line) < (LINE_LENGTH(context) - 3)) 
+            if ((max_line < (LINE_LENGTH(context) - 3)) 
                     || ((this_line < (LINE_LENGTH(context) - 3))
                             && ((first_line = u_strcspn(text, nl)) < (LINE_LENGTH(context - 3))))) {
                 if (u_strstr(text, sq3) == NULL) {
-                    result = write_triple_quoted(context, text, first_line, '\'');
+                    result = write_triple_quoted(context, text, first_line, this_line, '\'');
                     goto done;
                 } else if (u_strstr(text, dq3) == NULL) {
-                    result = write_triple_quoted(context, text, first_line, '"');
+                    result = write_triple_quoted(context, text, first_line, this_line, '"');
                     goto done;
                 }
             }
+
         }
 
+        /* if control reaches this point then all alternatives other than a text block have been ruled out */
         if (allow_text) {
             /* write as a text block, possibly with line-folding and/or prefixing  */
-            int fold;
-            int prefix;
+            int fold = ((max_line > LINE_LENGTH(context))
+                    || ((!has_nl_semi) && ((first_line + 1) > LINE_LENGTH(context))));
 
-            if ((char_counts[';'] > 0) && (char_counts['\n'] > 0)) {
-                /* scan the value for embedded newline + semicolon */
-                prefix = (u_strstr(text, nl_semi) != NULL);
-            } else {
-                prefix = CIF_FALSE;
-            }
-
-            fold = ((max_line > LINE_LENGTH(context))
-                || ((!prefix) && ((first_line + 1) > LINE_LENGTH(context))));
-
-            result = write_text(context, text, length, fold, prefix);
+            result = write_text(context, text, length, fold, has_nl_semi);
         } else {
             result = CIF_DISALLOWED_VALUE;
         }
@@ -1066,24 +1054,28 @@ static int write_quoted(void *context, const UChar *text, int32_t length, char d
     return (nchars == (length + 2)) ? CIF_OK : CIF_ERROR;
 }
 
-static int write_triple_quoted(void *context, const UChar *text, int32_t line1_length, char delimiter) {
+static int write_triple_quoted(void *context, const UChar *text, int32_t line1_length, int32_t last_line_length,
+        char delimiter) {
     int32_t nchars;
     int last_column = LAST_COLUMN(context);
 
-    if ((last_column + length + 6) > LINE_LENGTH(context)) {
+    if ((last_column + line1_length + 3) > LINE_LENGTH(context)) {
         if (write_newline(context)) {
             last_column = 0;
         } else {
             return CIF_ERROR;
         }
+    } else if (text[line1_length]) {
+        assert(text[line1_length] == '\n');
+        last_column = 0;  /* as-of before writing the last line */
     }
 
-    nchars = u_fprintf(CONTEXT_UFILE(context), "%c%c%c%*.*S%c%c%c", delimiter, delimiter, delimiter, length, length,
+    nchars = u_fprintf(CONTEXT_UFILE(context), "%c%c%c%S%c%c%c", delimiter, delimiter, delimiter,
             text, delimiter, delimiter, delimiter);
 
-    SET_LAST_COLUMN(context, last_column + nchars);
+    SET_LAST_COLUMN(context, last_column + last_line_length + 3);
 
-    return (nchars == (length + 6)) ? CIF_OK : CIF_ERROR;
+    return (nchars >= (line1_length + 6)) ? CIF_OK : CIF_ERROR;
 }
 
 static int write_numb(void *context, cif_value_t *numb_value) {
