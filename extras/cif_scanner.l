@@ -26,10 +26,9 @@
 /*
  * Because CIF 2.0 is fundamentally an 8-bit binary format (always representing characters as their Unicode code point
  * values encoded according to UTF-8) it is essential that the scanner handle input bytes with their high bit set.  It
- * also must not attempt to perform its own case folding, as that is a locale and code page sensitive operation that
+ * also must not attempt to perform its own case folding, as that is a locale- and code-page-sensitive operation that
  * does not produce the same result on every system.
  */
-
 %option 8bit
 %option nocase-insensitive
 
@@ -155,7 +154,10 @@ NSEMI {PLAIN}|{HASH}|{UNDER}|{SQ}|{DQ}|{DOLAR}|{OBRAK}|{CBRAK}|{OCURL}|{CCURL}|{
 NONWS {VALCH}|{OBRAK}|{CBRAK}|{OCURL}|{CCURL}
   /* NEOL bytes can be any allowed byte that does not terminate CIF lines */
 NEOL  {NONWS}|{BL}
-
+  /* SQ3CH bytes can appear in a triple-apostrophe-quoted string */
+SQ3CH {NOTSQ}|{EOL}
+  /* SQ3CH bytes can appear in a triple-quote-quoted string */
+DQ3CH {NOTDQ}|{EOL}
 
 /*
  * Useful larger-scale definitions
@@ -168,6 +170,21 @@ BOM   \357\273\277
 TSTART {EOL}{SEMI}{NEOL}*
 TCONT {EOL}({NSEMI}{NEOL}*)?
 TEND  {EOL}{SEMI}
+
+/* SQ3 is the delimiter of triple-apostrophe-quoted strings */
+SQ3   {SQ}{SQ}{SQ}
+/* DQ3 is the delimiter of triple-quote-quoted strings */
+DQ3   {DQ}{DQ}{DQ}
+/*
+ * NOTSQ3 byte sequences are all subsequences of allowable triple-apostrophe-quoted
+ * strings that contain exactly one byte from class SQ3CH, with that occurring last
+ */
+NOTSQ3 {SQ3CH}|{SQ}{SQ3CH}|{SQ}{SQ}{SQ3CH}
+/*
+ * NOTDQ3 byte sequences are all subsequences of allowable triple-quote-quoted
+ * strings that contain exactly one byte from class DQ3CH, with that occurring last
+ */
+NOTDQ3 {DQ3CH}|{DQ}{DQ3CH}|{DQ}{DQ}{DQ3CH}
 
 /* UTF-8 encoding of "#\#CIF_2.0": */
 V2    {HASH}\134{HASH}\103\111\106{UNDER}\062\056\060
@@ -203,13 +220,19 @@ V2    {HASH}\134{HASH}\103\111\106{UNDER}\062\056\060
 {OCURL}                           RETURN(TABLE_OPEN);
 {CCURL}                           RETURN(TABLE_CLOSE);
 {SQ}{NOTSQ}*{SQ}{COLON}           |
-{DQ}{NOTDQ}*{DQ}{COLON}           RETURN(KEY); /* table key */
+{DQ}{NOTDQ}*{DQ}{COLON}           |
+{SQ3}{NOTSQ3}*{SQ3}{COLON}        |
+{DQ3}{NOTDQ3}*{DQ3}{COLON}        RETURN(KEY); /* table key */
 
     /* quoted values (including malformed ones) */
 {SQ}{NOTSQ}*{SQ}                  |
-{DQ}{NOTDQ}*{DQ}                  RETURN(SIMPLE_VALUE); /* in-line quoted value */
-{SQ}{NOTSQ}*                      ERROR(SIMPLE_VALUE);  /* error: unterminated sq-string */
-{DQ}{NOTDQ}*                      ERROR(SIMPLE_VALUE);  /* error: unterminated dq-string */
+{DQ}{NOTDQ}*{DQ}                  |
+{SQ3}{NOTSQ3}*{SQ3}               |
+{DQ3}{NOTDQ3}*{DQ3}               RETURN(SIMPLE_VALUE); /* in-line quoted value */
+{SQ}{NOTSQ}*                      |
+{DQ}{NOTDQ}*                      |
+{SQ3}{NOTSQ3}*                    |
+{DQ3}{NOTDQ3}*                    ERROR(SIMPLE_VALUE);  /* error: unterminated dq-string */
 {TSTART}{TCONT}*{TEND}            RETURN(TEXT_FIELD);
 {TSTART}{TCONT}*                  ERROR(TEXT_FIELD);    /* error: unterminated text field */
     /* The following qualified text field rules are not strictly necessary, as a text field cannot be valid in the
@@ -229,7 +252,7 @@ V2    {HASH}\134{HASH}\103\111\106{UNDER}\062\056\060
 {L}{O}{O}{P}{UNDER}{VALCH}+       |
 {S}{T}{O}{P}{UNDER}{VALCH}+       |
     /* The following rule will not fire for text field delimiters because the appropriate whole-text-field rule above
-     * appears first and will match at least as many bytes. */
+     * (either the regular or the error rule) appears first and will match at least as many bytes. */
 ({PLAIN}|{SEMI}){VALCH}*          RETURN(SIMPLE_VALUE); /* bare value */
 
     /* whitespace and whitespace-related malformations */

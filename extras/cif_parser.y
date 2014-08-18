@@ -127,6 +127,7 @@ save_frame:  frame_body FRAME_TERMINATOR
   ;
 
 frame_body: FRAME_HEADER whitespace
+    | frame_body save_frame whitespace
     | frame_body item whitespace
     | frame_body loop                  /* loops already provide trailing whitespace */
   ;
