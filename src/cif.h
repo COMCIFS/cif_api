@@ -636,7 +636,7 @@ typedef enum {
 } cif_kind_t;
 
 /**
- * @brief A set of functions definining a handler interface for directing and taking appropriate action in response
+ * @brief A set of functions defining a handler interface for directing and taking appropriate action in response
  *     to a traversal of a CIF.
  *
  * Each structural element of the CIF being traversed will be presented to the appropriate handler function,
@@ -889,6 +889,20 @@ struct cif_parse_opts_s {
     void *user_data;
 };
 
+/**
+ * @brief Represents a collection of CIF writing options.
+ *
+ * This is a place-holder for future options.  No CIF write options are defined for the present version of the CIF API.
+ */
+struct cif_write_opts_s {
+
+    /**
+     * @brief serves solely to prevent the structure from being empty, lest that present an issue for certain
+     *        compilers or runtime libraries.
+     */
+    int unused;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -960,9 +974,10 @@ CIF_INTFUNC_DECL(cif_parse, (
  *
  * Obtaining a parse options structure via this function insulates programs against additions to the option list in
  * future versions of the library.  Programs may create @c cif_parse_opts_s objects by other means -- for example, by
- * allocating them on the stack -- but programs that do so are likely to crash if dynamically linked against a future
- * version of the library that adds fields to the structure definition, perhaps even if they are re-compiled against
- * revised library headers.  This is not an issue for statically-linked programs that fully initialize their options.
+ * allocating them on the stack -- but the behavior of programs that do may be undefined if they are dynamically linked
+ * against a future version of the library that adds fields to the structure definition, perhaps even if they are
+ * re-compiled against revised library headers.  This is not an issue for statically-linked programs that fully
+ * initialize their options.
  *
  * On successful return, the provided options object belongs to the caller.
  *
@@ -1007,14 +1022,39 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
  * @param[in,out] stream a @c FILE @c * to which to write the CIF format output; must be a non-NULL pointer to a
  *         writable stream.
  *
- * @param[in] cif a handle on the managed CIF object to output; must be non-NULL and valid.
+ * @param[in] options
+ *
+ * @param[in] options a pointer to a @c struct @c cif_write_opts_s object describing options to use for writing, or
+ *         @c NULL to use default values for all options
  *
  * @return Returns @c CIF_OK if the data are fully written, or else an error code (typically @c CIF_ERROR ).
  *         The stream state is undefined after a failure.
  */
 CIF_INTFUNC_DECL(cif_write, (
         FILE *stream,
+        struct cif_write_opts_s *options,
         cif_t *cif
+        ));
+
+/**
+ * @brief Allocates a write options structure and initializes it with default values.
+ *
+ * Obtaining a write options structure via this function insulates programs against additions to the option list in
+ * future versions of the library.  Programs may create @c cif_write_opts_s objects by other means -- for example, by
+ * allocating them on the stack -- but the behavior of programs that do may be undefined if they are dynamically linked
+ * against a future version of the library that adds fields to the structure definition, perhaps even if they are
+ * re-compiled against revised library headers.  This is not an issue for statically-linked programs that fully
+ * initialize their options.
+ *
+ * On successful return, the provided options object belongs to the caller.
+ *
+ * @param[in,out] opts a the location where a pointer to the new write options structure should be recorded.  The
+ *         initial value of @p *opts is ignored, and is overwritten on success.
+ *
+ * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
+ */
+CIF_INTFUNC_DECL(cif_write_options_create, (
+        struct cif_write_opts_s **opts
         ));
 
 /**
@@ -1139,8 +1179,8 @@ CIF_INTFUNC_DECL(cif_get_all_blocks, (
  *        routines provided by the caller for each structural element
  *
  * Traverses the tree structure of a CIF, invoking caller-specified handler functions for each structural element
- * along the route.  Order is block -> [frame ->] loop -> packet -> item, with save frames being traversed before loops
- * within each data block.  Handler callbacks can influence the walker's path via their return values,
+ * along the route.  Order is block -> [frame -> ...] loop -> packet -> item, with save frames being traversed before
+ * loops within each data block.  Handler callbacks can influence the walker's path via their return values,
  * instructing it to continue as normal (@c CIF_TRAVERSE_CONTINUE), to avoid traversing the children of the current
  * element (@c CIF_TRAVERSE_SKIP_CURRENT), to avoid traversing subsequent siblings of the current element
  * (@c CIF_TRAVERSE_SKIP_SIBLINGS), or to terminate the walk altogether (@c CIF_TRAVERSE_END).  For the purposes of

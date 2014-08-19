@@ -54,23 +54,29 @@ typedef struct {
     UFILE *file;
     int write_item_names;
     int last_column;
+    int depth;
 } write_context_t;
 
 /* Unicode strings important for determining possible output formats for char values */
 static const UChar dq3[4] = { '"', '"', '"', 0 };
 static const UChar sq3[4] = { '\'', '\'', '\'', 0 };
 static const UChar nl[2] = { '\n', 0 };
+static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
 
 /* the true data type of the CIF walker context pointers used by the CIF-writing functions */
 #define CONTEXT_S write_context_t
 #define CONTEXT_T CONTEXT_S *
-#define CONTEXT_INITIALIZE(c, f) do { c.file = f; c.write_item_names = CIF_FALSE; c.last_column = 0; } while (CIF_FALSE)
+#define CONTEXT_INITIALIZE(c, f) do { \
+    c.file = f; c.write_item_names = CIF_FALSE; c.last_column = 0; c.depth = 0; \
+} while (CIF_FALSE)
 #define CONTEXT_UFILE(c) (((CONTEXT_T)(c))->file)
 #define SET_WRITE_ITEM_NAMES(c,v) do { ((CONTEXT_T)(c))->write_item_names = (v); } while (CIF_FALSE)
 #define IS_WRITE_ITEM_NAMES(c) (((CONTEXT_T)(c))->write_item_names)
 #define SET_LAST_COLUMN(c,l) do { ((CONTEXT_T)(c))->last_column = (l); } while (CIF_FALSE)
 #define LAST_COLUMN(c) (((CONTEXT_T)(c))->last_column)
 #define LINE_LENGTH(c) (CIF_LINE_LENGTH)
+#define CONTEXT_DEPTH(c) (((CONTEXT_T)(c))->depth)
+#define CONTEXT_INC_DEPTH(c, inc) do { ((CONTEXT_T)(c))->depth += (inc); } while (CIF_FALSE)
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,22 +103,12 @@ static int write_cif_end(cif_t *cif, void *context);
 /*
  * Handles the beginning of a CIF data block by outputting a block header
  */
-static int write_block_start(cif_container_t *block, void *context);
+static int write_container_start(cif_container_t *block, void *context);
 
 /*
  * Handles the end of a CIF data block by outputting a newline
  */
-static int write_block_end(cif_container_t *block, void *context);
-
-/*
- * Handles the beginning of a save frame by outputting a frame header
- */
-static int write_frame_start(cif_container_t *frame, void *context);
-
-/*
- * Handles the end of a save frame by outputting a frame terminator
- */
-static int write_frame_end(cif_container_t *frame, void *context);
+static int write_container_end(cif_container_t *block, void *context);
 
 /*
  * Handles the beginning of a loop by outputting a loop header
@@ -231,6 +227,21 @@ int cif_parse_options_create(struct cif_parse_opts_s **opts) {
         opts_temp->whitespace_callback = NULL;
         opts_temp->error_callback = NULL;
         opts_temp->user_data = NULL;
+        /* members having integral types are pre-initialized to zero because calloc() clears the memory it allocates */
+
+        *opts = opts_temp;
+        return CIF_OK;
+    }
+}
+
+int cif_write_options_create(struct cif_write_opts_s **opts) {
+    struct cif_write_opts_s *opts_temp = (struct cif_write_opts_s *) calloc(1, sizeof(struct cif_parse_opts_s));
+
+    if (opts_temp == NULL) {
+        return CIF_ERROR;
+    } else {
+        /* explicitly initialize all pointer members */
+
         /* members having integral types are pre-initialized to zero because calloc() clears the memory it allocates */
 
         *opts = opts_temp;
@@ -477,14 +488,14 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
  * Formats the CIF data represented by the 'cif' handle to the specified
  * output.
  */
-int cif_write(FILE *stream, cif_t *cif) {
+int cif_write(FILE *stream, struct cif_write_opts_s *options UNUSED, cif_t *cif) {
     cif_handler_t handler = {
         write_cif_start,
         write_cif_end,
-        write_block_start,
-        write_block_end,
-        write_frame_start,
-        write_frame_end,
+        write_container_start,
+        write_container_end,
+        write_container_start,
+        write_container_end,
         write_loop_start,
         write_loop_end,
         write_packet_start,
@@ -519,37 +530,30 @@ static int write_cif_end(cif_t *cif UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
-static int write_block_start(cif_container_t *block, void *context) {
+static int write_container_start(cif_container_t *block, void *context) {
     UChar *code;
     int result = cif_container_get_code(block, &code);
+    const char *this_header_type = header_type[(CONTEXT_DEPTH(context) == 0) ? 0 : 1];
 
     if (result == CIF_OK) {
-        result = ((u_fprintf(CONTEXT_UFILE(context), "\ndata_%S\n", code) > 7) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
+        result = ((u_fprintf(CONTEXT_UFILE(context), this_header_type, code) > 7) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
         SET_LAST_COLUMN(context, 0);
+        if (result == CIF_TRAVERSE_CONTINUE) {
+            CONTEXT_INC_DEPTH(context, 1);
+        }
         free(code);
     }
     return result;
 }
 
-static int write_block_end(cif_container_t *block UNUSED, void *context) {
-    return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
-}
-
-static int write_frame_start(cif_container_t *frame, void *context) {
-    UChar *code;
-    int result = cif_container_get_code(frame, &code);
-
-    if (result == CIF_OK) {
-        result = ((u_fprintf(CONTEXT_UFILE(context), "\nsave_%S\n", code) > 7) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
-        SET_LAST_COLUMN(context, 0);
-        free(code);
-    }
-    return result;
-}
-
-static int write_frame_end(cif_container_t *frame UNUSED, void *context) {
+static int write_container_end(cif_container_t *block UNUSED, void *context) {
+    CONTEXT_INC_DEPTH(context, -1);
     SET_LAST_COLUMN(context, 0);  /* anticipates the next line */
-    return ((u_fprintf(CONTEXT_UFILE(context), "\nsave_\n") > 6) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
+    if (CONTEXT_DEPTH(context) == 0) {
+        return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
+    } else {
+        return ((u_fprintf(CONTEXT_UFILE(context), "\nsave_\n") > 6) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
+    }
 }
 
 static int write_loop_start(cif_loop_t *loop, void *context) {
