@@ -259,6 +259,7 @@ EXTRA_DIST = \
   test-data/simple_loops.cif \
   test-data/table_data.cif \
   test-data/text_fields.cif \
+  test-data/triple.cif \
   test-data/unicode.cif \
   test-data/ver1.cif \
   test-data/ver2.cif \
