@@ -1,5 +1,11 @@
 Extra CIF-related Files
 
+cif2.ebnf
+---------
+This file provides a description of the CIF2 language in ISO/IEC 14977 EBNF form.  Although machine-readable, it is
+intended as reference material rather than as direct source material for a functioning parser.
+
+
 cif_parser.y
 ------------
 This file provides a CIF 2.0 grammar suitable for use with the GNU Bison parser generator.  It does rely on a few
