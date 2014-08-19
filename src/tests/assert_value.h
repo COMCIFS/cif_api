@@ -6,6 +6,9 @@
  * Copyright (C) 2014 John C. Bollinger.  All rights reserved.
  */
 
+#ifndef ASSERT_VALUE_H
+#define ASSERT_VALUE_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unicode/ustring.h>
@@ -145,3 +148,4 @@ static int assert_tables_equal(cif_value_t *table1, cif_value_t *table2) {
     }
 }
 
+#endif
