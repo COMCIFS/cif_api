@@ -254,6 +254,7 @@ EXTRA_DIST = \
   test-data/ddl.dic \
   test-data/empty.cif \
   test-data/list_data.cif \
+  test-data/nested.cif \
   test-data/simple_containers.cif \
   test-data/simple_data.cif \
   test-data/simple_loops.cif \

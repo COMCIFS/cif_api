@@ -101,6 +101,7 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_container_get_category_loop$(EXEEXT) \
 	tests/test_container_get_item_loop$(EXEEXT) \
 	tests/test_container_get_all_loops$(EXEEXT) \
+	tests/test_nested_frames$(EXEEXT) \
 	tests/test_loop_get_names$(EXEEXT) \
 	tests/test_value_create$(EXEEXT) \
 	tests/test_value_get_number$(EXEEXT) \
@@ -138,9 +139,9 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_parse_unicode$(EXEEXT) \
 	tests/test_parse_text_fields$(EXEEXT) \
 	tests/test_parse_minimal$(EXEEXT) \
-	tests/test_parse_core$(EXEEXT) \
 	tests/test_parse_triple$(EXEEXT) \
-	tests/test_nested_frames$(EXEEXT) \
+	tests/test_parse_nested$(EXEEXT) \
+	tests/test_parse_core$(EXEEXT) \
 	tests/test_write_simple$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
@@ -335,6 +336,10 @@ tests_test_parse_minimal_SOURCES = tests/test_parse_minimal.c
 tests_test_parse_minimal_OBJECTS = test_parse_minimal.$(OBJEXT)
 tests_test_parse_minimal_LDADD = $(LDADD)
 tests_test_parse_minimal_DEPENDENCIES = libcif.la
+tests_test_parse_nested_SOURCES = tests/test_parse_nested.c
+tests_test_parse_nested_OBJECTS = test_parse_nested.$(OBJEXT)
+tests_test_parse_nested_LDADD = $(LDADD)
+tests_test_parse_nested_DEPENDENCIES = libcif.la
 tests_test_parse_simple_containers_SOURCES =  \
 	tests/test_parse_simple_containers.c
 tests_test_parse_simple_containers_OBJECTS =  \
@@ -454,7 +459,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
-	tests/test_parse_simple_containers.c \
+	tests/test_parse_nested.c tests/test_parse_simple_containers.c \
 	tests/test_parse_simple_data.c tests/test_parse_simple_loops.c \
 	tests/test_parse_table_data.c tests/test_parse_text_fields.c \
 	tests/test_parse_triple.c tests/test_parse_unicode.c \
@@ -489,7 +494,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
-	tests/test_parse_simple_containers.c \
+	tests/test_parse_nested.c tests/test_parse_simple_containers.c \
 	tests/test_parse_simple_data.c tests/test_parse_simple_loops.c \
 	tests/test_parse_table_data.c tests/test_parse_text_fields.c \
 	tests/test_parse_triple.c tests/test_parse_unicode.c \
@@ -630,7 +635,7 @@ LIB_REVISION = 0
 LIB_AGE = 0
 LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
 EXTRA_DIST = notes.txt style.txt tests/test.h tests/assert_value.h \
-	tests/link.test
+	tests/assert_cifs.h tests/link.test
 
 # For valgrind tests:
 # TODO: find a cleaner way to do this
@@ -659,6 +664,7 @@ compiled_tests = \
     tests/test_container_get_category_loop \
     tests/test_container_get_item_loop \
     tests/test_container_get_all_loops \
+    tests/test_nested_frames \
     tests/test_loop_get_names \
     tests/test_value_create \
     tests/test_value_get_number \
@@ -698,9 +704,9 @@ compiled_tests = \
     tests/test_parse_unicode \
     tests/test_parse_text_fields \
     tests/test_parse_minimal \
-    tests/test_parse_core \
     tests/test_parse_triple \
-    tests/test_nested_frames \
+    tests/test_parse_nested \
+    tests/test_parse_core \
     tests/test_write_simple
 
 
@@ -955,6 +961,9 @@ tests/test_parse_list_data$(EXEEXT): $(tests_test_parse_list_data_OBJECTS) $(tes
 tests/test_parse_minimal$(EXEEXT): $(tests_test_parse_minimal_OBJECTS) $(tests_test_parse_minimal_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_minimal$(EXEEXT)
 	$(LINK) $(tests_test_parse_minimal_OBJECTS) $(tests_test_parse_minimal_LDADD) $(LIBS)
+tests/test_parse_nested$(EXEEXT): $(tests_test_parse_nested_OBJECTS) $(tests_test_parse_nested_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_parse_nested$(EXEEXT)
+	$(LINK) $(tests_test_parse_nested_OBJECTS) $(tests_test_parse_nested_LDADD) $(LIBS)
 tests/test_parse_simple_containers$(EXEEXT): $(tests_test_parse_simple_containers_OBJECTS) $(tests_test_parse_simple_containers_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_simple_containers$(EXEEXT)
 	$(LINK) $(tests_test_parse_simple_containers_OBJECTS) $(tests_test_parse_simple_containers_LDADD) $(LIBS)
@@ -1064,6 +1073,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_core.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_list_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_minimal.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_nested.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_simple_containers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_simple_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_simple_loops.Po@am__quote@
@@ -1665,6 +1675,20 @@ test_parse_minimal.obj: tests/test_parse_minimal.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_minimal.c' object='test_parse_minimal.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_minimal.obj `if test -f 'tests/test_parse_minimal.c'; then $(CYGPATH_W) 'tests/test_parse_minimal.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_minimal.c'; fi`
+
+test_parse_nested.o: tests/test_parse_nested.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_nested.o -MD -MP -MF $(DEPDIR)/test_parse_nested.Tpo -c -o test_parse_nested.o `test -f 'tests/test_parse_nested.c' || echo '$(srcdir)/'`tests/test_parse_nested.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_nested.Tpo $(DEPDIR)/test_parse_nested.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_nested.c' object='test_parse_nested.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_nested.o `test -f 'tests/test_parse_nested.c' || echo '$(srcdir)/'`tests/test_parse_nested.c
+
+test_parse_nested.obj: tests/test_parse_nested.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_nested.obj -MD -MP -MF $(DEPDIR)/test_parse_nested.Tpo -c -o test_parse_nested.obj `if test -f 'tests/test_parse_nested.c'; then $(CYGPATH_W) 'tests/test_parse_nested.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_nested.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_nested.Tpo $(DEPDIR)/test_parse_nested.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_nested.c' object='test_parse_nested.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_nested.obj `if test -f 'tests/test_parse_nested.c'; then $(CYGPATH_W) 'tests/test_parse_nested.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_nested.c'; fi`
 
 test_parse_simple_containers.o: tests/test_parse_simple_containers.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_simple_containers.o -MD -MP -MF $(DEPDIR)/test_parse_simple_containers.Tpo -c -o test_parse_simple_containers.o `test -f 'tests/test_parse_simple_containers.c' || echo '$(srcdir)/'`tests/test_parse_simple_containers.c

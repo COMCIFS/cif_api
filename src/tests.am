@@ -25,6 +25,7 @@ compiled_tests = \
     tests/test_container_get_category_loop \
     tests/test_container_get_item_loop \
     tests/test_container_get_all_loops \
+    tests/test_nested_frames \
     tests/test_loop_get_names \
     tests/test_value_create \
     tests/test_value_get_number \
@@ -64,9 +65,9 @@ compiled_tests = \
     tests/test_parse_unicode \
     tests/test_parse_text_fields \
     tests/test_parse_minimal \
-    tests/test_parse_core \
     tests/test_parse_triple \
-    tests/test_nested_frames \
+    tests/test_parse_nested \
+    tests/test_parse_core \
     tests/test_write_simple
 # cif_parse
 # - parse into existing CIF
@@ -82,7 +83,7 @@ compiled_tests = \
 # cif_write
 
 check_PROGRAMS = $(compiled_tests)
-EXTRA_DIST += tests/test.h tests/assert_value.h
+EXTRA_DIST += tests/test.h tests/assert_value.h tests/assert_cifs.h
 
 TESTS = \
   tests/link.test \
