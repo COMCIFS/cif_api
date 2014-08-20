@@ -148,15 +148,13 @@ int cif_create(cif_t **cif) {
 }
 
 int cif_destroy(cif_t *cif) {
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt *stmt;
 
-    /* ensure that there is no open transaction; will fail harmlessly if not */
+    /* ensure that there is no open transaction; will fail harmlessly if there already is none */
     ROLLBACK(cif->db);
 
-    /* clean up any outstanding prepared statements */
-    while (CIF_TRUE) {
-        stmt = sqlite3_next_stmt(cif->db, stmt);
-        if (stmt == NULL) break;
+    /* Clean up any outstanding prepared statements */
+    while ((stmt = sqlite3_next_stmt(cif->db, NULL))) {
         DEBUG_WRAP(cif->db,sqlite3_finalize(stmt));
     }
 
@@ -564,7 +562,8 @@ static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context) {
         if (result != CIF_OK) {
             return result;
         } else {
-            cif_packet_t *packet;
+            cif_packet_t *packet = NULL;
+            int close_result;
 
             while ((result = cif_pktitr_next_packet(iterator, &packet)) == CIF_OK) {
                 int packet_result = walk_packet(packet, handler, context);
@@ -572,13 +571,22 @@ static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context) {
                 switch (packet_result) {
                     case CIF_TRAVERSE_CONTINUE:
                     case CIF_TRAVERSE_SKIP_CURRENT:
-                        break;
+                        continue;
                     case CIF_TRAVERSE_SKIP_SIBLINGS:
-                        return CIF_TRAVERSE_CONTINUE;
-                    default:  /* CIF_TRAVERSE_END or error code */
-                        return packet_result;
+                        packet_result = CIF_TRAVERSE_CONTINUE;
+                        break;
+                    /* else CIF_TRAVERSE_END or error code */
                 }
+
+                /* control reaches this point only on error */
+                result = packet_result;
+                break;
             }
+
+            /* The iterator must be closed or aborted; we choose to close in case the walker modified the CIF */
+            if (((close_result = cif_pktitr_close(iterator)) != CIF_OK) && (result == CIF_FINISHED)) {
+                result = close_result;
+            } /* else suppress any second error in favor of a first one */
 
             if (result != CIF_FINISHED) {
                 return result;

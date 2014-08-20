@@ -132,65 +132,77 @@ static int write_packet_start(cif_packet_t *packet, void *context);
 static int write_packet_end(cif_packet_t *packet, void *context);
 
 /*
- * Handles a data item by outputting it, possibly preceeded by its
- * data name
+ * Handles a data item by outputting it, possibly preceded by its data name
  */
 static int write_item(UChar *name, cif_value_t *value, void *context);
 
 /*
- * An internal function for writing a list value
+ * An internal function for writing a list value.  Returns a CIF API result code.
  */
 static int write_list(void *context, cif_value_t *char_value);
 
 /*
- * An internal function for writing a table value
+ * An internal function for writing a table value.  Returns a CIF API result code.
  */
 static int write_table(void *context, cif_value_t *char_value);
 
 /*
- * An internal function for writing a char value in an appropriate form
+ * An internal function for writing a char value in an appropriate form.  Returns a CIF API result code.
  */
 static int write_char(void *context, cif_value_t *char_value, int allow_text);
 
 /*
- * An internal function for writing a text block
+ * An internal function for writing a text block.  Returns a CIF API result code.
  */
 static int write_text(void *context, UChar *text, int32_t length, int fold, int prefix);
 
 /*
- * An internal function for performing line folding in a text block
+ * @brief computes the best length for the next segment of a folded text block line
+ *
+ * This function attempts to fold before a word boundary, but will split words if there are no suitable boundaries
+ * in the target window.  Will not split surrogate pairs.
+ *
+ * @param[in] line a pointer to the beginning of the line to fold
+ * @param[in] do_fold indicates whether to actually perform folding.  If this argument evaluates to false, then the
+ *         full number of code units in @c line is returned
+ * @param[in] target_length the desired length of the folded segment, in code @i units (not code @i points )
+ * @param[in] window the variance allowed in the length of folded segments other than the last, in code units
+ *
+ * @return the number of code units in the first folded segment; zero if @c line is an empty Unicode string
  */
 static int fold_line(const UChar *line, int do_fold, int target_length, int window);
 
 /*
- * An internal function for writing a character value in quoted form
+ * An internal function for writing a character value in quoted form.  Returns a CIF API result code.
  */
 static int write_quoted(void *context, const UChar *text, int32_t length, char delimiter);
 
 /*
- * An internal function for writing a character value in triple-quoted form
+ * An internal function for writing a character value in triple-quoted form.  Returns a CIF API result code.
  */
 static int write_triple_quoted(void *context, const UChar *text, int32_t line1_length, int32_t last_line_length,
         char delimiter);
 
 /*
- * An internal function for writing a NUMB value
+ * An internal function for writing a NUMB value.  Returns a CIF API result code.
  */
 static int write_numb(void *context, cif_value_t *numb_value);
 
 /*
- * An internal function for outputting a literal byte string
+ * An internal function for outputting a literal byte string.  Returns the number of Unicode characters written,
+ * or -1 times the numeric value of a CIF error code if an error occurs.
  */
 static int32_t write_literal(void *context, const char *text, int length, int wrap);
 
 /*
- * An internal function for outputting a Unicode string literal
+ * An internal function for outputting a Unicode string literal.  Returns the number of Unicode characters written,
+ * or -1 times the numeric value of a CIF error code if an error occurs.
  */
 static int32_t write_uliteral(void *context, const UChar *text, int length, int wrap);
 
 /*
- * An internal function for outputting a newline; helps keep track of the
- * current column to which output is being directed.
+ * An internal function for outputting a newline; helps keep track of the current column to which output is being
+ * directed.  Returns a truthy (nonzero) int on success, or a falsey (0) int on failure.
  */
 static int write_newline(void *context);
 
@@ -862,6 +874,7 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
 
         /* if control reaches this point then all alternatives other than a text block have been ruled out */
         if (allow_text) {
+            /* TODO: prefixing will also be necessary if there is a run of LINE_LENGTH or more semicolons */
             /* write as a text block, possibly with line-folding and/or prefixing  */
             int fold = ((max_line > LINE_LENGTH(context))
                     || ((!has_nl_semi) && ((first_line + 1) > LINE_LENGTH(context))));
@@ -973,20 +986,6 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
     return CIF_OK;
 }
 
-/**
- * @brief computes the best length for the next segment of a folded text block line
- *
- * This function attempts to fold before a word boundary, but will split words if there are no suitable boundaries
- * in the target window.  Will not split surrogate pairs.
- *
- * @param[in] line a pointer to the beginning of the line to fold
- * @param[in] do_fold indicates whether to actually perform folding.  If this argument evaluates to false, then the
- *         full number of code units in @c line is returned
- * @param[in] target_length the desired length of the folded segment, in code @i units (not code @i points )
- * @param[in] window the variance allowed in the length of folded segments other than the last, in code units
- *
- * @return the number of code units in the first folded segment; zero for an empty string
- */
 static int fold_line(const UChar *line, int do_fold, int target_length, int window) {
     int low_candidate = -1;
     int len;
@@ -1005,7 +1004,7 @@ static int fold_line(const UChar *line, int do_fold, int target_length, int wind
         }
     }
 
-    for (len += 1; len <= target_length + window; len += 1) {
+    for (; len <= target_length + window; len += 1) {
         if (line[len] == 0) {
             /* the whole string can fit in this fold */
             return len;
@@ -1031,6 +1030,7 @@ static int fold_line(const UChar *line, int do_fold, int target_length, int wind
     }
 
     /* No better candidate was found, so fold at the target length, avoiding splitting surrogate pairs */
+    /* TODO: avoid folding immediately before a semicolon (unless prefixing is in effect, too) */
     if ((line[target_length] >= MIN_TRAIL_SURROGATE) && (line[target_length] <= MAX_SURROGATE)
             && (line[target_length - 1] >= MIN_LEAD_SURROGATE) && (line[target_length - 1] < MIN_TRAIL_SURROGATE)) {
         target_length -= 1;
@@ -1083,12 +1083,13 @@ static int write_triple_quoted(void *context, const UChar *text, int32_t line1_l
 }
 
 static int write_numb(void *context, cif_value_t *numb_value) {
-    int32_t result;
+    int result;
     UChar *text;
 
     if (cif_value_get_text(numb_value, &text) == CIF_OK) {
-        result = write_uliteral(context, text, -1, CIF_WRAP);
+        int32_t nchars = write_uliteral(context, text, -1, CIF_WRAP);
         free(text);
+        result = ((nchars < 0) ? -nchars : ((nchars > 0) ? 0 : CIF_ERROR));
     } else {
         result = CIF_ERROR;
     }

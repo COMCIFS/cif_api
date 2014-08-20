@@ -66,7 +66,8 @@ compiled_tests = \
     tests/test_parse_minimal \
     tests/test_parse_core \
     tests/test_parse_triple \
-    tests/test_nested_frames
+    tests/test_nested_frames \
+    tests/test_write_simple
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
@@ -78,7 +79,6 @@ compiled_tests = \
 #       - w/ backslashes
 # - syntax-only mode
 #
-# cif_walk
 # cif_write
 
 check_PROGRAMS = $(compiled_tests)
