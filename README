@@ -36,7 +36,7 @@ specific to this package follow:
 * Configuring the project for building requires the pkg-config program and
   pkg-config data for ICU.
 
-* The reference C compiler employed for package development was GNU gcc 4.1.2.
+* The reference C compiler employed for package development was GNU gcc 4.4.7.
   Considerable effort was devoted, however, to restricting implementation code
   to the intersection of standard C90 and standard C99, and additionally to
   avoiding code that has different meaning in C and C++.  With very few
