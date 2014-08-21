@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
     RESOLVE_DATADIR(file_name, BUFFER_SIZE - strlen(local_file_name));
     TEST_NOT(file_name[0], 0, test_name, 1);
     strcat(file_name, local_file_name);
+    fprintf(stderr, "test file is %s\n", file_name);
     cif_file = fopen(file_name, "rb");
     TEST(cif_file == NULL, 0, test_name, 2);
 

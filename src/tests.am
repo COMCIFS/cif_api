@@ -68,7 +68,8 @@ compiled_tests = \
     tests/test_parse_triple \
     tests/test_parse_nested \
     tests/test_parse_core \
-    tests/test_write_simple
+    tests/test_write_simple \
+    tests/test_write_complex
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
@@ -91,15 +92,15 @@ TESTS = \
 
 XFAIL_TESTS =
 
-# This should really be AM_TESTS_ENVIRONMENT in an Automake that supports it:
+# This should really be AM_TESTS_ENVIRONMENT in an Automake that supports that.   v1.11 doesn't.
 TESTS_ENVIRONMENT = \
-  CIFAPI_SRC="$(top_srcdir)" \
-  CIF_HEADER_DIR="$(top_srcdir)/src" \
-  CIF_LA=libcif.la \
-  testdir="tests" \
-  CC="$(CC)" \
-  CCLD="$(CCLD)" \
-  LIBTOOL="$(LIBTOOL)"
+  export CIFAPI_SRC="$(top_srcdir)" \
+  export CIF_HEADER_DIR="$(top_srcdir)/src" \
+  export CIF_LA=libcif.la \
+  export testdir="tests" \
+  export CC="$(CC)" \
+  export CCLD="$(CCLD)" \
+  export LIBTOOL="$(LIBTOOL)";
 
 EXTRA_DIST += tests/link.test
 

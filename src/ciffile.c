@@ -53,6 +53,7 @@ typedef struct {
 typedef struct {
     UFILE *file;
     int write_item_names;
+    int separate_values;
     int last_column;
     int depth;
 } write_context_t;
@@ -67,16 +68,32 @@ static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
 #define CONTEXT_S write_context_t
 #define CONTEXT_T CONTEXT_S *
 #define CONTEXT_INITIALIZE(c, f) do { \
-    c.file = f; c.write_item_names = CIF_FALSE; c.last_column = 0; c.depth = 0; \
+    c.file = f; c.write_item_names = CIF_FALSE; c.separate_values = 1; c.last_column = 0; c.depth = 0; \
 } while (CIF_FALSE)
 #define CONTEXT_UFILE(c) (((CONTEXT_T)(c))->file)
 #define SET_WRITE_ITEM_NAMES(c,v) do { ((CONTEXT_T)(c))->write_item_names = (v); } while (CIF_FALSE)
 #define IS_WRITE_ITEM_NAMES(c) (((CONTEXT_T)(c))->write_item_names)
+#define SET_SEPARATE_VALUES(c,v) do { ((CONTEXT_T)(c))->separate_values = (v); } while (CIF_FALSE)
+#define IS_SEPARATE_VALUES(c) (((CONTEXT_T)(c))->separate_values)
 #define SET_LAST_COLUMN(c,l) do { ((CONTEXT_T)(c))->last_column = (l); } while (CIF_FALSE)
 #define LAST_COLUMN(c) (((CONTEXT_T)(c))->last_column)
 #define LINE_LENGTH(c) (CIF_LINE_LENGTH)
 #define CONTEXT_DEPTH(c) (((CONTEXT_T)(c))->depth)
 #define CONTEXT_INC_DEPTH(c, inc) do { ((CONTEXT_T)(c))->depth += (inc); } while (CIF_FALSE)
+
+/*
+ * A value-returning macro that ensures the current output position is preceded by whitespace, outputting appropriate
+ * whitespace if necessary.  Evaluates to true if successful, else to false.
+ *
+ * @param[in]  c a pointer to the write context object describing the current writing context
+ * @param[out] t an lvalue of a signed integral type for use as temporary storage
+ */
+#define ENSURE_SPACED(c, t) ( \
+    (LAST_COLUMN(c) <= 0) || ( \
+        (t = write_literal((c), " ", 1, CIF_NOWRAP)), \
+        ((t == -CIF_OVERLENGTH_LINE) ? write_newline(c) : (t == 1)) \
+    ) \
+)
 
 #ifdef __cplusplus
 extern "C" {
@@ -634,10 +651,11 @@ static int write_packet_end(cif_packet_t *packet UNUSED, void *context) {
 
 static int write_item(UChar *name, cif_value_t *value, void *context) {
     FAILURE_HANDLING;
+    int temp;
 
     /* output the data name if the context so indicates */
     if (IS_WRITE_ITEM_NAMES(context)) {
-        /* write the name at the beginning of the line, with no newline */
+        /* write the name at the beginning of a line */
         if ((LAST_COLUMN(context) > 0) && !write_newline(context)) {
             FAIL(soft, CIF_ERROR);
         }
@@ -646,17 +664,9 @@ static int write_item(UChar *name, cif_value_t *value, void *context) {
         }
     }
 
-    if (LAST_COLUMN(context) > 0) {
-        /* Precede the value with a single space or newline */
-        switch (write_literal(context, " ", 1, CIF_NOWRAP)) {
-            case 1:
-                break;
-            case -CIF_OVERLENGTH_LINE:
-                write_newline(context);
-                break;
-            default:
-                FAIL(soft, CIF_ERROR);
-        }
+    /* Precede the value with a single space or newline if required */
+    if (IS_SEPARATE_VALUES(context) && !ENSURE_SPACED(context, temp)) {
+        FAIL(soft, CIF_ERROR);
     }
 
     /* output the value in a manner determined by its kind */
@@ -699,9 +709,11 @@ static int write_list(void *context, cif_value_t *list_value) {
 
     if (write_literal(context, "[", 1, CIF_WRAP) == 1) {
         int write_names_save = IS_WRITE_ITEM_NAMES(context);
+        int separate_values_save = IS_SEPARATE_VALUES(context);
         size_t index;
 
         SET_WRITE_ITEM_NAMES(context, CIF_FALSE);
+        SET_SEPARATE_VALUES(context, CIF_TRUE);
         for (index = 0; index < count; index += 1) {
             cif_value_t *element;
             int result;
@@ -716,6 +728,7 @@ static int write_list(void *context, cif_value_t *list_value) {
 
         if (write_literal(context, " ]", 2, CIF_WRAP) == 2) {
             /* success */
+            SET_SEPARATE_VALUES(context, separate_values_save);
             SET_WRITE_ITEM_NAMES(context, write_names_save);
             return CIF_OK;
         }
@@ -732,7 +745,9 @@ static int write_table(void *context, cif_value_t *table_value) {
     if ((result = cif_value_get_keys(table_value, &keys)) != CIF_OK) {
         SET_RESULT(result);
     } else {
-        if (write_literal(context, "{", 1, CIF_WRAP) == 1) {
+        int separate_values_save = IS_SEPARATE_VALUES(context);
+
+        if (write_literal(context, "{", 1, separate_values_save) == 1) {
             int write_names_save = IS_WRITE_ITEM_NAMES(context);
             const UChar **key;
 
@@ -753,20 +768,24 @@ static int write_table(void *context, cif_value_t *table_value) {
                 if (cif_value_create(CIF_UNK_KIND, &kv) != CIF_OK) {
                     FAIL(soft, CIF_ERROR);
                 } else {
+                    SET_SEPARATE_VALUES(context, CIF_FALSE);
+
                     /* copying the key is inefficient, but necessitated by the external API */
-                    if (cif_value_copy_char(kv, *key) != CIF_OK) {
+                    if (!ENSURE_SPACED(context, result) || (cif_value_copy_char(kv, *key) != CIF_OK)) {
                         SET_RESULT(CIF_ERROR);
                     } else if ((result = write_char(context, kv, CIF_FALSE)) != CIF_OK) {
                         SET_RESULT(result);
                     } else if (write_literal(context, ":", 1, CIF_NOWRAP) != 1) {
                         SET_RESULT(CIF_ERROR);
-                    } else if ((result = write_item(NULL, value, context)) > 0) {
-                        /* an error code */
-                        SET_RESULT(result);
                     } else {
-                        /* entry successfully written */
-                        cif_value_free(kv);
-                        continue;
+                        if ((result = write_item(NULL, value, context)) > 0) {
+                            /* an error code */
+                            SET_RESULT(result);
+                        } else {
+                            /* entry successfully written */
+                            cif_value_free(kv);
+                            continue;
+                        }
                     }
 
                     /* entry not successfully written -- clean up before failing */
@@ -777,6 +796,7 @@ static int write_table(void *context, cif_value_t *table_value) {
 
             if (write_literal(context, " }", 2, CIF_WRAP) == 2) {
                 /* success */
+                SET_SEPARATE_VALUES(context, separate_values_save);
                 SET_WRITE_ITEM_NAMES(context, write_names_save);
                 SET_RESULT(CIF_OK);
             }
@@ -802,6 +822,7 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
         int32_t this_line = 0;
         int32_t max_line = 0;
         int32_t length = 0;
+        int32_t extra_space = (IS_SEPARATE_VALUES(context) ? 0 : LAST_COLUMN(context));
         int has_nl_semi = CIF_FALSE;
         UChar ch;
 
@@ -838,9 +859,13 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
                 } /* else neither (single) apostrophe or quotation mark is suitable */
 
                 /* maybe triple-delimited */
-                if (max_line <= (LINE_LENGTH(context)) - 6) {
+                /*
+                 * If we are forbidden to precede the value with whitespace then it must fit on the remainder of the
+                 * current line.
+                 */
+                if (max_line <= (LINE_LENGTH(context)) - (6 + extra_space)) {
                     /* 
-                     * line 1 lengths expressed to write_triple_quoted() include the closing delimiter, because it
+                     * line 1 lengths expressed to write_triple_quoted() here include the closing delimiter, because it
                      * will appear on the first line.  Line 1 lengths NEVER include the opening delimiter.
                      */
                     if (u_strstr(text, sq3) == NULL) {
@@ -858,9 +883,9 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
              * We can use triple quotes if neither the first line nor the last is too long, and if the text does not
              * contain both triple delimiters.
              */
-            if ((max_line < (LINE_LENGTH(context) - 3)) 
+            if ((max_line < (LINE_LENGTH(context) - (3 + extra_space)))
                     || ((this_line < (LINE_LENGTH(context) - 3))
-                            && ((first_line = u_strcspn(text, nl)) < (LINE_LENGTH(context - 3))))) {
+                            && ((first_line = u_strcspn(text, nl)) < (LINE_LENGTH(context) - (3 + extra_space))))) {
                 if (u_strstr(text, sq3) == NULL) {
                     result = write_triple_quoted(context, text, first_line, this_line, '\'');
                     goto done;
@@ -1087,7 +1112,7 @@ static int write_numb(void *context, cif_value_t *numb_value) {
     UChar *text;
 
     if (cif_value_get_text(numb_value, &text) == CIF_OK) {
-        int32_t nchars = write_uliteral(context, text, -1, CIF_WRAP);
+        int32_t nchars = write_uliteral(context, text, -1, IS_SEPARATE_VALUES(context));
         free(text);
         result = ((nchars < 0) ? -nchars : ((nchars > 0) ? 0 : CIF_ERROR));
     } else {
