@@ -8,6 +8,11 @@ SUBDIRS = src
 
 ACLOCAL_AMFLAGS = -I m4
 
+doxygen_examples = \
+  misc/basic_parsing.c \
+  misc/parse_errors.c \
+  misc/parser_callbacks.c
+
 EXTRA_DIST = \
   dox-html \
   dox-man \
@@ -44,12 +49,13 @@ EXTRA_DIST = \
   uthash/utarray.h \
   uthash/uthash.h \
   uthash/utlist.h \
-  uthash/utstring.h
+  uthash/utstring.h \
+  $(doxygen_examples)
 
 if make_docs
 doxygen_html_targets = dox-html
 doxygen_man_targets = dox-man
-dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css
+dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
 else
 doxygen_html_targets =
 doxygen_man_targets =

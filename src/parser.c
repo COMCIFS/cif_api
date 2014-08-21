@@ -32,7 +32,7 @@
  * During this time, followup papers refined some of the initial CIF ideas, and ultimately IUCr attempted to bring a
  * little more order to the early CIF world.  Significant during this time was limiting the allowed characters in a CIF
  * to the printable subset of those defined by (7-bit) US-ASCII, plus the tab, vertical tab, form feed, carriage
- * return, and line feed control characters (albeit not necessarilly @em encoded according to ASCII).  This period was
+ * return, and line feed control characters (albeit not necessarily @em encoded according to ASCII).  This period was
  * also marked by the development of semantic conventions, on top of basic CIF, for expressing information such as a
  * limited set of non-ASCII characters and logical lines longer than the 80-character limit.
  *
@@ -50,7 +50,7 @@
  * The primary impetus for another CIF revision arose from the concept of adding "methods" to CIF dictionaries, while
  * continuing to express those dictionaries in CIF format.  This necessitated support for new data types (list and
  * table) in CIF, and the opportunity was taken to also extend CIF's character repertoire to the whole Unicode space.
- * CIF 2.0 also solves the longstanding issue that even restricting characters to 7-bit ASCII, there are data that
+ * CIF 2.0 also solves the long standing issue that even restricting characters to 7-bit ASCII, there are data that
  * cannot be expressed as CIF 1.1 values.
  *
  * The cost of these changes is a considerably higher level of incompatibility between CIF 2.0 and CIF 1.1 than between
@@ -75,42 +75,15 @@
  * @subsection basic-parsing Basic parsing
  * Historically, a majority of CIF 1.1 parsers have operated by parsing the input into some kind of in-memory
  * representation of the overall CIF, possibly, but not necessarily, independent of the original file.  The
- * @c cif_parse() function operates in this way when its third argument points to a location for a CIF handle: @code
- * void traditional(FILE *in) {
- *     cif_t *cif = NULL;
- *
- *     cif_parse(in, NULL, &cif);
- *     // results are available via 'cif' if anything was successfully parsed
- *     cif_destroy(cif);  // safe even if 'cif' is still NULL
- * }
- * @endcode
+ * @c cif_parse() function operates in this way when its third argument points to a location for a CIF
+ * handle: @include basic_parsing.c
  *
  * By default, however, the parser stops at the first error it encounters.  Inasmuch as very many CIFs contain at least
  * minor errors, it may be desirable to instruct the parser to attempt to push past all or certain kinds of errors,
  * extracting a best-guess interpretation of the remainder of the input.  Such behavior can be obtained by providing an
  * error-handling callback function of type matching @c cif_parse_error_callback_t .  Such a function serves not only
  * to control which errors are bypassed, but also, if so written, to pass on details of each error to the caller.  For
- * example, this code counts the number of CIF syntax and semantic errors in the input CIF: @code
- * int record_error(int error_code, size_t line, size_t column, const UChar *text, size_t length, void *data) {
- *     ((int *) data) += 1;
- *     return CIF_OK;
- * }
- * void count_errors(FILE *in) {
- *     cif_t *cif = NULL;
- *     int num_errors = 0;
- *     struct cif_parse_opts_s *opts = NULL;
- *
- *     cif_parse_options_create(&opts);
- *     opts->error_callback = record_error;
- *     opts->user_data = &num_errors;
- *     cif_parse(in, opts, &cif);
- *     free(opts);
- *     // the parsed results are available via 'cif'
- *     // the number of errors is available in 'num_errors'
- *     // ...
- *     cif_destroy(cif);
- * }
- * @endcode
+ * example, this code counts the number of CIF syntax and semantic errors in the input CIF: @include parse_errors.c
  * 
  * For convenience, the CIF API provides two default error handler callback functions, @c cif_parse_error_die() and
  * @c cif_parse_error_ignore().  As their names imply, the former causes the parse to be aborted on any error (the
@@ -123,41 +96,8 @@
  * caller monitoring and control of the parse process.  The handler callbacks can probe and to some
  * extent modify the CIF as it is parsed, including by instructing the parser to suppress (but not altogether skip)
  * some portions of the input.  This facility has applications from parse-time data selection to validation and beyond;
- * for example, here is a naive approach to assigning loop categories based on loop data names: @code
- * int assign_loop_category(cif_loop_t *loop, void *context) {
- *     UChar **names;
- *     UChar **next;
- *     UChar *dot_location;
- *     const UChar unicode_point = 0x2E;
- *
- *     // We can rely on at least one data name
- *     cif_loop_get_names(loop, &names);
- *     // Assumes the name contains a decimal point (Unicode code point U+002E), and
- *     // takes the category as everything preceding it.  Ignores case sensitivity considerations.
- *     dot_location = u_strchr(names[0] + 1, unicode_point);
- *     *dot_location = 0;
- *     cif_loop_set_category(loop, names[0]);
- *     // Clean up
- *     for (next = names; *next != NULL; next += 1) {
- *         free(*next);
- *     }
- *     free(names);
- * }
- *
- * void parse_with_categories(FILE *in) {
- *     cif_t *cif = NULL;
- *     struct cif_parse_opts_s *opts = NULL;
- *     cif_handler_t handler = { NULL, NULL, NULL, NULL, NULL, NULL, assign_loop_category, NULL, NULL, NULL, NULL };
- *
- *     cif_parse_options_create(&opts);
- *     opts->handler = &handler;
- *     cif_parse(in, opts, &cif);
- *     free(opts);
- *     // the parsed results are available via 'cif'
- *     // ...
- *     cif_destroy(cif);
- * }
- * @endcode
+ * for example, here is a naive approach to assigning loop categories based on loop data
+ * names: @include parser_callbacks.c
  *
  * Note that the parser traverses its input and issues callbacks in document order from start to end, so unlike
  * @c cif_walk(), it does not guarantee to traverse all of a data block's save frames before any of its data.
@@ -563,7 +503,7 @@ int cif_parse_error_ignore(int code UNUSED, size_t line UNUSED, size_t column UN
 }
 
 /*
- * a parser error handler function that rejects all erroneous CIFs.  Always returtns @c code.
+ * a parser error handler function that rejects all erroneous CIFs.  Always returns @c code.
  */
 int cif_parse_error_die(int code, size_t line UNUSED, size_t column UNUSED, const UChar *text UNUSED,
         size_t length UNUSED, void *data UNUSED) {
