@@ -379,10 +379,11 @@
 #define CIF_MISSING_ENDQUOTE  106
 
 /**
- * @brief A result code indicating that a text field remained open when the end of the input was reached.
+ * @brief A result code indicating that a text field or triple-quoted string remained open when the end of the input
+ *         was reached.
  *
- * If the closing delimiter of a text field is omitted then havoc ensues -- likely the entire remainder of the file
- * is parsed incorrectly -- possibly all as a single (unterminated) text field.
+ * If the closing delimiter of a text field or triple-quoted string is omitted then havoc ensues -- likely the entire
+ * remainder of the file is parsed incorrectly -- possibly all as a single (unterminated) multiline value.
  */
 #define CIF_UNCLOSED_TEXT    107
 
@@ -480,6 +481,12 @@
  * The parser distinguishes this case from the "missing key" case by the presence of a colon in the bare string.
  */
 #define CIF_MISQUOTED_KEY     139
+
+/**
+ * @brief A result code indicating that during parsing of a table value, colon-delimited key/value "pair" was
+ * encountered with no key at all (just colon, value)
+ */
+#define CIF_NULL_KEY          140
 
 /**
  * @brief A result code indicating that during parsing, a text field putatively employing the text prefix protocol
