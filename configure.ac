@@ -13,8 +13,8 @@ AC_INIT([CIF API], [0.2.0], [John[.]Bollinger[@]StJude[.]org])
 AC_CONFIG_SRCDIR([src/cif.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE
-dnl AM_INIT_AUTOMAKE([parallel-tests])
+dnl AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([parallel-tests])
 LT_INIT([disable-static])
 AC_CONFIG_HEADERS([config.h])
 
