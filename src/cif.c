@@ -541,7 +541,7 @@ static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *
                         break;
                 }
             }
-            free(*current_loop);
+            cif_loop_free(*current_loop);
         }
 
         free(loops);
@@ -582,6 +582,9 @@ static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context) {
                 result = packet_result;
                 break;
             }
+
+            /* Clean up the packet */
+            cif_packet_free(packet);
 
             /* The iterator must be closed or aborted; we choose to close in case the walker modified the CIF */
             if (((close_result = cif_pktitr_close(iterator)) != CIF_OK) && (result == CIF_FINISHED)) {

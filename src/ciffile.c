@@ -633,6 +633,8 @@ static int write_loop_start(cif_loop_t *loop, void *context) {
         }
     }
 
+    free(category);
+
     return result;
 }
 

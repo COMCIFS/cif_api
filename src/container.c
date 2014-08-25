@@ -894,6 +894,9 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
                                         loop_index < loop_count;
                                         loop_index += 1, next_loop = next_loop->next) {
                                     if (next_loop == NULL) {
+                                        while (loop_index > 0) {
+                                            cif_loop_free(temp_loops[--loop_index]);
+                                        }
                                         free(temp_loops);
                                         FAIL(soft, CIF_INTERNAL_ERROR);
                                     }

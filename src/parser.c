@@ -1324,6 +1324,10 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
         }
     }
 
+    if (loop != NULL) {
+        cif_loop_free(loop);
+    }
+
     return result;
 }
 

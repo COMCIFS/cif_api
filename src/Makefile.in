@@ -700,7 +700,7 @@ CLEANFILES = $(BUILT_SOURCES) tests/linktest.c tests/linktest.lo \
 	tests/linktest
 DISTCLEANFILES = 
 clean_local_targets = 
-VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes --suppressions=$(top_srcdir)/misc/third_party_lib64.supp
+VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes
 # --error-exitcode=<number>
 compiled_tests = \
     tests/test_create \

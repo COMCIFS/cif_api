@@ -157,7 +157,10 @@ static int handle_block_comparison(cif_container_t *block, void *context) {
     other_cif = (cif_t *) stack_p->item;
     if(cif_container_get_code(block, &my_code) == CIF_OK) {
         cif_container_t *other_block;
-        if (cif_get_block(other_cif, my_code, &other_block) == CIF_OK) {
+        int result = cif_get_block(other_cif, my_code, &other_block);
+
+        free(my_code);
+        if (result == CIF_OK) {
             return handle_container(block, other_block, comp_context);
         }
     } /* else no matching block in the other CIF */
@@ -240,6 +243,7 @@ static int finish_container_comparison(cif_container_t *container, void *context
     } else {
         rval = CIF_TRAVERSE_CONTINUE;
     }
+    cif_container_free((cif_container_t *) stack_p->item);
     free(stack_p);
 
     return rval;
@@ -313,10 +317,17 @@ static int handle_loop_comparison(cif_loop_t *loop, void *context) {
                                     /* all names matched with none left over */
                                     cif_pktitr_t *other_packets;
 
-                                    /* set up an appropriate parent context on the context stack */
                                     if (cif_loop_get_packets(other_loop, &other_packets) == CIF_OK) {
-                                        stack_p = (struct context_stack_s *) malloc(sizeof(struct context_stack_s));
+                                        /* set up appropriate grandparent and parent contexts on the context stack */
+                                        stack_p = (struct context_stack_s *) malloc(2 * sizeof(struct context_stack_s));
                                         if (stack_p != NULL) {
+                                            stack_p->item = other_loop;
+                                            stack_p->children_remaining = 0;
+                                            stack_p->elements_remaining = 0;
+                                            stack_p->next = comp_context->parent;
+                                            comp_context->parent = stack_p;
+
+                                            stack_p += 1;
                                             stack_p->item = other_packets;
                                             stack_p->children_remaining = 1;  /* flags whether iteration has finished */
                                             stack_p->elements_remaining = dataname_count;
@@ -351,6 +362,8 @@ static int handle_loop_comparison(cif_loop_t *loop, void *context) {
                         free(other_category);
                     }
                 }
+
+                /* mustn't free other_loop while an iterator depending on it is open */
             }
 
             /* clean up this loop's data name list (as much as is left of it) */
@@ -374,11 +387,11 @@ static int finish_loop_comparison(cif_loop_t *loop, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
     cif_pktitr_t *other_packets;
+    cif_loop_t *other_loop;
     int rval;
 
     assert(stack_p);
     comp_context->parent = stack_p->next;
-    comp_context->parent->elements_remaining -= 1;
     other_packets = (cif_pktitr_t *) stack_p->item;
     if ((stack_p->children_remaining == 0) || (cif_pktitr_next_packet(other_packets, NULL) != CIF_FINISHED)) {
         /* differing numbers of loop packets */
@@ -388,6 +401,12 @@ static int finish_loop_comparison(cif_loop_t *loop, void *context) {
         rval = CIF_TRAVERSE_CONTINUE;
     }
     cif_pktitr_abort(other_packets);  /* ignore any error */
+
+    stack_p = comp_context->parent;
+    comp_context->parent = stack_p->next;
+    comp_context->parent->elements_remaining -= 1;
+    other_loop = (cif_loop_t *) stack_p->item;
+    cif_loop_free(other_loop);
     free(stack_p);
 
     return rval;
@@ -436,6 +455,7 @@ static int finish_packet_comparison(cif_packet_t *packet, void *context) {
     } else {
         rval = CIF_TRAVERSE_CONTINUE;
     }
+    cif_packet_free((cif_packet_t *) stack_p->item);
     free(stack_p);
 
     return rval;
