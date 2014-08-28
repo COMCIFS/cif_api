@@ -228,9 +228,9 @@ static cif_handler_t DEFAULT_CIF_HANDLER = { NULL, NULL, NULL, NULL, NULL, NULL,
 
 /* The CIF parsing options used when none are provided by the caller */
 static struct cif_parse_opts_s DEFAULT_OPTIONS =
-        { 0, NULL, 0, 0, 0, &DEFAULT_CIF_HANDLER, NULL, cif_parse_error_die, NULL };
+        { 0, NULL, 0, 0, 0, 1, &DEFAULT_CIF_HANDLER, NULL, cif_parse_error_die, NULL };
 
-/* The basic magic code identifying many CIFs (including all well-formed CIF 2.0 CIFs): "#\#CIF_" */
+/* The length of the basic magic code identifying many CIFs (including all well-formed CIF 2.0 CIFs): "#\#CIF_" */
 #define MAGIC_LENGTH 7
 
 /* The number of additional characters in a CIF 2.0 magic code that are not covered by the basic magic code */
@@ -257,6 +257,7 @@ int cif_parse_options_create(struct cif_parse_opts_s **opts) {
         opts_temp->error_callback = NULL;
         opts_temp->user_data = NULL;
         /* members having integral types are pre-initialized to zero because calloc() clears the memory it allocates */
+        opts_temp->max_frame_depth = 1;
 
         *opts = opts_temp;
         return CIF_OK;
@@ -290,7 +291,7 @@ int cif_write_options_create(struct cif_write_opts_s **opts) {
  * (3) cannot initially be certain, in general, which encoding is used
  *
  * IMPORTANT: The implementation of this function necessarily involves some implementation-defined (but usually
- * reliable) behavior.  This arises from ICU's reliance on the 'char' data type for binary data (encoded characters),
+ * reliable) behavior.  This arises from ICU's reliance on the 'char' data type for binary data (encoded characters)
  * relative to the implementation freedom C allows for that type, and from the fact that C I/O is ultimately based on
  * units of type 'unsigned char'.  It is not guaranteed that type 'char' can represent as many distinct values as
  * 'unsigned char', or that the bit pattern representing an arbitrary 'unsigned char' is also a valid 'char'
@@ -410,6 +411,7 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
             scanner.cif_version = cif_version;
             scanner.line_unfolding = MIN(options->line_folding_modifier, 1);
             scanner.prefix_removing = MIN(options->text_prefixing_modifier, 1);
+            scanner.max_frame_depth = MIN(options->max_frame_depth, 1);
             scanner.handler = ((options->handler == NULL) ? DEFAULT_OPTIONS.handler : options->handler);
             scanner.error_callback
                     = ((options->error_callback == NULL) ? DEFAULT_OPTIONS.error_callback : options->error_callback);

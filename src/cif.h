@@ -413,6 +413,12 @@
 #define CIF_NO_BLOCK_HEADER   113
 
 /**
+ * @brief A result code indicating that during CIF parsing, a save frame header was encountered but save frame support
+ *         was disabled
+ */
+#define CIF_FRAME_NOT_ALLOWED 122
+
+/**
  * @brief A result code indicating that during CIF parsing, a data block header or save frame header was encountered
  *         while a save frame was being parsed, thus indicating that a save frame terminator must have been omitted
  */
@@ -851,6 +857,23 @@ struct cif_parse_opts_s {
     int text_prefixing_modifier;
 
     /**
+     * @brief The maximum save frame depth.
+     *
+     * If 1, then one level of save frames will be accepted (i.e. save frames are allowed, but must not be nested).
+     * If 0 then all save frames will be rejected as erroneous.  That might be used to ensure that CIF data files (as
+     * opposed to dictionaries) do not contain save frames.
+     * If negative, then save frames are allowed, and may be nested without limit.
+     * Values greater than 1 are @b reserved for possible future use as a bound on save frame nesting depth.
+     *
+     * The current version of STAR allows nested save frames, and their use was proposed for CIF 2, especially for
+     * DDLm dictionaries.  As of this writing, however, save frame nesting has not been accepted into the CIF 2.0
+     * standard.
+     *
+     * The default is 1.
+     */
+    int max_frame_depth;
+
+    /**
      * @brief A set of handler functions by which the application can be notified of details of the parse progress as
      *         they occur, and through which it can influence the data recorded; may be @c NULL.
      *
@@ -1284,6 +1307,10 @@ CIF_INTFUNC_DECL(cif_walk, (
  * This function can optionally return a handle on the new frame via the @c frame argument.  When that option
  * is used, the caller assumes responsibility for cleaning up the provided handle via either @c cif_container_free()
  * (to clean up only the handle) or @c cif_container_destroy() (to also remove the frame from the managed CIF).
+ *
+ * Note that this function exhibits an extension to the CIF 2.0 data model in that, as of this writing, CIF 2.0 does
+ * not permit save frames to contain other save frames, whereas this function will happily create just such nested
+ * frames if asked to do so.
  *
  * @param[in] container a handle on the managed data block object to which a new block should be added; must be
  *        non-NULL and valid.

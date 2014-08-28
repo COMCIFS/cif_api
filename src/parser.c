@@ -924,8 +924,14 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                 } else { 
                     UChar saved = *(token_value + token_length);
 
-                    if (scanner->cif_version < 2) {
-                        /* CIF 1 does not permit nested save frames  */
+                    if (scanner->max_frame_depth == 0) {
+                        /* save frames are not permitted */
+                        result = scanner->error_callback(CIF_FRAME_NOT_ALLOWED, scanner->line,
+                             scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
+                             TVALUE_LENGTH(scanner), scanner->user_data);
+                        /* recover, if so directed, by parsing the save frame normally */
+                    } else if ((scanner->max_frame_depth == 1) && !is_block) {
+                        /* nested save frames are not permitted */
                         result = scanner->error_callback(CIF_NO_FRAME_TERM, scanner->line,
                              scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
                              TVALUE_LENGTH(scanner), scanner->user_data);

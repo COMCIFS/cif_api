@@ -34,7 +34,6 @@ save_CIF_CORE
     _name.category_id            CIF_DIC
     _name.object_id              CIF_CORE
  
-save_ 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
  
@@ -51,7 +50,6 @@ save_EXPERIMENTAL
     _name.category_id            CIF_CORE
     _name.object_id              EXPERIMENTAL
  
-save_ 
 #============================================================================
  
 save_EXPERIMENTS
@@ -88,7 +86,6 @@ save_EXPERIMENTS
                            ${"frame":"exptl_blue"}$
                            ${"frame":"exptl_red"}$
 ;
-save_ 
  
 save_experiments.key
     _definition.id             '_experiments.key'
@@ -127,7 +124,6 @@ save_EXPTL
     _name.category_id            EXPERIMENTS
     _name.object_id              EXPTL
  
-save_ 
  
 save_exptl.id
     _definition.id             '_exptl.id'
@@ -2866,7 +2862,6 @@ save_CHEMICAL
 ;
     _name.category_id            EXPTL
     _name.object_id              CHEMICAL
-save_ 
  
 save_chemical.absolute_configuration
     _definition.id             '_chemical.absolute_configuration'
@@ -3586,7 +3581,6 @@ save_CHEMICAL_CONN_ATOM
     _name.object_id              CHEMICAL_CONN_ATOM
     _category.key_id           '_chemical_conn_atom.key'
     _category.key_list        ['_chemical_conn_atom.number']
-save_ 
  
 save_chemical_conn_atom.key
     _definition.id             '_chemical_conn_atom.key'
@@ -3763,6 +3757,7 @@ save_chemical_conn_atom.type_symbol
     _type.container              Single
     _type.contents               Code
      save_
+save_
  
 #----------------------------------------------------------------------------
  

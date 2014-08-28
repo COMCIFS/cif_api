@@ -286,6 +286,7 @@ struct scanner_s {
     /* custom parse options */
     int line_unfolding;
     int prefix_removing;
+    int max_frame_depth;
 
     /* user callback support */
     cif_handler_t *handler;

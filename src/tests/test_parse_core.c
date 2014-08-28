@@ -16,22 +16,7 @@
 
 static int error_callback(int code, size_t line, size_t column, const UChar *text, size_t length, void *data) {
     fprintf(stderr, "error code %d at line %zu, column %zu\n", code, line, column);
-    switch (code) {
-        case CIF_NO_FRAME_TERM:
-        case CIF_UNEXPECTED_TERM:
-            /*
-             * The dictionary file contains nested save frames, which are not supported by the
-             * parser (nor, indeed, by the version of CIF2 against which it is written).  These
-             * cause the parser to complain about missing frame terminators at the front end,
-             * and about missing terminators at the back end.  We (rather crudely) ignore all
-             * such errors for now.
-             *
-             * XXX: should either fix the parser or fix the file.
-             */
-            return 0;
-        default:
-            return code;
-    }
+    return code;
 }
 
 
@@ -48,6 +33,7 @@ int main(int argc, char *argv[]) {
         0,    /* do not force the default encoding */
         0,    /* unmodified line-folding rules */
         0,    /* unmodified text-prefixing rules */
+        -1,   /* Allow unlimited save frame nesting */
         NULL, /* no CIF handler */
         NULL, /* no whitespace handler */
         error_callback, /* error callback function */
