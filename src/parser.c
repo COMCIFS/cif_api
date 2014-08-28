@@ -174,12 +174,15 @@
  * <tr><td colspan='3'>Save frame codes must be unique within a their containing block or save frame.  To handle a
  *     duplicate block code, the parser reopens the specified frame and parses the following contents into it.  This may
  *     well lead to additional errors being reported.</td></tr>
+ * <tr><td>Disallowed save frame</td><td>@c CIF_FRAME_NOT_ALLOWED</td><td>accept the save frame</td></tr>
+ * <tr><td colspan='3'>This error occurs when a save frame header is encountered while parsing with save frame support
+ *     completely disabled.  The parser recovers by parsing the frame as if save frame support were enabled at the
+ *     default level.</td></tr>
  * <tr><td>Unterminated save frame</td><td>@c CIF_NO_FRAME_TERM</td><td>assume the missing terminator</td></tr>
- * <tr><td colspan='3'>This error occurs when a data block header is encountered while parsing a save frame.  The
- *     parser recovers by assuming the missing save frame terminator at the position where the error is detected.  In
- *     the event of nested save frames, this error may occur two or more times in a row at the same parse position.
- *     In CIF 1 mode, this error is also triggered when a save frame header is encountered while parsing a save
- *     frame.</td></tr>
+ * <tr><td colspan='3'>This error occurs when a data block header is encountered while parsing a save frame, or when a
+ *     save frame header is encountered while parsing a save frame with nested frames disabled.  The parser recovers by
+ *     assuming the missing save frame terminator at the position where the error is detected.  When parsing with
+ *     nested save frames enabled, this error may occur two or more times in a row at the same parse position.</td></tr>
  * <tr><td>Unterminated save frame at end-of-file</td><td>@c CIF_EOF_IN_FRAME</td><td>assume the missing terminator</td></tr>
  * <tr><td colspan='3'>This is basically the same as the CIF_NO_FRAME_TERM case, but triggered when the end of input
  *     occurs while parsing a save frame.  This case is distinguished in part because it may indicate a truncated
@@ -929,7 +932,10 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                         result = scanner->error_callback(CIF_FRAME_NOT_ALLOWED, scanner->line,
                              scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
                              TVALUE_LENGTH(scanner), scanner->user_data);
-                        /* recover, if so directed, by parsing the save frame normally */
+                        /* recover, if so directed, by acting as if max_frame_depth were 1 */
+                        if (!is_block) {
+                            goto container_end;
+                        }
                     } else if ((scanner->max_frame_depth == 1) && !is_block) {
                         /* nested save frames are not permitted */
                         result = scanner->error_callback(CIF_NO_FRAME_TERM, scanner->line,
