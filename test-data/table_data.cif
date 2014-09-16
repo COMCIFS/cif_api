@@ -21,22 +21,25 @@ _singleton_table3 {
   "":empty_key
 }
 
-_digit3_map {
+_digit3_map {# comment immediately following opening brace
   'zero':0
-  'one':1
+  'one': 1
   'two':2
 }
 
 _space_keys {
  '':0
  " ":1
- '   ':3
+ '   ':
+ # comment between key and value
+ 3
 }
 
 _type_examples {
   "char":"char"
   "unknown":?
-  "N/A":.
+  "N/A":
+  .
   "numb":-123.4e+67(5)
 }
 
