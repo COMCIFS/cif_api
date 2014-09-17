@@ -106,7 +106,7 @@ dox-html: $(dox_deps)
 	$(RM) -rf dox-man
 	$(DOXYGEN) Doxyfile
 
-Doxyfile: $(srcdir)/Doxyfile.in Makefile
+Doxyfile: Doxyfile.in Makefile
 	$(SED) -e 's,[@]PACKAGE@,$(PACKAGE),g' \
 	       -e 's,[@]PACKAGE_VERSION@,$(PACKAGE_VERSION),g' \
 	       -e 's,[@]abs_builddir@,$(abs_builddir),g' \
