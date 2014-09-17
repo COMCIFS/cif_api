@@ -40,12 +40,11 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Doxyfile.in \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS build-aux/config.guess \
-	build-aux/config.sub build-aux/depcomp build-aux/install-sh \
-	build-aux/ltmain.sh build-aux/missing
+DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
+	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
+	build-aux/config.guess build-aux/config.sub build-aux/depcomp \
+	build-aux/install-sh build-aux/ltmain.sh build-aux/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -57,7 +56,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = Doxyfile
+CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -232,6 +231,9 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = src
 ACLOCAL_AMFLAGS = -I m4
+
+# 'distcheck' should verify that documentation rebuilding works
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-doc-rebuild
 doxygen_examples = \
   misc/basic_parsing.c \
   misc/parse_errors.c \
@@ -240,6 +242,7 @@ doxygen_examples = \
 EXTRA_DIST = \
   dox-html \
   dox-man \
+  Doxyfile.in \
   README \
   extras/README \
   extras/cif2.ebnf \
@@ -249,8 +252,6 @@ EXTRA_DIST = \
   misc/dox.css \
   misc/footer.html \
   misc/main.dox \
-  misc/third_party_lib32.supp \
-  misc/third_party_lib64.supp \
   test-data/bom.cif \
   test-data/bom_ver2.cif \
   test-data/cif_core.dic \
@@ -284,12 +285,13 @@ EXTRA_DIST = \
 @make_docs_TRUE@dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
 @install_docs_FALSE@html_install = :
 
-# The chmod in the below command is needed to work around weirdness in the behavior of the
-# "distcheck" target
+# The chmod in the below command must ensure the target files writable
+# in order to work around weirdness in the behavior of the "distcheck" target
+# when not configured to rebuild docs.
 @install_docs_TRUE@html_install = test -d dox-html && html_dir=dox-html || html_dir=$(srcdir)/dox-html; \
 @install_docs_TRUE@  $(MKDIR_P) $(DESTDIR)$(pkgdocdir); \
 @install_docs_TRUE@  cp -pR $${html_dir} $(DESTDIR)$(pkgdocdir)/html; \
-@install_docs_TRUE@  chmod -R u+w $(DESTDIR)$(pkgdocdir)/html
+@install_docs_TRUE@  chmod -R u+w,go+rX $(DESTDIR)$(pkgdocdir)/html
 
 pkgdocdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 all: config.h
@@ -347,8 +349,6 @@ $(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
-Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -811,13 +811,18 @@ maintainer-clean-local:
 	$(RM) -rf dox-man
 
 dox-man: dox-html
-	test -d $@ && $(RM) -rf $@
-	$(DOXYGEN) $(srcdir)/Doxyfile
 
 dox-html: $(dox_deps)
 	$(RM) -rf dox-html
 	$(RM) -rf dox-man
-	$(DOXYGEN) $(srcdir)/Doxyfile
+	$(DOXYGEN) Doxyfile
+
+Doxyfile: $(srcdir)/Doxyfile.in Makefile
+	$(SED) -e 's,[@]PACKAGE@,$(PACKAGE),g' \
+	       -e 's,[@]PACKAGE_VERSION@,$(PACKAGE_VERSION),g' \
+	       -e 's,[@]abs_builddir@,$(abs_builddir),g' \
+	       -e 's,[@]abs_srcdir@,$(abs_srcdir),g' \
+	       < $< > $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

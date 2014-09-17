@@ -8,6 +8,9 @@ SUBDIRS = src
 
 ACLOCAL_AMFLAGS = -I m4
 
+# 'distcheck' should verify that documentation rebuilding works
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-doc-rebuild
+
 doxygen_examples = \
   misc/basic_parsing.c \
   misc/parse_errors.c \
@@ -16,6 +19,7 @@ doxygen_examples = \
 EXTRA_DIST = \
   dox-html \
   dox-man \
+  Doxyfile.in \
   README \
   extras/README \
   extras/cif2.ebnf \
@@ -25,8 +29,6 @@ EXTRA_DIST = \
   misc/dox.css \
   misc/footer.html \
   misc/main.dox \
-  misc/third_party_lib32.supp \
-  misc/third_party_lib64.supp \
   test-data/bom.cif \
   test-data/bom_ver2.cif \
   test-data/cif_core.dic \
@@ -63,12 +65,13 @@ dox_deps =
 endif
 
 if install_docs
-# The chmod in the below command is needed to work around weirdness in the behavior of the
-# "distcheck" target
+# The chmod in the below command must ensure the target files writable
+# in order to work around weirdness in the behavior of the "distcheck" target
+# when not configured to rebuild docs.
 html_install = test -d dox-html && html_dir=dox-html || html_dir=$(srcdir)/dox-html; \
   $(MKDIR_P) $(DESTDIR)$(pkgdocdir); \
   cp -pR $${html_dir} $(DESTDIR)$(pkgdocdir)/html; \
-  chmod -R u+w $(DESTDIR)$(pkgdocdir)/html
+  chmod -R u+w,go+rX $(DESTDIR)$(pkgdocdir)/html
 else
 html_install = :
 endif
@@ -97,11 +100,16 @@ maintainer-clean-local:
 	$(RM) -rf dox-man
 
 dox-man: dox-html
-	test -d $@ && $(RM) -rf $@
-	$(DOXYGEN) $(srcdir)/Doxyfile
 
 dox-html: $(dox_deps)
 	$(RM) -rf dox-html
 	$(RM) -rf dox-man
-	$(DOXYGEN) $(srcdir)/Doxyfile
+	$(DOXYGEN) Doxyfile
+
+Doxyfile: $(srcdir)/Doxyfile.in Makefile
+	$(SED) -e 's,[@]PACKAGE@,$(PACKAGE),g' \
+	       -e 's,[@]PACKAGE_VERSION@,$(PACKAGE_VERSION),g' \
+	       -e 's,[@]abs_builddir@,$(abs_builddir),g' \
+	       -e 's,[@]abs_srcdir@,$(abs_srcdir),g' \
+	       < $< > $@
 

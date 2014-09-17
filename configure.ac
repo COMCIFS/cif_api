@@ -208,7 +208,6 @@ CPPFLAGS="${CPPFLAGS_save}"
 
 # (Over)write the Makefiles and other configure-generated files
 AC_CONFIG_FILES([
-  Doxyfile
   Makefile
   src/Makefile
 ])
