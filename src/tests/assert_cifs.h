@@ -43,6 +43,7 @@ struct comparison_context_s {
     void *other_cif;
     struct context_stack_s *parent;
     int equal;
+    int verbose;
 };
 
 /*
@@ -84,7 +85,7 @@ static int assert_cifs_equal(cif_t *cif1, cif_t *cif2) {
             finish_packet_comparison,    /* packet_end */
             handle_item_comparison       /* item */
     };
-    struct comparison_context_s context = { NULL, NULL, 1 };
+    struct comparison_context_s context = { NULL, NULL, 1, 1 };
     struct context_stack_s *stack_p;
     int result;
 
@@ -106,10 +107,8 @@ static int handle_cif_comparison(cif_t *cif, void *context) {
     struct context_stack_s *stack_p;
     cif_block_t **blocks;
     int block_count = 0;
-    int rval;
 
-    rval = cif_get_all_blocks(other, &blocks);
-    if (!rval) {
+    if (cif_get_all_blocks(other, &blocks) == CIF_OK) {
         cif_block_t **next_block_p;
 
         for (next_block_p = blocks; *next_block_p; next_block_p += 1) {
@@ -128,6 +127,12 @@ static int handle_cif_comparison(cif_t *cif, void *context) {
 
             return CIF_TRAVERSE_CONTINUE;
         }
+
+        if (comp_context->verbose) {
+            fprintf(stderr, "CIFs are unequal because their data block counts disagree.\n");
+        }
+    } else if (comp_context->verbose) {
+        fprintf(stderr, "System error during CIF comparison.\n");
     }
 
     return CIF_TRAVERSE_END;
@@ -164,6 +169,11 @@ static int handle_block_comparison(cif_container_t *block, void *context) {
             return handle_container(block, other_block, comp_context);
         }
     } /* else no matching block in the other CIF */
+
+    if (comp_context->verbose) {
+        fprintf(stderr, "CIFs are unequal because data block codes don't match.\n");
+    }
+
     comp_context->equal = 0;
     return CIF_TRAVERSE_END;
 }
@@ -182,6 +192,11 @@ static int handle_frame_comparison(cif_container_t *frame, void *context) {
             return handle_container(frame, other_frame, comp_context);
         }
     } /* else no matching save frame in the other CIF */
+
+    if (comp_context->verbose) {
+        fprintf(stderr, "CIFs are unequal because save frame codes don't match.\n");
+    }
+
     comp_context->equal = 0;
     return CIF_TRAVERSE_END;
 }
@@ -225,6 +240,10 @@ static int handle_container(cif_container_t *container, cif_container_t *other_c
         }
     }
 
+    if (context->verbose) {
+        fprintf(stderr, "System error during container comparison.\n");
+    }
+
     context->equal = 0;
     return CIF_TRAVERSE_END;
 }
@@ -238,6 +257,9 @@ static int finish_container_comparison(cif_container_t *container, void *context
     comp_context->parent = stack_p->next;
     comp_context->parent->children_remaining -= 1;
     if ((stack_p->children_remaining != 0) || (stack_p->elements_remaining != 0)) {
+        if (comp_context->verbose) {
+            fprintf(stderr, "CIFs container contents aren't fully matched.\n");
+        }
         comp_context->equal = 0;
         rval = CIF_TRAVERSE_END;
     } else {
@@ -254,129 +276,129 @@ static int handle_loop_comparison(cif_loop_t *loop, void *context) {
     struct context_stack_s *stack_p = comp_context->parent;
     cif_container_t *other_container;
     UChar **my_data_names;
-    UChar *my_category;
     int is_equal = 0;
 
     assert(stack_p);
     other_container = (cif_container_t *) stack_p->item;
 
-    if (cif_loop_get_category(loop, &my_category) == CIF_OK) {
-        if (cif_loop_get_names(loop, &my_data_names) == CIF_OK) {
-            UChar **my_name_p = my_data_names;
-            cif_loop_t *other_loop;
+    /* ignores loop categories */
 
-            /* Retrieve the analogous loop */
-            assert(*my_data_names);
-            if (cif_container_get_item_loop(other_container, *my_data_names, &other_loop) == CIF_OK) {
-                UChar *other_category;
+    if (cif_loop_get_names(loop, &my_data_names) == CIF_OK) {
+        UChar **my_name_p = my_data_names;
+        cif_loop_t *other_loop;
 
-                if (cif_loop_get_category(other_loop, &other_category) == CIF_OK) {
-                    /* match categories */
-                    if ((my_category == NULL) ? (other_category == NULL)
-                            : ((other_category != NULL) && (u_strcmp(my_category, other_category) == 0))) {
-                        UChar **other_data_names;
+        /* Retrieve the analogous loop */
+        assert(*my_data_names);
+        if (cif_container_get_item_loop(other_container, *my_data_names, &other_loop) == CIF_OK) {
+            UChar **other_data_names;
 
-                        if (cif_loop_get_names(other_loop, &other_data_names) == CIF_OK) {
-                            /* match datanames without normalization */
-                            UChar **other_name_p = other_data_names;
-                            struct generic_hashable_s *other_datanames_head = NULL;
-                            struct generic_hashable_s *other_dataname_entry;
-                            struct generic_hashable_s *temp_dataname_entry;
-                            int dataname_count = 0;
+            if (cif_loop_get_names(other_loop, &other_data_names) == CIF_OK) {
+                /* match datanames without normalization */
+                UChar **other_name_p = other_data_names;
+                struct generic_hashable_s *other_datanames_head = NULL;
+                struct generic_hashable_s *other_dataname_entry;
+                struct generic_hashable_s *temp_dataname_entry;
+                int dataname_count = 0;
 
-                            for (; *other_name_p; other_name_p += 1) {
-                                struct generic_hashable_s *other_dataname_entry
-                                        = (struct generic_hashable_s *) malloc(sizeof(struct generic_hashable_s));
+                for (; *other_name_p; other_name_p += 1) {
+                    struct generic_hashable_s *other_dataname_entry
+                            = (struct generic_hashable_s *) malloc(sizeof(struct generic_hashable_s));
 
-                                if (other_dataname_entry) {
-                                    HASH_ADD_KEYPTR(hh, other_datanames_head, *other_name_p,
-                                            (u_strlen(*other_name_p) * sizeof(UChar)), other_dataname_entry);
-                                    dataname_count += 1;
-                                } else {
-                                    break;
-                                }
-                            }
-
-                            if (! *other_name_p) { /* successfully hashed all the datanames */
-                                /* match data names against the hash */
-                                for (; *my_name_p; my_name_p += 1) {
-                                    HASH_FIND(hh, other_datanames_head, *my_name_p,
-                                            (u_strlen(*my_name_p) * sizeof(UChar)), other_dataname_entry);
-                                    free(*my_name_p);
-                                    if (other_dataname_entry) {
-                                        /* a match; clean it up */
-                                        HASH_DELETE(hh, other_datanames_head, other_dataname_entry);
-                                        free(other_dataname_entry);
-                                    } else {
-                                        /* no match */
-                                        break;
-                                    }
-                                }
-
-                                if ((*my_name_p == NULL) && (HASH_COUNT(other_datanames_head) == 0)) {
-                                    /* all names matched with none left over */
-                                    cif_pktitr_t *other_packets;
-
-                                    if (cif_loop_get_packets(other_loop, &other_packets) == CIF_OK) {
-                                        /* set up appropriate grandparent and parent contexts on the context stack */
-                                        stack_p = (struct context_stack_s *) malloc(2 * sizeof(struct context_stack_s));
-                                        if (stack_p != NULL) {
-                                            stack_p->item = other_loop;
-                                            stack_p->children_remaining = 0;
-                                            stack_p->elements_remaining = 0;
-                                            stack_p->next = comp_context->parent;
-                                            comp_context->parent = stack_p;
-
-                                            stack_p += 1;
-                                            stack_p->item = other_packets;
-                                            stack_p->children_remaining = 1;  /* flags whether iteration has finished */
-                                            stack_p->elements_remaining = dataname_count;
-                                            stack_p->next = comp_context->parent;
-                                            comp_context->parent = stack_p;
-
-                                            /* raise a flag to signal a completely successful match */
-                                            is_equal = 1;
-                                        } else {
-                                            cif_pktitr_abort(other_packets); /* ignore any failure */
-                                        }
-                                    }
-                                }
-                            }
-
-                            /* clean up any entries remaining in the dataname hash */
-                            HASH_ITER(hh, other_datanames_head, other_dataname_entry, temp_dataname_entry) {
-                                HASH_DELETE(hh, other_datanames_head, other_dataname_entry);
-                                free(other_dataname_entry);
-                            }
-
-                            /* clean up the list of other datanames */
-                            for (other_name_p = other_data_names; *other_name_p; other_name_p += 1) {
-                                free(*other_name_p);
-                            }
-                            free(other_data_names);
-                        }
-                    }
-
-                    /* clean up the other loop's category string */
-                    if (other_category) {
-                        free(other_category);
+                    if (other_dataname_entry) {
+                        HASH_ADD_KEYPTR(hh, other_datanames_head, *other_name_p,
+                                (u_strlen(*other_name_p) * sizeof(UChar)), other_dataname_entry);
+                        dataname_count += 1;
+                    } else {
+                        break;
                     }
                 }
 
-                /* mustn't free other_loop while an iterator depending on it is open */
+                if (! *other_name_p) { /* successfully hashed all the datanames */
+                    /* match data names against the hash */
+                    for (; *my_name_p; my_name_p += 1) {
+                        HASH_FIND(hh, other_datanames_head, *my_name_p,
+                                (u_strlen(*my_name_p) * sizeof(UChar)), other_dataname_entry);
+                        free(*my_name_p);
+                        if (other_dataname_entry) {
+                            /* a match; clean it up */
+                            HASH_DELETE(hh, other_datanames_head, other_dataname_entry);
+                            free(other_dataname_entry);
+                        } else {
+                            /* no match */
+                            break;
+                        }
+                    }
+
+                    if ((*my_name_p == NULL) && (HASH_COUNT(other_datanames_head) == 0)) {
+                        /* all names matched with none left over */
+                        cif_pktitr_t *other_packets;
+
+                        if (cif_loop_get_packets(other_loop, &other_packets) == CIF_OK) {
+                            /* set up appropriate grandparent and parent contexts on the context stack */
+                            stack_p = (struct context_stack_s *) malloc(sizeof(struct context_stack_s));
+                            if (stack_p != NULL) {
+                                stack_p->item = other_loop;
+                                stack_p->children_remaining = 0;
+                                stack_p->elements_remaining = 0;
+                                stack_p->next = comp_context->parent;
+                                comp_context->parent = stack_p;
+
+                                stack_p = (struct context_stack_s *) malloc(sizeof(struct context_stack_s));
+                                if (stack_p != NULL) {
+                                    stack_p->item = other_packets;
+                                    stack_p->children_remaining = 1;  /* flags whether iteration has finished */
+                                    stack_p->elements_remaining = dataname_count;
+                                    stack_p->next = comp_context->parent;
+                                    comp_context->parent = stack_p;
+
+                                    /* raise a flag to signal a completely successful match */
+                                    is_equal = 1;
+                                } else {
+                                    if (comp_context->verbose) {
+                                        fprintf(stderr, "System error while comparing CIFs.\n");
+                                    }
+                                    cif_pktitr_abort(other_packets); /* ignore any failure */
+                                }
+                            } else {
+                                if (comp_context->verbose) {
+                                    fprintf(stderr, "System error while comparing CIFs.\n");
+                                }
+                                cif_pktitr_abort(other_packets); /* ignore any failure */
+                            }
+                        }
+                    } else if (comp_context->verbose) {
+                        fprintf(stderr, "CIFs are unequal because loop headers are mismatched.\n");
+                    }
+
+                } else if (comp_context->verbose) {
+                    fprintf(stderr, "System error while comparing CIFs.\n");
+                }
+
+                /* clean up any entries remaining in the dataname hash */
+                HASH_ITER(hh, other_datanames_head, other_dataname_entry, temp_dataname_entry) {
+                    HASH_DELETE(hh, other_datanames_head, other_dataname_entry);
+                    free(other_dataname_entry);
+                }
+
+                /* clean up the list of other datanames */
+                for (other_name_p = other_data_names; *other_name_p; other_name_p += 1) {
+                    free(*other_name_p);
+                }
+                free(other_data_names);
+            } else if (comp_context->verbose) {
+                fprintf(stderr, "System error while comparing CIFs.\n");
             }
 
-            /* clean up this loop's data name list (as much as is left of it) */
-            while (*my_name_p) {
-                free(*(my_name_p++));
-            }
-            free(my_data_names);
+            /* mustn't free other_loop while an iterator depending on it is open */
+        } else if (comp_context->verbose) {
+            fprintf(stderr, "CIFs are unequal because a data name cannot be matched.\n");
         }
 
-        /* clean up this loop's category string */
-        if (my_category) {
-            free(my_category);
+        /* clean up this loop's data name list (as much as is left of it) */
+        while (*my_name_p) {
+            free(*(my_name_p++));
         }
+        free(my_data_names);
     }
 
     comp_context->equal = (comp_context->equal && is_equal);
@@ -395,14 +417,19 @@ static int finish_loop_comparison(cif_loop_t *loop, void *context) {
     other_packets = (cif_pktitr_t *) stack_p->item;
     if ((stack_p->children_remaining == 0) || (cif_pktitr_next_packet(other_packets, NULL) != CIF_FINISHED)) {
         /* differing numbers of loop packets */
+        if (comp_context->verbose) {
+            fprintf(stderr, "CIFs are unequal because corresponding loops have different packet counts.\n");
+        }
         comp_context->equal = 0;
         rval = CIF_TRAVERSE_END;
     } else {
         rval = CIF_TRAVERSE_CONTINUE;
     }
     cif_pktitr_abort(other_packets);  /* ignore any error */
+    free(stack_p);
 
     stack_p = comp_context->parent;
+    assert(stack_p);
     comp_context->parent = stack_p->next;
     comp_context->parent->elements_remaining -= 1;
     other_loop = (cif_loop_t *) stack_p->item;
@@ -434,7 +461,15 @@ static int handle_packet_comparison(cif_packet_t *packet, void *context) {
             }
             break;
         case CIF_FINISHED:
+            if (comp_context->verbose) {
+                fprintf(stderr, "CIFs are unequal because corresponding loops have different packet counts.\n");
+            }
             stack_p->children_remaining = 0;
+            break;
+        default:
+            if (comp_context->verbose) {
+                fprintf(stderr, "System error while comparing loop packets\n");
+            }
             break;
     }
 
@@ -450,6 +485,9 @@ static int finish_packet_comparison(cif_packet_t *packet, void *context) {
     assert(stack_p);
     comp_context->parent = stack_p->next;
     if (stack_p->elements_remaining != 0) {
+        if (comp_context->verbose) {
+            fprintf(stderr, "CIFs are unequal because corresponding packets have differing item counts.\n");
+        }
         comp_context->equal = 0;
         rval = CIF_TRAVERSE_END;
     } else {
@@ -473,6 +511,8 @@ static int handle_item_comparison(UChar *name, cif_value_t *value, void *context
         stack_p->elements_remaining -= 1;
         if (assert_values_equal(value, other_value)) {
             return CIF_TRAVERSE_CONTINUE;
+        } else if (comp_context->verbose) {
+            fprintf(stderr, "CIFs are unequal because corresponding values differ.\n");
         }
     }
 

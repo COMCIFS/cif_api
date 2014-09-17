@@ -815,6 +815,22 @@ static int write_table(void *context, cif_value_t *table_value) {
     FAILURE_TERMINUS;
 }
 
+
+/* The numeric value of a Unicode horizontal tab character */
+#define UCHAR_TAB  0x08
+/* The numeric value of a Unicode newline character */
+#define UCHAR_NL   0x0a
+/* The numeric value of a Unicode standard space character */
+#define UCHAR_SP   0x20
+/* The numeric value of a Unicode semicolon character */
+#define UCHAR_DQ   0x22
+/* The numeric value of a Unicode semicolon character */
+#define UCHAR_SQ   0x27
+/* The numeric value of a Unicode semicolon character */
+#define UCHAR_SEMI 0x3b
+/* The numeric value of a Unicode backslash character */
+#define UCHAR_BSL  0x5c
+
 static int write_char(void *context, cif_value_t *char_value, int allow_text) {
     int result;
     UChar *text;
@@ -822,43 +838,63 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
     if (cif_value_get_text(char_value, &text) == CIF_OK) {
         /* uses signed 32-bit integer character counters -- could overflow for very (very!) long text blocks */
         int32_t char_counts[129];
-        int32_t first_line;
+        int32_t first_line = 0;
         int32_t this_line = 0;
         int32_t max_line = 0;
         int32_t length = 0;
+        int32_t consec_semis = 0;
+        int32_t most_semis = 0;
         int32_t extra_space = (IS_SEPARATE_VALUES(context) ? 0 : LAST_COLUMN(context));
         int has_nl_semi = CIF_FALSE;
+        int emulates_prefix = CIF_FALSE;
         UChar ch;
 
         /* Analyze the text to inform the choice of delimiters */
         memset(char_counts, 0, sizeof(char_counts));
         for (ch = text[length]; ch; ch = text[++length]) {
             char_counts[(ch < 128) ? ch : 128] += 1;
-            if (ch == '\n') {
-                has_nl_semi = (has_nl_semi || (text[length + 1] == ';'));
+            if (ch == UCHAR_NL) {
+                has_nl_semi = (has_nl_semi || (text[length + 1] == UCHAR_SEMI));
+                if (char_counts[UCHAR_NL] == 1) {
+                    first_line = this_line;
+                }
                 if (this_line > max_line) {
                     max_line = this_line;
                 }
+                if (consec_semis > most_semis) {
+                    most_semis = consec_semis;
+                }
+                consec_semis = 0;
                 this_line = 0;
             } else {
+                if (ch == UCHAR_SEMI) {
+                    consec_semis += 1;
+                } else {
+                    if (consec_semis > most_semis) {
+                        most_semis = consec_semis;
+                    }
+                    consec_semis = 0;
+                }
                 this_line += 1;
             }
         }
-        if (char_counts['\n'] == 0) {
+        if (char_counts[UCHAR_NL] == 0) {
+            first_line = this_line;
+        }
+        if (this_line > max_line) {
             max_line = this_line;
         }
-        first_line = max_line;  /* an initial approximation; we may not need any better */
 
         /* If the longest line surpasses the length limit then we cannot use anything other than a text block */
         if (max_line <= (LINE_LENGTH(context))) {
-            if (char_counts['\n'] == 0) {
+            if (char_counts[UCHAR_NL] == 0) {
                 /* Maybe single-delimited */
-                if (char_counts['\''] == 0) {
+                if (char_counts[UCHAR_SQ] == 0) {
                     /* write the value as an apostrophe-delimited string */
-                    result = write_quoted(context, text, length, '\'');
+                    result = write_quoted(context, text, length, UCHAR_SQ);
                     goto done;
-                } else if (char_counts['"'] == 0) {
-                    result = write_quoted(context, text, length, '"');
+                } else if (char_counts[UCHAR_DQ] == 0) {
+                    result = write_quoted(context, text, length, UCHAR_DQ);
                     goto done;
                 } /* else neither (single) apostrophe or quotation mark is suitable */
 
@@ -873,10 +909,10 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
                      * will appear on the first line.  Line 1 lengths NEVER include the opening delimiter.
                      */
                     if (u_strstr(text, sq3) == NULL) {
-                        result = write_triple_quoted(context, text, length + 3, this_line, '\'');
+                        result = write_triple_quoted(context, text, length + 3, this_line, UCHAR_SQ);
                         goto done;
                     } else if (u_strstr(text, dq3) == NULL) {
-                        result = write_triple_quoted(context, text, length + 3, this_line, '"');
+                        result = write_triple_quoted(context, text, length + 3, this_line, UCHAR_DQ);
                         goto done;
                     }
                 }
@@ -887,14 +923,13 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
              * We can use triple quotes if neither the first line nor the last is too long, and if the text does not
              * contain both triple delimiters.
              */
-            if ((max_line < (LINE_LENGTH(context) - (3 + extra_space)))
-                    || ((this_line < (LINE_LENGTH(context) - 3))
-                            && ((first_line = u_strcspn(text, nl)) < (LINE_LENGTH(context) - (3 + extra_space))))) {
+            if ((this_line < (LINE_LENGTH(context) - 3))
+                            && (first_line < (LINE_LENGTH(context) - (3 + extra_space)))) {
                 if (u_strstr(text, sq3) == NULL) {
-                    result = write_triple_quoted(context, text, first_line, this_line, '\'');
+                    result = write_triple_quoted(context, text, first_line, this_line, UCHAR_SQ);
                     goto done;
                 } else if (u_strstr(text, dq3) == NULL) {
-                    result = write_triple_quoted(context, text, first_line, this_line, '"');
+                    result = write_triple_quoted(context, text, first_line, this_line, UCHAR_DQ);
                     goto done;
                 }
             }
@@ -903,12 +938,35 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
 
         /* if control reaches this point then all alternatives other than a text block have been ruled out */
         if (allow_text) {
-            /* TODO: prefixing will also be necessary if there is a run of LINE_LENGTH or more semicolons */
             /* write as a text block, possibly with line-folding and/or prefixing  */
             int fold = ((max_line > LINE_LENGTH(context))
+                    || (most_semis >= LINE_LENGTH(context))
                     || ((!has_nl_semi) && ((first_line + 1) > LINE_LENGTH(context))));
+            int32_t index;
 
-            result = write_text(context, text, length, fold, has_nl_semi);
+            if (!has_nl_semi) { /* otherwise it's redundant to perform the following test */
+                /* scan backward through the first line to check whether it mimics a prefix marker */
+                int32_t index;
+
+                for (index = first_line - 1; index >= 0; index -= 1) {
+                    switch (text[index]) {
+                        case UCHAR_TAB:
+                        case UCHAR_SP:
+                            /* trailing spaces and tabs do not affect the determination */
+                            break;
+                        case UCHAR_BSL:
+                            /* the last non-space character is a backslash -- looks like a prefix/folding marker */
+                            emulates_prefix = CIF_TRUE;
+                            /* fall through */
+                        default:
+                            /* the last non-space character is not a backslash -- not a prefix-mark mimic */
+                            goto end_scan;
+                    }
+                }
+            }
+
+            end_scan:
+            result = write_text(context, text, length, fold, (has_nl_semi || emulates_prefix));
         } else {
             result = CIF_DISALLOWED_VALUE;
         }
@@ -960,14 +1018,11 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
         UChar *saved;
         UChar *tok;
 
-        if (!write_newline(context)) {
-            return CIF_ERROR;
-        }
         if (!prefix) {
             prefix_text[0] = '\0';
         }
 
-        /* each logical line, delimited by newlines */
+        /* each logical line, delimited from the previous one by a newline */
         for (tok = text; tok != NULL; tok = saved) {
             int len;
 
@@ -993,7 +1048,7 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
                     }
 
                     expected = len + prefix_length + 1;
-                    nchars = u_fprintf(CONTEXT_UFILE(context), "%s%*.*S%s\n", prefix_text, len, len, tok,
+                    nchars = u_fprintf(CONTEXT_UFILE(context), "\n%s%*.*S%s", prefix_text, len, len, tok,
                             ((tok[len] == 0) ? "" : (expected += 1, "\\")));
                     if (nchars != expected) {
                         return CIF_ERROR;

@@ -143,7 +143,8 @@ am__EXEEXT_1 = tests/test_create$(EXEEXT) \
 	tests/test_parse_nested$(EXEEXT) \
 	tests/test_parse_core$(EXEEXT) \
 	tests/test_write_simple$(EXEEXT) \
-	tests/test_write_complex$(EXEEXT)
+	tests/test_write_complex$(EXEEXT) \
+	tests/test_write_loops$(EXEEXT)
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -421,6 +422,10 @@ tests_test_write_complex_SOURCES = tests/test_write_complex.c
 tests_test_write_complex_OBJECTS = test_write_complex.$(OBJEXT)
 tests_test_write_complex_LDADD = $(LDADD)
 tests_test_write_complex_DEPENDENCIES = libcif.la
+tests_test_write_loops_SOURCES = tests/test_write_loops.c
+tests_test_write_loops_OBJECTS = test_write_loops.$(OBJEXT)
+tests_test_write_loops_LDADD = $(LDADD)
+tests_test_write_loops_DEPENDENCIES = libcif.la
 tests_test_write_simple_SOURCES = tests/test_write_simple.c
 tests_test_write_simple_OBJECTS = test_write_simple.$(OBJEXT)
 tests_test_write_simple_LDADD = $(LDADD)
@@ -473,7 +478,8 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_value_copy_char.c tests/test_value_create.c \
 	tests/test_value_get_number.c tests/test_value_init_char.c \
 	tests/test_value_init_numb.c tests/test_value_parse_numb.c \
-	tests/test_write_complex.c tests/test_write_simple.c
+	tests/test_write_complex.c tests/test_write_loops.c \
+	tests/test_write_simple.c
 DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
@@ -508,7 +514,8 @@ DIST_SOURCES = $(libcif_la_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_value_copy_char.c tests/test_value_create.c \
 	tests/test_value_get_number.c tests/test_value_init_char.c \
 	tests/test_value_init_numb.c tests/test_value_parse_numb.c \
-	tests/test_write_complex.c tests/test_write_simple.c
+	tests/test_write_complex.c tests/test_write_loops.c \
+	tests/test_write_simple.c
 HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -762,7 +769,8 @@ compiled_tests = \
     tests/test_parse_nested \
     tests/test_parse_core \
     tests/test_write_simple \
-    tests/test_write_complex
+    tests/test_write_complex \
+    tests/test_write_loops
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports that.   v1.11 doesn't.
@@ -1073,6 +1081,9 @@ tests/test_value_parse_numb$(EXEEXT): $(tests_test_value_parse_numb_OBJECTS) $(t
 tests/test_write_complex$(EXEEXT): $(tests_test_write_complex_OBJECTS) $(tests_test_write_complex_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_write_complex$(EXEEXT)
 	$(LINK) $(tests_test_write_complex_OBJECTS) $(tests_test_write_complex_LDADD) $(LIBS)
+tests/test_write_loops$(EXEEXT): $(tests_test_write_loops_OBJECTS) $(tests_test_write_loops_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_write_loops$(EXEEXT)
+	$(LINK) $(tests_test_write_loops_OBJECTS) $(tests_test_write_loops_LDADD) $(LIBS)
 tests/test_write_simple$(EXEEXT): $(tests_test_write_simple_OBJECTS) $(tests_test_write_simple_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_write_simple$(EXEEXT)
 	$(LINK) $(tests_test_write_simple_OBJECTS) $(tests_test_write_simple_LDADD) $(LIBS)
@@ -1150,6 +1161,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_init_numb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_parse_numb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_write_complex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_write_loops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_write_simple.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/value.Plo@am__quote@
@@ -2001,6 +2013,20 @@ test_write_complex.obj: tests/test_write_complex.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_write_complex.obj `if test -f 'tests/test_write_complex.c'; then $(CYGPATH_W) 'tests/test_write_complex.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_write_complex.c'; fi`
 
+test_write_loops.o: tests/test_write_loops.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_write_loops.o -MD -MP -MF $(DEPDIR)/test_write_loops.Tpo -c -o test_write_loops.o `test -f 'tests/test_write_loops.c' || echo '$(srcdir)/'`tests/test_write_loops.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_write_loops.Tpo $(DEPDIR)/test_write_loops.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_write_loops.c' object='test_write_loops.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_write_loops.o `test -f 'tests/test_write_loops.c' || echo '$(srcdir)/'`tests/test_write_loops.c
+
+test_write_loops.obj: tests/test_write_loops.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_write_loops.obj -MD -MP -MF $(DEPDIR)/test_write_loops.Tpo -c -o test_write_loops.obj `if test -f 'tests/test_write_loops.c'; then $(CYGPATH_W) 'tests/test_write_loops.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_write_loops.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_write_loops.Tpo $(DEPDIR)/test_write_loops.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_write_loops.c' object='test_write_loops.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_write_loops.obj `if test -f 'tests/test_write_loops.c'; then $(CYGPATH_W) 'tests/test_write_loops.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_write_loops.c'; fi`
+
 test_write_simple.o: tests/test_write_simple.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_write_simple.o -MD -MP -MF $(DEPDIR)/test_write_simple.Tpo -c -o test_write_simple.o `test -f 'tests/test_write_simple.c' || echo '$(srcdir)/'`tests/test_write_simple.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_write_simple.Tpo $(DEPDIR)/test_write_simple.Po
@@ -2366,6 +2392,8 @@ tests/test_write_simple.log: tests/test_write_simple$(EXEEXT)
 	@p='tests/test_write_simple$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_write_complex.log: tests/test_write_complex$(EXEEXT)
 	@p='tests/test_write_complex$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+tests/test_write_loops.log: tests/test_write_loops$(EXEEXT)
+	@p='tests/test_write_loops$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 .test.log:
 	@p='$<'; $(am__check_pre) $(TEST_LOG_COMPILE) "$$tst" $(am__check_post)
 @am__EXEEXT_TRUE@.test$(EXEEXT).log:

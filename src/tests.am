@@ -69,19 +69,15 @@ compiled_tests = \
     tests/test_parse_nested \
     tests/test_parse_core \
     tests/test_write_simple \
-    tests/test_write_complex
+    tests/test_write_complex \
+    tests/test_write_loops
+# cif_write
+# - save frames
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
 #   - updates the CIF in-place
-# - parse into new CIF
-#   - CHAR values
-#       - w/ backslashes
-#     - SQ/DQ
-#       - w/ backslashes
 # - syntax-only mode
-#
-# cif_write
 
 check_PROGRAMS = $(compiled_tests)
 EXTRA_DIST += tests/test.h tests/assert_value.h tests/assert_cifs.h
