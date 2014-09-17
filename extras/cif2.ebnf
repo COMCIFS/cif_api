@@ -197,7 +197,7 @@ nospace-value =
  *)
 unquoted-string-sol = unquoted-string - ( ';', { non-blank-char } ) ;
 
-unquoted-string = ( lead-char, {restrict-char} )
+unquoted-string = ( lead-char, { restrict-char } )
   - ( ( ( data-token | save-token ), { non-blank-char } ) | loop-token | global-token | stop-token ) ;
 
 lead-char = restrict-char - ( '"' | '#' | '$' | "'" | '_' ) ;
