@@ -70,9 +70,8 @@ compiled_tests = \
     tests/test_parse_core \
     tests/test_write_simple \
     tests/test_write_complex \
-    tests/test_write_loops
-# cif_write
-# - save frames
+    tests/test_write_loops \
+    tests/test_write_frames
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
