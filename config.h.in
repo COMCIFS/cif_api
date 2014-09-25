@@ -3,7 +3,7 @@
 /* Define to 1 to enable debug messages */
 #undef DEBUG
 
-/* Define to 1 if a declaration of fegetround[]() is visible in fenv.h */
+/* Define to 1 if a declaration of fegetround() is visible in fenv.h */
 #undef HAVE_DECL_FEGETROUND
 
 /* Define to 1 if a declaration of strdup() is visible in string.h */

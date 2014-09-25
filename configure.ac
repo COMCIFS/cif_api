@@ -182,7 +182,7 @@ AC_CHECK_DECL([strdup],
 
 # Similarly for fegetround
 AC_CHECK_DECL([fegetround],
-  [AC_DEFINE([HAVE_DECL_FEGETROUND], [1], [Define to 1 if a declaration of fegetround[]() is visible in fenv.h])],
+  [AC_DEFINE([HAVE_DECL_FEGETROUND], [1], [Define to 1 if a declaration of fegetround() is visible in fenv.h])],
   [],
   [[#include <fenv.h>]])
 

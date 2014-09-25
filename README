@@ -56,7 +56,7 @@ specific to this package follow:
   build-time requirement only; it is no longer required once the library is
   built.
 
-* There are a handful of other project-specific configuration options, but
+* There are a few other project-specific configuration options, but
   they are adequately explained in configure's help text.
 
 
