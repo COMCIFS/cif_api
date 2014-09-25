@@ -188,7 +188,10 @@ static int handle_frame_comparison(cif_container_t *frame, void *context) {
     other_container = (cif_container_t *) stack_p->item;
     if(cif_container_get_code(frame, &my_code) == CIF_OK) {
         cif_container_t *other_frame;
-        if (cif_container_get_frame(other_container, my_code, &other_frame) == CIF_OK) {
+        int result = cif_container_get_frame(other_container, my_code, &other_frame);
+
+        free(my_code);
+        if (result == CIF_OK) {
             return handle_container(frame, other_frame, comp_context);
         }
     } /* else no matching save frame in the other CIF */
