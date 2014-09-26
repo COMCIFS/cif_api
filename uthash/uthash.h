@@ -95,7 +95,7 @@ typedef unsigned char uint8_t;
 do {                                                                             \
   unsigned _hf_bkt,_hf_hashv;                                                    \
   unsigned _hf_keylen = (keylen);                                                \
-  char *_hf_keyptr = (char *)(keyptr);                                           \
+  const char *_hf_keyptr = (const char *)(keyptr);                                           \
   out=NULL;                                                                      \
   if (head) {                                                                    \
      HASH_FCN(_hf_keyptr,_hf_keylen, (head)->hh.tbl->num_buckets, _hf_hashv, _hf_bkt);   \

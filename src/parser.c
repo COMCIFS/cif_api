@@ -624,6 +624,10 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
 /* function implementations */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * a parser error handler function that ignores all errors
  */
@@ -724,6 +728,10 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
     GENERAL_TERMINUS;
 }
 
+#ifdef __cplusplus
+}
+#endif
+
 /*
  * Calls a function via a function pointer, provided that the pointer is not NULL.  In that case, this macro evaluates
  * to the function return value.  Otherwise, it evaluates to the specified default return value.
@@ -765,6 +773,7 @@ static int parse_cif(struct scanner_s *scanner, cif_t *cif) {
             break;
         case CIF_TRAVERSE_END:
             return CIF_OK;
+        /* default: do nothing */
     }
     while (result == CIF_OK) {
         cif_block_t *block = NULL;
@@ -892,6 +901,7 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                 scanner->skip_depth = 2;
                 result = CIF_OK;
                 break;
+            /* default: do nothing */
         }
     }
 
@@ -1128,6 +1138,7 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
             case CIF_TRAVERSE_SKIP_CURRENT:
                 result = CIF_OK;
                 break;
+            /* default: do nothing */
         }
     }
 
@@ -1199,6 +1210,7 @@ static int parse_item(struct scanner_s *scanner, cif_container_t *container, UCh
                         scanner->skip_depth = 2;
                         result = CIF_OK;
                         break;
+                    /* default: do nothing */
                 }
                 
             }
@@ -1292,6 +1304,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                             break;
                         case CIF_TRAVERSE_END:
                             goto loop_body_end;
+                        /* default: do nothing */
                     }
                 }  /* else loop == NULL from its initialization */
 
@@ -1333,6 +1346,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                 scanner->skip_depth = 1;
                 result = CIF_OK;
                 break;
+            /* default: do nothing */
         }
     }
 
@@ -1452,6 +1466,7 @@ static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, strin
                                     break;
                                 case CIF_TRAVERSE_END:
                                     goto packets_end;
+                                /* default: do nothing */
                             }
                         }
                     }
@@ -1477,6 +1492,7 @@ static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, strin
                                 scanner->skip_depth = 1;
                                 result = CIF_OK;
                                 break;
+                            /* default: do nothing */
                         }
                     }
                     if (name == NULL) {
@@ -1655,6 +1671,7 @@ static int parse_list(struct scanner_s *scanner, cif_value_t **listp) {
                         /* should not happen */
                         result = CIF_INTERNAL_ERROR;
                         break;
+                    /* default: do nothing */
                 }
                 break;
             case CLIST:
@@ -2519,6 +2536,7 @@ static int scan_to_eol(struct scanner_s *scanner) {
                 case EOL_CLASS:
                 case EOF_CLASS:
                     goto end_of_token;
+                /* default: do nothing */
             }
         }
 
@@ -2562,6 +2580,7 @@ static int scan_unquoted(struct scanner_s *scanner) {
                 case CLOSE_META:
                 case WS_META:
                     goto end_of_token;
+                /* default: do nothing */
             }
         }
 
@@ -2634,6 +2653,7 @@ static int scan_delim_string(struct scanner_s *scanner) {
                         /* recover by assuming a trailing close-quote */
                         delim_size = 0;
                         goto end_of_token;
+                    /* default: do nothing */
                 }
             }
         }

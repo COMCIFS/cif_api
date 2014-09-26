@@ -17,6 +17,12 @@
 #include "uthash.h"
 #include "../cif.h"
 
+#ifdef __GNUC__
+#define UNUSED   __attribute__ ((__unused__))
+#else
+#define UNUSED
+#endif
+
 /*
  * The name of the directory containing the test files it is evaluated relative to the working directory unless the
  * environment variable CIFAPI_SRC is set, in which case it is evaluated relative to the directory named by that
@@ -35,9 +41,11 @@ struct set_el {
     UT_hash_handle hh;
 };
 
+#ifdef USE_USTDERR
 static UFILE *ustderr = NULL;
 
 #define INIT_USTDERR do { if (ustderr == NULL) ustderr = u_finit(stderr, NULL, NULL); } while (0)
+#endif
 
 #define TESTHEADER(name) do { \
   fprintf(stderr, "\n-- %s --\n", (name)); \
@@ -187,13 +195,15 @@ static UFILE *ustderr = NULL;
  * relative path.  'dest' is a pointer to a char buffer into which the result should be written, and 'len' is the space
  * available in the buffer.  len must be greater than zero, else the behavior of this macro is undefined.  All the
  * storage from dest[0] to dest[len - 1] must belong to the same object, else the behavior of this macro is undefined.
+ * There must be sufficient space for the full resolution, else an empty string is recorded.
  */
 #define RESOLVE_DATADIR(dest, len) do { \
     const char *_cifapi_src = getenv("CIFAPI_SRC"); \
     char *_d = (dest); \
     ssize_t _l = (len); \
     if (!_cifapi_src) { _cifapi_src = "."; } \
-    if (snprintf(_d, _l, "%s/" DATA_DIR "/", _cifapi_src) == _l) { _d[0] = 0; }; \
+    if (strlen(_cifapi_src) >= (_l - (strlen(DATA_DIR) + 2))) { _d[0] = 0; } \
+    else { sprintf(_d, "%s/" DATA_DIR "/", _cifapi_src); } \
 } while (0)
 
 #endif

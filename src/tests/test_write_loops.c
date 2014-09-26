@@ -10,12 +10,14 @@
 #include <stdio.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
-#include "test.h"
+
+#define USE_USTDERR
 #include "assert_cifs.h"
+#include "test.h"
 
 #define BUFFER_SIZE 512
 #define NUM_ITEMS     8
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_write_loops";
     FILE * cif_file;
     cif_t *cif = NULL;
@@ -24,8 +26,6 @@ int main(int argc, char *argv[]) {
     cif_loop_t *loop = NULL;
     cif_packet_t *packet = NULL;
     cif_value_t *value = NULL;
-    cif_value_t *value2 = NULL;
-    cif_value_t *value3 = NULL;
 
     UChar names[][8]  = {
         { '_', 'k', 'e', 'y', 0 },
@@ -40,12 +40,7 @@ int main(int argc, char *argv[]) {
         { '_', 'v', 'a', 'l', 'u', 'e', '9', 0 }
     };
 
-    UChar *item_names[] = {
-        names[0],
-        names[1],
-        names[2],
-        NULL
-    };
+    UChar *item_names[4];
 
     UChar value_text[]  = { '"', '"', '"', ' ', 'a', 'n', 'd', ' ', '\'', '\'', '\'', '?', 0x0a,
             'O', 'o', 'p', 's', '.', 0 };
@@ -56,6 +51,10 @@ int main(int argc, char *argv[]) {
     U_STRING_DECL(block_code,           "looped_data", 13);
 
     U_STRING_INIT(block_code,           "looped_data", 13);
+    item_names[0] = names[0];
+    item_names[1] = names[1];
+    item_names[2] = names[2];
+    item_names[3] = NULL;
 
     /* Initialize data and prepare the test fixture */
     TESTHEADER(test_name);

@@ -13,7 +13,7 @@
 #include "test.h"
 
 #define NCASES 7
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_normalize";
     UChar input[NCASES][16]    = {
         { 0 }, /* empty string */

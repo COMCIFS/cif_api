@@ -12,19 +12,18 @@
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
 static cif_packet_t *clone_packet(cif_packet_t *packet);
 static cif_packet_t *lookup_packet(cif_packet_t **packets, const UChar *key_name, cif_value_t *find);
 static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2);
 static int assert_packets(cif_pktitr_t *pktitr, cif_packet_t *expected[], const UChar *key_name);
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_loop_modification";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;
-    cif_frame_t *frame = NULL;
     cif_loop_t *loop;
     cif_pktitr_t *pktitr;
     cif_packet_t *packet;
@@ -48,7 +47,6 @@ int main(int argc, char *argv[]) {
     UChar cvalue[16] = { 0x56, 0 };
     UChar *ustr;
     int counter;
-    unsigned packet_mask;
 
     /* Initialize data and prepare the test fixture */
     TESTHEADER(test_name);

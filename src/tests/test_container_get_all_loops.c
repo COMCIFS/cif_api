@@ -12,12 +12,14 @@
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include "../cif.h"
+
+#define USE_USTDERR
 #include "test.h"
 
 #define NAME_UCHARS 8
 #define NUM_NAMES 8
 #define EXPECTED_LOOPS 4
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_container_get_all_loops";
     cif_t *cif = NULL;
     cif_block_t *block1 = NULL;
@@ -144,7 +146,7 @@ int main(int argc, char *argv[]) {
                                         goto matched_it;
                                     } else {
                                         HASH_CLEAR(hh, head);
-                                        FAIL(subtest, test_name, (int) head, "!=", 0);
+                                        FAIL(subtest, test_name, (int) (intptr_t) head, "!=", 0);
                                     }
                                 } else {
                                     HASH_FIND(hh, head, *name_ctr, u_strlen(*name_ctr) * sizeof(UChar), el);

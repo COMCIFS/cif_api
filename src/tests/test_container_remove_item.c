@@ -11,9 +11,11 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 #include "uthash.h"
+
+#define USE_USTDERR
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_container_remove_item";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;
@@ -28,7 +30,6 @@ int main(int argc, char *argv[]) {
     cif_value_t *value2 = NULL;
     cif_value_t *value3 = NULL;
     UChar *names[5];
-    UChar **names2;
     int i;
     double d;
     U_STRING_DECL(block_code, "block", 6);

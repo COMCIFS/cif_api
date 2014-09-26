@@ -1637,6 +1637,29 @@ static size_t cif_buf_read(read_buffer_t *buf, void *dest, size_t max) {
     }
 }
 
+static int frac_bits(double d, int *exponent) {
+    if (d == 0.0) {
+        *exponent = 0;
+        return 0;
+    } else {
+        double t = frexp(d, exponent);
+        /* FIXME: assumes DBL_MANT_DIG <= 64 */
+        uint64_t bits = (uint64_t) ldexp(fabs(t), DBL_MANT_DIG);
+        int zeroes = 0;
+
+        while ((bits % 16) == 0) {
+            zeroes += 4;
+            bits /= 16;
+        }
+        while ((bits % 2) == 0) {
+            zeroes += 1;
+            bits /= 2;
+        }
+
+        return (DBL_MANT_DIG - zeroes);
+    }
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1854,7 +1877,7 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
             /*@fallthrough@*/
         case UCHAR_PLUS:
             pos += 1;
-        /* else do nothing */
+        /* default: do nothing */
     }
 
     /* mandatory digit string with optional single decimal point */
@@ -1896,7 +1919,7 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
                 /*@fallthrough@*/
             case UCHAR_PLUS:
                 pos += 1;
-            /* else do nothing */
+            /* default: do nothing */
         }
 
         exp_start = pos;
@@ -2088,29 +2111,6 @@ int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int ma
         }
 
         FAILURE_TERMINUS;
-    }
-}
-
-static int frac_bits(double d, int *exponent) {
-    if (d == 0.0) {
-        *exponent = 0;
-        return 0;
-    } else {
-        double t = frexp(d, exponent);
-        /* FIXME: assumes DBL_MANT_DIG <= 64 */
-        uint64_t bits = (uint64_t) ldexp(fabs(t), DBL_MANT_DIG);
-        int zeroes = 0;
-
-        while ((bits % 16) == 0) {
-            zeroes += 4;
-            bits /= 16;
-        }
-        while ((bits % 2) == 0) {
-            zeroes += 1;
-            bits /= 2;
-        }
-
-        return (DBL_MANT_DIG - zeroes);
     }
 }
 

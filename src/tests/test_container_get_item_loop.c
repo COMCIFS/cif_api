@@ -13,7 +13,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_container_get_item_loop";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;

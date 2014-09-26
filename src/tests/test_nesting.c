@@ -10,22 +10,16 @@
 #include <stdio.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_nesting";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;
     cif_value_t *value;
     cif_value_t *value1;
     cif_value_t *value2;
-    UChar key0[1] = { 0 };
-    UChar key1[3] = { 0x20, 0x20, 0 };
-    UChar key2[4] = { 0x41, 0x7b, 0x7d, 0 };
-    UChar key3[4] = { 0x61, 0x7b, 0x7d, 0 };
-    UChar key4[7] = { 0x23, 0xd800, 0xdc01, 0x20, 0x09, 0x27, 0 };
-    UChar *ustr;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(item1l, "_item1", 7);
 
@@ -102,7 +96,7 @@ int main(int argc, char *argv[]) {
     TEST(cif_value_get_element_at(value2, 2, &value), CIF_OK, test_name, 41);
     TEST(cif_value_autoinit_numb(value, -1.0, 0.5, 19), CIF_OK, test_name, 42);
     value2 = NULL;
-    value = 1;
+    value = NULL;
 
     /* Test recording and re-reading the value */
     TEST(cif_container_set_value(block, item1l, value1), CIF_OK, test_name, 43);

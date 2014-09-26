@@ -13,12 +13,12 @@
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
 static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2);
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_loop_misc";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;

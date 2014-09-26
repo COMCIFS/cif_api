@@ -12,7 +12,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_get_block";
     cif_t *cif = NULL;
     cif_block_t *block;
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
             test_name,
             HARD_FAIL
             );
-        TEST(block != NULL, 0, test_name, 3 * counter + 1);
+        TEST(block != NULL, 0, test_name, 3 * counter);
         TEST(
             cif_create_block(cif, TO_UNICODE(code_pairs[counter][0], buffer, CIF_LINE_LENGTH), &block),
             CIF_OK,
@@ -52,10 +52,10 @@ int main(int argc, char *argv[]) {
             cif_get_block(cif, TO_UNICODE(code_pairs[counter][1], buffer, CIF_LINE_LENGTH), &block),
             CIF_OK,
             test_name,
-            3 * counter + 2
+            3 * counter + 1
             );
         TEST(block == NULL, 0, test_name, 3 * counter + 3);
-        cif_block_destroy(block);
+        TEST(cif_block_destroy(block), CIF_OK, test_name, 3 * counter + 2);
     }
 
     DESTROY_CIF(test_name, cif);

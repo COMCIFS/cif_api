@@ -11,7 +11,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_block_get_frame";
     cif_t *cif = NULL;
     cif_block_t *block;
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
             test_name,
             HARD_FAIL
             );
-        TEST(frame != NULL, 0, test_name, 3 * counter + 1);
+        TEST(frame != NULL, 0, test_name, 4 * counter);
         TEST(
             cif_block_create_frame(block, TO_UNICODE(code_pairs[counter][0], buffer, CIF_LINE_LENGTH), &frame),
             CIF_OK,
@@ -54,10 +54,10 @@ int main(int argc, char *argv[]) {
             cif_block_get_frame(block, TO_UNICODE(code_pairs[counter][1], buffer, CIF_LINE_LENGTH), &frame),
             CIF_OK,
             test_name,
-            3 * counter + 2
+            4 * counter + 1
             );
-        TEST(frame == NULL, 0, test_name, 3 * counter + 3);
-        cif_frame_destroy(frame);
+        TEST(frame == NULL, 0, test_name, 4 * counter + 2);
+        TEST(cif_frame_destroy(frame), CIF_OK, test_name, 4 * counter + 3);
     }
 
     TEST(

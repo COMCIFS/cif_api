@@ -18,10 +18,6 @@
 #include "internal/utils.h"
 #include "internal/sql.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static const char MULTIPLE_SCALAR_MESSAGE[49] = "Attempted to create multiple values for a scalar";
 
 static int dup_ustrings(UChar ***dest, UChar *src[]);
@@ -72,6 +68,10 @@ static int dup_ustrings(UChar ***dest, UChar *src[]) {
         FAILURE_TERMINUS;
     }
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* safe to be called by anyone */
 void cif_loop_free(
@@ -245,115 +245,6 @@ int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
     return cif_loop_get_names_internal(loop, item_names, CIF_FALSE);
 }
 
-static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, int normalize) {
-    cif_container_t *container = loop->container;
-
-    if (item_names == NULL) {
-        return CIF_ARGUMENT_ERROR;
-    } else if (loop->loop_num < 0) {
-        /* return the cached names, if any */
-        return dup_ustrings(item_names, loop->names);
-    } else if (container == NULL) {
-        return CIF_INVALID_HANDLE;
-    } else {
-        FAILURE_HANDLING;
-        NESTTX_HANDLING;
-        cif_t *cif = container->cif;
-
-        /*
-         * Create any needed prepared statements, or prepare the existing one(s)
-         * for re-use, exiting this function with an error on failure.
-         */
-        PREPARE_STMT(cif, get_loop_names, GET_LOOP_NAMES_SQL);
-
-        if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
-
-            /* retrieve the names */
-            if ((sqlite3_bind_int64(cif->get_loop_names_stmt, 1, container->id) == SQLITE_OK)
-                    && (sqlite3_bind_int64(cif->get_loop_names_stmt, 2, loop->loop_num) == SQLITE_OK)) {
-                STEP_HANDLING;
-                int name_count = 0;
-                string_element_t *name_list = NULL;
-                string_element_t *next_name;
-                string_element_t *temp_name;
-
-                while (CIF_TRUE) {
-                    UChar **temp_names;
- 
-                    /* read the names and copy them into application space */
-                    switch (STEP_STMT(cif, get_loop_names)) {
-                        case SQLITE_ROW:
-                            next_name = (string_element_t *) malloc(sizeof(string_element_t));
-
-                            if (next_name != NULL) {
-                                GET_COLUMN_STRING(cif->get_loop_names_stmt, 0, next_name->string, HANDLER_LABEL(name));
-                                LL_PREPEND(name_list, next_name);  /* prepending is O(1), appending would be O(n) */
-                                name_count += 1;
-                                continue;
-                            } /* else fall through; go on to cleanup/fail */
-                        default:
-                            /* ignore any error: */
-                            sqlite3_reset(cif->get_loop_names_stmt);
-                            break;
-                        case SQLITE_DONE:
-                            if (name_count <= 0) FAIL(name, CIF_INVALID_HANDLE);
-                            temp_names = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
-                            if (temp_names != NULL) {
-                                ROLLBACK_NESTTX(cif->db);  /* no changes should have been made anyway */
-
-                                temp_names[name_count] = NULL;
-                                LL_FOREACH_SAFE(name_list, next_name, temp_name) {
-                                    LL_DELETE(name_list, next_name);
-                                    name_count -= 1;
-                                    if (normalize) {
-                                        int result = cif_normalize_item_name(
-                                                next_name->string, -1, temp_names + name_count, CIF_INTERNAL_ERROR);
-
-                                        free(next_name->string);
-                                        free(next_name);
-                                        if (result != CIF_OK) {
-                                            FAIL(normalization, result);
-                                        }
-                                    } else {
-                                        temp_names[name_count] = next_name->string;
-                                        free(next_name);
-                                    }
-                                }
-
-                                /* Success */
-                                *item_names = temp_names;
-                                return CIF_OK;
-
-                                FAILURE_HANDLER(normalization):
-                                while (temp_names[++name_count] != NULL) {
-                                    free(temp_names[name_count]);
-                                }
-                            } /* else drop out the bottom and fail */
-                            break;
-                    }
-
-                    FAILURE_HANDLER(name):
-                    /* release resources and roll back before reporting the failure */
-                    LL_FOREACH_SAFE(name_list, next_name, temp_name) {
-                        LL_DELETE(name_list, next_name);
-                        free(next_name->string);
-                        free(next_name);
-                    }
-                    ROLLBACK_NESTTX(cif->db);
-                    DEFAULT_FAIL(soft);
-                }
-            }
-
-            ROLLBACK_NESTTX(cif->db);
-        }
-
-        DROP_STMT(cif, get_loop_names);
-
-        FAILURE_HANDLER(soft):
-        FAILURE_TERMINUS;
-    }
-}
-
 /* safe to be called by anyone */
 int cif_loop_add_item(
         cif_loop_t *loop,
@@ -386,7 +277,6 @@ int cif_loop_add_item_internal(
     NESTTX_HANDLING;
     cif_container_t *container = loop->container;
     cif_t *cif = container->cif;
-    int result;
 
     /*
      * Create any needed prepared statements, or prepare the existing one(s)
@@ -570,6 +460,7 @@ int cif_loop_add_packet(
                     TRACELINE;
                     (void) ROLLBACK_NESTTX(cif->db);
                     FAIL(soft, CIF_INTERNAL_ERROR);
+                /* default: do nothing */
             }
         }
 
@@ -605,12 +496,13 @@ int cif_loop_get_packets(
 
     temp_it = (cif_pktitr_t *) malloc(sizeof(cif_pktitr_t));
     if (temp_it) {
+        int result;
+
         /* initialize to NULL so we can later recognize where cleanup is needed */
         temp_it->stmt = NULL;
         temp_it->item_names = NULL;
         temp_it->name_set = NULL;
         temp_it->finished = 0;
-        int result;
 
         if ((result = cif_loop_get_names_internal(loop, &(temp_it->item_names), CIF_TRUE)) != CIF_OK) {
             SET_RESULT(result);
@@ -644,6 +536,8 @@ int cif_loop_get_packets(
                                 return CIF_OK;
                             case SQLITE_DONE:
                                 SET_RESULT(CIF_EMPTY_LOOP);
+                                /* fall through */
+                            /* default: do nothing */
                         }
                         (void) ROLLBACK(cif->db);
                     }
@@ -663,3 +557,111 @@ int cif_loop_get_packets(
 }
 #endif
 
+static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, int normalize) {
+    cif_container_t *container = loop->container;
+
+    if (item_names == NULL) {
+        return CIF_ARGUMENT_ERROR;
+    } else if (loop->loop_num < 0) {
+        /* return the cached names, if any */
+        return dup_ustrings(item_names, loop->names);
+    } else if (container == NULL) {
+        return CIF_INVALID_HANDLE;
+    } else {
+        FAILURE_HANDLING;
+        NESTTX_HANDLING;
+        cif_t *cif = container->cif;
+
+        /*
+         * Create any needed prepared statements, or prepare the existing one(s)
+         * for re-use, exiting this function with an error on failure.
+         */
+        PREPARE_STMT(cif, get_loop_names, GET_LOOP_NAMES_SQL);
+
+        if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
+
+            /* retrieve the names */
+            if ((sqlite3_bind_int64(cif->get_loop_names_stmt, 1, container->id) == SQLITE_OK)
+                    && (sqlite3_bind_int64(cif->get_loop_names_stmt, 2, loop->loop_num) == SQLITE_OK)) {
+                STEP_HANDLING;
+                int name_count = 0;
+                string_element_t *name_list = NULL;
+                string_element_t *next_name;
+                string_element_t *temp_name;
+
+                while (CIF_TRUE) {
+                    UChar **temp_names;
+
+                    /* read the names and copy them into application space */
+                    switch (STEP_STMT(cif, get_loop_names)) {
+                        case SQLITE_ROW:
+                            next_name = (string_element_t *) malloc(sizeof(string_element_t));
+
+                            if (next_name != NULL) {
+                                GET_COLUMN_STRING(cif->get_loop_names_stmt, 0, next_name->string, HANDLER_LABEL(name));
+                                LL_PREPEND(name_list, next_name);  /* prepending is O(1), appending would be O(n) */
+                                name_count += 1;
+                                continue;
+                            } /* else fall through; go on to cleanup/fail */
+                        default:
+                            /* ignore any error: */
+                            sqlite3_reset(cif->get_loop_names_stmt);
+                            break;
+                        case SQLITE_DONE:
+                            if (name_count <= 0) FAIL(name, CIF_INVALID_HANDLE);
+                            temp_names = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
+                            if (temp_names != NULL) {
+                                ROLLBACK_NESTTX(cif->db);  /* no changes should have been made anyway */
+
+                                temp_names[name_count] = NULL;
+                                LL_FOREACH_SAFE(name_list, next_name, temp_name) {
+                                    LL_DELETE(name_list, next_name);
+                                    name_count -= 1;
+                                    if (normalize) {
+                                        int result = cif_normalize_item_name(
+                                                next_name->string, -1, temp_names + name_count, CIF_INTERNAL_ERROR);
+
+                                        free(next_name->string);
+                                        free(next_name);
+                                        if (result != CIF_OK) {
+                                            FAIL(normalization, result);
+                                        }
+                                    } else {
+                                        temp_names[name_count] = next_name->string;
+                                        free(next_name);
+                                    }
+                                }
+
+                                /* Success */
+                                *item_names = temp_names;
+                                return CIF_OK;
+
+                                FAILURE_HANDLER(normalization):
+                                while (temp_names[++name_count] != NULL) {
+                                    free(temp_names[name_count]);
+                                }
+                            } /* else drop out the bottom and fail */
+                            break;
+                    }
+
+                    FAILURE_HANDLER(name):
+                    /* release resources and roll back before reporting the failure */
+                    LL_FOREACH_SAFE(name_list, next_name, temp_name) {
+                        LL_DELETE(name_list, next_name);
+                        free(next_name->string);
+                        free(next_name);
+                    }
+                    ROLLBACK_NESTTX(cif->db);
+                    DEFAULT_FAIL(soft);
+                }
+            }
+
+            ROLLBACK_NESTTX(cif->db);
+        }
+
+        DROP_STMT(cif, get_loop_names);
+
+        FAILURE_HANDLER(soft):
+        FAILURE_TERMINUS;
+    }
+}

@@ -14,7 +14,7 @@
 
 static int test_name_list(UChar **expected, int num_expected, const UChar **observed);
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_packet_remove_item";
     cif_packet_t *packet = NULL;
     cif_value_t *value = NULL;

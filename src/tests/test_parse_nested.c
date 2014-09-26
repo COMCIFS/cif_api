@@ -13,7 +13,7 @@
 #include "test.h"
 
 #define BUFFER_SIZE 512
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_parse_nested";
     char local_file_name[] = "nested.cif";
     struct cif_parse_opts_s *options;

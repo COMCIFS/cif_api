@@ -13,7 +13,7 @@
 #include "test.h"
 #include "uthash.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_block_get_all_frames";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;

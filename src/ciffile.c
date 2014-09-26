@@ -61,7 +61,6 @@ typedef struct {
 /* Unicode strings important for determining possible output formats for char values */
 static const UChar dq3[4] = { '"', '"', '"', 0 };
 static const UChar sq3[4] = { '\'', '\'', '\'', 0 };
-static const UChar nl[2] = { '\n', 0 };
 static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
 
 /* the true data type of the CIF walker context pointers used by the CIF-writing functions */
@@ -94,10 +93,6 @@ static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
         ((t == -CIF_OVERLENGTH_LINE) ? write_newline(c) : (t == 1)) \
     ) \
 )
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 static void ustream_to_unicode_callback(const void *context, UConverterToUnicodeArgs *args, const char *codeUnits,
         int32_t length, UConverterCallbackReason reason, UErrorCode *error_code);
@@ -243,6 +238,10 @@ static const char CIF2_DEFAULT_MAGIC[MAGIC_LENGTH + MAGIC_EXTRA + 1] = "#\\#CIF_
 static const char CIF2_UTF8_MAGIC[MAGIC_LENGTH + MAGIC_EXTRA + 1] = "\x23\x5c\x23\x43\x49\x46\x5f\x32\x2e\x30";
 
 static const char UTF8[6] = "UTF-8";
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int cif_parse_options_create(struct cif_parse_opts_s **opts) {
     struct cif_parse_opts_s *opts_temp = (struct cif_parse_opts_s *) calloc(1, sizeof(struct cif_parse_opts_s));
@@ -433,6 +432,45 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
 }
 #undef BUFFER_SIZE
 
+/*
+ * Formats the CIF data represented by the 'cif' handle to the specified
+ * output.
+ */
+int cif_write(FILE *stream, struct cif_write_opts_s *options UNUSED, cif_t *cif) {
+    cif_handler_t handler = {
+        write_cif_start,
+        write_cif_end,
+        write_container_start,
+        write_container_end,
+        write_container_start,
+        write_container_end,
+        write_loop_start,
+        write_loop_end,
+        write_packet_start,
+        write_packet_end,
+        write_item
+    };
+    UFILE *u_stream = u_finit(stream, "C", "UTF_8");
+    int result;
+
+    if (u_stream != NULL) {
+        CONTEXT_S context;
+
+        CONTEXT_INITIALIZE(context, u_stream);
+        result = cif_walk(cif, &handler, &context);
+
+        /* TODO: handle errors */
+        u_fclose(u_stream);
+        return result;
+    } else {
+        return CIF_ERROR;
+    }
+}
+
+#ifdef __cplusplus
+}
+#endif
+
 static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count, int *error_code) {
     uchar_stream_t *ustream = (uchar_stream_t *) char_source;
 
@@ -514,41 +552,6 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
     } /* else it's a lifecycle signal, which we can safely ignore */
 }
 
-
-/*
- * Formats the CIF data represented by the 'cif' handle to the specified
- * output.
- */
-int cif_write(FILE *stream, struct cif_write_opts_s *options UNUSED, cif_t *cif) {
-    cif_handler_t handler = {
-        write_cif_start,
-        write_cif_end,
-        write_container_start,
-        write_container_end,
-        write_container_start,
-        write_container_end,
-        write_loop_start,
-        write_loop_end,
-        write_packet_start,
-        write_packet_end,
-        write_item
-    };
-    UFILE *u_stream = u_finit(stream, "C", "UTF_8");
-    int result;
-
-    if (u_stream != NULL) {
-        CONTEXT_S context;
-
-        CONTEXT_INITIALIZE(context, u_stream);
-        result = cif_walk(cif, &handler, &context);
-
-        /* TODO: handle errors */
-        u_fclose(u_stream);
-        return result;
-    } else {
-        return CIF_ERROR;
-    }
-}
 
 static int write_cif_start(cif_t *cif UNUSED, void *context) {
     int num_written = u_fprintf(CONTEXT_UFILE(context), "#\\#CIF_2.0\n");
@@ -942,7 +945,6 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
             int fold = ((max_line > LINE_LENGTH(context))
                     || (most_semis >= LINE_LENGTH(context))
                     || ((!has_nl_semi) && ((first_line + 1) > LINE_LENGTH(context))));
-            int32_t index;
 
             if (!has_nl_semi) { /* otherwise it's redundant to perform the following test */
                 /* scan backward through the first line to check whether it mimics a prefix marker */
@@ -1290,9 +1292,3 @@ static int write_newline(void *context) {
         return CIF_FALSE;
     }
 }
-
-
-#ifdef __cplusplus
-}
-#endif
-

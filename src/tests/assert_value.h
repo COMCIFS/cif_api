@@ -14,6 +14,8 @@
 #include <unicode/ustring.h>
 #include <assert.h>
 #include "../cif.h"
+
+#define USE_USTDERR
 #include "test.h"
 
 static int assert_values_equal(cif_value_t *value1, cif_value_t *value2);

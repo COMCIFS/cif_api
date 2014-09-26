@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <math.h>
 #include "../cif.h"
+
+#define USE_USTDERR
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_value_autoinit_numb";
     cif_value_t *value;
     UChar *text;

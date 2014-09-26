@@ -10,9 +10,11 @@
 #include <stdio.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
+
+#define USE_USTDERR
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_container_create_loop1";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;

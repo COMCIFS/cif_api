@@ -10,9 +10,11 @@
 #include <stdio.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
+
+#define USE_USTDERR
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_container_prune";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;
@@ -22,7 +24,6 @@ int main(int argc, char *argv[]) {
 #define MAX_NAMES 5
     UChar *names[MAX_NAMES + 1];
     UChar *names2[MAX_NAMES + 1];
-    int counter;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(block_code2, "block2", 6);
     U_STRING_DECL(category, "category", 9);

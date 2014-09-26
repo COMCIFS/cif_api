@@ -10,9 +10,11 @@
 #include <math.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
+
+#define USE_USTDERR
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_value_parse_numb";
     cif_value_t *value;
     UChar *text;

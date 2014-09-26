@@ -11,11 +11,11 @@
 #include <math.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
 #define BUFFER_SIZE 512
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_parse_unicode";
     char local_file_name[] = "unicode.cif";
     char file_name[BUFFER_SIZE];
@@ -32,7 +32,6 @@ int main(int argc, char *argv[]) {
     cif_value_t *value = NULL;
     UChar *ustr;
     size_t count;
-    double d;
     UChar code_unicode[] = { 0x16c, 'n', 'i', 'c', 0xf6, 'd', 'e', 0x2192, 0 };
     UChar code_s1[] =      { 0xa7, '1', 0 };
     UChar name_deltaHf[] = { '_', 0x394, 'H', 'f', 0 };

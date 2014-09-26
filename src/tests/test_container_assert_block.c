@@ -12,7 +12,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_container_assert_block";
     cif_t *cif = NULL;
     cif_container_t *block = NULL;

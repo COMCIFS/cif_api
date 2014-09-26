@@ -11,7 +11,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_value_get_number";
     cif_value_t *value;
     double d;

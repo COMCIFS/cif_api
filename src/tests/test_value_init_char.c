@@ -10,16 +10,17 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_value_init_char";
     cif_value_t *value;
     UChar buffer[240];
     UChar *init_text;
     UChar *text;
+    UChar *unused;
 
     TESTHEADER(test_name);
 
-    TO_UNICODE("\\nSome text.\\n"
+    unused = TO_UNICODE("\\nSome text.\\n"
             "  With multiple lines and U\\u0308nicode characters \\tfrom various planes (\\U0001F649: \\U0010DEAF).\\n"
             "  There's also a hyphen or two, and \"quoted\" text.", buffer, 240);
 

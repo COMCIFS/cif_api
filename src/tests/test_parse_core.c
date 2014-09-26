@@ -11,18 +11,19 @@
 #include <math.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
-static int error_callback(int code, size_t line, size_t column, const UChar *text, size_t length, void *data) {
-    fprintf(stderr, "error code %d at line %zu, column %zu\n", code, line, column);
+static int error_callback(int code, size_t line, size_t column, const UChar *text UNUSED, size_t length UNUSED,
+        void *data UNUSED) {
+    fprintf(stderr, "error code %d at line %lu, column %lu\n", code, (unsigned long) line, (unsigned long) column);
     return code;
 }
 
 
 #define BUFFER_SIZE 512
 #define NUM_ITEMS     3
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_parse_core";
     char local_file_name[] = "cif_core.dic";
     char file_name[BUFFER_SIZE];
@@ -40,16 +41,6 @@ int main(int argc, char *argv[]) {
         NULL  /* no user data */
     };
     cif_t *cif = NULL;
-    cif_block_t **block_list;
-    cif_block_t **block_p;
-    cif_block_t *block = NULL;
-    cif_frame_t **frame_list;
-    cif_frame_t **frame_p;
-    cif_frame_t *frame = NULL;
-    cif_value_t *value = NULL;
-    UChar *ustr;
-    size_t count;
-
     U_STRING_DECL(code_block1,       "block1", 7);
 
     U_STRING_INIT(code_block1,       "block1", 7);

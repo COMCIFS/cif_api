@@ -117,6 +117,7 @@ int cif_pktitr_next_packet(
                 if (!name) {
                     DEFAULT_FAIL(soft);
                 }
+
                 HASH_FIND(hh, temp_packet->map.head, name, U_BYTES(name), entry);
                 if ((entry == NULL) || entry->as_value.kind != CIF_UNK_KIND) {
                     /* The item was expected to have a dummy value pre-recorded in the packet */

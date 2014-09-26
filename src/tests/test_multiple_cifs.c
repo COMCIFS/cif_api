@@ -13,11 +13,10 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_multiple_cifs";
     cif_t *cif1 = NULL;
     cif_t *cif2 = NULL;
-    cif_block_t *block = NULL;
     U_STRING_DECL(block_code, "block", 6);
 
     /* Initialize data and prepare the test fixture */

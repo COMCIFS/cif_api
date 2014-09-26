@@ -10,7 +10,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_value_create";
     cif_value_t *value;
     UChar *text;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 
     /* Test creating a value of invalid kind */ 
     value = NULL;
-    TEST(cif_value_create(42, &value), CIF_ARGUMENT_ERROR, test_name, 36);
+    TEST(cif_value_create((cif_kind_t) 42, &value), CIF_ARGUMENT_ERROR, test_name, 36);
     TEST((value != NULL), 0, test_name, 37);
 
     return 0;

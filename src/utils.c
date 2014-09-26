@@ -28,10 +28,6 @@ UFILE *ustderr = NULL;
 #define INIT_USTDERR
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * Scans the provided Unicode string for characters disallowed in CIF, returning
  * CIF_TRUE if any are found or CIF_FALSE otherwise.  Surrogate pairs are
@@ -151,6 +147,10 @@ static int cif_is_valid_name(const UChar *name, int for_item) {
             && (cif_has_disallowed_chars(name) == 0)) ? 1 : 0;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int cif_normalize(const UChar *src, int32_t srclen, UChar **normalized) {
     int32_t result_length;
     UChar *buf = cif_unicode_normalize(src, srclen, UNORM_NFD, &result_length, 0);
@@ -195,6 +195,59 @@ int cif_normalize(const UChar *src, int32_t srclen, UChar **normalized) {
     return CIF_ERROR;
 }
 
+
+UChar *cif_u_strdup(const UChar *src) {
+    if (src) {
+        int32_t len = u_strlen(src) + 1;
+        UChar *dest = (UChar *) malloc((size_t) len * sizeof(UChar));
+
+        return (dest == NULL) ? NULL : u_strncpy(dest, src, len);
+    } else {
+        return NULL;
+    }
+}
+
+int cif_normalize_name(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
+    if (cif_is_valid_name(name, 0) == 0) {
+        return invalidityCode;
+    } else {
+        return cif_normalize(name, namelen, normalized_name);
+    }
+}
+
+int cif_normalize_item_name(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
+    if (cif_is_valid_name(name, 1) == 0) {
+        return invalidityCode;
+    } else {
+        return cif_normalize(name, namelen, normalized_name);
+    }
+}
+
+int cif_normalize_table_index(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
+    if ((name != NULL) && (cif_has_disallowed_chars(name) == 0)) {
+        int32_t dummy;
+        UChar *buf = cif_unicode_normalize(name, namelen, UNORM_NFC, &dummy, 1);
+
+        if (buf != NULL) {
+            if (normalized_name) {
+                *normalized_name = buf;
+            } else {
+                free(buf);
+            }
+
+            return CIF_OK;
+        }
+
+        return CIF_ERROR;
+    } else {
+        return invalidityCode;
+    }
+}
+
+
+#ifdef __cplusplus
+}
+#endif
 
 /*
  * Computes the Unicode normalization form NFC equivalent of the given Unicode string.  Returns NULL on failure;
@@ -285,57 +338,3 @@ static UChar *cif_fold_case(const UChar *src, int32_t srclen, int32_t *result_le
 
     return buf;
 }
-
-UChar *cif_u_strdup(const UChar *src) {
-    if (src) {
-        int32_t len = u_strlen(src) + 1;
-        UChar *dest = (UChar *) malloc((size_t) len * sizeof(UChar));
-
-        return (dest == NULL) ? NULL : u_strncpy(dest, src, len);
-    } else {
-        return NULL;
-    }
-}
-
-int cif_normalize_name(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
-    if (cif_is_valid_name(name, 0) == 0) {
-        return invalidityCode;
-    } else {
-        return cif_normalize(name, namelen, normalized_name);
-    }
-}
-
-int cif_normalize_item_name(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
-    if (cif_is_valid_name(name, 1) == 0) {
-        return invalidityCode;
-    } else {
-        return cif_normalize(name, namelen, normalized_name);
-    }
-}
-
-int cif_normalize_table_index(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
-    if ((name != NULL) && (cif_has_disallowed_chars(name) == 0)) {
-        int32_t dummy;
-        UChar *buf = cif_unicode_normalize(name, namelen, UNORM_NFC, &dummy, 1);
-
-        if (buf != NULL) {
-            if (normalized_name) {
-                *normalized_name = buf;
-            } else {
-                free(buf);
-            }
-
-            return CIF_OK;
-        }
-
-        return CIF_ERROR;
-    } else {
-        return invalidityCode;
-    }
-}
-
-
-#ifdef __cplusplus
-}
-#endif
-

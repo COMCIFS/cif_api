@@ -11,9 +11,10 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 #include "uthash.h"
-#include "test.h"
 
 #include "assert_value.h"
+#define USE_USTDERR
+#include "test.h"
 
 #define CLEAN_NAMELIST(nl) do { \
   UChar **_l = (nl), **_n = _l; \
@@ -23,7 +24,7 @@
 
 int compare_namelists(UChar *expected[], UChar *observed[]);
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_loop_add_item";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;
@@ -154,47 +155,47 @@ int main(int argc, char *argv[]) {
     cif_packet_free(packet); /* value1 and value2 belong to 'packet' */
     cif_loop_free(loop2);
 
-    cif_loop_destroy(loop);
-    TEST(cif_container_get_item_loop(block, name1l, NULL), CIF_NOSUCH_ITEM, test_name, 42);
-    TEST(cif_container_get_value(block, name1l, NULL), CIF_NOSUCH_ITEM, test_name, 43);
-    TEST(cif_container_get_value(block, name2l, NULL), CIF_NOSUCH_ITEM, test_name, 44);
+    TEST(cif_loop_destroy(loop), CIF_OK, test_name, 42);
+    TEST(cif_container_get_item_loop(block, name1l, NULL), CIF_NOSUCH_ITEM, test_name, 43);
+    TEST(cif_container_get_value(block, name1l, NULL), CIF_NOSUCH_ITEM, test_name, 44);
+    TEST(cif_container_get_value(block, name2l, NULL), CIF_NOSUCH_ITEM, test_name, 45);
 
     /* test adding to a multi-packet loop */
         /* Create and populate the loop */
     names[1] = NULL;
-    TEST(cif_container_create_loop(block, NULL, names, &loop), CIF_OK, test_name, 45);
-    TEST(cif_packet_create(&packet, names), CIF_OK, test_name, 46);
-    TEST(cif_packet_get_item(packet, names[0], &value), CIF_OK, test_name, 47);
+    TEST(cif_container_create_loop(block, NULL, names, &loop), CIF_OK, test_name, 46);
+    TEST(cif_packet_create(&packet, names), CIF_OK, test_name, 47);
+    TEST(cif_packet_get_item(packet, names[0], &value), CIF_OK, test_name, 48);
     for (i = 0; i < 3; i++) {
-        TEST(cif_value_autoinit_numb(value, i, 0, 19), CIF_OK, test_name, 48 + (2 * i));
-        TEST(cif_loop_add_packet(loop, packet), CIF_OK, test_name, 49 + (2 * i));
-    }   /* Last subtest number == 53 */
+        TEST(cif_value_autoinit_numb(value, i, 0, 19), CIF_OK, test_name, 49 + (2 * i));
+        TEST(cif_loop_add_packet(loop, packet), CIF_OK, test_name, 50 + (2 * i));
+    }   /* Last subtest number == 54 */
     cif_packet_free(packet);  /* also frees 'value', which belongs to the packet */
     packet = NULL;
         /* Add an item to the loop definition */
-    TEST(cif_value_create(CIF_NA_KIND, &value), CIF_OK, test_name, 54);
-    TEST(cif_loop_add_item(loop, name2u, value), CIF_OK, test_name, 55);
+    TEST(cif_value_create(CIF_NA_KIND, &value), CIF_OK, test_name, 55);
+    TEST(cif_loop_add_item(loop, name2u, value), CIF_OK, test_name, 56);
     cif_value_free(value);
         /* check the success result more fully */
     names[1] = name2l;
     names[2] = NULL;
-    TEST(cif_loop_get_packets(loop, &iterator), CIF_OK, test_name, 56);
+    TEST(cif_loop_get_packets(loop, &iterator), CIF_OK, test_name, 57);
     for (i = 0; i < 3; i++) {
         double d;
 
-        TEST(cif_pktitr_next_packet(iterator, &packet), CIF_OK, test_name, 57 + (9 * i));
-        TEST(cif_packet_get_item(packet, name1l, &value1), CIF_OK, test_name, 58 + (9 * i));
-        TEST(cif_value_kind(value1), CIF_NUMB_KIND, test_name, 59 + (9 * i));
-        TEST(cif_value_get_number(value1, &d), CIF_OK, test_name, 60 + (9 * i));
-        TEST(d != (double) i, 0, test_name, 61 + (9 * i));
-        TEST(cif_value_get_su(value1, &d), CIF_OK, test_name, 62 + (9 * i));
-        TEST(d != 0.0, 0, test_name, 63 + (9 * i));
-        TEST(cif_packet_get_item(packet, name2l, &value2), CIF_OK, test_name, 64 + (9 * i));
-        TEST(cif_value_kind(value2), CIF_NA_KIND, test_name, 65 + (9 * i));
+        TEST(cif_pktitr_next_packet(iterator, &packet), CIF_OK, test_name, 58 + (9 * i));
+        TEST(cif_packet_get_item(packet, name1l, &value1), CIF_OK, test_name, 59 + (9 * i));
+        TEST(cif_value_kind(value1), CIF_NUMB_KIND, test_name, 60 + (9 * i));
+        TEST(cif_value_get_number(value1, &d), CIF_OK, test_name, 61 + (9 * i));
+        TEST(d != (double) i, 0, test_name, 62 + (9 * i));
+        TEST(cif_value_get_su(value1, &d), CIF_OK, test_name, 63 + (9 * i));
+        TEST(d != 0.0, 0, test_name, 64 + (9 * i));
+        TEST(cif_packet_get_item(packet, name2l, &value2), CIF_OK, test_name, 65 + (9 * i));
+        TEST(cif_value_kind(value2), CIF_NA_KIND, test_name, 66 + (9 * i));
         /* value1 and value2 belong to the packet */
-    }   /* Last subtest number == 83 */
-    TEST(cif_pktitr_next_packet(iterator, NULL), CIF_FINISHED, test_name, 84);
-    TEST(cif_pktitr_close(iterator), CIF_OK, test_name, 85);
+    }   /* Last subtest number == 84 */
+    TEST(cif_pktitr_next_packet(iterator, NULL), CIF_FINISHED, test_name, 85);
+    TEST(cif_pktitr_close(iterator), CIF_OK, test_name, 86);
     cif_packet_free(packet);
 
     DESTROY_BLOCK(test_name, block);

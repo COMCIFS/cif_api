@@ -24,10 +24,6 @@
 
 #define INIT_STMT(cif, stmt_name) cif->stmt_name##_stmt = NULL
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static int cif_create_callback(void *context, int n_columns, char **column_texts, char **column_names);
 static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context);
 static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *context);
@@ -51,6 +47,10 @@ static int cif_create_callback(void *context, int n_columns UNUSED, char **colum
     *((int *) context) = (((*column_texts != NULL) && (**column_texts == '1')) ? 1 : 0);
     return 0;
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int cif_create(cif_t **cif) {
     FAILURE_HANDLING;
@@ -230,7 +230,8 @@ int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_bl
                                         ASSIGN_TEMP_PTR(temp, block, cif_container_free);
                                         return CIF_OK;
                                     }
-                                    /* else drop out the bottom */
+                                    /* fall through */
+                                /* default: do nothing */
                             }
                         }
 
@@ -288,6 +289,7 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
                         return CIF_OK;
                     case SQLITE_DONE:
                         FAIL(soft, CIF_NOSUCH_BLOCK);
+                    /* default: do nothing */
                 }
             }
 
@@ -442,6 +444,7 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
                         case CIF_TRAVERSE_SKIP_SIBLINGS:
                         case CIF_TRAVERSE_END:
                             return CIF_OK;
+                        /* default: do nothing */
                     }
                 }
             }
@@ -452,10 +455,15 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
         case CIF_TRAVERSE_END:
             /* valid start handler responses instructing us to return CIF_OK without doing anything further */
             return CIF_OK;
+        /* default: do nothing */
     }
 
     return result;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context) {
     /* call the handler for this element */
@@ -575,7 +583,7 @@ static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context) {
                     case CIF_TRAVERSE_SKIP_SIBLINGS:
                         packet_result = CIF_TRAVERSE_CONTINUE;
                         break;
-                    /* else CIF_TRAVERSE_END or error code */
+                    /* default: CIF_TRAVERSE_END or error code -- do nothing */
                 }
 
                 /* control reaches this point only on error */
@@ -630,8 +638,3 @@ static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *conte
 static int walk_item(UChar *name, cif_value_t *value, cif_handler_t *handler, void *context) {
     return HANDLER_RESULT(item, (name, value, context), CIF_TRAVERSE_CONTINUE);
 }
-
-#ifdef __cplusplus
-}
-#endif
-

@@ -43,6 +43,16 @@ AC_ARG_ENABLE([debug],
 AS_IF([test "x$[]{enable_debug}" = xno],
   [AC_DEFINE([NDEBUG], [1], [Define to any value to disable assertions])])
 
+AC_ARG_ENABLE([c89-enforcement],
+  [AS_HELP_STRING([--enable-c89-enforcement],
+    [instructs configure to verify that the chosen C compiler supports C89.  This is enabled by
+     default, but it may need to be disabled in certain environments, such as when a C++ compiler is chosen.])],
+  [AS_CASE([$[]{enable_debug}],
+    [yes|no], [],
+              [AC_MSG_ERROR([Unrecognized value '$[]{enable_c89_enforcement}' for --enable-c89_enforcement])]
+    )],
+  [enable_c89_enforcement=yes])
+
 AC_ARG_ENABLE([doc-rebuild],
   [AS_HELP_STRING([--enable-doc-rebuild],
     [Rebuild the generated documentation.  Requires doxygen.  [default=no]])],
@@ -85,7 +95,7 @@ AC_ARG_WITH([line-counter],
 AC_PROG_CC
 
 # Verify that the chosen C compiler supports C89 code
-AS_IF([test "x${ac_cv_prog_cc_c89}" = xno], [
+AS_IF([test "x${enable_c89_enforcement}" xyes && test "x${ac_cv_prog_cc_c89}" = xno], [
   AC_MSG_ERROR([The C compiler @<:@$[]CC@:>@ does not support C89 code.])
   ])
 
@@ -147,7 +157,7 @@ AS_CASE([$[]{CC}],
   [gcc*], [
     WARNING_FLAGS="-Wall -Wextra -Wformat=2 -Winit-self -Wno-switch -Wno-switch-default -Wstrict-aliasing=2 -Wshadow -Wpointer-arith -Wc++-compat -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wnested-externs"
     AS_IF([test $[]{enable_extra_warnings} = 'yes'],
-      [WARNING_FLAGS="${WARNING_FLAGS} -Wcast-qual -Wbad-function-cast"])
+      [WARNING_FLAGS="${WARNING_FLAGS} -Wswitch -Wswitch-default -Wcast-qual -Wbad-function-cast"])
   ],
   [WARNING_FLAGS=""])
 AC_SUBST([WARNING_FLAGS])

@@ -12,7 +12,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_ustrdup";
     UChar src0[1]  = { 0 };
     UChar ascii[7] = { 0x40, 0x41, 0x20, 0x72, 0x08, 0x20, 0 };

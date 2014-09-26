@@ -11,12 +11,12 @@
 #include <math.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
 #define BUFFER_SIZE 512
 #define NUM_ITEMS 8
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_parse_text_fields";
     char local_file_name[] = "text_fields.cif";
     char file_name[BUFFER_SIZE];

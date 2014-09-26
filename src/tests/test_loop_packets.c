@@ -13,12 +13,12 @@
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
 static int count_names(const UChar **names);
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_loop_packets";
     cif_t *cif = NULL;
     cif_block_t *block = NULL;

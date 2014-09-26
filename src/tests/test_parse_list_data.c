@@ -11,12 +11,12 @@
 #include <math.h>
 #include <unicode/ustring.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
 #define BUFFER_SIZE 512
 #define NUM_ITEMS    15
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_parse_list_data";
     char local_file_name[] = "list_data.cif";
     cif_t *cif = NULL;

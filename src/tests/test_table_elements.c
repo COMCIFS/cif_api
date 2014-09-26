@@ -11,12 +11,12 @@
 
 #include <stdio.h>
 #include "../cif.h"
-#include "test.h"
 #include "assert_value.h"
+#include "test.h"
 
 static int test_key_list(UChar **expected, int num_expected, const UChar **observed);
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_table_elements";
     cif_value_t *value = NULL;
     cif_value_t *element1 = NULL;

@@ -11,7 +11,7 @@
 #include "../cif.h"
 #include "test.h"
 
-int main(int argc, char *argv[]) {
+int main(void) {
     char test_name[80] = "test_create_block2";
     cif_t *cif = NULL;
 #define NUM_PATTERNS 8
