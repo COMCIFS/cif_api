@@ -7,7 +7,7 @@ in the event that it is not.
 The source is largely compliant with ISO C89, but it leans slightly
 on one implementation-dependent limit. Specifically, it contains one string
 literal that exceeds the least length (509 chars) that compliant compilers
-are required to support.  As of this writing, that literal is 841 chars
+are required to support.  As of this writing, that literal is 788 chars
 long, and all C89-compliant compilers known to the author in fact support
 string literals of that length.  The source also relies on a handful of
 common library functions that are not standardized by C89, but are
@@ -19,5 +19,5 @@ implementations, though it is true for the vast majority of them.  This
 arises from use of ICU's Unicode Converter API, which handles encoded
 character data as sequences of default chars.  By that token, however,
 this restriction is probably moot because it is unlikely that ICU can be
-implemented correctly on any platform that does not meet the requiremet. 
+implemented correctly on any platform that does not meet the requirement. 
 

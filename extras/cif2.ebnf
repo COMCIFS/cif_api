@@ -51,8 +51,7 @@
  * frame are required to be distinct with respect to a
  * normalization / case-folding procedure described elsewhere.
  * In the same way, data block names must be distinct within their CIF,
- * and save frame names must be distinct within their immediate
- * container (either a data block or a save frame).
+ * and save frame names must be distinct within their data block.
  *
  * The main grammatic elements of CIFs are data block headers,
  * save frame headers, data names, data values, and a few keywords.
@@ -74,10 +73,13 @@
  * input as whitespace for the purpose of satisfying the CIF 2.0
  * requirement that the version comment be followed by whitespace.
  *)
-CIF2-file = file-heading, [ newline, [
-   wspace-any, data-block, 
-   { wspace,   data-block },
-], [ wspace ], [ comment ] ];
+CIF2-file = file-heading, [
+  newline, wspace-any, [
+                data-block, 
+    { wspace,   data-block },
+    [ wspace, [ comment ] ]
+  ] | [ comment ]
+];
 
 file-heading = [ ?U+FEFF? ], magic-code, { space } ;
 
@@ -129,7 +131,7 @@ data = ( data-name, wspace-data-value ) | data-loop ;
  * integral multiple of N data values.
  *)
 data-loop = loop-token, wspace, data-name, { wspace, data-name },
-  wspace-data-value, { wspace-data-value } ;
+    wspace-data-value, { wspace-data-value } ;
 
 (*
  * A dataname begins with an underscore character, and contains one or more
@@ -168,7 +170,7 @@ table-pair = ( apostrophe-string | quoted-string | apostrophe3-string | quote3-s
 (*
  * In most contexts, data values must be preceded by explicit and/or
  * implicit whitespace.  Only text blocks have implicit leading whitespace.
- * Additionally, the whitespace preceeding an unquoted string affects the
+ * Additionally, the whitespace preceding an unquoted string affects the
  * form that string may take.
  *)
 wspace-data-value =
@@ -250,7 +252,7 @@ data-token = ( 'D' | 'd' ), ( 'A' | 'a' ), ( 'T' | 't' ), ( 'A' | 'a' ), '_';
 
 save-token = ( 'S' | 's' ), ( 'A' | 'a' ), ( 'V' | 'v' ), ( 'E' | 'e' ), '_';
 
-loop-token = ( 'L' | 'l' ), ( 'O' | 'o' ),( 'O' | 'o' ), ( 'P' | 'p' ) , '_' ;
+loop-token = ( 'L' | 'l' ), ( 'O' | 'o' ), ( 'O' | 'o' ), ( 'P' | 'p' ), '_' ;
 
 global-token = ( 'G' | 'g' ), ( 'L' | 'l' ), ( 'O' | 'o' ), ( 'B' | 'b' ), ( 'A' | 'a' ), ( 'L' | 'l' ), '_' ;
 

@@ -23,7 +23,7 @@ suffixed "16").
 
 Furthermore, the intention of the design is that character data held in any of
 the system's data-transfer objects belongs to those objects.  The object
-construction interfaces, and necessarilly the data retrieval interfaces, copy
+construction interfaces, and necessarily the data retrieval interfaces, copy
 character data into the DTOs rather than simply recording pointers.  This way,
 long-lived DTOs can safely be created from stack data, and the cleanup
 routines can safely free the DTOs' character data.
@@ -48,12 +48,14 @@ implementation and use constraints:
   (regardless of whether it is enrolled in any table).  Again, analogous
   permissions and constraints apply.  Additionally, behavior is undefined if
   the key of a table entry is modified or replaced while that entry is
-  enrolled in a table, though it is always safe to modify or replace entries'
-  values.
+  enrolled in a table.  It is always safe, however, to modify or replace
+  entries' values.
 
 * It follows from the above that aggregate objects are jealous: their
   constituent objects must not simultaneously belong to other aggregates, even
   though pointers to those components may be held and used for other purposes.
+  All API functions for manipulating these objects are designed to enforce the
+  constraints without special attention from by caller. 
 
 * Aggregate values added to the in-memory representation of a CIF are *copied*
   into it in a manner not specified here.  The copy belongs to the in-memory
@@ -86,7 +88,7 @@ by macros.  Sometimes it is spelled "break" or "continue".  This allows
 duplication of recovery and cleanup code to be minimized.  Those occurrences
 spelled "goto" (or "break") never branch backward, whether they appear plain or
 disguised within a macro, and to the extent possible, the code is arranged so
-that no more than one "goto" jump is executed during any given passage through
+that no more than one "goto" jump is executed during any passage through
 any particular function.
 
 SQLite3 Notes:

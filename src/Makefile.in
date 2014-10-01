@@ -15,6 +15,12 @@
 
 @SET_MAKE@
 
+#
+# Copyright (C) 2013, 2014 John C. Bollinger
+#
+# All rights reserved.
+#
+
 
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -703,15 +709,13 @@ LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
 EXTRA_DIST = notes.txt style.txt tests/test.h tests/assert_value.h \
 	tests/assert_cifs.h tests/link.test
 
-# For valgrind tests:
+# For valgrind tests, compile at optimization level -O (no higher):
 # TODO: find a cleaner way to do this
 #CFLAGS += -O
 AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS)
 BUILT_SOURCES = internal/schema.h
 CLEANFILES = $(BUILT_SOURCES) tests/linktest.c tests/linktest.lo \
 	tests/linktest
-DISTCLEANFILES = 
-clean_local_targets = 
 VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes
 # --error-exitcode=<number>
 compiled_tests = \
@@ -803,7 +807,6 @@ libcif_la_SOURCES = \
   cif.h \
   internal/buffer.h \
   internal/ciftypes.h \
-  internal/schema.h \
   internal/sql.h \
   internal/utils.h \
   internal/value.h
@@ -2493,7 +2496,6 @@ distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f tests/$(am__dirstamp)
-	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -2502,7 +2504,7 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool clean-local mostlyclean-am
+	clean-libtool mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -2575,7 +2577,7 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 .PHONY: CTAGS GTAGS all all-am check check-TESTS check-am check-html \
 	clean clean-checkPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool clean-local ctags distclean distclean-compile \
+	clean-libtool ctags distclean distclean-compile \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-dvi install-dvi-am \
@@ -2602,13 +2604,6 @@ internal/schema.h: $(top_srcdir)/misc/cif_schema.sql Makefile.am
 	  >> $@
 	echo "};" >> $@
 	echo "#endif" >> $@
-
-clean-local: $(clean_local_targets)
-
-dummy:
-	:
-
-.PHONY: dummy $(clean_local_targets)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

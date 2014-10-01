@@ -1,8 +1,8 @@
-##
-## Copyright (C) 2013 John C. Bollinger
-##
-## All rights reserved.
-##
+#
+# Copyright (C) 2013, 2014 John C. Bollinger
+#
+# All rights reserved.
+#
 
 lib_LTLIBRARIES = libcif.la
 include_HEADERS = cif.h
@@ -40,7 +40,7 @@ LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
 
 EXTRA_DIST = notes.txt style.txt
 
-# For valgrind tests:
+# For valgrind tests, compile at optimization level -O (no higher):
 # TODO: find a cleaner way to do this
 #CFLAGS += -O
 
@@ -49,9 +49,7 @@ AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)
 BUILT_SOURCES = internal/schema.h
 
 CLEANFILES = $(BUILT_SOURCES)
-DISTCLEANFILES =
 
-clean_local_targets =
 include tests.am
 
 libcif_la_SOURCES = \
@@ -68,7 +66,6 @@ libcif_la_SOURCES = \
   cif.h \
   internal/buffer.h \
   internal/ciftypes.h \
-  internal/schema.h \
   internal/sql.h \
   internal/utils.h \
   internal/value.h
@@ -107,11 +104,4 @@ internal/schema.h: $(top_srcdir)/misc/cif_schema.sql Makefile.am
 	  >> $@
 	echo "};" >> $@
 	echo "#endif" >> $@
-
-clean-local: $(clean_local_targets)
-
-dummy:
-	:
-
-.PHONY: dummy $(clean_local_targets)
 

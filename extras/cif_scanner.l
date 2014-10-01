@@ -64,13 +64,19 @@ void yyerror(YYLTYPE *locp, FILE *input_file, void *scanner, const char *message
 %}
 
 /*
- * The start conditions used in this scanner track progress through the input; though the current start condition
+ * The main start conditions used in this scanner track progress through the input; though the current start condition
  * may be re-asserted (as in fact happens frequently), previous start conditions are never revisited.
  */
 
 %s POSTBOM
 %s BODY
 %s EOFWS
+
+/*
+ * One additional start condition is used in the file body, immediately after scanning an opening list or table
+ * delimiter.  It is logically a subset of the BODY start condition.
+ */
+%s BODY_POSTDELIM
 
 /*
  * Bytes are expressed as octal codes to avoid sensitivity to the compiler's code page.  CIF 2.0 must always be encoded
@@ -192,6 +198,7 @@ V2    {HASH}\134{HASH}\103\111\106{UNDER}\062\056\060
 
 %{
 #define RETURN(x) do { BEGIN(BODY); return (x); } while(0)
+#define RETURN_POSTDELIM(x) do { BEGIN(BODY_POSTDELIM); return (x); } while(0)
 #define ERROR(x)  do { \
     BEGIN(BODY); \
     yyerror(NULL, yyget_in(yyscanner), yyscanner, "CIF syntax error"); \
@@ -213,11 +220,11 @@ V2    {HASH}\134{HASH}\103\111\106{UNDER}\062\056\060
 {UNDER}{NONWS}+                   RETURN(DATANAME); /* data name */
 
     /* list delimiters */
-{OBRAK}                           RETURN(LIST_OPEN);
+{OBRAK}                           RETURN_POSTDELIM(LIST_OPEN);
 {CBRAK}                           RETURN(LIST_CLOSE);
 
     /* table delimiters and keys */
-{OCURL}                           RETURN(TABLE_OPEN);
+{OCURL}                           RETURN_POSTDELIM(TABLE_OPEN);
 {CCURL}                           RETURN(TABLE_CLOSE);
 {SQ}{NOTSQ}*{SQ}{COLON}           |
 {DQ}{NOTDQ}*{DQ}{COLON}           |
@@ -260,7 +267,7 @@ V2    {HASH}\134{HASH}\103\111\106{UNDER}\062\056\060
 <EOFWS>{BL}+({HASH}{NEOL}*)?      return WS;  /* return without changing the start state */
 {BL}+({HASH}{NEOL}*)?             RETURN(WS);
 {EOL}({HASH}{NEOL}*)?             RETURN(WS);
-<INITIAL,POSTBOM>{HASH}{NEOL}*    RETURN(WS); /* leading ordinary comment */
+<INITIAL,POSTBOM,BODY_POSTDELIM>{HASH}{NEOL}*    RETURN(WS); /* leading ordinary comment, or comment directly following a list or table delimiter */
 {HASH}{NEOL}*                     ERROR(WS);  /* syntax error: missing whitespace */
     /* insert synthetic whitespace at EOF, except for completely empty CIFs: */
 <BODY><<EOF>>                     BEGIN(EOFWS); yy_scan_string("\040", yyscanner);
