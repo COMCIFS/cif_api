@@ -64,8 +64,19 @@ AC_ARG_ENABLE([doc-rebuild],
 
 AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
 
+AC_ARG_WITH([examples],
+  [AS_HELP_STRING([--with-examples], [build and install the example programs])], [
+    AS_CASE([$[]withval],
+      [yes|no], [],
+                [AC_MSG_ERROR([--with-examples=$[]withval is not supported])])
+  ], [
+    with_examples=no
+  ])
+  
+AM_CONDITIONAL([build_examples], [test "x$[]with_examples" = xyes])
+
 AC_ARG_WITH([docs],
-  [AS_HELP_STRING([--with-docs], [Whether to install documentation. See also --enable-doc-rebuild. [default=yes]])],
+  [AS_HELP_STRING([--without-docs], [do not install the documentation. See also --enable-doc-rebuild. [default=yes]])],
   [AS_CASE([$[]with_docs],
     [yes|no], [],
               [AC_MSG_ERROR([Unrecognized value '$[]{with_docs}' for --with-docs])]
@@ -77,7 +88,8 @@ AM_CONDITIONAL([install_docs], [test "x$[]{with_docs}" = xyes])
 # We need a program that will count lines and report the result to stdout:
 AC_ARG_WITH([line-counter],
   [AS_HELP_STRING([--with-line-counter=<line count command>],
-    [specifies a command that counts lines read from its standard input and writes the count to its standard output.  If not specified, configure will attempt to guess.])], [
+    [specifies a command that counts lines read from its standard input and writes the count to its standard output.  If not specified, configure will attempt to guess.])],
+  [
     AS_CASE([$[]withval],
       [yes|no], [AC_MSG_ERROR([--with-line-counter must specify a line-counting command])],
       [AS_IF([test "x$[]withval" = x], [AC_MSG_ERROR([the line-counter command must not be empty])])]
@@ -95,7 +107,7 @@ AC_ARG_WITH([line-counter],
 AC_PROG_CC
 
 # Verify that the chosen C compiler supports C89 code
-AS_IF([test "x${enable_c89_enforcement}" xyes && test "x${ac_cv_prog_cc_c89}" = xno], [
+AS_IF([test "x${enable_c89_enforcement}" = xyes && test "x${ac_cv_prog_cc_c89}" = xno], [
   AC_MSG_ERROR([The C compiler @<:@$[]CC@:>@ does not support C89 code.])
   ])
 

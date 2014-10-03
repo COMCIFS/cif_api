@@ -1,0 +1,18 @@
+##
+## examples.am
+##
+## Copyright (C) 2014 John C. Bollinger
+##
+## All rights reserved.
+##
+
+
+if build_examples
+bin_PROGRAMS += cif2_syncheck
+endif
+
+cif2_syncheck_SOURCES = \
+  examples/syncheck.c \
+  cif.h \
+  examples/messages.h
+ 

@@ -25,6 +25,7 @@ src/internal/schema.h
 /*.gz
 /dox-html/
 /dox-man/
+/src/cif2_syncheck
 
 # General working files
 *.swp

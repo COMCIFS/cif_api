@@ -482,9 +482,9 @@
 #define CIF_UNQUOTED_KEY      138
 
 /**
- * @brief A result code indicating that during parsing of a table value, an unquoted key was encountered
+ * @brief A result code indicating that during parsing of a table value, text block was encountered as a table key
  *
- * The parser distinguishes this case from the "missing key" case by the presence of a colon in the bare string.
+ * The parser can handle that case just fine, but it is not allowed by the CIF 2.0 specifications
  */
 #define CIF_MISQUOTED_KEY     139
 

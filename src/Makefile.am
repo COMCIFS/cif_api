@@ -6,6 +6,7 @@
 
 lib_LTLIBRARIES = libcif.la
 include_HEADERS = cif.h
+bin_PROGRAMS =
 
 ## Library versioning (LibTool style):
 ##
@@ -50,6 +51,7 @@ BUILT_SOURCES = internal/schema.h
 
 CLEANFILES = $(BUILT_SOURCES)
 
+include examples.am
 include tests.am
 
 libcif_la_SOURCES = \

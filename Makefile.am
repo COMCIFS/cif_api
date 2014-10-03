@@ -8,8 +8,8 @@ SUBDIRS = src
 
 ACLOCAL_AMFLAGS = -I m4
 
-# 'distcheck' should verify that documentation rebuilding works
-AM_DISTCHECK_CONFIGURE_FLAGS = --enable-doc-rebuild
+# 'distcheck' should verify that building the examples and rebuilding the documentation both work
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-doc-rebuild --with-examples
 
 doxygen_examples = \
   misc/basic_parsing.c \
@@ -34,7 +34,6 @@ EXTRA_DIST = \
   test-data/cif_core.dic \
   test-data/comment_only.cif \
   test-data/complex_data.cif \
-  test-data/ddl.dic \
   test-data/empty.cif \
   test-data/list_data.cif \
   test-data/nested.cif \
