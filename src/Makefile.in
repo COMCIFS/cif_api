@@ -45,7 +45,10 @@ host_triplet = @host@
 bin_PROGRAMS = $(am__EXEEXT_1)
 DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/examples.am $(srcdir)/tests.am
-@build_examples_TRUE@am__append_1 = cif2_syncheck
+@build_examples_TRUE@am__append_1 = \
+@build_examples_TRUE@  cif2_syncheck \
+@build_examples_TRUE@  cif2_table1
+
 check_PROGRAMS = $(am__EXEEXT_2)
 TESTS = tests/link.test $(am__EXEEXT_2)
 XFAIL_TESTS =
@@ -96,7 +99,8 @@ libcif_la_OBJECTS = $(am_libcif_la_OBJECTS) \
 libcif_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libcif_la_LDFLAGS) $(LDFLAGS) -o $@
-@build_examples_TRUE@am__EXEEXT_1 = cif2_syncheck$(EXEEXT)
+@build_examples_TRUE@am__EXEEXT_1 = cif2_syncheck$(EXEEXT) \
+@build_examples_TRUE@	cif2_table1$(EXEEXT)
 am__EXEEXT_2 = tests/test_create$(EXEEXT) \
 	tests/test_create_block1$(EXEEXT) \
 	tests/test_create_block2$(EXEEXT) \
@@ -112,6 +116,7 @@ am__EXEEXT_2 = tests/test_create$(EXEEXT) \
 	tests/test_container_get_category_loop$(EXEEXT) \
 	tests/test_container_get_item_loop$(EXEEXT) \
 	tests/test_container_get_all_loops$(EXEEXT) \
+	tests/test_container_get_code$(EXEEXT) \
 	tests/test_nested_frames$(EXEEXT) \
 	tests/test_loop_get_names$(EXEEXT) \
 	tests/test_value_create$(EXEEXT) \
@@ -162,6 +167,10 @@ am_cif2_syncheck_OBJECTS = syncheck.$(OBJEXT)
 cif2_syncheck_OBJECTS = $(am_cif2_syncheck_OBJECTS)
 cif2_syncheck_LDADD = $(LDADD)
 cif2_syncheck_DEPENDENCIES = libcif.la
+am_cif2_table1_OBJECTS = table1.$(OBJEXT)
+cif2_table1_OBJECTS = $(am_cif2_table1_OBJECTS)
+cif2_table1_LDADD = $(LDADD)
+cif2_table1_DEPENDENCIES = libcif.la
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -215,6 +224,12 @@ tests_test_container_get_category_loop_OBJECTS =  \
 	test_container_get_category_loop.$(OBJEXT)
 tests_test_container_get_category_loop_LDADD = $(LDADD)
 tests_test_container_get_category_loop_DEPENDENCIES = libcif.la
+tests_test_container_get_code_SOURCES =  \
+	tests/test_container_get_code.c
+tests_test_container_get_code_OBJECTS =  \
+	test_container_get_code.$(OBJEXT)
+tests_test_container_get_code_LDADD = $(LDADD)
+tests_test_container_get_code_DEPENDENCIES = libcif.la
 tests_test_container_get_item_loop_SOURCES =  \
 	tests/test_container_get_item_loop.c
 tests_test_container_get_item_loop_OBJECTS =  \
@@ -465,7 +480,8 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
-	$(cif2_syncheck_SOURCES) tests/test_block_create_frame1.c \
+	$(cif2_syncheck_SOURCES) $(cif2_table1_SOURCES) \
+	tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -473,6 +489,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_container_create_loop2.c \
 	tests/test_container_get_all_loops.c \
 	tests/test_container_get_category_loop.c \
+	tests/test_container_get_code.c \
 	tests/test_container_get_item_loop.c \
 	tests/test_container_get_value.c tests/test_container_prune.c \
 	tests/test_container_remove_item.c \
@@ -502,7 +519,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_write_complex.c tests/test_write_frames.c \
 	tests/test_write_loops.c tests/test_write_simple.c
 DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_syncheck_SOURCES) \
-	tests/test_block_create_frame1.c \
+	$(cif2_table1_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -510,6 +527,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_syncheck_SOURCES) \
 	tests/test_container_create_loop2.c \
 	tests/test_container_get_all_loops.c \
 	tests/test_container_get_category_loop.c \
+	tests/test_container_get_code.c \
 	tests/test_container_get_item_loop.c \
 	tests/test_container_get_value.c tests/test_container_prune.c \
 	tests/test_container_remove_item.c \
@@ -732,6 +750,10 @@ cif2_syncheck_SOURCES = \
   cif.h \
   examples/messages.h
 
+cif2_table1_SOURCES = \
+  examples/table1.c \
+  cif.h
+
 VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes
 # --error-exitcode=<number>
 compiled_tests = \
@@ -750,6 +772,7 @@ compiled_tests = \
     tests/test_container_get_category_loop \
     tests/test_container_get_item_loop \
     tests/test_container_get_all_loops \
+    tests/test_container_get_code \
     tests/test_nested_frames \
     tests/test_loop_get_names \
     tests/test_value_create \
@@ -972,6 +995,9 @@ clean-checkPROGRAMS:
 cif2_syncheck$(EXEEXT): $(cif2_syncheck_OBJECTS) $(cif2_syncheck_DEPENDENCIES) 
 	@rm -f cif2_syncheck$(EXEEXT)
 	$(LINK) $(cif2_syncheck_OBJECTS) $(cif2_syncheck_LDADD) $(LIBS)
+cif2_table1$(EXEEXT): $(cif2_table1_OBJECTS) $(cif2_table1_DEPENDENCIES) 
+	@rm -f cif2_table1$(EXEEXT)
+	$(LINK) $(cif2_table1_OBJECTS) $(cif2_table1_LDADD) $(LIBS)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
@@ -1002,6 +1028,9 @@ tests/test_container_get_all_loops$(EXEEXT): $(tests_test_container_get_all_loop
 tests/test_container_get_category_loop$(EXEEXT): $(tests_test_container_get_category_loop_OBJECTS) $(tests_test_container_get_category_loop_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_container_get_category_loop$(EXEEXT)
 	$(LINK) $(tests_test_container_get_category_loop_OBJECTS) $(tests_test_container_get_category_loop_LDADD) $(LIBS)
+tests/test_container_get_code$(EXEEXT): $(tests_test_container_get_code_OBJECTS) $(tests_test_container_get_code_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_container_get_code$(EXEEXT)
+	$(LINK) $(tests_test_container_get_code_OBJECTS) $(tests_test_container_get_code_LDADD) $(LIBS)
 tests/test_container_get_item_loop$(EXEEXT): $(tests_test_container_get_item_loop_OBJECTS) $(tests_test_container_get_item_loop_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_container_get_item_loop$(EXEEXT)
 	$(LINK) $(tests_test_container_get_item_loop_OBJECTS) $(tests_test_container_get_item_loop_LDADD) $(LIBS)
@@ -1177,6 +1206,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pktitr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/syncheck.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/table1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_get_all_frames.Po@am__quote@
@@ -1186,6 +1216,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_create_loop2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_all_loops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_category_loop.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_code.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_item_loop.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_get_value.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_container_prune.Po@am__quote@
@@ -1276,6 +1307,20 @@ syncheck.obj: examples/syncheck.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='examples/syncheck.c' object='syncheck.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o syncheck.obj `if test -f 'examples/syncheck.c'; then $(CYGPATH_W) 'examples/syncheck.c'; else $(CYGPATH_W) '$(srcdir)/examples/syncheck.c'; fi`
+
+table1.o: examples/table1.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT table1.o -MD -MP -MF $(DEPDIR)/table1.Tpo -c -o table1.o `test -f 'examples/table1.c' || echo '$(srcdir)/'`examples/table1.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/table1.Tpo $(DEPDIR)/table1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='examples/table1.c' object='table1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o table1.o `test -f 'examples/table1.c' || echo '$(srcdir)/'`examples/table1.c
+
+table1.obj: examples/table1.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT table1.obj -MD -MP -MF $(DEPDIR)/table1.Tpo -c -o table1.obj `if test -f 'examples/table1.c'; then $(CYGPATH_W) 'examples/table1.c'; else $(CYGPATH_W) '$(srcdir)/examples/table1.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/table1.Tpo $(DEPDIR)/table1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='examples/table1.c' object='table1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o table1.obj `if test -f 'examples/table1.c'; then $(CYGPATH_W) 'examples/table1.c'; else $(CYGPATH_W) '$(srcdir)/examples/table1.c'; fi`
 
 test_block_create_frame1.o: tests/test_block_create_frame1.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_create_frame1.o -MD -MP -MF $(DEPDIR)/test_block_create_frame1.Tpo -c -o test_block_create_frame1.o `test -f 'tests/test_block_create_frame1.c' || echo '$(srcdir)/'`tests/test_block_create_frame1.c
@@ -1402,6 +1447,20 @@ test_container_get_category_loop.obj: tests/test_container_get_category_loop.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_get_category_loop.c' object='test_container_get_category_loop.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_category_loop.obj `if test -f 'tests/test_container_get_category_loop.c'; then $(CYGPATH_W) 'tests/test_container_get_category_loop.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_get_category_loop.c'; fi`
+
+test_container_get_code.o: tests/test_container_get_code.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_code.o -MD -MP -MF $(DEPDIR)/test_container_get_code.Tpo -c -o test_container_get_code.o `test -f 'tests/test_container_get_code.c' || echo '$(srcdir)/'`tests/test_container_get_code.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_get_code.Tpo $(DEPDIR)/test_container_get_code.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_get_code.c' object='test_container_get_code.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_code.o `test -f 'tests/test_container_get_code.c' || echo '$(srcdir)/'`tests/test_container_get_code.c
+
+test_container_get_code.obj: tests/test_container_get_code.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_code.obj -MD -MP -MF $(DEPDIR)/test_container_get_code.Tpo -c -o test_container_get_code.obj `if test -f 'tests/test_container_get_code.c'; then $(CYGPATH_W) 'tests/test_container_get_code.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_get_code.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_container_get_code.Tpo $(DEPDIR)/test_container_get_code.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_container_get_code.c' object='test_container_get_code.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_container_get_code.obj `if test -f 'tests/test_container_get_code.c'; then $(CYGPATH_W) 'tests/test_container_get_code.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_container_get_code.c'; fi`
 
 test_container_get_item_loop.o: tests/test_container_get_item_loop.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_container_get_item_loop.o -MD -MP -MF $(DEPDIR)/test_container_get_item_loop.Tpo -c -o test_container_get_item_loop.o `test -f 'tests/test_container_get_item_loop.c' || echo '$(srcdir)/'`tests/test_container_get_item_loop.c
@@ -2406,6 +2465,8 @@ tests/test_container_get_item_loop.log: tests/test_container_get_item_loop$(EXEE
 	@p='tests/test_container_get_item_loop$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_container_get_all_loops.log: tests/test_container_get_all_loops$(EXEEXT)
 	@p='tests/test_container_get_all_loops$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+tests/test_container_get_code.log: tests/test_container_get_code$(EXEEXT)
+	@p='tests/test_container_get_code$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_nested_frames.log: tests/test_nested_frames$(EXEEXT)
 	@p='tests/test_nested_frames$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_loop_get_names.log: tests/test_loop_get_names$(EXEEXT)

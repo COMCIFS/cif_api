@@ -25,6 +25,7 @@ compiled_tests = \
     tests/test_container_get_category_loop \
     tests/test_container_get_item_loop \
     tests/test_container_get_all_loops \
+    tests/test_container_get_code \
     tests/test_nested_frames \
     tests/test_loop_get_names \
     tests/test_value_create \

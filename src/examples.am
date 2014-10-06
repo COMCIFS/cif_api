@@ -8,11 +8,17 @@
 
 
 if build_examples
-bin_PROGRAMS += cif2_syncheck
+bin_PROGRAMS += \
+  cif2_syncheck \
+  cif2_table1
 endif
 
 cif2_syncheck_SOURCES = \
   examples/syncheck.c \
   cif.h \
   examples/messages.h
+
+cif2_table1_SOURCES = \
+  examples/table1.c \
+  cif.h
  

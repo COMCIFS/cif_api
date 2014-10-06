@@ -2420,6 +2420,8 @@ CIF_INTFUNC_DECL(cif_value_get_su, (
  * text representation, so, among other things, it omits any CIF delimiters and might not adhere to CIF line length
  * limits.
  * 
+ * The value text, if any, obtained via this function belongs to then caller.
+ *
  * This function is natural for values of kind @c CIF_CHAR_KIND.  It is also fairly natural for values of kind
  * @c CIF_NUMB_KIND, as those carry a text representation with them to allow for undelimited number-like values
  * that are intended to be interpreted as text.  It is natural, but trivial, for kinds @c CIF_NA_KIND
@@ -2429,8 +2431,8 @@ CIF_INTFUNC_DECL(cif_value_get_su, (
  *
  * @param[in] value a pointer to the value object whose text is requested
  *
- * @param[in,out] text the location where a copy of the value text (or NULL, as appropriate) should be recorded; must
- *         not be NULL
+ * @param[in,out] text the location where a pointer to copy of the value text (or NULL, as appropriate) should be
+ *         recorded; must not be NULL
  *
  * @return Returns @c CIF_OK on success, or @c CIF_ERROR on failure
  */

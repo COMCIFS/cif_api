@@ -285,7 +285,12 @@
 /* plain macros */
 
 #define SSIZE_T_MAX      (((size_t) -1) / 2)
-#define BUF_SIZE_INITIAL (4 * (CIF_LINE_LENGTH + 2))
+
+/*
+ * It is now common for CIFs to have one or more multi-kilobyte values, so start with a largish buffer to minimize
+ * the number of buffer expansions likely to be needed
+ */
+#define BUF_SIZE_INITIAL (64 * (CIF_LINE_LENGTH + 2))
 #define BUF_MIN_FILL          (CIF_LINE_LENGTH + 2)
 
 /* specific character codes */
