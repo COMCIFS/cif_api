@@ -793,6 +793,9 @@ LIBOBJS
 ICU_CPPFLAGS
 SQLITE_CPPFLAGS
 ICU_LIBS
+PROFILING_LDFLAGS
+PROFILING_CFLAGS
+PROFILING_CPPFLAGS
 WARNING_FLAGS
 C_STD_FLAGS
 DOXYGEN
@@ -921,10 +924,11 @@ enable_dependency_tracking
 with_gnu_ld
 enable_libtool_lock
 enable_maintainer_mode
-enable_extra_warnings
-enable_debug
-enable_c89_enforcement
 enable_doc_rebuild
+enable_c89_enforcement
+enable_debug
+enable_extra_warnings
+enable_profiling
 with_examples
 with_docs
 with_line_counter
@@ -1577,19 +1581,26 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --disable-maintainer-mode  disable make rules and dependencies not useful
 			  (and sometimes confusing) to the casual installer
-  --enable-extra-warnings turn on extra compiler diagnostics intended to help
-                          developers identify questionable code. Not all
-                          warnings emitted as a result indicate genuine
-                          problems. [default=no]
-  --enable-debug          cause the library to emit debug messages at runtime.
-                          Desirable only for developers. [default=no]
+  --enable-doc-rebuild    Rebuild the generated documentation. Requires
+                          doxygen. [default=no]
   --enable-c89-enforcement
                           instructs configure to verify that the chosen C
                           compiler supports C89. This is enabled by default,
                           but it may need to be disabled in certain
                           environments, such as when a C++ compiler is chosen.
-  --enable-doc-rebuild    Rebuild the generated documentation. Requires
-                          doxygen. [default=no]
+  --enable-debug          cause the library to emit debug messages at runtime.
+                          Desirable only for developers. [default=no]
+  --enable-extra-warnings turn on extra compiler diagnostics intended to help
+                          developers identify questionable code. Not all
+                          warnings emitted as a result indicate genuine
+                          problems. [default=no]
+  --enable-profiling[=type]
+                          build the library and example programs with
+                          profiling support (of the specified flavor). If no
+                          profiling flavor is given then configure will
+                          attempt to guess based on the chosen C compiler. The
+                          profiling types currently known to configure are:
+                          gnu. [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4411,13 +4422,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:4414: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:4425: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4417: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:4428: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4420: output\"" >&5)
+  (eval echo "\"\$as_me:4431: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -5623,7 +5634,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 5626 "configure"' > conftest.$ac_ext
+  echo '#line 5637 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7479,11 +7490,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7482: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7493: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7486: \$? = $ac_status" >&5
+   echo "$as_me:7497: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7818,11 +7829,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7821: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7832: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7825: \$? = $ac_status" >&5
+   echo "$as_me:7836: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7923,11 +7934,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7926: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7937: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7930: \$? = $ac_status" >&5
+   echo "$as_me:7941: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -7978,11 +7989,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7981: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7992: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7985: \$? = $ac_status" >&5
+   echo "$as_me:7996: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10781,7 +10792,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10784 "configure"
+#line 10795 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10877,7 +10888,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10880 "configure"
+#line 10891 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11133,18 +11144,42 @@ fi
 
 
 
-# Check whether --enable-extra-warnings was given.
-if test "${enable_extra_warnings+set}" = set; then
-  enableval=$enable_extra_warnings; case ${enable_extra_warnings} in
+# Check whether --enable-doc-rebuild was given.
+if test "${enable_doc_rebuild+set}" = set; then
+  enableval=$enable_doc_rebuild; case ${enable_doc_rebuild} in
   yes|no) : ;;
-  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_extra_warnings}' for --enable-extra-warnings" >&5
-$as_echo "$as_me: error: Unrecognized value '${enable_extra_warnings}' for --enable-extra-warnings" >&2;}
+  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_doc_rebuild}' for --enable-doc-rebuild" >&5
+$as_echo "$as_me: error: Unrecognized value '${enable_doc_rebuild}' for --enable-doc-rebuild" >&2;}
    { (exit 1); exit 1; }; }
      ;;
 esac
 
 else
-  enable_extra_warnings=no
+  enable_doc_rebuild='no'
+fi
+
+
+ if test "x${enable_doc_rebuild}" = xyes; then
+  make_docs_TRUE=
+  make_docs_FALSE='#'
+else
+  make_docs_TRUE='#'
+  make_docs_FALSE=
+fi
+
+
+# Check whether --enable-c89-enforcement was given.
+if test "${enable_c89_enforcement+set}" = set; then
+  enableval=$enable_c89_enforcement; case ${enable_debug} in
+  yes|no) : ;;
+  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89_enforcement" >&5
+$as_echo "$as_me: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89_enforcement" >&2;}
+   { (exit 1); exit 1; }; }
+     ;;
+esac
+
+else
+  enable_c89_enforcement=yes
 fi
 
 
@@ -11176,42 +11211,26 @@ _ACEOF
 fi
 
 
-# Check whether --enable-c89-enforcement was given.
-if test "${enable_c89_enforcement+set}" = set; then
-  enableval=$enable_c89_enforcement; case ${enable_debug} in
+# Check whether --enable-extra-warnings was given.
+if test "${enable_extra_warnings+set}" = set; then
+  enableval=$enable_extra_warnings; case ${enable_extra_warnings} in
   yes|no) : ;;
-  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89_enforcement" >&5
-$as_echo "$as_me: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89_enforcement" >&2;}
+  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_extra_warnings}' for --enable-extra-warnings" >&5
+$as_echo "$as_me: error: Unrecognized value '${enable_extra_warnings}' for --enable-extra-warnings" >&2;}
    { (exit 1); exit 1; }; }
      ;;
 esac
 
 else
-  enable_c89_enforcement=yes
+  enable_extra_warnings=no
 fi
 
 
-# Check whether --enable-doc-rebuild was given.
-if test "${enable_doc_rebuild+set}" = set; then
-  enableval=$enable_doc_rebuild; case ${enable_doc_rebuild} in
-  yes|no) : ;;
-  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_doc_rebuild}' for --enable-doc-rebuild" >&5
-$as_echo "$as_me: error: Unrecognized value '${enable_doc_rebuild}' for --enable-doc-rebuild" >&2;}
-   { (exit 1); exit 1; }; }
-     ;;
-esac
-
+# Check whether --enable-profiling was given.
+if test "${enable_profiling+set}" = set; then
+  enableval=$enable_profiling;
 else
-  enable_doc_rebuild='no'
-fi
-
-
- if test "x${enable_doc_rebuild}" = xyes; then
-  make_docs_TRUE=
-  make_docs_FALSE='#'
-else
-  make_docs_TRUE='#'
-  make_docs_FALSE=
+  enable_profiling=no
 fi
 
 
@@ -12463,6 +12482,34 @@ fi
    ;;
   *) WARNING_FLAGS="" ;;
 esac
+
+
+
+if test "x${enable_profiling}" = xyes; then
+
+  case ${CC} in
+  gcc*|g++*) enable_profiling='gnu' ;;
+  *) enable_profiling='no'; { $as_echo "$as_me:$LINENO: WARNING: I don't know what profiling type to use for the '${CC}' compiler" >&5
+$as_echo "$as_me: WARNING: I don't know what profiling type to use for the '${CC}' compiler" >&2;} ;;
+esac
+
+
+fi
+
+
+# Output flags appropriate for the chosen type of profiling support
+PROFILING_CPPFLAGS=
+PROFILING_CFLAGS=
+PROFILING_LDFLAGS=
+case $enable_profiling in
+  gnu|gprof) PROFILING_CFLAGS='-pg'; PROFILING_LDFLAGS='-pg' ;;
+  no) : ;;
+  *) { $as_echo "$as_me:$LINENO: WARNING: I don't know profiling type '${enable_profiling}'" >&5
+$as_echo "$as_me: WARNING: I don't know profiling type '${enable_profiling}'" >&2;}
+   ;;
+esac
+
+
 
 
 

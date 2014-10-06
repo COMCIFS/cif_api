@@ -12,13 +12,13 @@
 *.lo
 *.log
 *.o
-config.h
-config.status
-Doxyfile
-libtool
+/config.h
+/config.status
+/Doxyfile
+/libtool
 Makefile
 stamp-h1
-src/internal/schema.h
+/src/internal/schema.h
 
 # Target files
 *.la
@@ -30,3 +30,4 @@ src/internal/schema.h
 
 # General working files
 *.swp
+gmon.out

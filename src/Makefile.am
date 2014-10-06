@@ -45,11 +45,13 @@ EXTRA_DIST = notes.txt style.txt
 # TODO: find a cleaner way to do this
 #CFLAGS += -O
 
-AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS)
+AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS) $(PROFILING_CPPFLAGS)
+AM_CFLAGS = $(PROFILING_CFLAGS)
+AM_LDFLAGS = $(PROFILING_LDFLAGS)
 
 BUILT_SOURCES = internal/schema.h
 
-CLEANFILES = $(BUILT_SOURCES)
+CLEANFILES = $(BUILT_SOURCES) gmon.out
 
 include examples.am
 include tests.am
@@ -73,7 +75,7 @@ libcif_la_SOURCES = \
   internal/value.h
 nodist_libcif_la_SOURCES = $(BUILT_SOURCES)
 libcif_la_LIBADD = $(ICU_LIBS)
-libcif_la_LDFLAGS = $(LIB_VERSION_FLAGS)
+libcif_la_LDFLAGS = $(AM_LDFLAGS) $(LIB_VERSION_FLAGS)
 
 LDADD = libcif.la
 

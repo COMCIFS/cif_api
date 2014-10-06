@@ -669,6 +669,9 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PROFILING_CFLAGS = @PROFILING_CFLAGS@
+PROFILING_CPPFLAGS = @PROFILING_CPPFLAGS@
+PROFILING_LDFLAGS = @PROFILING_LDFLAGS@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -741,10 +744,12 @@ EXTRA_DIST = notes.txt style.txt tests/test.h tests/assert_value.h \
 # For valgrind tests, compile at optimization level -O (no higher):
 # TODO: find a cleaner way to do this
 #CFLAGS += -O
-AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS)
+AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS) $(PROFILING_CPPFLAGS)
+AM_CFLAGS = $(PROFILING_CFLAGS)
+AM_LDFLAGS = $(PROFILING_LDFLAGS)
 BUILT_SOURCES = internal/schema.h
-CLEANFILES = $(BUILT_SOURCES) tests/linktest.c tests/linktest.lo \
-	tests/linktest
+CLEANFILES = $(BUILT_SOURCES) gmon.out tests/linktest.c \
+	tests/linktest.lo tests/linktest
 cif2_syncheck_SOURCES = \
   examples/syncheck.c \
   cif.h \
@@ -852,7 +857,7 @@ libcif_la_SOURCES = \
 
 nodist_libcif_la_SOURCES = $(BUILT_SOURCES)
 libcif_la_LIBADD = $(ICU_LIBS)
-libcif_la_LDFLAGS = $(LIB_VERSION_FLAGS)
+libcif_la_LDFLAGS = $(AM_LDFLAGS) $(LIB_VERSION_FLAGS)
 LDADD = libcif.la
 
 # A sed script that processes a slightly-restricted dialect of SQL into a

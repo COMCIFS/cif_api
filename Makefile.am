@@ -52,6 +52,8 @@ EXTRA_DIST = \
   uthash/utlist.h \
   uthash/utstring.h \
   $(doxygen_examples)
+  
+CLEANFILES = gmon.out
 
 if make_docs
 doxygen_html_targets = dox-html

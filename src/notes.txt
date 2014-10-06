@@ -21,3 +21,8 @@ character data as sequences of default chars.  By that token, however,
 this restriction is probably moot because it is unlikely that ICU can be
 implemented correctly on any platform that does not meet the requirement. 
 
+If you want to analyze performance then you can configure with profiling
+support.  Currently, only gprof profiling is supported.  If you do enable
+profiling then you probably also want to configure with --disable-shared,
+as the GNU profiling system doesn't seem to collect profiling data from
+shared libraries.

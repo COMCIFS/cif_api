@@ -71,8 +71,7 @@ int main(void) {
 
     for (counter = 0; all_names[counter] != NULL; counter += 1) {
         TEST(cif_packet_get_item(packet, all_names[counter], &value), CIF_OK, test_name, 2 * counter + 15);
-        TEST(cif_value_kind(value), CIF_UNK_KIND, test_name, 2 * counter + 15);
-        cif_value_free(value);
+        TEST(cif_value_kind(value), CIF_UNK_KIND, test_name, 2 * counter + 16);
     }
 
     cif_packet_free(packet);

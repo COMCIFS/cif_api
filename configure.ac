@@ -22,14 +22,26 @@ AC_CONFIG_HEADERS([config.h])
 
 AM_MAINTAINER_MODE([enable])
 
-AC_ARG_ENABLE([extra-warnings],
-  [AS_HELP_STRING([--enable-extra-warnings],
-    [turn on extra compiler diagnostics intended to help developers identify questionable code.  Not all warnings emitted as a result indicate genuine problems. [default=no]])],
-  [AS_CASE([$[]{enable_extra_warnings}],
+AC_ARG_ENABLE([doc-rebuild],
+  [AS_HELP_STRING([--enable-doc-rebuild],
+    [Rebuild the generated documentation.  Requires doxygen.  [default=no]])],
+  [AS_CASE([$[]{enable_doc_rebuild}],
     [yes|no], [],
-              [AC_MSG_ERROR([Unrecognized value '$[]{enable_extra_warnings}' for --enable-extra-warnings])]
+              [AC_MSG_ERROR([Unrecognized value '$[]{enable_doc_rebuild}' for --enable-doc-rebuild])]
     )],
-  [enable_extra_warnings=no])
+  [enable_doc_rebuild='no'])
+
+AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
+
+AC_ARG_ENABLE([c89-enforcement],
+  [AS_HELP_STRING([--enable-c89-enforcement],
+    [instructs configure to verify that the chosen C compiler supports C89.  This is enabled by
+     default, but it may need to be disabled in certain environments, such as when a C++ compiler is chosen.])],
+  [AS_CASE([$[]{enable_debug}],
+    [yes|no], [],
+              [AC_MSG_ERROR([Unrecognized value '$[]{enable_c89_enforcement}' for --enable-c89_enforcement])]
+    )],
+  [enable_c89_enforcement=yes])
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug],
@@ -43,26 +55,22 @@ AC_ARG_ENABLE([debug],
 AS_IF([test "x$[]{enable_debug}" = xno],
   [AC_DEFINE([NDEBUG], [1], [Define to any value to disable assertions])])
 
-AC_ARG_ENABLE([c89-enforcement],
-  [AS_HELP_STRING([--enable-c89-enforcement],
-    [instructs configure to verify that the chosen C compiler supports C89.  This is enabled by
-     default, but it may need to be disabled in certain environments, such as when a C++ compiler is chosen.])],
-  [AS_CASE([$[]{enable_debug}],
+AC_ARG_ENABLE([extra-warnings],
+  [AS_HELP_STRING([--enable-extra-warnings],
+    [turn on extra compiler diagnostics intended to help developers identify questionable code.  Not all warnings emitted as a result indicate genuine problems. [default=no]])],
+  [AS_CASE([$[]{enable_extra_warnings}],
     [yes|no], [],
-              [AC_MSG_ERROR([Unrecognized value '$[]{enable_c89_enforcement}' for --enable-c89_enforcement])]
+              [AC_MSG_ERROR([Unrecognized value '$[]{enable_extra_warnings}' for --enable-extra-warnings])]
     )],
-  [enable_c89_enforcement=yes])
+  [enable_extra_warnings=no])
 
-AC_ARG_ENABLE([doc-rebuild],
-  [AS_HELP_STRING([--enable-doc-rebuild],
-    [Rebuild the generated documentation.  Requires doxygen.  [default=no]])],
-  [AS_CASE([$[]{enable_doc_rebuild}],
-    [yes|no], [],
-              [AC_MSG_ERROR([Unrecognized value '$[]{enable_doc_rebuild}' for --enable-doc-rebuild])]
-    )],
-  [enable_doc_rebuild='no'])
-
-AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
+AC_ARG_ENABLE([profiling],
+  [AS_HELP_STRING([--enable-profiling@<:@=type@:>@],
+    [build the library and example programs with profiling support (of the specified flavor).  If no profiling flavor
+     is given then configure will attempt to guess based on the chosen C compiler.  The profiling types currently known
+     to configure are: gnu. [default=no]])],
+  [],
+  [enable_profiling=no])
 
 AC_ARG_WITH([examples],
   [AS_HELP_STRING([--with-examples], [build and install the example programs])], [
@@ -173,6 +181,25 @@ AS_CASE([$[]{CC}],
   ],
   [WARNING_FLAGS=""])
 AC_SUBST([WARNING_FLAGS])
+
+AS_IF([test "x${enable_profiling}" = xyes], [
+  AS_CASE([${CC}],
+          [gcc*|g++*], [enable_profiling='gnu'],
+                       [enable_profiling='no'; AC_MSG_WARN([I don't know what profiling type to use for the '${CC}' compiler])])
+])
+
+# Output flags appropriate for the chosen type of profiling support
+PROFILING_CPPFLAGS=
+PROFILING_CFLAGS=
+PROFILING_LDFLAGS=
+AS_CASE([$enable_profiling],
+  [gnu|gprof], [PROFILING_CFLAGS='-pg'; PROFILING_LDFLAGS='-pg'],
+  [no],  [:],
+         [AC_MSG_WARN([I don't know profiling type '${enable_profiling}'])]
+  )
+AC_SUBST([PROFILING_CPPFLAGS])
+AC_SUBST([PROFILING_CFLAGS])
+AC_SUBST([PROFILING_LDFLAGS])
 
 # Headers
 AC_CHECK_HEADERS([fenv.h])

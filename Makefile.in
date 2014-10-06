@@ -169,6 +169,9 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PROFILING_CFLAGS = @PROFILING_CFLAGS@
+PROFILING_CPPFLAGS = @PROFILING_CPPFLAGS@
+PROFILING_LDFLAGS = @PROFILING_LDFLAGS@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -276,6 +279,7 @@ EXTRA_DIST = \
   uthash/utstring.h \
   $(doxygen_examples)
 
+CLEANFILES = gmon.out
 @make_docs_FALSE@doxygen_html_targets = 
 @make_docs_TRUE@doxygen_html_targets = dox-html
 @make_docs_FALSE@doxygen_man_targets = 
@@ -690,6 +694,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
