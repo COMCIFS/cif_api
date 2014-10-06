@@ -10,7 +10,8 @@
 if build_examples
 bin_PROGRAMS += \
   cif2_syncheck \
-  cif2_table1
+  cif2_table1 \
+  cif2_table3
 endif
 
 cif2_syncheck_SOURCES = \
@@ -20,5 +21,9 @@ cif2_syncheck_SOURCES = \
 
 cif2_table1_SOURCES = \
   examples/table1.c \
+  cif.h
+  
+cif2_table3_SOURCES = \
+  examples/table3.c \
   cif.h
  

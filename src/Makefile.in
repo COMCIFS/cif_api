@@ -47,7 +47,8 @@ DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/examples.am $(srcdir)/tests.am
 @build_examples_TRUE@am__append_1 = \
 @build_examples_TRUE@  cif2_syncheck \
-@build_examples_TRUE@  cif2_table1
+@build_examples_TRUE@  cif2_table1 \
+@build_examples_TRUE@  cif2_table3
 
 check_PROGRAMS = $(am__EXEEXT_2)
 TESTS = tests/link.test $(am__EXEEXT_2)
@@ -100,7 +101,7 @@ libcif_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libcif_la_LDFLAGS) $(LDFLAGS) -o $@
 @build_examples_TRUE@am__EXEEXT_1 = cif2_syncheck$(EXEEXT) \
-@build_examples_TRUE@	cif2_table1$(EXEEXT)
+@build_examples_TRUE@	cif2_table1$(EXEEXT) cif2_table3$(EXEEXT)
 am__EXEEXT_2 = tests/test_create$(EXEEXT) \
 	tests/test_create_block1$(EXEEXT) \
 	tests/test_create_block2$(EXEEXT) \
@@ -171,6 +172,10 @@ am_cif2_table1_OBJECTS = table1.$(OBJEXT)
 cif2_table1_OBJECTS = $(am_cif2_table1_OBJECTS)
 cif2_table1_LDADD = $(LDADD)
 cif2_table1_DEPENDENCIES = libcif.la
+am_cif2_table3_OBJECTS = table3.$(OBJEXT)
+cif2_table3_OBJECTS = $(am_cif2_table3_OBJECTS)
+cif2_table3_LDADD = $(LDADD)
+cif2_table3_DEPENDENCIES = libcif.la
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -481,7 +486,7 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(cif2_syncheck_SOURCES) $(cif2_table1_SOURCES) \
-	tests/test_block_create_frame1.c \
+	$(cif2_table3_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -519,7 +524,8 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_write_complex.c tests/test_write_frames.c \
 	tests/test_write_loops.c tests/test_write_simple.c
 DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_syncheck_SOURCES) \
-	$(cif2_table1_SOURCES) tests/test_block_create_frame1.c \
+	$(cif2_table1_SOURCES) $(cif2_table3_SOURCES) \
+	tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -757,6 +763,10 @@ cif2_syncheck_SOURCES = \
 
 cif2_table1_SOURCES = \
   examples/table1.c \
+  cif.h
+
+cif2_table3_SOURCES = \
+  examples/table3.c \
   cif.h
 
 VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes
@@ -1003,6 +1013,9 @@ cif2_syncheck$(EXEEXT): $(cif2_syncheck_OBJECTS) $(cif2_syncheck_DEPENDENCIES)
 cif2_table1$(EXEEXT): $(cif2_table1_OBJECTS) $(cif2_table1_DEPENDENCIES) 
 	@rm -f cif2_table1$(EXEEXT)
 	$(LINK) $(cif2_table1_OBJECTS) $(cif2_table1_LDADD) $(LIBS)
+cif2_table3$(EXEEXT): $(cif2_table3_OBJECTS) $(cif2_table3_DEPENDENCIES) 
+	@rm -f cif2_table3$(EXEEXT)
+	$(LINK) $(cif2_table3_OBJECTS) $(cif2_table3_LDADD) $(LIBS)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
@@ -1212,6 +1225,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pktitr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/syncheck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/table1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/table3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_get_all_frames.Po@am__quote@
@@ -1326,6 +1340,20 @@ table1.obj: examples/table1.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='examples/table1.c' object='table1.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o table1.obj `if test -f 'examples/table1.c'; then $(CYGPATH_W) 'examples/table1.c'; else $(CYGPATH_W) '$(srcdir)/examples/table1.c'; fi`
+
+table3.o: examples/table3.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT table3.o -MD -MP -MF $(DEPDIR)/table3.Tpo -c -o table3.o `test -f 'examples/table3.c' || echo '$(srcdir)/'`examples/table3.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/table3.Tpo $(DEPDIR)/table3.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='examples/table3.c' object='table3.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o table3.o `test -f 'examples/table3.c' || echo '$(srcdir)/'`examples/table3.c
+
+table3.obj: examples/table3.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT table3.obj -MD -MP -MF $(DEPDIR)/table3.Tpo -c -o table3.obj `if test -f 'examples/table3.c'; then $(CYGPATH_W) 'examples/table3.c'; else $(CYGPATH_W) '$(srcdir)/examples/table3.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/table3.Tpo $(DEPDIR)/table3.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='examples/table3.c' object='table3.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o table3.obj `if test -f 'examples/table3.c'; then $(CYGPATH_W) 'examples/table3.c'; else $(CYGPATH_W) '$(srcdir)/examples/table3.c'; fi`
 
 test_block_create_frame1.o: tests/test_block_create_frame1.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_create_frame1.o -MD -MP -MF $(DEPDIR)/test_block_create_frame1.Tpo -c -o test_block_create_frame1.o `test -f 'tests/test_block_create_frame1.c' || echo '$(srcdir)/'`tests/test_block_create_frame1.c
