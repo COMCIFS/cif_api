@@ -805,7 +805,7 @@ struct cif_parse_opts_s {
      *
      * The names supported by this option are those recognized by ICU's "converter" API as converter / code page names.
      */
-    char *default_encoding_name;
+    const char *default_encoding_name;
 
     /**
      * @brief If non-zero then the default encoding specified by @c default_encoding_name will be used to interpret the
@@ -1009,7 +1009,10 @@ CIF_INTFUNC_DECL(cif_parse, (
  * re-compiled against revised library headers.  This is not an issue for statically-linked programs that fully
  * initialize their options.
  *
- * On successful return, the provided options object belongs to the caller.
+ * On successful return, the provided options object belongs to the caller.  An options structure as provided by this
+ * function may safely be freed, or its members overwritten, without concern for freeing memory referenced by the
+ * members.  The user is responsible for accommodating any deviation from those characteristics that are introduced to
+ * the structure after this function provides it.
  *
  * @param[in,out] opts a the location where a pointer to the new parse options structure should be recorded.  The
  *         initial value of @p *opts is ignored, and is overwritten on success.
@@ -1071,12 +1074,14 @@ CIF_INTFUNC_DECL(cif_write, (
  *
  * Obtaining a write options structure via this function insulates programs against additions to the option list in
  * future versions of the library.  Programs may create @c cif_write_opts_s objects by other means -- for example, by
- * allocating them on the stack -- but the behavior of programs that do may be undefined if they are dynamically linked
- * against a future version of the library that adds fields to the structure definition, perhaps even if they are
- * re-compiled against revised library headers.  This is not an issue for statically-linked programs that fully
- * initialize their options.
+ * allocating them on the stack -- but the behavior of programs that do is undefined if they are dynamically linked
+ * against a future version of this API that adds fields to the structure definition.  Statically-linked programs
+ * that fully initialize their write options structures are not subject to such issues.
  *
- * On successful return, the provided options object belongs to the caller.
+ * On successful return, the provided options object belongs to the caller.  An options structure as provided by this
+ * function may safely be freed, or its members overwritten, without concern for freeing memory referenced by the
+ * members.  The user is responsible for accommodating any deviation from those characteristics that are introduced to
+ * the structure after this function provides it.
  *
  * @param[in,out] opts a the location where a pointer to the new write options structure should be recorded.  The
  *         initial value of @p *opts is ignored, and is overwritten on success.
@@ -2752,6 +2757,27 @@ CIF_INTFUNC_DECL(cif_normalize, (
         const UChar *src,
         int32_t srclen,
         UChar **normalized
+        ));
+
+/**
+ * @brief Converts (the initial part of) a C String to a Unicode string via an ICU default converter.
+ *
+ * This function is most applicable to C strings obtained from external input, rather than to strings appearing in C
+ * source code.  ICU will normally try to guess what converter is appropriate for default text, but the converter it
+ * will use can be influenced via @c ucnv_setDefaultName() (warning: the default converter name is @i global).
+ *
+ * @param[in] cstr the C string to convert; may be NULL, in which case the conversion result is likewise NULL; must be
+ *     terminated by a '\0' byte is srclen is -1, otherwise termination is optional
+ * @param[in] srclen the input string length, or -1 if the string consists of all bytes up to a NUL terminator
+ * @param[inout] ustr a pointer to a location to record the result; must not be NULL.  If a non-NULL pointer is
+ *     written here by this function, then the caller assumes ownership of the memory it references.
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+CIF_INTFUNC_DECL(cif_cstr_to_ustr, (
+        const char *cstr,
+        int32_t srclen,
+        UChar **ustr
         ));
 
 /**

@@ -18,6 +18,13 @@ you.  Note in particular that the uthash license terms permit *binary*
 distribution without constraint, whereas source distribution is subject to
 modest constraints.
 
+The package includes several example programs to demonstrate the API's usage;
+see src/examples.  These may optionally be built (and installed) with the
+API library.  One of them is a text-mode CIF 2.0 file syntax checker, which
+might be of some interest.  Also, the tests (src/tests) collectively provide
+a fairly comprehensive demonstration of the API's features, though their
+primary purpose is to verify that the library works as intended.
+
 Refer to file INSTALL for general installation instructions.  Build details
 specific to this package follow:
 

@@ -14,6 +14,7 @@
 #include <unicode/ustring.h>
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
+#include <unicode/ucnv.h>
 #include "internal/utils.h"
 
 #define MIN_HIGH_SURROGATE 0xd800
@@ -205,6 +206,39 @@ UChar *cif_u_strdup(const UChar *src) {
     } else {
         return NULL;
     }
+}
+
+int cif_cstr_to_ustr(const char *cstr, int32_t srclen, UChar **ustr) {
+    if (ustr) {
+        if (!cstr) {
+            *ustr = NULL;
+            return CIF_OK;
+        } else {
+            int32_t eff_srclen = ((srclen < 0) ? (int32_t) strlen(cstr) : srclen);
+            int32_t capacity = 2 * (eff_srclen + 1);
+            UChar *tmp = (UChar *) malloc(capacity * sizeof(UChar));
+
+            if (tmp) {
+                UErrorCode error = U_ZERO_ERROR;
+                UConverter *converter = ucnv_open(NULL, &error);
+                int32_t result = ucnv_toUChars(converter, tmp, capacity, cstr, eff_srclen, &error);
+
+                ucnv_close(converter);
+                if (U_SUCCESS(error)) {
+                    *ustr = realloc(tmp, (result + 1) * sizeof(UChar));
+                    if (!*ustr) {
+                        *ustr = tmp;
+                    }
+
+                    return CIF_OK;
+                }
+
+                free(tmp);
+            }
+        }
+    }
+
+    return CIF_ERROR;
 }
 
 int cif_normalize_name(const UChar *name, int32_t namelen, UChar **normalized_name, int invalidityCode) {
