@@ -65,10 +65,20 @@
        "where li1.container_id = ?7 and li1.name = ?8" \
      ") loop_row"
 
+/* Loop "size" is the number of data names in a loop.  See also COUNT_LOOP_PACKETS_SQL. */
 #define GET_LOOP_SIZE_SQL "select loop_num, count(*) as size " \
         "from loop_item li1 join loop_item li2 using (container_id, loop_num) " \
         "where li1.container_id = ? and li1.name = ? " \
         "group by loop_num"
+
+/* not currently used: */
+#define COUNT_LOOP_PACKETS_SQL "select count(*) as packet_count " \
+  "from (" \
+    "select distinct iv.row_num " \
+      "from loop_item li " \
+        "join item_value iv on li.container_id = iv.container_id and li.name = iv.name " \
+      "where li.container_id = ? and li.loop_num = ?" \
+  ")"
 
 #define REMOVE_ITEM_SQL "delete from loop_item where container_id = ? and name = ?"
 
