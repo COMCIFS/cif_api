@@ -222,7 +222,6 @@ static void print_table1(UFILE *out, cif_block_t *block) {
                 u_strFromUTF8(heading_buffer, BUFSIZE, NULL, pair->heading, -1, &error_code),
                 u_strFromUTF8(dataname_buffer, BUFSIZE, NULL, pair->dataname, -1, &error_code)
                 );
-        /* TODO: test the error code */
     }
 
     print_size_row(out, block);
@@ -232,7 +231,6 @@ static void print_table1(UFILE *out, cif_block_t *block) {
                 u_strFromUTF8(heading_buffer, BUFSIZE, NULL, pair->heading, -1, &error_code),
                 u_strFromUTF8(dataname_buffer, BUFSIZE, NULL, pair->dataname, -1, &error_code)
                 );
-        /* TODO: test the error code */
     }
 
     u_fprintf(out, "</table>\n");
