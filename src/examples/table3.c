@@ -90,14 +90,14 @@ static void print_table3(UFILE *out, cif_block_t *block) {
     names[3] = z_name;
     names[4] = u_name;
 
-    /* retrieve the block code and output the table taitle and headings */
+    /* retrieve the block code and output the table title and headings */
     CHECK_CALL(cif_container_get_code(block, &code), "retrieve a data block's code");
     u_fprintf(out, "<h2>Atomic coordinates and equivalent isotropic thermal parameters for %S</h2>\n<table>\n", code);
     u_fprintf(out, "<tr><th>Atom</th><th>x</th><th>y</th><th>z</th><th>U(eq)</th></tr>\n");
     free(code);
 
     /* Obtain an iterator over the _atom_site_* loop */
-    CHECK_CALL(cif_container_get_item_loop(block, x_name, &coordinate_loop), "retrieve the atom site loop");
+    CHECK_CALL(cif_container_get_item_loop(block, label_name, &coordinate_loop), "retrieve the atom site loop");
     CHECK_CALL(cif_loop_get_packets(coordinate_loop, &iterator), "obtain a loop packet iterator");
 
     /* output one row for each packet */
