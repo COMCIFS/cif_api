@@ -11170,10 +11170,10 @@ fi
 
 # Check whether --enable-c89-enforcement was given.
 if test "${enable_c89_enforcement+set}" = set; then
-  enableval=$enable_c89_enforcement; case ${enable_debug} in
+  enableval=$enable_c89_enforcement; case ${enable_c89_enforcement} in
   yes|no) : ;;
-  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89_enforcement" >&5
-$as_echo "$as_me: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89_enforcement" >&2;}
+  *) { { $as_echo "$as_me:$LINENO: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89-enforcement" >&5
+$as_echo "$as_me: error: Unrecognized value '${enable_c89_enforcement}' for --enable-c89-enforcement" >&2;}
    { (exit 1); exit 1; }; }
      ;;
 esac

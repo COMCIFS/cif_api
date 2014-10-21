@@ -225,7 +225,7 @@ int cif_cstr_to_ustr(const char *cstr, int32_t srclen, UChar **ustr) {
 
                 ucnv_close(converter);
                 if (U_SUCCESS(error)) {
-                    *ustr = realloc(tmp, (result + 1) * sizeof(UChar));
+                    *ustr = (UChar *) realloc(tmp, (result + 1) * sizeof(UChar));
                     if (!*ustr) {
                         *ustr = tmp;
                     }

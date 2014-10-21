@@ -1,6 +1,10 @@
 CIF API Change Log
 
+Version 0.2.0.1
+* Fixed a C++ compatibility issue in cif_cstr_to_ustr()
+* Fixed an error in the configuration program, related to the
+  --enable-c89-enforcement option
+
 Version 0.2.0
 * Initial full (beta test) release
-
 
