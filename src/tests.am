@@ -63,6 +63,7 @@ compiled_tests = \
     tests/test_parse_complex_data \
     tests/test_parse_simple_containers \
     tests/test_parse_simple_loops \
+    tests/test_parse_cif1_quoting \
     tests/test_parse_unicode \
     tests/test_parse_text_fields \
     tests/test_parse_minimal \
@@ -73,6 +74,7 @@ compiled_tests = \
     tests/test_write_complex \
     tests/test_write_loops \
     tests/test_write_frames
+# TODO:
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
