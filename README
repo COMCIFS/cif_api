@@ -1,6 +1,8 @@
 CIF API 0.2.0
 =============
 
+!!! VERSION 0.2.0 IS A BETA TEST RELEASE OF THE CIF API. !!!
+
 The CIF API provides a standard C interface for reading, writing, and
 manipulating Crystallographic Information Files (CIFs).  It is targeted
 in particular at CIF 2.0, but it provides support for CIF 1.1 and earlier
@@ -54,7 +56,7 @@ specific to this package follow:
   only for gcc.
 
 * Configuring the project successfully depends on a line-counting command.
-  The configure program will attempt to guess at a suitable one, but if it
+  The configure program will attempt to guess a suitable one, but if it
   cannot find one it recognizes then the builder may need to specify an
   appropriate one via the --with-line-counter configuration option.  Example:
       ./configure --with-line-counter='/usr/bin/wc --lines'
