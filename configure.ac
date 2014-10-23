@@ -211,9 +211,17 @@ AC_CHECK_LIB([m], [log10])
 AC_SEARCH_LIBS([sqlite3_open_v2], [sqlite3], [], [AC_MSG_FAILURE([SQLite3 not found or not recent enough])])
 # TODO: check SQLite version >= 3.6.19 (or otherwise test that it supports and enforces foreign key constraints) */
 
-AS_IF([which pkg-config], 
-      [ICU_LIBS=`pkg-config --libs icu`" -licuio" || AC_MSG_FAILURE([No pkg-config information for icu])],
-      [AC_MSG_FAILURE([pkg-config not found])])
+AS_IF([which pkg-config], [
+    AC_MSG_CHECKING([for the ICU I/O library])
+    icuio_tags="icu icu-io"
+    ICU_LIBS=
+    for tag in ${icuio_tags}; do
+      ICU_LIBS=`pkg-config --libs ${tag}`" -licuio" && break
+    done
+    AC_MSG_RESULT([${ICU_LIBS}])
+    AS_IF([test "x${ICU_LIBS}" = x], [AC_MSG_FAILURE([No pkg-config information for any of: ${icuio_tags}])])
+  ],
+  [AC_MSG_FAILURE([pkg-config not found])])
 AC_SUBST([ICU_LIBS])
 
 # Specific functions
@@ -245,6 +253,8 @@ AC_CHECK_HEADER([unicode/ustring.h], [], [AC_MSG_FAILURE([Required header unicod
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINTMAX_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 
 # These output variables are defined for documentary purposes.  The makefiles add
 # them to the CPP flags, but the current configure script always leaves them empty:

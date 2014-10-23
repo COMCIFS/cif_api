@@ -8,3 +8,13 @@ Version 0.2.0.1
 Version 0.2.0
 * Initial full (beta test) release
 
+
+Known Issues
+
+[0.2.0.1] The ssize_t type may not be defined in the system headers included
+          (Candidate solution implemented.)
+
+[0.2.0.1] The pkg-config data for ICU may be split among multiple packages on
+          some systems, e.g. Debian.
+	  (Candidate solution implemented.)
+

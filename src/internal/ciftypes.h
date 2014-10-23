@@ -12,6 +12,14 @@
 #ifndef INTERNAL_CIFTYPES_H
 #define INTERNAL_CIFTYPES_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <unicode/ustring.h>
 #include <sqlite3.h>
 #include "uthash.h"
