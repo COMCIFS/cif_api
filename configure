@@ -12841,7 +12841,7 @@ fi
 
 # TODO: check SQLite version >= 3.6.19 (or otherwise test that it supports and enforces foreign key constraints) */
 
-if which pkg-config; then
+if which pkg-config >/dev/null; then
 
     { $as_echo "$as_me:$LINENO: checking for the ICU I/O library" >&5
 $as_echo_n "checking for the ICU I/O library... " >&6; }

@@ -211,7 +211,7 @@ AC_CHECK_LIB([m], [log10])
 AC_SEARCH_LIBS([sqlite3_open_v2], [sqlite3], [], [AC_MSG_FAILURE([SQLite3 not found or not recent enough])])
 # TODO: check SQLite version >= 3.6.19 (or otherwise test that it supports and enforces foreign key constraints) */
 
-AS_IF([which pkg-config], [
+AS_IF([which pkg-config >/dev/null], [
     AC_MSG_CHECKING([for the ICU I/O library])
     icuio_tags="icu-io icu"
     ICU_LIBS=
