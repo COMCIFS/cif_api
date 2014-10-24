@@ -9,8 +9,17 @@
 #ifndef TESTS_TEST_H
 #define TESTS_TEST_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include <sqlite3.h>

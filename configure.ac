@@ -213,10 +213,10 @@ AC_SEARCH_LIBS([sqlite3_open_v2], [sqlite3], [], [AC_MSG_FAILURE([SQLite3 not fo
 
 AS_IF([which pkg-config], [
     AC_MSG_CHECKING([for the ICU I/O library])
-    icuio_tags="icu icu-io"
+    icuio_tags="icu-io icu"
     ICU_LIBS=
     for tag in ${icuio_tags}; do
-      ICU_LIBS=`pkg-config --libs ${tag}`" -licuio" && break
+      ICU_LIBS=`pkg-config --libs ${tag} 2>/dev/null`" -licuio" && break
     done
     AC_MSG_RESULT([${ICU_LIBS}])
     AS_IF([test "x${ICU_LIBS}" = x], [AC_MSG_FAILURE([No pkg-config information for any of: ${icuio_tags}])])

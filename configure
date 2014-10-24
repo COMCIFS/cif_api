@@ -12845,10 +12845,10 @@ if which pkg-config; then
 
     { $as_echo "$as_me:$LINENO: checking for the ICU I/O library" >&5
 $as_echo_n "checking for the ICU I/O library... " >&6; }
-    icuio_tags="icu icu-io"
+    icuio_tags="icu-io icu"
     ICU_LIBS=
     for tag in ${icuio_tags}; do
-      ICU_LIBS=`pkg-config --libs ${tag}`" -licuio" && break
+      ICU_LIBS=`pkg-config --libs ${tag} 2>/dev/null`" -licuio" && break
     done
     { $as_echo "$as_me:$LINENO: result: ${ICU_LIBS}" >&5
 $as_echo "${ICU_LIBS}" >&6; }

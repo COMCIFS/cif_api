@@ -14,6 +14,10 @@
 #include <limits.h>
 #include <assert.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <unicode/ustring.h>
 #include <unicode/ustdio.h>
 #include <unicode/ucsdet.h>
