@@ -82,7 +82,11 @@ compiled_tests = \
 # - syntax-only mode
 
 check_PROGRAMS = $(compiled_tests)
-EXTRA_DIST += tests/test.h tests/assert_value.h tests/assert_cifs.h
+EXTRA_DIST += \
+  tests/assert_cifs.h \
+  tests/assert_doubles.h \
+  tests/assert_value.h \
+  tests/test.h
 
 TESTS = \
   tests/link.test \

@@ -760,8 +760,9 @@ LIB_CURRENT = 0
 LIB_REVISION = 0
 LIB_AGE = 0
 LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
-EXTRA_DIST = notes.txt style.txt tests/test.h tests/assert_value.h \
-	tests/assert_cifs.h tests/link.test
+EXTRA_DIST = notes.txt style.txt tests/assert_cifs.h \
+	tests/assert_doubles.h tests/assert_value.h tests/test.h \
+	tests/link.test
 
 # For valgrind tests, compile at optimization level -O (no higher):
 # TODO: find a cleaner way to do this

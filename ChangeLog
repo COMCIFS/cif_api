@@ -1,5 +1,13 @@
 CIF API Change Log
 
+Version 0.2.0.2
+* Fixed a header-declaration and build configuration issue resulting in the
+  build failing on Debian because of the type ssize_t not being declared.
+* Fixed a build configuration issue arising on Debian, where the pkg-config
+  data for ICU are split among multiple logical packages.
+* Fixed a test implementation issue revolving around exact decimal comparisons
+  being performed where approximate comparisons were needed.
+
 Version 0.2.0.1
 * Fixed a C++ compatibility issue in cif_cstr_to_ustr()
 * Fixed an error in the configuration program, related to the
@@ -17,4 +25,8 @@ Known Issues
 [0.2.0.1] The pkg-config data for ICU may be split among multiple packages on
           some systems, e.g. Debian.
 	  (Candidate solution implemented.)
+
+[0.2.0.1] Test failures in test_value_init_numb() (62) and
+          test_value_autoinit_numb() (63) on Debian
+          (candidate solution implemented)
 

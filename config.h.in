@@ -1,5 +1,9 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* A relative fuzz factor for the tests to use in floating-point comparisons
+   that should not require exact equality */
+#undef DBL_TEST_ULPS
+
 /* Define to 1 to enable debug messages */
 #undef DEBUG
 

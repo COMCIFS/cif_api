@@ -109,6 +109,25 @@ AC_ARG_WITH([line-counter],
       [*/wc], [COUNT_LINES="$[]{COUNT_LINES} --lines"],
       [AC_MSG_ERROR([I don't know how to count lines.  Try telling me via --with-line-counter.])])
   ])
+  
+AC_ARG_WITH([test-fuzz],
+  [AS_HELP_STRING([--with-test-fuzz=<fuzz ulps>],
+    [specifies a relative fuzz factor for the tests to use in inexact floating-point comparisons. [default=2]])],
+  [
+    AS_CASE([$[]withval],
+      [no],  [
+        AC_MSG_WARN([option --without-test-fuzz is non-sensical; using the default fuzz factor])
+        with_test_fuzz=2
+      ],
+      [yes], [
+        AC_MSG_WARN([option --with-test-fuzz is meaningless without a specified fuzz factor])
+        with_test_fuzz=2
+      ],
+      [*@<:@^0-9@:>@*], [AC_MSG_ERROR([--with-test-fuzz must specify a non-negative integer fuzz factor, not "$withval"])]
+    )
+  ], [with_test_fuzz=2])
+AC_DEFINE_UNQUOTED([DBL_TEST_ULPS], [$with_test_fuzz],
+  [A relative fuzz factor for the tests to use in floating-point comparisons that should not require exact equality])
 
 # Programs used during the build process
 

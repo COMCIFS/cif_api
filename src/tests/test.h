@@ -46,6 +46,8 @@
 #define SKIP      77
 #define HARD_FAIL 99
 
+#define DEFAULT_ULPS 2
+
 struct set_el {
     UT_hash_handle hh;
 };

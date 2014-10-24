@@ -10,8 +10,13 @@
 #include <math.h>
 #include "../cif.h"
 
+#include "assert_doubles.h"
 #define USE_USTDERR
 #include "test.h"
+
+#ifndef DBL_TEST_ULPS
+#define DBL_TEST_ULPS DEFAULT_ULPS
+#endif
 
 int main(void) {
     char test_name[80] = "test_value_autoinit_numb";
@@ -138,34 +143,34 @@ int main(void) {
 
     TEST(cif_value_autoinit_numb(value, 12.3456, 0.003, 9), CIF_OK, test_name, 59);
     TEST(cif_value_get_number(value, &d1), CIF_OK, test_name, 60);
-    TEST((fabs(d1 - 12.346) > 0.0001), 0, test_name, 61);
+    TEST(!assert_doubles_equal(d1, 12.346, DBL_TEST_ULPS), 0, test_name, 61);
     TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 62);
-    TEST((d1 != 0.003), 0, test_name, 63);
+    TEST(!assert_doubles_equal(d1, 0.003, DBL_TEST_ULPS), 0, test_name, 63);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 64);
     TEST(u_strcmp(v12_346s3, text), 0, test_name, 65);
     free(text);
 
     TEST(cif_value_autoinit_numb(value, -34.567, 0.26, 27), CIF_OK, test_name, 66);
     TEST(cif_value_get_number(value, &d1), CIF_OK, test_name, 67);
-    TEST((fabs(d1 + 34.57) > 0.0001), 0, test_name, 68);
+    TEST(!assert_doubles_equal(d1, -34.57, DBL_TEST_ULPS), 0, test_name, 68);
     TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 69);
-    TEST((d1 != 0.26), 0, test_name, 70);
+    TEST(!assert_doubles_equal(d1, 0.26, DBL_TEST_ULPS), 0, test_name, 70);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 71);
     TEST(u_strcmp(vm34_57s26, text), 0, test_name, 72);
     free(text);
 
     TEST(cif_value_autoinit_numb(value, -34.567, 0.29, 27), CIF_OK, test_name, 73);
     TEST(cif_value_get_number(value, &d1), CIF_OK, test_name, 74);
-    TEST((fabs(d1 + 34.6) > 0.0001), 0, test_name, 75);
+    TEST(!assert_doubles_equal(d1, -34.6, DBL_TEST_ULPS), 0, test_name, 75);
     TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 76);
-    TEST((fabs(d1 - 0.3) > 0.001), 0, test_name, 77);
+    TEST(!assert_doubles_equal(d1, 0.3, DBL_TEST_ULPS), 0, test_name, 77);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 78);
     TEST(u_strcmp(vm34_6s3, text), 0, test_name, 79);
     free(text);
 
     TEST(cif_value_autoinit_numb(value, -34.567, 1.5, 27), CIF_OK, test_name, 80);
     TEST(cif_value_get_number(value, &d1), CIF_OK, test_name, 81);
-    TEST((fabs(d1 + 34.6) > 0.0001), 0, test_name, 82);
+    TEST(!assert_doubles_equal(d1, -34.6, DBL_TEST_ULPS), 0, test_name, 82);
     TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 83);
     TEST((d1 != 1.5), 0, test_name, 84);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 85);
@@ -192,18 +197,18 @@ int main(void) {
 
     TEST(cif_value_autoinit_numb(value, 0.0000012, 0.0000001, 19), CIF_OK, test_name, 101);
     TEST(cif_value_get_number(value, &d1), CIF_OK, test_name, 102);
-    TEST((fabs(d1 - 0.0000012) > 0.000000001), 0, test_name, 103);
+    TEST(!assert_doubles_equal(d1, 0.0000012, DBL_TEST_ULPS), 0, test_name, 103);
     TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 104);
-    TEST((d1 != 0.0000001), 0, test_name, 105);
+    TEST(!assert_doubles_equal(d1, 0.0000001, DBL_TEST_ULPS), 0, test_name, 105);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 106);
     TEST(u_strcmp(v0_00000120s10, text), 0, test_name, 107);
     free(text);
 
     TEST(cif_value_autoinit_numb(value, 0.00000012, 0.0000001, 19), CIF_OK, test_name, 108);
     TEST(cif_value_get_number(value, &d1), CIF_OK, test_name, 109);
-    TEST((fabs(d1 - 0.00000012) > 0.0000000001), 0, test_name, 110);
+    TEST(!assert_doubles_equal(d1, 0.00000012, DBL_TEST_ULPS), 0, test_name, 110);
     TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 111);
-    TEST((d1 != 0.0000001), 0, test_name, 112);
+    TEST(!assert_doubles_equal(d1, 0.0000001, DBL_TEST_ULPS), 0, test_name, 112);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 113);
     TEST(u_strcmp(v1_2em7s10, text), 0, test_name, 114);
     free(text);

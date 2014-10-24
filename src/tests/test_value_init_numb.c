@@ -8,7 +8,12 @@
 
 #include <stdio.h>
 #include "../cif.h"
+#include "assert_doubles.h"
 #include "test.h"
+
+#ifndef DBL_TEST_ULPS
+#define DBL_TEST_ULPS DEFAULT_ULPS
+#endif
 
 int main(void) {
     char test_name[80] = "test_value_init_numb";
@@ -131,14 +136,15 @@ int main(void) {
     TEST(cif_value_init_numb(value, -12.345, 0.017, 3, 6), CIF_OK, test_name, 59);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 60);
     TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 61);
-    TEST((d != -12.345), 0, test_name, 62);
+    TEST(!assert_doubles_equal(d, -12.345, DBL_TEST_ULPS), 0, test_name, 62);
     TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 63);
-    TEST((d != 0.017), 0, test_name, 64);
+    TEST(!assert_doubles_equal(d, 0.017, DBL_TEST_ULPS), 0, test_name, 64);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 65);
     TEST(u_strcmp(vm12_345s_017_s3, text), 0, test_name, 66);
     free(text);
 
     /* reinitialize the value as kind NUMB, scale -1, measured, negative */
+    /* Note: exact FP comparisons in this case */
     TEST(cif_value_init_numb(value, -12.345, 0.017, -1, 6), CIF_OK, test_name, 67);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 68);
     TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 69);
@@ -150,6 +156,7 @@ int main(void) {
     free(text);
 
     /* reinitialize the value as kind NUMB, scale 0, measured, non-zero sig-figs from rounding */
+    /* Note: exact FP comparisons in this case */
     TEST(cif_value_init_numb(value, 0.5, 1.0, 0, 6), CIF_OK, test_name, 75);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 76);
     TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 77);
@@ -161,6 +168,7 @@ int main(void) {
     free(text);
 
     /* reinitialize the value as kind NUMB, scale 0, measured, non-zero sig-figs from rounding */
+    /* Note: exact FP comparisons in this case */
     TEST(cif_value_init_numb(value, 0.6, 1.0, 0, 6), CIF_OK, test_name, 83);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 84);
     TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 85);
@@ -175,9 +183,9 @@ int main(void) {
     TEST(cif_value_init_numb(value, 0.00000042, 0.00000017, 8, 5), CIF_OK, test_name, 91);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 92);
     TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 93);
-    TEST((d != 0.00000042), 0, test_name, 94);
+    TEST(!assert_doubles_equal(d, 0.00000042, DBL_TEST_ULPS), 0, test_name, 94);
     TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 95);
-    TEST((d != 0.00000017), 0, test_name, 96);
+    TEST(!assert_doubles_equal(d, 0.00000017, DBL_TEST_ULPS), 0, test_name, 96);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 97);
     TEST(u_strcmp(vm0_00000042s_00000017_s8, text), 0, test_name, 98);
     free(text);
