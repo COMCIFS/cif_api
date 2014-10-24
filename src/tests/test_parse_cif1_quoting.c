@@ -30,7 +30,6 @@ int main(void) {
     UChar **name_list;
     UChar **name_p;
     UChar *ustr;
-    double d;
 
     U_STRING_DECL(block_code, "cif1_quoting", 13);
     U_STRING_DECL(name_sq,    "_sq", 4);
