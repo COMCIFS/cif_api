@@ -24,6 +24,10 @@
 
 #define INIT_STMT(cif, stmt_name) cif->stmt_name##_stmt = NULL
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static int cif_create_callback(void *context, int n_columns, char **column_texts, char **column_names);
 static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context);
 static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *context);
@@ -31,11 +35,33 @@ static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context);
 static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *context);
 static int walk_item(UChar *name, cif_value_t *value, cif_handler_t *handler, void *context);
 
+
 #ifdef DEBUG
 static void debug_sql(void *context, const char *text);
 
 static void debug_sql(void *context UNUSED, const char *text) {
     fprintf(stderr, "debug: beginning to execute \"%s\"\n", text);
+}
+#endif
+
+#ifdef PERFORM_QUERY_PROFILING
+#include <stdio.h>
+
+struct qp_s {
+    FILE *output;
+    sqlite3_uint64 cumulative_nanos;
+};
+
+int total_queries = 0;
+
+static void cif_query_profile_callback(void *data, const char *query_text, sqlite3_uint64 time_nanos);
+
+static void cif_query_profile_callback(void *data, const char *query_text, sqlite3_uint64 time_nanos) {
+    struct qp_s *qp_params  = (struct qp_s *) data;
+
+    qp_params->cumulative_nanos += time_nanos;
+    fprintf(qp_params->output, "query: \"%s\"\nellapsed:%9lu us, cumulative:%9lu us\n\n", query_text,
+            (unsigned long) (time_nanos / 1000), (unsigned long) (qp_params->cumulative_nanos / 1000));
 }
 #endif
 
@@ -47,10 +73,6 @@ static int cif_create_callback(void *context, int n_columns UNUSED, char **colum
     *((int *) context) = (((*column_texts != NULL) && (**column_texts == '1')) ? 1 : 0);
     return 0;
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 int cif_create(cif_t **cif) {
     FAILURE_HANDLING;
@@ -75,6 +97,14 @@ int cif_create(cif_t **cif) {
                 && (DEBUG_WRAP2(sqlite3_open16(&cif_uchar_nul, &(temp->db))) == SQLITE_OK)) {
             int fks_enabled = 0;
 
+#ifdef PERFORM_QUERY_PROFILING
+            static struct qp_s query_params;
+
+            query_params.output = stderr;
+            query_params.cumulative_nanos = 0;
+
+            sqlite3_profile(temp->db, cif_query_profile_callback, &query_params);
+#endif
             /* TODO: probably other DB setup / configuration */
 
             if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, ENABLE_FKS_SQL, cif_create_callback, &fks_enabled, NULL))

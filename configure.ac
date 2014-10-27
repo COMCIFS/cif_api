@@ -72,13 +72,27 @@ AC_ARG_ENABLE([profiling],
   [],
   [enable_profiling=no])
 
+AC_ARG_ENABLE([query-profiling],
+  [AS_HELP_STRING([--enable-query-profiling], [make the library emit information at runtime pertaining to the time
+    consumed by queries performed against the internal database.  Appropriate only for debugging CIF API performance
+    issues; do not enable for a production build.])],
+  [
+    AS_CASE([$enableval],
+      [yes|no], [],
+                [AC_MSG_ERROR([Unrecognized option value in --enable-query-profiling=$enableval])])
+  ],
+  [$enable_query_profiling='no'])
+AS_IF([test "x$enable_query_profiling" = xyes], [
+  AC_DEFINE([PERFORM_QUERY_PROFILING], [1], [Define to 1 to enable query profiling])
+])
+
 AC_ARG_WITH([examples],
   [AS_HELP_STRING([--with-examples], [build and install the example programs])], [
     AS_CASE([$[]withval],
       [yes|no], [],
                 [AC_MSG_ERROR([--with-examples=$[]withval is not supported])])
   ], [
-    with_examples=no
+    with_examples='no'
   ])
   
 AM_CONDITIONAL([build_examples], [test "x$[]with_examples" = xyes])

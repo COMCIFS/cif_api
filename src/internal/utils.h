@@ -51,14 +51,26 @@
  */
 #ifdef DEBUG
 #include <stdio.h>
+#include <time.h>
 #include <sqlite3.h>
 #include <unicode/ustdio.h>
 /* If multithreaded debugging ever is wanted then these will need to be thead-local: */
 static int _debug_result = SQLITE_OK;
 static void *_debug_ptr = NULL;
+static clock_t _clock_start;
 
 extern UFILE *ustderr;
 #define INIT_USTDERR do { if (ustderr == NULL) ustderr = u_finit(stderr, NULL, NULL); } while(0)
+
+#ifdef PERFORM_QUERY_PROFILING
+extern int total_queries;
+#define CLOCK_START (_clock_start = clock())
+#define CLOCK_REPORT(measured) (fprintf(stderr, "%7d ticks to %s\n        (query %d)\n", \
+  (int) (clock() - _clock_start), measured, ++total_queries))
+#else
+#define CLOCK_START (_clock_start = 0)
+#define CLOCK_REPORT(measured) (total_queries += 1)
+#endif
 
 /*
  * A wrapper that, when enabled, intercepts the result codes of SQLite functions
@@ -69,12 +81,15 @@ extern UFILE *ustderr;
  * f: a SQLite function call or result to possibly be debugged
  */
 #define DEBUG_WRAP(db,f) ( \
+  CLOCK_START, \
   (_debug_result = (f)), \
   ((_debug_result == SQLITE_OK) ? 0 \
     : fprintf(stderr, "At line %d in " __FILE__ ", SQLite error code %d: %s\n", __LINE__, \
               _debug_result, sqlite3_errmsg(db))), \
+  CLOCK_REPORT("call " #f), \
   _debug_result \
 )
+
 /*
  * A wrapper that, when enabled, intercepts the result codes of SQLite functions
  * and emits it if it differs from SQLITE_OK (which is not necessarily an error condition).
@@ -83,9 +98,11 @@ extern UFILE *ustderr;
  * f: a SQLite function call or result to possibly be debugged
  */
 #define DEBUG_WRAP2(f) ( \
+  CLOCK_START, \
   (_debug_result = (f)), \
   (_debug_result == SQLITE_OK) ? 0 \
     : fprintf(stderr, "At line %d in " __FILE__ ", SQLite error code %d\n", __LINE__, _debug_result), \
+  CLOCK_REPORT("call " #f), \
   _debug_result \
 )
 
