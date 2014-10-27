@@ -343,7 +343,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container);
 static int parse_loop_header(struct scanner_s *scanner, cif_container_t *container, string_element_t **name_list_head,
         int *name_countp);
 static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, string_element_t *first_name,
-        UChar *names[]);
+        UChar *names[], int column_count);
 static int parse_list(struct scanner_s *scanner, cif_value_t **listp);
 static int parse_table(struct scanner_s *scanner, cif_value_t **tablep);
 static int parse_value(struct scanner_s *scanner, cif_value_t **valuep);
@@ -1282,6 +1282,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
             } else {
                 string_element_t *next_name;
                 int name_index = 0;
+                int column_count = 0;
                
                 /* dummy_loop is a static adapter; of its elements, it owns only 'category' */
                 cif_loop_t dummy_loop = { NULL, -1, NULL, NULL };
@@ -1296,6 +1297,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                     if (next_name->string != NULL) {
                         names[name_index++] = next_name->string;
                     } /* else a previously-detected duplicate name */
+                    column_count += 1;
                 }
                 names[name_index] = NULL;
 
@@ -1333,7 +1335,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                 }  /* else loop == NULL from its initialization */
 
                 /* read packets */
-                result = parse_loop_packets(scanner, loop, first_name, names);
+                result = parse_loop_packets(scanner, loop, first_name, names, column_count);
 
                 loop_body_end:
                 if (dummy_loop.category != NULL) {
@@ -1438,201 +1440,225 @@ static int parse_loop_header(struct scanner_s *scanner, cif_container_t *contain
 }
 
 static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, string_element_t *first_name,
-        UChar *names[]) {
+        UChar *names[], int column_count) {
     cif_packet_t *packet;
     int result = cif_packet_create(&packet, names);
 
     /* read packets */
     if (result == CIF_OK) {
-        int have_packets = CIF_FALSE;
-        string_element_t *next_name = first_name;
+        cif_value_t **packet_values = (cif_value_t **) malloc(column_count * sizeof(cif_value_t *));
 
-        while ((result = next_token(scanner)) == CIF_OK) {
-            UChar *name;
-            cif_value_t *value = NULL;
-            enum token_type alt_ttype = QVALUE;
+        if (packet_values != NULL) {
+            cif_value_t *dummy_value = NULL;
 
-            switch (scanner->ttype) {
-                case TKEY:
-                    alt_ttype = TVALUE;
-                    /* fall through */
-                case KEY:
-                    /* error: missing whitespace (or that's how we interpret it, anyway) */
-                    result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line,
-                            scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
-                            TVALUE_LENGTH(scanner), scanner->user_data);
-                    if (result != CIF_OK) {
-                        goto packets_end;
-                    }
-                    /* recover by pushing back the colon */
-                    scanner->next_char -= 1;
-                    scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
-                    /* fall through */
-                case OLIST:  /* opening delimiter of a list value */
-                case OTABLE: /* opening delimiter of a table value */
-                case TVALUE:
-                case QVALUE:
-                case VALUE:
-                    if (next_name == first_name) {
-                        /* first value of a new packet */
-                        if (scanner->skip_depth > 0) {
-                            scanner->skip_depth += 1;
-                        } else {
-                            /* there are no packet values yet, so dispatch a NULL packet to the handler */
-                            result = OPTIONAL_CALL(scanner->handler->handle_packet_start,
-                                    (NULL, scanner->user_data), CIF_OK);
-                            switch (result) {
-                                case CIF_TRAVERSE_SKIP_CURRENT:
-                                    scanner->skip_depth = 1;
-                                    break;
-                                case CIF_TRAVERSE_SKIP_SIBLINGS:
-                                    scanner->skip_depth = 2;
-                                    break;
-                                case CIF_TRAVERSE_END:
-                                    goto packets_end;
-                                /* default: do nothing */
-                            }
+            result = cif_value_create(CIF_UNK_KIND, &dummy_value);
+            if (result == CIF_OK) {
+                int have_packets = CIF_FALSE;
+                int column_index = 0;
+                string_element_t *next_name;
+
+                /*
+                 * Extract pointers to the packet's values once, for access by index, to avoid a normalizing and hashing
+                 * many times.
+                 */
+                for (next_name = first_name; next_name; next_name = next_name->next) {
+                    assert(column_index < column_count);
+                    if (next_name->string == NULL) {
+                        packet_values[column_index] = dummy_value;
+                    } else {
+                        result = cif_packet_get_item(packet, next_name->string, packet_values + column_index);
+                        if (result == CIF_NOSUCH_ITEM) {
+                            result = CIF_INTERNAL_ERROR;
                         }
-                    }
-                    name = next_name->string;
-
-                    if (name != NULL) {
-                        /* create a value object IN THE PACKET to receive the parsed value */
-                        if (((result = cif_packet_set_item(packet, name, NULL)) != CIF_OK)
-                                || ((result = cif_packet_get_item(packet, name, &value)) != CIF_OK)) {
-                            goto packets_end;
-                        }
-                    } /* else the name is just a placeholder */
-
-                    /* parse the value */
-                    if ((result = parse_value(scanner, &value)) == CIF_OK) {
-                        result = OPTIONAL_CALL(scanner->handler->handle_item,
-                                (name, value, scanner->user_data), CIF_OK);
-                        switch (result) {
-                            case CIF_TRAVERSE_SKIP_CURRENT:
-                                result = CIF_OK;
-                                break;
-                            case CIF_TRAVERSE_SKIP_SIBLINGS:
-                                scanner->skip_depth = 1;
-                                result = CIF_OK;
-                                break;
-                            /* default: do nothing */
-                        }
-                    }
-                    if (name == NULL) {
-                        /* discard the value -- the associated name was a duplicate or failed validation */
-                        cif_value_free(value);  /* ignore any error */
-                    } /* else the value is already in the packet and belongs to it */
-
-                    next_name = next_name->next;
-                    if (result != CIF_OK) { /* this is the parse_value() or item handler result code */
-                        goto packets_end;
-                    } else if (next_name == NULL) {  /* that was the last value in the packet */
-                        if (scanner->skip_depth > 0) {
-                            scanner->skip_depth -= 1;
-                        } else {
-                            result = OPTIONAL_CALL(scanner->handler->handle_packet_end,
-                                    (packet, scanner->user_data), CIF_OK);
-                            switch (result) {
-                                case CIF_TRAVERSE_CONTINUE:  /* == CIF_OK */
-                                    /* record the packet, if appropriate */
-                                    if ((loop != NULL)
-                                            && ((result = cif_loop_add_packet(loop, packet)) != CIF_OK)) {
-                                        goto packets_end;
-                                    }
-                                    break;
-                                case CIF_TRAVERSE_SKIP_CURRENT:
-                                    /* do not record the current packet */
-                                    result = CIF_OK;
-                                    break;
-                                case CIF_TRAVERSE_SKIP_SIBLINGS:
-                                    /* do not record the current packet or any others in this loop */
-                                    scanner->skip_depth = 1;
-                                    result = CIF_OK;
-                                    break;
-                                default:
-                                    /* abort the parse */
-                                    goto packets_end;
-                            }
-                        }
-                        have_packets = CIF_TRUE;
-                        next_name = first_name;
-                    }
-
-                    break;
-                case CLIST:
-                case CTABLE:
-                    /* error: unexpected list/table delimiter */
-                    result = scanner->error_callback(CIF_UNEXPECTED_DELIM, scanner->line,
-                            scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
-                            TVALUE_LENGTH(scanner), scanner->user_data);
-                    if (result != CIF_OK) {
-                        goto packets_end;
-                    }
-                    /* recover by dropping it; the loop body is not terminated */
-                    CONSUME_TOKEN(scanner);
-                    break;
-                default: /* any other token type terminates the loop body */
-                    if (next_name != first_name) {
-                        /* error: partial packet */
-                        result = scanner->error_callback(CIF_PARTIAL_PACKET, scanner->line,
-                                scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner), 0,
-                                scanner->user_data);
                         if (result != CIF_OK) {
                             goto packets_end;
                         }
-                        /* recover by synthesizing unknown values to fill the packet, and saving it */
-                        for (; next_name != NULL; next_name = next_name->next) {
-                            if ((next_name->string != NULL)
-                                    && (result = cif_packet_set_item(packet, next_name->string, NULL))
-                                            != CIF_OK) {
+                    }
+                    column_index += 1;
+                }
+
+                column_index = 0;
+                next_name = first_name;
+                while ((result = next_token(scanner)) == CIF_OK) {
+                    UChar *name;
+                    cif_value_t *value = NULL;
+                    enum token_type alt_ttype = QVALUE;
+
+                    switch (scanner->ttype) {
+                        case TKEY:
+                            alt_ttype = TVALUE;
+                            /* fall through */
+                        case KEY:
+                            /* error: missing whitespace (or that's how we interpret it, anyway) */
+                            result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line,
+                                    scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
+                                    TVALUE_LENGTH(scanner), scanner->user_data);
+                            if (result != CIF_OK) {
                                 goto packets_end;
                             }
-                        }
-
-                        if (scanner->skip_depth > 0) {
-                            scanner->skip_depth -= 1;
-                        } else {
-                            result = OPTIONAL_CALL(scanner->handler->handle_packet_end,
-                                    (packet, scanner->user_data), CIF_OK);
-                            switch (result) {
-                                case CIF_TRAVERSE_CONTINUE:  /* == CIF_OK */
-                                    if (loop != NULL) {
-                                        result = cif_loop_add_packet(loop, packet);
-                                        /* will fall through to "goto packets_end" */
+                            /* recover by pushing back the colon */
+                            scanner->next_char -= 1;
+                            scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+                            /* fall through */
+                        case OLIST:  /* opening delimiter of a list value */
+                        case OTABLE: /* opening delimiter of a table value */
+                        case TVALUE:
+                        case QVALUE:
+                        case VALUE:
+                            if (column_index == 0) {
+                                /* first value of a new packet */
+                                if (scanner->skip_depth > 0) {
+                                    scanner->skip_depth += 1;
+                                } else {
+                                    /* there are no packet values yet, so dispatch a NULL packet to the handler */
+                                    result = OPTIONAL_CALL(scanner->handler->handle_packet_start,
+                                            (NULL, scanner->user_data), CIF_OK);
+                                    switch (result) {
+                                        case CIF_TRAVERSE_SKIP_CURRENT:
+                                            scanner->skip_depth = 1;
+                                            break;
+                                        case CIF_TRAVERSE_SKIP_SIBLINGS:
+                                            scanner->skip_depth = 2;
+                                            break;
+                                        case CIF_TRAVERSE_END:
+                                            goto packets_end;
+                                        /* default: do nothing */
                                     }
-                                    break;
-                                case CIF_TRAVERSE_SKIP_CURRENT:
-                                    result = CIF_OK;
-                                    break;
-                                case CIF_TRAVERSE_SKIP_SIBLINGS:
-                                    scanner->skip_depth = 1;
-                                    result = CIF_OK;
-                                    break;
-                                default:
-                                    goto packets_end;
+                                }
                             }
-                        }
-                    } else if (!have_packets) {
-                        /* error: no packets */
-                        result = scanner->error_callback(CIF_EMPTY_LOOP, scanner->line,
-                                scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
-                                TVALUE_LENGTH(scanner), scanner->user_data);
-                        /* recover by doing nothing for now */
-                        /*
-                         * JCB note: a loop without packets is not valid in the data model, but the data
-                         * names need to be retained until the container has been fully parsed to allow
-                         * duplicates to be detected correctly.  Maybe some kind of pruning is needed
-                         * after the container is fully parsed.
-                         */
-                    }
 
-                    /* the token is not consumed or examined in any way */
-                    goto packets_end;
-            } /* end switch(scanner->ttype) */
-        } /* end while(next_token()) */
+                            name = next_name->string;
+                            value = packet_values[column_index];  /* it is safe to re-use the existing value object */
 
-        packets_end:
+                            /* parse the value */
+                            if ((result = parse_value(scanner, &value)) == CIF_OK) {
+                                result = OPTIONAL_CALL(scanner->handler->handle_item,
+                                        (name, value, scanner->user_data), CIF_OK);
+                                switch (result) {
+                                    case CIF_TRAVERSE_SKIP_CURRENT:
+                                        result = CIF_OK;
+                                        break;
+                                    case CIF_TRAVERSE_SKIP_SIBLINGS:
+                                        scanner->skip_depth = 1;
+                                        result = CIF_OK;
+                                        break;
+                                    /* default: do nothing */
+                                }
+                            }
+
+                            column_index = (column_index + 1) % column_count;
+                            if (result != CIF_OK) { /* this is the parse_value() or item handler result code */
+                                goto packets_end;
+                            } else if (column_index == 0) {  /* that was the last value in the packet */
+                                if (scanner->skip_depth > 0) {
+                                    scanner->skip_depth -= 1;
+                                } else {
+                                    result = OPTIONAL_CALL(scanner->handler->handle_packet_end,
+                                            (packet, scanner->user_data), CIF_OK);
+                                    switch (result) {
+                                        case CIF_TRAVERSE_CONTINUE:  /* == CIF_OK */
+                                            /* record the packet, if appropriate */
+                                            if ((loop != NULL)
+                                                    && ((result = cif_loop_add_packet(loop, packet)) != CIF_OK)) {
+                                                goto packets_end;
+                                            }
+                                            break;
+                                        case CIF_TRAVERSE_SKIP_CURRENT:
+                                            /* do not record the current packet */
+                                            result = CIF_OK;
+                                            break;
+                                        case CIF_TRAVERSE_SKIP_SIBLINGS:
+                                            /* do not record the current packet or any others in this loop */
+                                            scanner->skip_depth = 1;
+                                            result = CIF_OK;
+                                            break;
+                                        default:
+                                            /* abort the parse */
+                                            goto packets_end;
+                                    }
+                                }
+                                have_packets = CIF_TRUE;
+                            }
+                            next_name = next_name->next ? next_name->next : first_name;
+
+                            break;
+                        case CLIST:
+                        case CTABLE:
+                            /* error: unexpected list/table delimiter */
+                            result = scanner->error_callback(CIF_UNEXPECTED_DELIM, scanner->line,
+                                    scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
+                                    TVALUE_LENGTH(scanner), scanner->user_data);
+                            if (result != CIF_OK) {
+                                goto packets_end;
+                            }
+                            /* recover by dropping it; the loop body is not terminated */
+                            CONSUME_TOKEN(scanner);
+                            break;
+                        default: /* any other token type terminates the loop body */
+                            if (column_index != 0) {
+                                /* error: partial packet */
+                                result = scanner->error_callback(CIF_PARTIAL_PACKET, scanner->line,
+                                        scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner), 0,
+                                        scanner->user_data);
+                                if (result != CIF_OK) {
+                                    goto packets_end;
+                                }
+                                /* recover by synthesizing unknown values to fill the packet, and saving it */
+                                for (; column_index < column_count; column_index += 1) {
+                                    if ((names[column_index] != NULL)
+                                            && (result = cif_value_init(packet_values[column_index], CIF_UNK_KIND))
+                                                    != CIF_OK) {
+                                        goto packets_end;
+                                    }
+                                }
+
+                                if (scanner->skip_depth > 0) {
+                                    scanner->skip_depth -= 1;
+                                } else {
+                                    result = OPTIONAL_CALL(scanner->handler->handle_packet_end,
+                                            (packet, scanner->user_data), CIF_OK);
+                                    switch (result) {
+                                        case CIF_TRAVERSE_CONTINUE:  /* == CIF_OK */
+                                            if (loop != NULL) {
+                                                result = cif_loop_add_packet(loop, packet);
+                                                /* will fall through to "goto packets_end" */
+                                            }
+                                            break;
+                                        case CIF_TRAVERSE_SKIP_CURRENT:
+                                            result = CIF_OK;
+                                            break;
+                                        case CIF_TRAVERSE_SKIP_SIBLINGS:
+                                            scanner->skip_depth = 1;
+                                            result = CIF_OK;
+                                            break;
+                                        default:
+                                            goto packets_end;
+                                    }
+                                }
+                            } else if (!have_packets) {
+                                /* error: no packets */
+                                result = scanner->error_callback(CIF_EMPTY_LOOP, scanner->line,
+                                        scanner->column - TVALUE_LENGTH(scanner), TVALUE_START(scanner),
+                                        TVALUE_LENGTH(scanner), scanner->user_data);
+                                /* recover by doing nothing for now */
+                                /*
+                                 * JCB note: a loop without packets is not valid in the data model, but the data
+                                 * names need to be retained until the container has been fully parsed to allow
+                                 * duplicates to be detected correctly.  Maybe some kind of pruning is needed
+                                 * after the container is fully parsed.
+                                 */
+                            }
+
+                            /* the token is not consumed or examined in any way */
+                            goto packets_end;
+                    } /* end switch(scanner->ttype) */
+                } /* end while(next_token()) */
+
+                packets_end:
+                cif_value_free(dummy_value);
+            } /* end if (result == CIF_OK) [of cif_value_create()] */
+            free(packet_values);  /* free only the array; its elements belong to the packet */
+        } /* end if (packet_values != NULL) */
         cif_packet_free(packet);
     } /* end if (cif_packet_create()) */
 
@@ -1949,7 +1975,7 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
                     } else {
                         result = CIF_ERROR;
                     }
-                   break;
+                    break;
                 case VALUE:
                     /* special cases for unquoted question mark (?) and period (.) */
                     if (token_length == 1) {
