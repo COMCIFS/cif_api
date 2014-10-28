@@ -19,6 +19,36 @@
 #include "utlist.h"
 #include "uthash.h"
 
+/*
+ * Resets the packet serial number for the specified loop to zero
+ *
+ * Returns CIF_OK on success of an error code (probably CIF_ERROR) on failure
+ */
+static int cif_pktitr_reset_packet_number(cif_loop_t *loop);
+
+static int cif_pktitr_reset_packet_number(cif_loop_t *loop) {
+    FAILURE_HANDLING;
+    STEP_HANDLING;
+    cif_container_t *container = loop->container;
+    cif_t *cif = container->cif;
+
+    /*
+     * Create any needed prepared statements or prepare the existing one(s)
+     * for re-use, exiting this function with an error on failure.
+     */
+    PREPARE_STMT(cif, reset_packet_num, RESET_PACKET_NUM_SQL);
+
+    if ((sqlite3_bind_int64(cif->reset_packet_num_stmt, 1, container->id) == SQLITE_OK)
+            && (sqlite3_bind_int(cif->reset_packet_num_stmt, 2, loop->loop_num) == SQLITE_OK)
+            && (STEP_STMT(cif, reset_packet_num) == SQLITE_DONE)) {
+        return CIF_OK;
+    }
+
+    DROP_STMT(cif, reset_packet_num);
+
+    FAILURE_TERMINUS;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -323,30 +353,45 @@ int cif_pktitr_remove_packet(
         cif_loop_t *loop = iterator->loop;
         cif_container_t *container = iterator->loop->container;
         cif_t *cif = container->cif;
+        UChar *category;
+        int result;
 
-        /*
-         * Create any needed prepared statements, or prepare the existing one(s)
-         * for re-use, exiting this function with an error on failure.
-         */
-        PREPARE_STMT(cif, remove_packet, REMOVE_PACKET_SQL);
+        if ((result = cif_loop_get_category(loop, &category)) == CIF_OK) {
+            int is_scalar = ((category != NULL) && (*category == 0));
 
-        if ((sqlite3_bind_int64(cif->remove_packet_stmt, 1, container->id) == SQLITE_OK)
-                && (sqlite3_bind_int(cif->remove_packet_stmt, 2, loop->loop_num) == SQLITE_OK)
-                && (sqlite3_bind_int(cif->remove_packet_stmt, 3, iterator->previous_row_num) == SQLITE_OK)
-                && (SAVE(cif->db) == SQLITE_OK)) {
-            STEP_HANDLING;
+            free(category);
 
-            if ((STEP_STMT(cif, remove_packet) == SQLITE_DONE) 
-                    && (RELEASE(cif->db) == SQLITE_OK)) {
-                /* Success */
-                iterator->previous_row_num = -1;
-                return CIF_OK;
+            /*
+             * Create any needed prepared statements, or prepare the existing one(s)
+             * for re-use, exiting this function with an error on failure.
+             */
+            PREPARE_STMT(cif, remove_packet, REMOVE_PACKET_SQL);
+
+            if ((sqlite3_bind_int64(cif->remove_packet_stmt, 1, container->id) == SQLITE_OK)
+                    && (sqlite3_bind_int(cif->remove_packet_stmt, 2, loop->loop_num) == SQLITE_OK)
+                    && (sqlite3_bind_int(cif->remove_packet_stmt, 3, iterator->previous_row_num) == SQLITE_OK)
+                    && (SAVE(cif->db) == SQLITE_OK)) {
+                STEP_HANDLING;
+
+                if ((STEP_STMT(cif, remove_packet) == SQLITE_DONE)
+                        && ((!is_scalar) || (cif_pktitr_reset_packet_number(loop) == CIF_OK))
+                        && (RELEASE(cif->db) == SQLITE_OK)) {
+                    /* Success */
+                    iterator->previous_row_num = -1;
+                    return CIF_OK;
+                }
+
+                (void) ROLLBACK_TO(cif->db);
+                DEFAULT_FAIL(soft);
             }
 
-            (void) ROLLBACK_TO(cif->db);
+            DROP_STMT(cif, remove_packet);
+        } else {
+            SET_RESULT(result);
         }
     }
 
+    FAILURE_HANDLER(soft):
     FAILURE_TERMINUS;
 }
 

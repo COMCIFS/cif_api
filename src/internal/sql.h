@@ -86,8 +86,21 @@
 
 #define CHECK_ITEM_LOOP_SQL "select 1 from loop_item where container_id = ? and name = ? and loop_num = ?"
 
+/*
+ * This approach to assigning packet (row) numbers is in a sense more correct than one based on tracking a sequence
+ * number in the 'loop' table as we now do, but it's too expensive for loops with large numbers of packets, especially
+ * when used repeatedly.
+
 #define MAX_PACKET_NUM_SQL "select max(iv.row_num) from loop_item li " \
     "join item_value iv using (container_id, name) where li.container_id = ? and li.loop_num = ?"
+
+ */
+
+#define GET_PACKET_NUM_SQL "select last_row_num from loop where container_id = ? and loop_num = ?"
+
+#define UPDATE_PACKET_NUM_SQL "update loop set last_row_num = last_row_num + 1 where container_id = ? and loop_num = ?"
+
+#define RESET_PACKET_NUM_SQL "update loop set last_row_num = 0 where container_id = ? and loop_num = ?"
 
 #define ADD_LOOP_ITEM_SQL "insert into loop_item (container_id, name, name_orig, loop_num) values (?, ?, ?, ?)"
 

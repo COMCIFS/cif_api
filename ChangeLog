@@ -7,6 +7,7 @@ Version 0.2.0.2
   data for ICU are split among multiple logical packages.
 * Fixed a test implementation issue revolving around exact decimal comparisons
   being performed where approximate comparisons were needed.
+* Fixed a performance issue associated with loops having many packets
 
 Version 0.2.0.1
 * Fixed a C++ compatibility issue in cif_cstr_to_ustr()

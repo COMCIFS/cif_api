@@ -102,6 +102,7 @@ create table loop (
   container_id integer not null,
   loop_num integer not null,
   category varchar(80),
+  last_row_num integer default 0,
  
   primary key (container_id, loop_num),
   foreign key (container_id)
@@ -138,6 +139,34 @@ create trigger tr2_loop
     select raise(ABORT, 'duplicate scalar loop')
       from loop
       where container_id = NEW.container_id and category = '';
+  end;
+
+--
+-- Restrict scalar loops to at most one row on insert
+--
+-- This provides only an *advisory* restriction, relying on the the database
+-- user to draw on loop.last_row_num to choose row numbers for new loop
+-- packets.
+--
+create trigger tr3_loop
+  before insert on loop
+  when NEW.category = '' and (coalesce(NEW.last_row_num, 0) != 0)
+  begin
+    select raise(ABORT, 'Attempted to create multiple values for a scalar');
+  end;
+
+--
+-- Restrict scalar loops to at most one row on update
+--
+-- This provides only an *advisory* restriction, relying on the the database
+-- user to draw on loop.last_row_num to choose row numbers for new loop
+-- packets.
+--
+create trigger tr4_loop
+  before update on loop
+  when NEW.category = '' and (coalesce(NEW.last_row_num, 0) > 1)
+  begin
+    select raise(ABORT, 'Attempted to create multiple values for a scalar');
   end;
 
 --
@@ -276,36 +305,4 @@ create table item_value (
         and ((su_digits is null) or ((length(su_digits) > 0) and (su_digits not glob '*[^0-9]*')))
       else (coalesce(val_digits, su_digits, scale) is null) end)
 );
-
---
--- Restrict scalar loops to one row on value insert
--- Note: the error message text is significant to the API implementation
---
-create trigger tr1_item_value
-  before insert on item_value
-  when NEW.row_num > 1
-  begin
-    select raise(ABORT, 'Attempted to create multiple values for a scalar')
-      from loop_item li
-        join loop l using (container_id, loop_num)
-        where li.container_id = NEW.container_id
-          and li.name = NEW.name
-          and l.category = '';
-  end;
-
---
--- Restrict scalar loops to one row on value update
--- Note: the error message text is significant to the API implementation
---
-create trigger tr2_item_value
-  before update of row_num on item_value
-  when (OLD.row_num = 1) and (NEW.row_num <> 1)
-  begin
-    select raise(ABORT, 'Attempted to create multiple values for a scalar')
-      from loop_item li
-        join loop l using (container_id, loop_num)
-        where li.container_id = NEW.container_id
-          and li.name = NEW.name
-          and l.category = '';
-  end;
 

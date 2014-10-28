@@ -105,7 +105,8 @@ int cif_create(cif_t **cif) {
 
             sqlite3_profile(temp->db, cif_query_profile_callback, &query_params);
 #endif
-            /* TODO: probably other DB setup / configuration */
+
+            /* Any other DB setup / configuration needed in the future should go here */
 
             if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, ENABLE_FKS_SQL, cif_create_callback, &fks_enabled, NULL))
                     == SQLITE_OK) {
@@ -149,7 +150,9 @@ int cif_create(cif_t **cif) {
                         INIT_STMT(temp, remove_item);
                         INIT_STMT(temp, destroy_loop);
                         INIT_STMT(temp, get_loop_names);
-                        INIT_STMT(temp, max_packet_num);
+                        INIT_STMT(temp, get_packet_num);
+                        INIT_STMT(temp, update_packet_num);
+                        INIT_STMT(temp, reset_packet_num);
                         INIT_STMT(temp, check_item_loop);
                         INIT_STMT(temp, insert_value);
                         INIT_STMT(temp, update_value);

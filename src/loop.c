@@ -344,6 +344,7 @@ int cif_loop_add_packet(
     NESTTX_HANDLING;
     cif_container_t *container = loop->container;
     cif_t *cif;
+    int result;
 
     if (container == NULL) {
         return CIF_INVALID_HANDLE;
@@ -357,25 +358,30 @@ int cif_loop_add_packet(
      * Create any needed prepared statements, or prepare the existing one(s)
      * for re-use, exiting this function with an error on failure.
      */
-    PREPARE_STMT(cif, max_packet_num, MAX_PACKET_NUM_SQL);
+    PREPARE_STMT(cif, update_packet_num, UPDATE_PACKET_NUM_SQL);
+    PREPARE_STMT(cif, get_packet_num, GET_PACKET_NUM_SQL);
     PREPARE_STMT(cif, check_item_loop, CHECK_ITEM_LOOP_SQL);
     PREPARE_STMT(cif, insert_value, INSERT_VALUE_SQL);
 
     if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
-        if ((sqlite3_bind_int64(cif->max_packet_num_stmt, 1, container->id) == SQLITE_OK)
-                && (sqlite3_bind_int(cif->max_packet_num_stmt, 2, loop->loop_num) == SQLITE_OK)) {
-            STEP_HANDLING;
+        STEP_HANDLING;
+
+        if ((sqlite3_bind_int64(cif->update_packet_num_stmt, 1, container->id) == SQLITE_OK)
+                && (sqlite3_bind_int(cif->update_packet_num_stmt, 2, loop->loop_num) == SQLITE_OK)
+                && ((result = STEP_STMT(cif, update_packet_num)) == SQLITE_DONE)
+                && (sqlite3_bind_int64(cif->get_packet_num_stmt, 1, container->id) == SQLITE_OK)
+                && (sqlite3_bind_int(cif->get_packet_num_stmt, 2, loop->loop_num) == SQLITE_OK)) {
             int row_num;
             struct entry_s *item;
 
             /* determine the packet number to use */
-            switch (STEP_STMT(cif, max_packet_num)) {
+            switch (STEP_STMT(cif, get_packet_num)) {
                 case SQLITE_ROW:
                     TRACELINE;
                     /* If the result is NULL then the retrieval function returns it as 0: */
-                    row_num = sqlite3_column_int(cif->max_packet_num_stmt, 0) + 1;
-                    if ((sqlite3_reset(cif->max_packet_num_stmt) == SQLITE_OK)
-                            && (sqlite3_clear_bindings(cif->max_packet_num_stmt) == SQLITE_OK)
+                    row_num = sqlite3_column_int(cif->get_packet_num_stmt, 0);
+                    if ((sqlite3_reset(cif->get_packet_num_stmt) == SQLITE_OK)
+                            && (sqlite3_clear_bindings(cif->get_packet_num_stmt) == SQLITE_OK)
                             && (sqlite3_bind_int64(cif->check_item_loop_stmt, 1, container->id) == SQLITE_OK)
                             && (sqlite3_bind_int(cif->check_item_loop_stmt, 3, loop->loop_num) == SQLITE_OK)) {
 
@@ -431,14 +437,6 @@ int cif_loop_add_packet(
                                         /* should not happen: insert statements do not return rows */
                                         TRACELINE;
                                         FAIL(rb, CIF_INTERNAL_ERROR);
-                                    case SQLITE_CONSTRAINT:
-                                        TRACELINE;
-                                        sqlite3_reset(cif->insert_value_stmt);
-                                        /* Note: sqlite3_errmsg() is not thread-safe */
-                                        if (strcmp(DEBUG_MSG("sqlite3 error message", sqlite3_errmsg(cif->db)),
-                                                MULTIPLE_SCALAR_MESSAGE) == 0) {
-                                            FAIL(rb, CIF_RESERVED_LOOP);
-                                        } /* else fall through */
                                     default:
                                         TRACELINE;
                                         break; /* falls out of the switch, ultimately to fail hard */
@@ -458,9 +456,16 @@ int cif_loop_add_packet(
                 case SQLITE_DONE:
                     /* should not happen: an aggregate selection must always return a row */
                     TRACELINE;
-                    (void) ROLLBACK_NESTTX(cif->db);
+                    ROLLBACK_NESTTX(cif->db);
                     FAIL(soft, CIF_INTERNAL_ERROR);
                 /* default: do nothing */
+            }
+        } else if (result == SQLITE_CONSTRAINT) {
+            TRACELINE;
+            sqlite3_reset(cif->update_packet_num_stmt);
+            /* Note: sqlite3_errmsg() is not thread-safe */
+            if (strcmp(DEBUG_MSG("sqlite3 error message", sqlite3_errmsg(cif->db)), MULTIPLE_SCALAR_MESSAGE) == 0) {
+                SET_RESULT(CIF_RESERVED_LOOP);
             }
         }
 
@@ -470,7 +475,8 @@ int cif_loop_add_packet(
 
     DROP_STMT(cif, insert_value);
     DROP_STMT(cif, check_item_loop);
-    DROP_STMT(cif, max_packet_num);
+    DROP_STMT(cif, get_packet_num);
+    DROP_STMT(cif, update_packet_num);
 
     FAILURE_HANDLER(soft):
     FAILURE_TERMINUS;
