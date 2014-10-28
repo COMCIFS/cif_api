@@ -35,7 +35,7 @@ bin_PROGRAMS =
 ## These decisions should be made once per software release, based on changes from
 ## one release to the next (not, for example, every time the library is built).
 LIB_CURRENT = 0
-LIB_REVISION = 0
+LIB_REVISION = 1
 LIB_AGE = 0
 LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
 
