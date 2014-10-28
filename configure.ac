@@ -81,7 +81,7 @@ AC_ARG_ENABLE([query-profiling],
       [yes|no], [],
                 [AC_MSG_ERROR([Unrecognized option value in --enable-query-profiling=$enableval])])
   ],
-  [$enable_query_profiling='no'])
+  [enable_query_profiling='no'])
 AS_IF([test "x$enable_query_profiling" = xyes], [
   AC_DEFINE([PERFORM_QUERY_PROFILING], [1], [Define to 1 to enable query profiling])
 ])

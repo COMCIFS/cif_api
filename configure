@@ -11258,7 +11258,7 @@ esac
 
 
 else
-  $enable_query_profiling='no'
+  enable_query_profiling='no'
 fi
 
 if test "x$enable_query_profiling" = xyes; then
