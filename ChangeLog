@@ -5,9 +5,10 @@ Version 0.2.0.2
   build failing on Debian because of the type ssize_t not being declared.
 * Fixed a build configuration issue arising on Debian, where the pkg-config
   data for ICU are split among multiple logical packages.
-* Fixed a test implementation issue revolving around exact decimal comparisons
+* Fixed a test implementation issue revolving around exact FP comparisons
   being performed where approximate comparisons were needed.
-* Fixed a performance issue associated with loops having many packets
+* Fixed a performance issue associated with adding packets to loops already
+  having many packets
 
 Version 0.2.0.1
 * Fixed a C++ compatibility issue in cif_cstr_to_ustr()
