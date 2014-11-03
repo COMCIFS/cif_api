@@ -1,18 +1,26 @@
 CIF API Change Log
 
 Version 0.2.0.2
-* Fixed a header-declaration and build configuration issue resulting in the
-  build failing on Debian because of the type ssize_t not being declared.
-* Fixed a build configuration issue arising on Debian, where the pkg-config
+* Issues with ssize_t
+  Fixed a header declaration and build configuration issue resulting in
+  declarations of type ssize_t not being visible in some places where it is
+  used.  Observed on Debian.
+* ICU pkg-config package names
+  Fixed a build configuration issue arising on Debian, where the pkg-config
   data for ICU are split among multiple logical packages.
-* Fixed a test implementation issue revolving around exact FP comparisons
-  being performed where approximate comparisons were needed.
-* Fixed a performance issue associated with adding packets to loops already
-  having many packets
+* Tests performing exact floating-point comparisons
+  Fixed a test implementation issue revolving around exact FP comparisons
+  being performed in certain places where approximate comparisons were needed.
+  (The tests still use exact comparison where exact agreement is expected.)
+* Long time to handle many-packet loops
+  Fixed a performance issue associated with adding packets to loops already
+  having many packets.
 
 Version 0.2.0.1
-* Fixed a C++ compatibility issue in cif_cstr_to_ustr()
-* Fixed an error in the configuration program, related to the
+* C++ compatibility in cif_cstr_to_ustr()
+  Fixed a C++ compatibility issue in cif_cstr_to_ustr()
+* Configure script bug
+  Fixed an error in the configuration program, related to the
   --enable-c89-enforcement option
 
 Version 0.2.0
@@ -20,15 +28,8 @@ Version 0.2.0
 
 
 Known Issues
-
-[0.2.0.1] The ssize_t type may not be defined in the system headers included
-          (Candidate solution implemented.)
-
-[0.2.0.1] The pkg-config data for ICU may be split among multiple packages on
-          some systems, e.g. Debian.
-	  (Candidate solution implemented.)
-
-[0.2.0.1] Test failures in test_value_init_numb() (62) and
-          test_value_autoinit_numb() (63) on Debian
-          (candidate solution implemented)
+* The SQLite back end is slow-ish.
+  So far this performance issue is exhibited most clearly by parsing large
+  (hundreds of kB) CIFs.  Profiling shows virtually all runtime being consumed
+  by SQLite.
 
