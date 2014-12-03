@@ -15,6 +15,12 @@ Version 0.2.0.2
 * Long time to handle many-packet loops
   Fixed a performance issue associated with adding packets to loops already
   having many packets.
+* Minor reorganization
+  Merged macros for Unicode code point constants used in different source
+  files into a common location (src/internal/values.h).  Added consistent
+  source comments to the internal headers indicating that they are not
+  intended to be installed.  Changed the scope of one 'extern "C"' block.
+  Added a few source comments.
 
 Version 0.2.0.1
 * C++ compatibility in cif_cstr_to_ustr()

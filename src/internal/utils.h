@@ -4,6 +4,9 @@
  * Copyright (C) 2013, 2014 John C. Bollinger
  *
  * All rights reserved.
+ *
+ * This is an internal CIF API header file, intended for use only in building the CIF API library.  It is not needed
+ * to build client applications, and it is intended to *not* be installed on target systems.
  */
 
 #ifndef INTERNAL_UTILS_H
@@ -712,7 +715,7 @@ int cif_parse_internal(
         struct scanner_s *scanner,
         int not_utf8,
         cif_t *dest
-        );
+        ) INTERNAL;
 
 #ifdef __cplusplus
 }

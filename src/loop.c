@@ -344,7 +344,6 @@ int cif_loop_add_packet(
     NESTTX_HANDLING;
     cif_container_t *container = loop->container;
     cif_t *cif;
-    int result;
 
     if (container == NULL) {
         return CIF_INVALID_HANDLE;
@@ -365,6 +364,7 @@ int cif_loop_add_packet(
 
     if (BEGIN_NESTTX(cif->db) == SQLITE_OK) {
         STEP_HANDLING;
+        int result = -1;
 
         if ((sqlite3_bind_int64(cif->update_packet_num_stmt, 1, container->id) == SQLITE_OK)
                 && (sqlite3_bind_int(cif->update_packet_num_stmt, 2, loop->loop_num) == SQLITE_OK)

@@ -26,6 +26,7 @@
 
 #include "cif.h"
 #include "internal/utils.h"
+#include "internal/value.h"
 
 #define CIF_NOWRAP    0
 #define CIF_WRAP      1
@@ -63,8 +64,8 @@ typedef struct {
 } write_context_t;
 
 /* Unicode strings important for determining possible output formats for char values */
-static const UChar dq3[4] = { '"', '"', '"', 0 };
-static const UChar sq3[4] = { '\'', '\'', '\'', 0 };
+static const UChar dq3[4] = { UCHAR_DQ, UCHAR_DQ, UCHAR_DQ, 0 };
+static const UChar sq3[4] = { UCHAR_SQ, UCHAR_SQ, UCHAR_SQ, 0 };
 static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
 
 /* the true data type of the CIF walker context pointers used by the CIF-writing functions */
@@ -289,7 +290,7 @@ int cif_write_options_create(struct cif_write_opts_s **opts) {
  * parsing was successful.
  *
  * Considerations:
- * (1) cannot rely on seeking or rewinding the stream
+ * (1) cannot rely on seeking or rewinding the stream (not all streams support it)
  * (2) cannot use fileno() or an equivalent, because the provided stream may have data already buffered
  * (3) cannot initially be certain, in general, which encoding is used
  *
@@ -821,22 +822,6 @@ static int write_table(void *context, cif_value_t *table_value) {
     /* failure and success cases both end up here */
     FAILURE_TERMINUS;
 }
-
-
-/* The numeric value of a Unicode horizontal tab character */
-#define UCHAR_TAB  0x08
-/* The numeric value of a Unicode newline character */
-#define UCHAR_NL   0x0a
-/* The numeric value of a Unicode standard space character */
-#define UCHAR_SP   0x20
-/* The numeric value of a Unicode semicolon character */
-#define UCHAR_DQ   0x22
-/* The numeric value of a Unicode semicolon character */
-#define UCHAR_SQ   0x27
-/* The numeric value of a Unicode semicolon character */
-#define UCHAR_SEMI 0x3b
-/* The numeric value of a Unicode backslash character */
-#define UCHAR_BSL  0x5c
 
 static int write_char(void *context, cif_value_t *char_value, int allow_text) {
     int result;

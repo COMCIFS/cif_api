@@ -24,10 +24,6 @@
 
 #define INIT_STMT(cif, stmt_name) cif->stmt_name##_stmt = NULL
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static int cif_create_callback(void *context, int n_columns, char **column_texts, char **column_names);
 static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context);
 static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *context);
@@ -73,6 +69,10 @@ static int cif_create_callback(void *context, int n_columns UNUSED, char **colum
     *((int *) context) = (((*column_texts != NULL) && (**column_texts == '1')) ? 1 : 0);
     return 0;
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int cif_create(cif_t **cif) {
     FAILURE_HANDLING;

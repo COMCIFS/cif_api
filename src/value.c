@@ -298,7 +298,7 @@ static int cif_buf_write(write_buffer_t *buf, const void *src, size_t len);
 static size_t cif_buf_read(read_buffer_t *buf, void *dest, size_t max);
 
 /*
- * (macro) Returns the buffer's internal position to the begining, leaving its limit intact.
+ * (macro) Returns the buffer's internal position to the beginning, leaving its limit intact.
  */
 #define cif_buf_rewind(buf) do { buf->position = 0; } while (0)
 

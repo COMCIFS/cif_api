@@ -85,7 +85,7 @@ static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormaliza
 
 /*
  * Applies the Unicode case-folding algorithm (without Turkic dotless-i special option) to the (initial segment of the)
- * specified string
+ * specified string.  The result is not nul-terminated if there is insufficient space for it.
  *
  * src: the Unicode string to fold; assumed non-NULL
  * srclen: the maximum length of the input to fold; if less than zero then the whole string is folded up to
@@ -284,9 +284,8 @@ int cif_normalize_table_index(const UChar *name, int32_t namelen, UChar **normal
 #endif
 
 /*
- * Computes the Unicode normalization form NFC equivalent of the given Unicode string.  Returns NULL on failure;
- * otherwise, the caller assumes responsibility for cleaning up the returned Unicode string.  The original string is
- * not modified.
+ * Computes a normalization of the given Unicode string.  Returns NULL on failure; otherwise, the caller assumes
+ * responsibility for cleaning up the returned Unicode string.  The original string is not modified.
  */
 static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormalizationMode mode, int32_t *result_length,
         int terminate) {
@@ -303,15 +302,16 @@ static UChar *cif_unicode_normalize(const UChar *src, int32_t srclen, UNormaliza
 
         if ((code == U_STRING_NOT_TERMINATED_WARNING) && terminate) {
             /* (only) the terminator did not fit in the buffer */
+            /* enlarge and terminate the buffer; no need to re-normalize */
             UChar *temp = (UChar *) realloc(buf, ((size_t) normalized_chars + 1) * sizeof (UChar));
 
             if (temp != NULL) {
                 /* buf is no longer a valid pointer */
                 temp[normalized_chars] = 0;
                 *result_length = normalized_chars;
-                return temp; 
+                return temp;
             } /* else reallocation failure; buf remains valid */
-        } else if (U_SUCCESS(code)) {
+        } else if (U_SUCCESS(code)) { /* Note: ICU warning codes are accounted successful */
             /* output captured and terminator written -- it's all good */
             *result_length = normalized_chars;
             return buf;
@@ -349,7 +349,7 @@ static UChar *cif_fold_case(const UChar *src, int32_t srclen, int32_t *result_le
         UErrorCode code = U_ZERO_ERROR;
         int32_t folded_chars = u_strFoldCase(buf, buffer_chars, src, src_chars, U_FOLD_CASE_DEFAULT, &code);
 
-        if (U_SUCCESS(code)) {
+        if (U_SUCCESS(code)) { /* Note: ICU warning codes are accounted successful */
             /* case folding was successful, but result is not necessarily NUL-terminated */
             *result_length = folded_chars;
             return buf;
