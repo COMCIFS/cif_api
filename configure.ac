@@ -35,8 +35,7 @@ AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
 
 AC_ARG_ENABLE([c89-enforcement],
   [AS_HELP_STRING([--enable-c89-enforcement],
-    [instructs configure to verify that the chosen C compiler supports C89.  This is enabled by
-     default, but it may need to be disabled in certain environments, such as when a C++ compiler is chosen.])],
+    [configure normally tries to verify that the chosen C compiler supports C89.  That behavior can be diasabled via this option, as may be necessary in certain environments, such as when a C++ compiler is chosen. [default=yes]])],
   [AS_CASE([$[]{enable_c89_enforcement}],
     [yes|no], [],
               [AC_MSG_ERROR([Unrecognized value '$[]{enable_c89_enforcement}' for --enable-c89-enforcement])]
