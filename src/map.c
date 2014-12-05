@@ -16,8 +16,9 @@
 #include "internal/ciftypes.h"
 #include "internal/utils.h"
 
+/* All uthash fatal errors arise from memory allocation failure */
 #undef uthash_fatal
-#define uthash_fatal(msg) DEFAULT_FAIL(soft)
+#define uthash_fatal(msg) FAIL(soft, CIF_MEMORY_ERROR)
 
 static int cif_map_clean(cif_map_t *map) {
     if (map != NULL) {
@@ -39,7 +40,9 @@ static int cif_map_get_keys(cif_map_t *map, const UChar ***names) {
     size_t name_count = (size_t) HASH_COUNT(map->head);
     const UChar **temp = (const UChar **) malloc(sizeof(const UChar *) * (name_count + 1));
 
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         struct entry_s *item;
         struct entry_s *temp_item;
         const UChar **next = temp;
@@ -74,7 +77,9 @@ static int convert_to_standalone(cif_map_t *map) {
         size_t item_count = (size_t) HASH_COUNT(map->head);
         UChar **key_copies = (UChar **) malloc(sizeof(UChar *) * item_count);
 
-        if (key_copies != NULL) {
+        if (key_copies == NULL) {
+            SET_RESULT(CIF_MEMORY_ERROR);
+        } else {
             size_t next = 0;
             struct entry_s *item;
             struct entry_s *temp;
@@ -84,10 +89,10 @@ static int convert_to_standalone(cif_map_t *map) {
                 if (next >= item_count) FAIL(soft, CIF_INTERNAL_ERROR);
                 key_copies[next] = cif_u_strdup(item->key_orig);
 
-                if (key_copies[next] != NULL) {
+                if (key_copies[next++] != NULL) {
                     next += 1;
                 } else {
-                    DEFAULT_FAIL(soft);
+                    FAIL(soft, CIF_MEMORY_ERROR);
                 }
             }
 
@@ -146,7 +151,9 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                 /* There is an existing item for the given key */
                 UChar *key_orig = ((different_key == 0) ? item->key_orig : cif_u_strdup(key));
 
-                if (key_orig != NULL) {
+                if (key_orig == NULL) {
+                    SET_RESULT(CIF_MEMORY_ERROR);
+                } else {
                     /*
                      * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger
                      * assertions about aliasing than otherwise it could do (for otherwise, there is a need to cast
@@ -176,11 +183,15 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
 
                 assert(map->is_standalone != 0);
                 item = (struct entry_s *) malloc(sizeof(struct entry_s));
-                if (item != NULL) {
+                if (item == NULL) {
+                    SET_RESULT(CIF_MEMORY_ERROR);
+                } else {
                     /* The map is standalone, so we need to copy the original key */
                     UChar *key_copy = cif_u_strdup(key);
 
-                    if (key_copy != NULL) {
+                    if (key_copy == NULL) {
+                        SET_RESULT(CIF_MEMORY_ERROR);
+                    } else {
                         /*
                          * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger
                          * assertions about aliasing than otherwise it could do (see above):

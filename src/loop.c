@@ -40,12 +40,14 @@ static int dup_ustrings(UChar ***dest, UChar *src[]) {
 
         /* allocate space for the string pointers and a sentinel */
         dest_temp = (UChar **) malloc((string_count + 1) * sizeof(UChar *));
-        if (dest_temp != NULL) {
+        if (dest_temp == NULL) {
+            SET_RESULT(CIF_MEMORY_ERROR);
+        } else {
             /* dupe all the individual strings */
             for (counter = dest_temp; *src != NULL; src += 1, counter += 1) {
                 *counter = cif_u_strdup(*src);
                 if (*counter == NULL) {
-                    DEFAULT_FAIL(soft);
+                    FAIL(soft, CIF_MEMORY_ERROR);
                 }
             }
 
@@ -145,7 +147,7 @@ int cif_loop_get_category(cif_loop_t *loop, UChar **category) {
             *category = temp;
             return CIF_OK;
         } else {
-            return CIF_ERROR;
+            return CIF_MEMORY_ERROR;
         }
     }
 }
@@ -173,7 +175,7 @@ int cif_loop_set_category(cif_loop_t *loop, const UChar *category) {
 
         category_temp = cif_u_strdup(category);
         if (category_temp == NULL) {
-            return CIF_ERROR;
+            return CIF_MEMORY_ERROR;
         }
     }
 
@@ -501,7 +503,9 @@ int cif_loop_get_packets(
     }
 
     temp_it = (cif_pktitr_t *) malloc(sizeof(cif_pktitr_t));
-    if (temp_it) {
+    if (!temp_it) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         int result;
 
         /* initialize to NULL so we can later recognize where cleanup is needed */
@@ -515,15 +519,16 @@ int cif_loop_get_packets(
         } else {
             UChar **name;
 
+/* All uthash fatal errors arise from memory allocation failure */
 #undef uthash_fatal
-#define uthash_fatal(msg) DEFAULT_FAIL(soft)
+#define uthash_fatal(msg) FAIL(soft, CIF_MEMORY_ERROR)
             for (name = temp_it->item_names; *name; name += 1) {
                 struct set_element_s *element = (struct set_element_s *) malloc(sizeof(struct set_element_s));
 
                 if (element) {
                     HASH_ADD_KEYPTR(hh, temp_it->name_set, *name, U_BYTES(*name), element);
                 } else {
-                    DEFAULT_FAIL(soft);
+                    FAIL(soft, CIF_MEMORY_ERROR);
                 }
             }
 
@@ -608,7 +613,10 @@ static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, in
                                 LL_PREPEND(name_list, next_name);  /* prepending is O(1), appending would be O(n) */
                                 name_count += 1;
                                 continue;
-                            } /* else fall through; go on to cleanup/fail */
+                            }
+
+                            SET_RESULT(CIF_MEMORY_ERROR);
+                            /* fall through; go on to cleanup/fail */
                         default:
                             /* ignore any error: */
                             sqlite3_reset(cif->get_loop_names_stmt);
@@ -616,7 +624,9 @@ static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, in
                         case SQLITE_DONE:
                             if (name_count <= 0) FAIL(name, CIF_INVALID_HANDLE);
                             temp_names = (UChar **) malloc(sizeof(UChar *) * (name_count + 1));
-                            if (temp_names != NULL) {
+                            if (temp_names == NULL) {
+                                SET_RESULT(CIF_MEMORY_ERROR);
+                            } else {
                                 ROLLBACK_NESTTX(cif->db);  /* no changes should have been made anyway */
 
                                 temp_names[name_count] = NULL;

@@ -662,7 +662,9 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
     scanner->buffer_size = BUF_SIZE_INITIAL;
     scanner->buffer_limit = 0;
 
-    if (scanner->buffer != NULL) {
+    if (scanner->buffer == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         UChar c;
 
         INIT_V2_SCANNER(scanner);
@@ -1042,7 +1044,7 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
                 } else {
                     name = (UChar *) malloc((token_length + 1) * sizeof(UChar));
                     if (name == NULL) {
-                        result = CIF_ERROR;
+                        result = CIF_MEMORY_ERROR;
                         goto container_end;
                     } else {
                         /* copy the data name to a separate Unicode string */
@@ -1264,7 +1266,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
             UChar **names = (UChar **) malloc((name_count + 1) * sizeof(UChar *));
 
             if (names == NULL) {
-                result = CIF_ERROR;
+                result = CIF_MEMORY_ERROR;
                 goto loop_end;
             } else {
                 string_element_t *next_name;
@@ -1382,12 +1384,12 @@ static int parse_loop_header(struct scanner_s *scanner, cif_container_t *contain
 
         *next_namep = (string_element_t *) malloc(sizeof(string_element_t));
         if (*next_namep == NULL) {
-            return CIF_ERROR;
+            return CIF_MEMORY_ERROR;
         } else {
             (*next_namep)->next = NULL;
             (*next_namep)->string = (UChar *) malloc((token_length + 1) * sizeof(UChar));
             if ((*next_namep)->string == NULL) {
-                return CIF_ERROR;
+                return CIF_MEMORY_ERROR;
             } else {
                 u_strncpy((*next_namep)->string, token_value, token_length);
                 (*next_namep)->string[token_length] = 0;
@@ -1435,7 +1437,9 @@ static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, strin
     if (result == CIF_OK) {
         cif_value_t **packet_values = (cif_value_t **) malloc(column_count * sizeof(cif_value_t *));
 
-        if (packet_values != NULL) {
+        if (packet_values == NULL) {
+            result = CIF_MEMORY_ERROR;
+        } else {
             cif_value_t *dummy_value = NULL;
 
             result = cif_value_create(CIF_UNK_KIND, &dummy_value);
@@ -1827,7 +1831,7 @@ static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
                     CONSUME_TOKEN(scanner);    
                     break;
                 }
-                result = CIF_ERROR;
+                result = CIF_MEMORY_ERROR;
                 goto table_end;
             case TKEY:
                 /* error invalid key type */
@@ -1960,7 +1964,7 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
                         /* ownership of 'string' is transferred to 'value' */
                         CONSUME_TOKEN(scanner);  /* consume the token _after_ parsing its value */
                     } else {
-                        result = CIF_ERROR;
+                        result = CIF_MEMORY_ERROR;
                     }
                     break;
                 case VALUE:
@@ -1977,7 +1981,7 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
         
                     string = (UChar *) malloc((token_length + 1) * sizeof(UChar));
                     if (string == NULL) {
-                        result = CIF_ERROR;
+                        result = CIF_MEMORY_ERROR;
                     } else {
                         /* copy the token value into a separate buffer, with terminator */
                         *string = 0;
@@ -2041,7 +2045,9 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
         } else {
             UChar *buffer = (UChar *) malloc((text_length + 1) * sizeof(UChar));
 
-            if (buffer != NULL) {
+            if (buffer == NULL) {
+                SET_RESULT(CIF_MEMORY_ERROR);
+            } else {
                 /* analyze the text and copy its logical contents into the buffer */
                 UChar *buf_pos = buffer;
                 UChar *in_pos = text;
@@ -2942,7 +2948,7 @@ static int get_more_chars(struct scanner_s *scanner) {
             UChar *new_buffer = (UChar *) malloc(new_size * sizeof(UChar));
 
             if (new_buffer == NULL) {
-                return CIF_ERROR;
+                return CIF_MEMORY_ERROR;
             } else {
                 /* preserve only the needed data */
                 memcpy(new_buffer, scanner->text_start, current_chars * sizeof(UChar));

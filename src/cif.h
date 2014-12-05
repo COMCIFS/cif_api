@@ -127,6 +127,16 @@
 #define CIF_ERROR               2
 
 /**
+ * @brief A result code indicating that the requested operation could not be performed failed because of a dynamic
+ *        memory allocation failure
+ *
+ * Few library clients will care about the distinction between this code and @c CIF_ERROR, but some future wrappers
+ * may do.  For instance, a Python extension would be expected to distinguish memory allocation failures and signal
+ * them to the host Python environment.
+ */
+#define CIF_MEMORY_ERROR        3
+
+/**
  * @brief A result code returned on a best-effort basis to indicate that a user-provided object handle is invalid.
  *
  * The library does not guarantee to be able to recognize invalid handles.  If an invalid handle is provided then
@@ -137,7 +147,7 @@
  * the use for which it presented, but valid for different uses.  In particular, this may be the case if a save frame
  * handle is presented to one of the functions that requires specifically a data block handle.
  */
-#define CIF_INVALID_HANDLE      3
+#define CIF_INVALID_HANDLE      4
 
 /**
  * @brief A result code indicating that an internal error or inconsistency was encountered
@@ -145,7 +155,7 @@
  * If this code is emitted then it means a bug in the library has been triggered.  (If for no other reason than that
  * this is the wrong code to return if an internal bug has @em not been triggered.)
  */
-#define CIF_INTERNAL_ERROR      4
+#define CIF_INTERNAL_ERROR      5
 
 /**
  * @brief A result code indicating generally that one or more arguments to the function do not satisfy the function's
@@ -153,7 +163,7 @@
  *
  * This is a fallback code -- a more specific code will be emitted when one is available.
  */
-#define CIF_ARGUMENT_ERROR      5
+#define CIF_ARGUMENT_ERROR      6
 
 /**
  * @brief A result code indicating that although the function was called with with substantially valid arguments, the
@@ -162,7 +172,7 @@
  * This code is returned, for example, if @c cif_pktitr_remove_packet() is passed a packet iterator that has not yet
  * provided a packet that could be removed.
  */
-#define CIF_MISUSE              6
+#define CIF_MISUSE              7
 
 /**
  * @brief A result code indicating that an optional feature was invoked and the library implementation in use does not
@@ -170,7 +180,7 @@
  *
  * There are very few optional features defined at this point, so this code should rarely, if even, be seen.
  */
-#define CIF_NOT_SUPPORTED       7
+#define CIF_NOT_SUPPORTED       8
 
 /**
  * @brief A result code indicating that the operating environment is missing data or features required to complete the
@@ -180,12 +190,12 @@
  * emit this code if it determines that the external sqlite library against which it is running omits foreign key
  * support.
  */
-#define CIF_ENVIRONMENT_ERROR   8
+#define CIF_ENVIRONMENT_ERROR   9
 
 /**
  * @brief A result code indicating a synthetic error injected via a callback to the client
  */
-#define CIF_CLIENT_ERROR        9
+#define CIF_CLIENT_ERROR       10
 
 /**
  * @brief A result code signaling an attempt to cause a CIF to contain blocks with duplicate (by CIF's criteria) block
@@ -1156,6 +1166,7 @@ CIF_INTFUNC_DECL(cif_destroy, (
  *        any previous value.  A handle is recorded only on success.
  *
  * @return @c CIF_OK on success or an error code on failure, normally one of:
+ *        @li @c CIF_ARGUMENT_ERROR  if the provided block code is NULL
  *        @li @c CIF_INVALID_BLOCKCODE  if the provided block code is invalid
  *        @li @c CIF_DUP_BLOCKCODE if the specified CIF already contains a block having the given code (note that
  *                block codes are compared in a Unicode-normalized and caseless form)
@@ -2288,10 +2299,10 @@ CIF_INTFUNC_DECL(cif_value_parse_numb, (
  *
  * The @p scale gives the number of significant digits to the right of the units digit; the value and uncertainty
  * will be rounded or extended to this number of decimal places as needed.  Any rounding is performed according to the
- * floating-point rounding mode in effect at that time.  The scale may be less than zero, indicating that some of the
- * units digits and possibly others to its left are insignificant and not to be recorded.  If the given su rounds to
- * exactly zero at the specified scale, then the resulting number object represents an exact number, whether the su
- * given was exactly zero or not.
+ * floating-point rounding mode in effect at that time.  The scale may be less than zero, indicating that the units
+ * digit and possibly some of the digits to its left are insignificant and not to be recorded.  If the given su rounds
+ * to exactly zero at the specified scale, then the resulting number object represents an exact number, whether the su
+ * given was itself exactly zero or not.
  *
  * If the scale is greater than zero or if pure decimal notation would require more than @p max_leading_zeroes
  * leading zeroes after the decimal point, then the number's text representation is formatted in scientific notation
@@ -2304,7 +2315,8 @@ CIF_INTFUNC_DECL(cif_value_parse_numb, (
  * The behavior of this function is constrained by the characteristics of the data type (@c double ) of the 
  * @p value and @p su parameters.  Behavior is undefined if a scale is specified that exceeds the maximum possible
  * precision of a value of type double, or such that @c 10^(-scale) is greater than the greatest representable finite
- * double.
+ * double.  Behavior is undefined if @p val or @p su has a value that does not correspond to a finite real number (i.e.
+ * if one of those values represents an infinite value or does not represent any number at all).
  *
  * @param[in,out] numb a pointer to the value object to initialize
  *
@@ -2347,6 +2359,9 @@ CIF_INTFUNC_DECL(cif_value_init_numb, (
  * 
  * The value's text representation is expressed in scientific notation if it would otherwise have more than five
  * leading zeroes or any trailing insignificant zeroes.  Otherwise, it is expressed in plain decimal notation.
+ *
+ * Behavior is undefined if @p val or @p su has a value that does not correspond to a finite real number (i.e.
+ * if one of those values represents an infinite value or does not represent any number at all).
  *
  * @param[in,out] numb a pointer to the number value object to initialize
  *
@@ -2764,13 +2779,15 @@ CIF_INTFUNC_DECL(cif_normalize, (
  *
  * This function is most applicable to C strings obtained from external input, rather than to strings appearing in C
  * source code.  ICU will normally try to guess what converter is appropriate for default text, but the converter it
- * will use can be influenced via @c ucnv_setDefaultName() (warning: the default converter name is @i global).
+ * will use can be influenced via @c ucnv_setDefaultName() (warning: the default converter name is @i global).  On
+ * successful conversion, the output Unicode string will be NUL terminated.
  *
- * @param[in] cstr the C string to convert; may be NULL, in which case the conversion result is likewise NULL; must be
- *     terminated by a '\0' byte is srclen is -1, otherwise termination is optional
+ * @param[in] cstr the C string to convert; may be NULL, in which case the conversion result is likewise NULL; if
+ *     not NULL and  @p srclen is -1, then must be terminated by a NUL byte, else termination is optional
  * @param[in] srclen the input string length, or -1 if the string consists of all bytes up to a NUL terminator
  * @param[inout] ustr a pointer to a location to record the result; must not be NULL.  If a non-NULL pointer is
- *     written here by this function, then the caller assumes ownership of the memory it references.
+ *     written here by this function (which can happen only on success), then the caller assumes ownership of the
+ *     memory it references.
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */

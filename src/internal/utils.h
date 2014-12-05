@@ -65,8 +65,8 @@ static clock_t _clock_start;
 extern UFILE *ustderr;
 #define INIT_USTDERR do { if (ustderr == NULL) ustderr = u_finit(stderr, NULL, NULL); } while(0)
 
-#ifdef PERFORM_QUERY_PROFILING
 extern int total_queries;
+#ifdef PERFORM_QUERY_PROFILING
 #define CLOCK_START (_clock_start = clock())
 #define CLOCK_REPORT(measured) (fprintf(stderr, "%7d ticks to %s\n        (query %d)\n", \
   (int) (clock() - _clock_start), measured, ++total_queries))
@@ -367,7 +367,7 @@ extern int total_queries;
         size_t value_bytes = (size_t) sqlite3_column_bytes16(stmt, col); \
         int32_t value_chars; \
         dest = (UChar *) malloc(value_bytes + sizeof(UChar)); \
-        if (dest == NULL) goto onerr; \
+        if (dest == NULL) { SET_RESULT(CIF_MEMORY_ERROR); goto onerr; } \
         value_chars = (int32_t) (value_bytes / 2); \
         u_strncpy(dest, string_val, value_chars); \
         dest[value_chars] = 0; \
@@ -389,7 +389,7 @@ extern int total_queries;
     } else { \
         size_t value_bytes = (size_t) sqlite3_column_bytes(stmt, col); \
         dest = (char *) malloc(value_bytes + 1); \
-        if (dest == NULL) goto onerr; \
+        if (dest == NULL) { SET_RESULT(CIF_MEMORY_ERROR); goto onerr; } \
         strncpy(dest, string_val, value_bytes); \
         dest[value_bytes] = '\0'; \
     } \
@@ -416,6 +416,7 @@ extern int total_queries;
     cif_value_t *v = (val); \
     double svp_d; \
     buffer_t *buf; \
+    int _svp_result; \
     if (sqlite3_bind_int(s, 1 + ofs, v->kind) != SQLITE_OK) { \
         DEFAULT_FAIL(onsqlerr); \
     } \
@@ -438,9 +439,8 @@ extern int total_queries;
             break; \
         case CIF_LIST_KIND: \
         case CIF_TABLE_KIND: \
-            buf = cif_value_serialize(v); \
-            if (buf == NULL) { \
-                DEFAULT_FAIL(ondataerr); \
+            if ((_svp_result = cif_value_serialize(v, &buf)) != CIF_OK) { \
+                FAIL(ondataerr, _svp_result); \
             } else { \
                 char *blob = buf->for_writing.start; \
                 int limit = (int) buf->for_writing.limit; \
@@ -482,7 +482,7 @@ extern int total_queries;
         case CIF_TABLE_KIND: \
             _blob = (const void *) sqlite3_column_blob(_stmt, _col_ofs + 1); \
             if ((_blob != NULL) && (cif_value_deserialize( \
-                    _blob, (size_t) sqlite3_column_bytes(_stmt, _col_ofs + 1), _value) != NULL)) { \
+                    _blob, (size_t) sqlite3_column_bytes(_stmt, _col_ofs + 1), _value) == CIF_OK)) { \
                 break; \
             } \
             FAIL(errlabel, CIF_INTERNAL_ERROR); \
@@ -661,19 +661,16 @@ CIF_VOIDFUNC_DECL(cif_map_entry_free_internal, (
  * Serializes a value to this library's internal serialization format.
  * Returns NULL if serialization fails (most likely because of insufficient memory).
  */
-buffer_t *cif_value_serialize(
-        cif_value_t *value
+int cif_value_serialize(
+        cif_value_t *value,
+        buffer_t **buf
         ) INTERNAL;
 
 /*
- * Deserializes a value from this library's internal serialization format.
- * If dest is non-NULL then the deserialized value will be recorded in the value
- * object it points to, overwriting any data already there; otherwise a new
- * value will be allocated. Returns a pointer to the deserialized value object,
- * or NULL if deserialization fails (most likely because of insufficient memory
- * or a format error).
+ * Deserializes a value from this library's internal serialization format into the
+ * value  object 'dest' points to, overwriting any data already there.
  */
-cif_value_t *cif_value_deserialize(
+int cif_value_deserialize(
         const void *src,
         size_t len,
         cif_value_t *dest

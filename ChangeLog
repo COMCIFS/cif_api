@@ -21,6 +21,10 @@ Version 0.2.0.2
   source comments to the internal headers indicating that they are not
   intended to be installed.  Changed the scope of one 'extern "C"' block.
   Added a few source comments.
+* Added CIF_MEMORY_ERROR
+  Added error code CIF_MEMORY_ERROR, and updated substantially all functions
+  that perform dynamic memory allocation to raise that error code in the
+  event of a memory allocation failure.
 
 Version 0.2.0.1
 * C++ compatibility in cif_cstr_to_ustr()

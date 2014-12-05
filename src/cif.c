@@ -38,6 +38,8 @@ static void debug_sql(void *context, const char *text);
 static void debug_sql(void *context UNUSED, const char *text) {
     fprintf(stderr, "debug: beginning to execute \"%s\"\n", text);
 }
+
+int total_queries = 0;
 #endif
 
 #ifdef PERFORM_QUERY_PROFILING
@@ -47,8 +49,6 @@ struct qp_s {
     FILE *output;
     sqlite3_uint64 cumulative_nanos;
 };
-
-int total_queries = 0;
 
 static void cif_query_profile_callback(void *data, const char *query_text, sqlite3_uint64 time_nanos);
 
@@ -81,7 +81,9 @@ int cif_create(cif_t **cif) {
     if (cif == NULL) return CIF_ARGUMENT_ERROR;
 
     temp = (cif_t *) malloc(sizeof(cif_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         if (
                 /*
                  * Per the SQLite docs, it is recommended and safe, albeit currently
@@ -203,7 +205,7 @@ int cif_destroy(cif_t *cif) {
 }
 
 int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
-    return cif_create_block_internal(cif, code, 0, block);
+    return code ? cif_create_block_internal(cif, code, 0, block) : CIF_ARGUMENT_ERROR;
 }
 
 int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_block_t **block) {
@@ -222,7 +224,9 @@ int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_bl
     PREPARE_STMT(cif, create_block, CREATE_BLOCK_SQL);
 
     temp = (cif_block_t *) malloc(sizeof(cif_block_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         /*
          * the block's pointer members must all be initialized, in case it ends up being passed to
          * cif_container_free()
@@ -239,7 +243,9 @@ int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_bl
             SET_RESULT(result);
         } else {
             temp->code_orig = cif_u_strdup(code);
-            if (temp->code_orig != NULL) {
+            if (temp->code_orig == NULL) {
+                SET_RESULT(CIF_MEMORY_ERROR);
+            } else {
                 if(BEGIN(cif->db) == SQLITE_OK) {
                     if(DEBUG_WRAP2(sqlite3_exec(cif->db, "insert into container(id) values (null)", NULL, NULL, NULL))
                             == SQLITE_OK) {
@@ -297,7 +303,9 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
     PREPARE_STMT(cif, get_block, GET_BLOCK_SQL);
 
     temp = (cif_block_t *) malloc(sizeof(cif_block_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         int result;
 
         temp->code_orig = NULL;
@@ -369,7 +377,7 @@ int cif_get_all_blocks(cif_t *cif, cif_block_t ***blocks) {
             case SQLITE_ROW:
                 *next_block_p = (struct block_el *) malloc(sizeof(struct block_el));
                 if (*next_block_p == NULL) {
-                    DEFAULT_FAIL(soft);
+                    FAIL(soft, CIF_MEMORY_ERROR);
                 } else {
                     cif_block_t *temp = &((*next_block_p)->block);
 
@@ -396,7 +404,7 @@ int cif_get_all_blocks(cif_t *cif, cif_block_t ***blocks) {
                 /* aggregate the results into the needed form, and return it */
                 temp_blocks = (cif_block_t **) malloc((block_count + 1) * sizeof(cif_block_t *));
                 if (temp_blocks == NULL) {
-                    DEFAULT_FAIL(soft);
+                    FAIL(soft, CIF_MEMORY_ERROR);
                 } else {
                     size_t block_index = 0;
 

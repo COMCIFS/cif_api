@@ -11,6 +11,7 @@
 #endif
 
 #include <stdlib.h>
+#include <assert.h>
 #include "cif.h"
 #include "internal/ciftypes.h"
 #include "internal/utils.h"
@@ -111,6 +112,10 @@ void cif_pktitr_free(
     free(iterator);
 }
 
+/* All uthash fatal errors arise from memory allocation failure */
+#undef uthash_fatal
+#define uthash_fatal(msg) FAIL(soft, CIF_MEMORY_ERROR)
+
 int cif_pktitr_next_packet(
         cif_pktitr_t *iterator,
         cif_packet_t **packet
@@ -122,6 +127,7 @@ int cif_pktitr_next_packet(
         sqlite3_stmt *stmt = iterator->stmt;
         int current_row = sqlite3_column_int(stmt, 0);
         cif_packet_t *temp_packet;
+        int result;
     
         assert (iterator->item_names != NULL);
     
@@ -132,7 +138,9 @@ int cif_pktitr_next_packet(
     
         /* create a new packet for the expected items, with all unknown values */
         /* Relies on the item names to be pre-normalized */
-        if (cif_packet_create_norm(&temp_packet, iterator->item_names, CIF_TRUE) == CIF_OK) {
+        if ((result = cif_packet_create_norm(&temp_packet, iterator->item_names, CIF_TRUE)) != CIF_OK) {
+            SET_RESULT(result);
+        } else {
             /* populate the packet with values read from the DB */
             while (CIF_TRUE) {
                 const UChar *name;
@@ -237,20 +245,20 @@ int cif_pktitr_next_packet(
                                 /* add the entry to the packet */
                                 HASH_ADD_KEYPTR(hh, (*packet)->map.head, entry->key, name_len, entry);
                             } else {
-                                DEFAULT_FAIL(soft);
+                                FAIL(soft, CIF_MEMORY_ERROR);
                             }
                         }
                     }
     
                     /* Free whatever is left of the temporary packet */
-                    (void) cif_packet_free(temp_packet);
+                    cif_packet_free(temp_packet);
                 }
     
                 SUCCESS_TERMINUS;
             }
     
             FAILURE_HANDLER(soft):
-            (void) cif_packet_free(temp_packet);
+            cif_packet_free(temp_packet);
         }
     
         FAILURE_TERMINUS;

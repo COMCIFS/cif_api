@@ -20,8 +20,9 @@
 #include "internal/ciftypes.h"
 #include "internal/utils.h"
 
+/* All uthash fatal errors arise from memory allocation failure */
 #undef uthash_fatal
-#define uthash_fatal(msg) DEFAULT_FAIL(soft)
+#define uthash_fatal(msg) FAIL(soft, CIF_MEMORY_ERROR)
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,7 +43,9 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
     }
 
     names_norm = (UChar **) malloc(sizeof(UChar *) * (element_count + 1));
-    if (names_norm != NULL) {
+    if (names_norm == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         size_t counter;
         int result;
 
@@ -71,7 +74,7 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
 
                     if (entry->key_orig == NULL) {
                         cif_packet_free(*packet);
-                        DEFAULT_FAIL(soft);
+                        FAIL(soft, CIF_MEMORY_ERROR);
                     }
                 }
             }
@@ -110,7 +113,9 @@ int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int avoid_alias
     assert(packet != NULL);
 
     temp_packet = (cif_packet_t *) malloc(sizeof(cif_packet_t));
-    if (temp_packet != NULL) {
+    if (temp_packet == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         UChar **name;
 
         temp_packet->map.normalizer = cif_normalize_item_name;
@@ -120,14 +125,14 @@ int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int avoid_alias
             struct entry_s *scalar = (struct entry_s *) malloc(sizeof(struct entry_s));
 
             if (scalar == NULL) {
-                DEFAULT_FAIL(soft);
+                FAIL(soft, CIF_MEMORY_ERROR);
             } else {
                 scalar->as_value.kind = CIF_UNK_KIND;
                 if (avoid_aliasing == 0) {
                     scalar->key = *name;
                 } else {
                     scalar->key = cif_u_strdup(*name);
-                    if (scalar->key == NULL) DEFAULT_FAIL(soft);
+                    if (scalar->key == NULL) FAIL(soft, CIF_MEMORY_ERROR);
                 }
                 scalar->key_orig = scalar->key;
                 HASH_ADD_KEYPTR(hh, temp_packet->map.head, scalar->key, U_BYTES(scalar->key), scalar);

@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unicode/ustring.h>
+#include <assert.h>
 #include "cif.h"
 #include "internal/ciftypes.h"
 #include "internal/utils.h"
@@ -146,10 +147,14 @@ static int cif_container_create_loop_internal(
     TRACELINE;
 
     temp = (cif_loop_t *) malloc(sizeof(cif_loop_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
 
         temp->category = cif_u_strdup(category);
-        if ((category == NULL) || (temp->category != NULL)) {
+        if ((category != NULL) && (temp->category == NULL)) {
+            SET_RESULT(CIF_MEMORY_ERROR);
+        } else {
             NESTTX_HANDLING;
 
             TRACELINE;
@@ -256,7 +261,7 @@ static int cif_container_create_loop_internal(
             }
         }
         cif_loop_free(temp);
-    } /* else memory allocation failure */
+    }
 
     /* error return */
     FAILURE_TERMINUS;
@@ -388,7 +393,9 @@ int cif_container_create_frame_internal(cif_container_t *container, const UChar 
     TRACELINE;
 
     temp = (cif_frame_t *) malloc(sizeof(cif_frame_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         int result;
 
         /* the frame object must be initialized in case it ends up being passed to cif_container_free() */
@@ -406,7 +413,9 @@ int cif_container_create_frame_internal(cif_container_t *container, const UChar 
             SET_RESULT(result);
         } else {
             temp->code_orig = cif_u_strdup(code);
-            if (temp->code_orig != NULL) {
+            if (temp->code_orig == NULL) {
+                SET_RESULT(CIF_MEMORY_ERROR);
+            } else {
                 if(BEGIN(cif->db) == SQLITE_OK) {
                     TRACELINE;
                     if(sqlite3_exec(cif->db, "insert into container(id) values (null)", NULL, NULL, NULL)
@@ -482,7 +491,9 @@ int cif_container_get_frame(
     PREPARE_STMT(cif, get_frame, GET_FRAME_SQL);
 
     temp = (cif_frame_t *) malloc(sizeof(cif_frame_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         int result;
 
         temp->code_orig = NULL;
@@ -561,7 +572,7 @@ int cif_container_get_all_frames(cif_container_t *container, cif_frame_t ***fram
                 case SQLITE_ROW:
                     *next_frame_p = (struct frame_el *) malloc(sizeof(struct frame_el));
                     if (*next_frame_p == NULL) {
-                        DEFAULT_FAIL(soft);
+                        FAIL(soft, CIF_MEMORY_ERROR);
                     } else {
                         cif_frame_t *temp = &((*next_frame_p)->frame);
 
@@ -588,7 +599,7 @@ int cif_container_get_all_frames(cif_container_t *container, cif_frame_t ***fram
                     /* aggregate the results into the needed form, and return it */
                     temp_frames = (cif_frame_t **) malloc((frame_count + 1) * sizeof(cif_frame_t *));
                     if (temp_frames == NULL) {
-                        DEFAULT_FAIL(soft);
+                        FAIL(soft, CIF_MEMORY_ERROR);
                     } else {
                         size_t frame_index = 0;
 
@@ -664,11 +675,13 @@ int cif_container_get_code(
         UChar **code) {
     UChar *temp = cif_u_strdup(container->code_orig);
 
+    assert(container->code_orig != NULL);
+    temp = cif_u_strdup(container->code_orig);
     if (temp != NULL) {
         *code = temp;
         return CIF_OK;
     } else {
-        return CIF_ERROR;
+        return CIF_MEMORY_ERROR;
     }
 }
 
@@ -703,7 +716,9 @@ int cif_container_create_loop(
     }
 
     names_norm = (UChar **) malloc((1 + (name_orig_p - names)) * sizeof(UChar *));
-    if (names_norm != NULL) {
+    if (names_norm == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         UChar **name_norm_p = names_norm;
         int result;
 
@@ -753,9 +768,13 @@ int cif_container_get_category_loop(
     PREPARE_STMT(cif, get_cat_loop, GET_CAT_LOOP_SQL);
 
     temp = (cif_loop_t *) malloc(sizeof(cif_loop_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         temp->category = cif_u_strdup(category);
-        if (temp->category != NULL) {
+        if (temp->category == NULL) {
+            SET_RESULT(CIF_MEMORY_ERROR);
+        } else {
             temp->names = NULL;
             if ((sqlite3_bind_int64(cif->get_cat_loop_stmt, 1, container->id) == SQLITE_OK)
                     && (sqlite3_bind_text16(cif->get_cat_loop_stmt, 2, category, -1, SQLITE_STATIC) == SQLITE_OK)) {
@@ -802,7 +821,9 @@ int cif_container_get_item_loop(
     if (container == NULL) return CIF_INVALID_HANDLE;
 
     temp = (cif_loop_t *) malloc(sizeof(cif_loop_t));
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         UChar *name;
         int result;
 
@@ -872,7 +893,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
                             /* add a new loop object to the linked list */
                             *next_loop_p = (struct loop_el *) malloc(sizeof(struct loop_el));
                             if (*next_loop_p == NULL) {
-                                DEFAULT_FAIL(soft);
+                                FAIL(soft, CIF_MEMORY_ERROR);
                             } else {
                                 cif_loop_t *temp = &((*next_loop_p)->loop);
 
@@ -893,7 +914,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
                             temp_loops = (cif_loop_t **) malloc((loop_count + 1) * sizeof(cif_loop_t *));
 
                             if (temp_loops == NULL) {
-                                DEFAULT_FAIL(soft);
+                                FAIL(soft, CIF_MEMORY_ERROR);
                             } else {
                                 size_t loop_index;
 
@@ -1046,7 +1067,9 @@ int cif_container_get_value(
                         /* load the value from the DB */
                         cif_value_t *temp = (cif_value_t *) malloc(sizeof(cif_value_t));
 
-                        if (temp != NULL) {
+                        if (temp == NULL) {
+                            SET_RESULT(CIF_MEMORY_ERROR);
+                        } else {
                             GET_VALUE_PROPS(cif->get_value_stmt, 0, temp, inner);
 
                             /* hand the value off to the caller */

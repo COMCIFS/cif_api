@@ -252,7 +252,7 @@ int cif_parse_options_create(struct cif_parse_opts_s **opts) {
     struct cif_parse_opts_s *opts_temp = (struct cif_parse_opts_s *) calloc(1, sizeof(struct cif_parse_opts_s));
 
     if (opts_temp == NULL) {
-        return CIF_ERROR;
+        return CIF_MEMORY_ERROR;
     } else {
         /* explicitly initialize all pointer members */
         opts_temp->default_encoding_name = NULL;
@@ -272,7 +272,7 @@ int cif_write_options_create(struct cif_write_opts_s **opts) {
     struct cif_write_opts_s *opts_temp = (struct cif_write_opts_s *) calloc(1, sizeof(struct cif_parse_opts_s));
 
     if (opts_temp == NULL) {
-        return CIF_ERROR;
+        return CIF_MEMORY_ERROR;
     } else {
         /* explicitly initialize all pointer members */
 

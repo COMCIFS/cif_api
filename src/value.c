@@ -92,10 +92,11 @@ int fegetround(void);
  */
 #define SERIALIZE_USTRING(string, buffer, onerr) do { \
     const UChar *str = (string); \
+    int SU_result; \
     write_buffer_t *us_buf = (buffer); \
     ssize_t us_size = ((str == NULL) ? (ssize_t) -1 : (ssize_t) u_strlen(str)); \
-    if (cif_buf_write(us_buf, &us_size, sizeof(ssize_t)) != CIF_OK) goto onerr; \
-    if (cif_buf_write(us_buf, str, us_size * sizeof(UChar)) != CIF_OK) goto onerr; \
+    if ((SU_result = cif_buf_write(us_buf, &us_size, sizeof(ssize_t))) != CIF_OK) FAIL(onerr, SU_result); \
+    if ((SU_result = cif_buf_write(us_buf, str, us_size * sizeof(UChar))) != CIF_OK) FAIL(onerr, SU_result); \
 } while (0)
 
 /**
@@ -109,8 +110,8 @@ int fegetround(void);
  * @param[in,out] a @c read_buffer_t from which the serialized string data should be read; on success its position is
  *         immediately after the last byte of the serialized string, but on failure its position becomes undefined;
  *         must not be NULL.
- * @param[in] onerr the label to which execution should branch in the event that an error occurs; must be defined in the
- *         scope where this macro is used.
+ * @param[in] onerr the name of the failure handler to which execution should branch in the event that an error occurs;
+ *         must be defined in the scope where this macro is used.
  */
 #define DESERIALIZE_USTRING(dest, buffer, onerr) do { \
     read_buffer_t *us_buf = (buffer); \
@@ -131,7 +132,7 @@ int fegetround(void);
             } \
         } \
     } \
-    goto onerr; \
+    DEFAULT_FAIL(onerr); \
 } while (0)
 
 /**
@@ -147,17 +148,18 @@ int fegetround(void);
 #define SERIALIZE(value, buffer, onerr) do { \
     cif_value_t *val = (cif_value_t *) (value); \
     write_buffer_t *s_buf = (buffer); \
-    if (cif_buf_write(s_buf, val, sizeof(cif_kind_t)) != CIF_OK) goto onerr; \
+    int S_result; \
+    if ((S_result = cif_buf_write(s_buf, val, sizeof(cif_kind_t))) != CIF_OK) FAIL(onerr, S_result); \
     switch (val->kind) { \
         case CIF_NUMB_KIND: \
         case CIF_CHAR_KIND: \
             SERIALIZE_USTRING(val->as_char.text, s_buf, onerr); \
             break; \
         case CIF_LIST_KIND: \
-            if (cif_list_serialize(&(val->as_list), s_buf) != CIF_OK) goto onerr; \
+            if ((S_result = cif_list_serialize(&(val->as_list), s_buf)) != CIF_OK) FAIL(onerr, S_result); \
             break; \
         case CIF_TABLE_KIND: \
-            if (cif_table_serialize(&(val->as_table), s_buf) != CIF_OK) goto onerr; \
+            if ((S_result = cif_table_serialize(&(val->as_table), s_buf)) != CIF_OK) FAIL(onerr, S_result); \
             break; \
         default: \
             break; \
@@ -181,15 +183,18 @@ int fegetround(void);
  * @param[in,out] value a pointer to receive the deserialized value, either into its existing referrent or into a newly-
  *         allocated referrent.
  * @param[in,out] buffer the @c read_buffer_t from which to obtain the serialized value
- * @param[in] onerr a label to which execution should branch in the event of error; must be defined in the scope where
- *         this macro is used.
+ * @param[in] onerr the name of the failure handler to which execution should branch in the event of error; must be
+ *         name a failure handler defined in the scope where this macro is used.
  */
 #define DESERIALIZE(value_type, value, buffer, onerr) do { \
     read_buffer_t *_buf = (buffer); \
     value_type *val = ((value != NULL) ? (value) : (value_type *) malloc(sizeof(value_type))); \
-    if (val != NULL) { \
+    if (val == NULL) { \
+        FAIL(onerr, CIF_MEMORY_ERROR); \
+    } else { \
         cif_value_t *v = (cif_value_t *) val; \
         cif_kind_t _kind; \
+        int _D_result; \
         v->kind = CIF_UNK_KIND; \
         if (cif_buf_read(_buf, &_kind, sizeof(cif_kind_t)) == sizeof(cif_kind_t)) { \
             switch(_kind) { \
@@ -198,15 +203,17 @@ int fegetround(void);
                     /* fall through */ \
                 case CIF_NUMB_KIND: \
                     DESERIALIZE_USTRING(v->as_char.text, _buf, vfail); \
-                    if ((_kind == CIF_NUMB_KIND) \
-                            && (cif_value_parse_numb(v, v->as_char.text) != CIF_OK)) goto vfail; \
+                    if ((_kind == CIF_NUMB_KIND) && ((_D_result = cif_value_parse_numb(v, v->as_char.text)) != CIF_OK))\
+                        FAIL(vfail, _D_result); \
                     break; \
                 case CIF_LIST_KIND: \
-                    if (cif_list_deserialize(&(v->as_list), _buf) != CIF_OK) goto vfail; \
+                    if ((_D_result = cif_list_deserialize(&(v->as_list), _buf)) != CIF_OK) \
+                        FAIL(vfail, _D_result); \
                     assert(v->kind == CIF_LIST_KIND); \
                     break; \
                 case CIF_TABLE_KIND: \
-                    if (cif_table_deserialize(&(v->as_table), _buf) != CIF_OK) goto vfail; \
+                    if ((_D_result = cif_table_deserialize(&(v->as_table), _buf)) != CIF_OK) \
+                        FAIL(vfail, _D_result); \
                     assert(v->kind == CIF_TABLE_KIND); \
                     break; \
                 default: \
@@ -216,10 +223,10 @@ int fegetround(void);
             value = val; \
             break; \
         } \
-        vfail: \
+        FAILURE_HANDLER(vfail): \
         if (val != value) free(val); \
+        DEFAULT_FAIL(onerr); \
     } \
-    goto onerr; \
 } while (0)
 
 /**
@@ -347,12 +354,13 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
  * Although the sign of @p d is not directly represented in the resulting digit string, it may affect the rounding
  * applied.
  *
+ * Behavior is undefined if @p d does not represent a finite real number (e.g. if it represents an infinity or NaN).
+ *
  * @param[in] d the double value for which a digit string representation is requested
  * @param[in] scale the index of the least-significant decimal digit in the result string, relative to the (implied)
  *         decimal point and increasing as place-values decrease
  * @return a pointer to the generated digit string; the caller is responsible for freeing this when it is no longer
- *         needed.  NULL is returned if the result cannot be computed -- which is only the case if @p d contains an
- *         infinity or an NaN -- or if not enough space can be allocated to store it.
+ *         needed.  NULL is returned if space enough for the digit string cannot be allocated.
  */
 static char *to_digits(double d, int scale);
 
@@ -380,7 +388,7 @@ static double to_double(const char *ddigits, int scale);
  * @brief Formats the text representation of a number value, in plain decimal form
  *
  * The caller is expected to manage the numeric locale, which should be the C locale or a functional equivalent.  The
- * caller takes repsonsibility for cleaning up the returned Unicode string.
+ * caller takes responsibility for cleaning up the returned Unicode string.
  *
  * @param[in] sign_num a number having the same sign as the value to be represented by the desired text
  * @param[in] digit_buf a C string containing the significant decimal digits of the numeric value to format, relative to
@@ -390,9 +398,11 @@ static double to_double(const char *ddigits, int scale);
  * @param[in] su_size the number of characters (expected) in @p su_buf, or zero for an exact number
  * @param[in] scale the number of decimal places to the right of the (implied) decimal point where the least significant
  *         digits of @p digit_buf and (if applicable) @p su_buf are each located; must not be less than zero
- * @return a NUL-terminated Unicode string containing the formatted value
+ * @param[in,out] result a pointer to the location where a pointer to the result string should be recorded
+ * @return a CIF result code describing the nature of the result; in particular, CIF_OK on success
  */
-static UChar *format_text_decimal(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale);
+static int format_text_decimal(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale,
+        UChar **result);
 
 /**
  * @brief Formats the text representation of a number value, in scientific notation
@@ -408,9 +418,10 @@ static UChar *format_text_decimal(double sign_num, char *digit_buf, char *su_buf
  * @param[in] su_size the number of characters (expected) in @p su_buf, or zero for an exact number
  * @param[in] scale the number of decimal places to the right of the (implied) decimal point where the least significant
  *         digits of @p digit_buf and (if applicable) @p su_buf are each located
- * @return a NUL-terminated Unicode string containing the formatted value
+ * @param[in,out] result a pointer to the location where a pointer to the result string should be recorded
+ * @return a CIF result code describing the nature of the result; in particular, CIF_OK on success
  */
-static UChar *format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale);
+static int format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale, UChar **result);
 
 /**
  * @brief Counts the number of significant mantissa bits in the specified double value
@@ -530,13 +541,18 @@ static void cif_table_value_clean(struct table_value_s *table_value) {
 static int cif_value_clone_numb(struct numb_value_s *value, struct numb_value_s *clone) {
     FAILURE_HANDLING;
 
+    assert(value->text != NULL);
     clone->text = cif_u_strdup(value->text);
-    if (clone->text != NULL) {
+    if (clone->text == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         clone->digits = strdup(value->digits);
-        if (clone->digits != NULL) {
+        if (clone->digits == NULL) {
+            SET_RESULT(CIF_MEMORY_ERROR);
+        } else {
             if (value->su_digits != NULL) {
                 clone->su_digits = strdup(value->su_digits);
-                if (clone->su_digits == NULL) DEFAULT_FAIL(su);
+                if (clone->su_digits == NULL) FAIL(su, CIF_MEMORY_ERROR);
             } else {
                 clone->su_digits = NULL;
             }
@@ -567,7 +583,9 @@ static int cif_value_clone_list(struct list_value_s *value, struct list_value_s 
 
     cif_list_init(clone);
     clone->elements = (cif_value_t **) malloc(sizeof(cif_value_t *) * value->size);
-    if (clone->elements != NULL) {
+    if (clone->elements == NULL) {
+        FAIL(soft, CIF_MEMORY_ERROR);
+    } else {
         clone->capacity = value->size;
         for (; clone->size < value->size; clone->size += 1) {
             int result;
@@ -603,17 +621,24 @@ static int cif_value_clone_table(struct table_value_s *value, struct table_value
     HASH_ITER(hh, value->map.head, entry, tmp) {
         struct entry_s *new_entry = (struct entry_s *) malloc(sizeof(struct entry_s));
 
-        if (new_entry != NULL) {
+        if (new_entry == NULL) {
+            SET_RESULT(CIF_MEMORY_ERROR);
+        } else {
             new_entry->key = cif_u_strdup(entry->key);
-            if (new_entry->key != NULL) {
+            if (new_entry->key == NULL) {
+                SET_RESULT(CIF_MEMORY_ERROR);
+            } else {
                 new_entry->key_orig = cif_u_strdup(entry->key_orig);
-                if (new_entry->key_orig != NULL) {
+                if (new_entry->key_orig == NULL) {
+                    SET_RESULT(CIF_MEMORY_ERROR);
+                } else {
                     cif_value_t *new_value = &(new_entry->as_value);
 
                     new_value->kind = CIF_UNK_KIND;
                     if (cif_value_clone(&(entry->as_value), &new_value) == CIF_OK) {
-#undef  uthash_fatal
-#define uthash_fatal(msg) DEFAULT_FAIL(hash)
+/* All uthash fatal errors arise from memory allocation failure */
+#undef uthash_fatal
+#define uthash_fatal(msg) FAIL(hash, CIF_MEMORY_ERROR)
                         HASH_ADD_KEYPTR(hh, temp.map.head, new_entry->key, U_BYTES(new_entry->key), new_entry);
                         continue;
                     }
@@ -641,6 +666,8 @@ static int cif_value_clone_table(struct table_value_s *value, struct table_value
  * Serializes a list value, not including the initial value-type code.  May recurse, directly or indirectly.
  */
 static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf) {
+    FAILURE_HANDLING;
+
     if (cif_buf_write(buf, &(list->size), sizeof(size_t)) == CIF_OK) {
         size_t i;
         for (i = 0; i < list->size; i++) {
@@ -650,8 +677,8 @@ static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf) {
 
     return CIF_OK;
 
-    fail:
-    return CIF_ERROR;
+    FAILURE_HANDLER(fail):
+    FAILURE_TERMINUS;
 }
 
 /*
@@ -672,12 +699,11 @@ static int cif_table_serialize(struct table_value_s *table, write_buffer_t *buf)
             FAIL(element, result);
         } else {
             /* serialize the key */
-            SERIALIZE_USTRING(element->key, buf, HANDLER_LABEL(element));
+            SERIALIZE_USTRING(element->key, buf, element);
             /* serialize the un-normalized key, or NULL if it is the same object as the key */
-            SERIALIZE_USTRING(((element->key_orig == element->key) ? NULL : element->key_orig), buf,
-                    HANDLER_LABEL(element));
+            SERIALIZE_USTRING(((element->key_orig == element->key) ? NULL : element->key_orig), buf, element);
             /* serialize the value */
-            SERIALIZE(element, buf, HANDLER_LABEL(element));
+            SERIALIZE(element, buf, element);
         }
     }
 
@@ -708,12 +734,14 @@ static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf) {
         } else {
             cif_value_t **elements = (cif_value_t **) malloc(sizeof(cif_value_t *) * capacity);
 
-            if (elements != NULL) {
+            if (elements == NULL) {
+                SET_RESULT(CIF_MEMORY_ERROR);
+            } else {
                 size_t size;
 
                 for (size = 0; size < capacity; size += 1) {
                     elements[size] = NULL;  /* essential */
-                    DESERIALIZE(cif_value_t, elements[size], buf, HANDLER_LABEL(element));
+                    DESERIALIZE(cif_value_t, elements[size], buf, element);
                 }
 
                 /* the 'list' argument is modified only now that we have successfully deserialized a whole list */
@@ -764,11 +792,11 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
                     return CIF_OK;
                 case 0:  /* another entry is available */
                     key = NULL;
-                    DESERIALIZE_USTRING(key, buf, HANDLER_LABEL(key));
+                    DESERIALIZE_USTRING(key, buf, key);
                     key_orig = NULL;
-                    DESERIALIZE_USTRING(key_orig, buf, HANDLER_LABEL(key_orig));
+                    DESERIALIZE_USTRING(key_orig, buf, key_orig);
                     entry = NULL;
-                    DESERIALIZE(struct entry_s, entry, buf, HANDLER_LABEL(value));
+                    DESERIALIZE(struct entry_s, entry, buf, value);
                     entry->key = key;
                     entry->key_orig = ((key_orig == NULL) ? key : key_orig);
 #undef  uthash_fatal
@@ -796,7 +824,8 @@ static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf
     FAILURE_TERMINUS;
 }
 
-static UChar *format_text_decimal(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale) {
+static int format_text_decimal(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale,
+        UChar **result) {
     int val_digits = strlen(digit_buf);
     size_t total_chars = 
               ((sign_num < 0) ? 1 : 0)                            /* sign */
@@ -808,7 +837,9 @@ static UChar *format_text_decimal(double sign_num, char *digit_buf, char *su_buf
     if (total_chars <= CIF_LINE_LENGTH + 1) {
         UChar *text = (UChar *) malloc(total_chars * sizeof(UChar));
 
-        if (text != NULL) {
+        if (text == NULL) {
+            return CIF_MEMORY_ERROR;
+        } else {
             UChar *c = text;
             char *next_digit = digit_buf;
             int whole_digits = val_digits - scale;
@@ -835,14 +866,16 @@ static UChar *format_text_decimal(double sign_num, char *digit_buf, char *su_buf
             USTRCPY_C(c, next_digit);
             WRITE_SU(c, su_buf);
 
-            return text;
+            *result = text;
+            return CIF_OK;
         }
     } /* else formatted representation is too long; should be possible only for crazy scales */
 
-    return NULL;
+    return CIF_ARGUMENT_ERROR;
 }
 
-static UChar *format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale) {
+static int format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale,
+        UChar **result) {
     int val_digits = strlen(digit_buf);
     int most_significant_place = (val_digits - 1) - scale;
     int exponent_digits = ((int) log10(abs(most_significant_place) + 0.5)) + 1;  /* adding 0.5 avoids log10(0) */
@@ -862,7 +895,9 @@ static UChar *format_text_sci(double sign_num, char *digit_buf, char *su_buf, si
     if (total_chars <= CIF_LINE_LENGTH + 1) {
         UChar *text = (UChar *) malloc(total_chars * sizeof(UChar));
 
-        if (text != NULL) {
+        if (text == NULL) {
+            return CIF_MEMORY_ERROR;
+        } else {
             UChar *c = text;
             char *next_digit = digit_buf;
             int i;
@@ -891,11 +926,12 @@ static UChar *format_text_sci(double sign_num, char *digit_buf, char *su_buf, si
 
             WRITE_SU(c, su_buf);
 
-            return text;
+            *result = text;
+            return CIF_OK;
         }
     } /* else formatted representation is too long; should be possible only for crazy scales */
 
-    return NULL;
+    return CIF_ARGUMENT_ERROR;
 }
 
 /*
@@ -1069,10 +1105,7 @@ static uintmax_t round_to_int(uintmax_t round_value, uint32_t *digits, int units
 static char *to_digits(double d, int scale) {
     int negative;
 
-    if (d != d) {
-        /* not-a-number */
-        return NULL;
-    } else if (d < 0) {
+    if (d < 0) {
         negative = 1;
         d = -d;
     } else {
@@ -1081,9 +1114,6 @@ static char *to_digits(double d, int scale) {
 
     if (d == 0.0) {
         return strdup("0");
-    } else if (d > DBL_MAX) {
-        /* infinite */
-        return NULL;
     } else {
         uint32_t digits[DIG_PER_DBL + 1];
 
@@ -1611,7 +1641,7 @@ static int cif_buf_write(write_buffer_t *buf, const void *src, size_t len) {
         }
 
         if (new_start == NULL) {
-            return CIF_ERROR;
+            return CIF_MEMORY_ERROR;
         } else {
             buf->start = new_start;
         }
@@ -1672,17 +1702,21 @@ int cif_value_create(cif_kind_t kind, cif_value_t **value) {
     FAILURE_HANDLING;
     cif_value_t *temp = (cif_value_t *) malloc(sizeof(cif_value_t));
 
-    if (temp != NULL) {
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
+        int result;
+
         switch (kind) {
             case CIF_CHAR_KIND:
                 temp->as_char.text = (UChar *) malloc(sizeof(UChar));
-                if (temp->as_char.text == NULL) DEFAULT_FAIL(soft);
+                if (temp->as_char.text == NULL) FAIL(soft, CIF_MEMORY_ERROR);
                 *(temp->as_char.text) = 0;
                 temp->kind = CIF_CHAR_KIND;
                 break;
             case CIF_NUMB_KIND:
                 temp->kind = CIF_UNK_KIND; /* lest the init function try to clean up */
-                if (cif_value_init_numb(temp, 0.0, 0.0, 0, 1) != CIF_OK) DEFAULT_FAIL(soft);
+                if ((result = cif_value_init_numb(temp, 0.0, 0.0, 0, 1)) != CIF_OK) FAIL(soft, result);
                 break;
             case CIF_LIST_KIND:
                 temp->kind = CIF_UNK_KIND; /* lest the init function try to clean up */
@@ -1757,7 +1791,7 @@ int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
     switch (value->kind) {
         case CIF_CHAR_KIND:
             temp->as_char.text = cif_u_strdup(value->as_char.text);
-            if (!temp->as_char.text) DEFAULT_FAIL(soft);
+            if (temp->as_char.text == NULL) FAIL(soft, CIF_MEMORY_ERROR);
             temp->kind = CIF_CHAR_KIND;
             break;
         case CIF_NUMB_KIND:
@@ -1801,7 +1835,7 @@ int cif_value_init(cif_value_t *value, cif_kind_t kind) {
             case CIF_CHAR_KIND:
                 value->as_char.text = (UChar *) malloc(sizeof(UChar));
                 if (value->as_char.text == NULL) {
-                    result = CIF_ERROR;
+                    result = CIF_MEMORY_ERROR;
                 } else {
                     *(value->as_char.text) = 0;
                     value->kind = CIF_CHAR_KIND;
@@ -1828,23 +1862,27 @@ int cif_value_init(cif_value_t *value, cif_kind_t kind) {
     }
 }
 
-buffer_t *cif_value_serialize(cif_value_t *value) {
-    buffer_t *buf = cif_buf_create(DEFAULT_SERIALIZATION_CAP);
+int cif_value_serialize(cif_value_t *value, buffer_t **buf) {
+    FAILURE_HANDLING;
+    buffer_t *temp = cif_buf_create(DEFAULT_SERIALIZATION_CAP);
 
-    if (buf != NULL) {
-        write_buffer_t *wbuf = &(buf->for_writing);
+    if (temp == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
+        write_buffer_t *wbuf = &(temp->for_writing);  /* wbuf is an alias of temp */
         SERIALIZE(value, wbuf, fail);
-        return buf;
+        *buf = temp;
+        return CIF_OK;
 
-        fail:
+        FAILURE_HANDLER(fail):
         cif_buf_free(wbuf);
-        buf = NULL;
     }
 
-    return buf;
+    FAILURE_TERMINUS;
 }
 
-cif_value_t *cif_value_deserialize(const void *src, size_t len, cif_value_t *dest) {
+int cif_value_deserialize(const void *src, size_t len, cif_value_t *dest) {
+    FAILURE_HANDLING;
     read_buffer_t buf;
 
     buf.start = (const char *) src;
@@ -1853,10 +1891,10 @@ cif_value_t *cif_value_deserialize(const void *src, size_t len, cif_value_t *des
     buf.position = 0;
     DESERIALIZE(cif_value_t, dest, &buf, fail);
 
-    return dest;
+    SET_RESULT(CIF_OK);
 
-    fail:
-    return NULL;
+    FAILURE_HANDLER(fail):
+    GENERAL_TERMINUS;
 }
 
 int cif_value_parse_numb(cif_value_t *n, UChar *text) {
@@ -1878,9 +1916,10 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
     switch (text[pos]) {
         case UCHAR_MINUS:
             n_temp.sign = -1;
-            /*@fallthrough@*/
+            /* fall through */
         case UCHAR_PLUS:
             pos += 1;
+            break;
         /* default: do nothing */
     }
 
@@ -1923,6 +1962,7 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
                 /*@fallthrough@*/
             case UCHAR_PLUS:
                 pos += 1;
+                break;
             /* default: do nothing */
         }
 
@@ -1964,7 +2004,7 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
         }
         n_temp.su_digits = (char *) malloc(1 + pos - su_start);
         if (n_temp.su_digits == NULL) {
-            DEFAULT_FAIL(early);
+            FAIL(early, CIF_MEMORY_ERROR);
         }
         suc = n_temp.su_digits;
         while (su_start < pos) {
@@ -1985,7 +2025,9 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
 
     /* write the digit string to the value object */
     n_temp.digits = (char *) malloc((digit_end + 2) - (digit_start + num_decimal));
-    if (n_temp.digits != NULL) {
+    if (n_temp.digits == NULL) {
+        SET_RESULT(CIF_MEMORY_ERROR);
+    } else {
         char *c = n_temp.digits;
 
         /* to simplify logic in the following loop: */
@@ -2038,7 +2080,7 @@ int cif_value_copy_char(cif_value_t *value, const UChar *text) {
         UChar *copy = cif_u_strdup(text);
 
         if (copy == NULL) {
-            return CIF_ERROR;
+            return CIF_MEMORY_ERROR;
         } else {
             int result = cif_value_init_char(value, copy);
 
@@ -2063,50 +2105,58 @@ int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int ma
         if (locale != NULL) {
             char *digit_buf = to_digits(val, scale);
 
-            cif_value_clean(n);
-            if (digit_buf != NULL) {
+            if (digit_buf == NULL) {
+                SET_RESULT(CIF_MEMORY_ERROR);
+            } else {
+                UChar *text = NULL;
                 char *su_buf;
+                int result;
 
                 /* the size of the su digit string, excluding the terminator; 0 for no uncertainty */
-                ssize_t su_size;
+                size_t su_size;
 
                 if (su > 0) {
                     su_buf = to_digits(su, scale);
-                    su_size = ((su_buf == NULL) ? -1 : (ssize_t) strlen(su_buf));
+                    if (su_buf == NULL) {
+                        FAIL(su, CIF_MEMORY_ERROR);
+                    } else {
+                        su_size = strlen(su_buf);
+                    }
                 } else {
                     su_buf = NULL;
                     su_size = 0;
                 }
 
-                if ((su_size == 0) || (su_buf != NULL)) {
-                    UChar *text;
-
-                    /* casting 'su_size' (type ssize_t) to type 'size_t' is safe because we know it is > 0 */
-                    if ((scale >= 0) && (-(most_significant_place + 1) <= max_leading_zeroes)) {
-                        /* use decimal notation */
-                        text = format_text_decimal(val, digit_buf, su_buf, (size_t) su_size, scale);
-                    } else {
-                        /* use scientific notation */
-                        text = format_text_sci(val, digit_buf, su_buf, (size_t) su_size, scale);
-                    }
-
-                    if (text != NULL) {
-                        /* assign the formatted results to the value object */
-                        numb->kind = CIF_NUMB_KIND;
-                        numb->sign = (val < 0) ? -1 : 1;
-                        numb->text = text;
-                        numb->digits = digit_buf;
-                        numb->su_digits = su_buf;
-                        numb->scale = scale;
-
-                        /* restore the original locale */
-                        setlocale(LC_NUMERIC, locale);
-
-                        return CIF_OK;
-                    }
-
-                    if (su_buf != NULL) free(su_buf);
+                if ((scale >= 0) && (-(most_significant_place + 1) <= max_leading_zeroes)) {
+                    /* use decimal notation */
+                    result = format_text_decimal(val, digit_buf, su_buf, su_size, scale, &text);
+                } else {
+                    /* use scientific notation */
+                    result = format_text_sci(val, digit_buf, su_buf, su_size, scale, &text);
                 }
+
+                if (result != CIF_OK) {
+                    SET_RESULT(result);
+                } else {
+                    /* assign the formatted results to the value object */
+                    assert(text != NULL);
+                    cif_value_clean(n);
+                    numb->kind = CIF_NUMB_KIND;
+                    numb->sign = (val < 0) ? -1 : 1;
+                    numb->text = text;
+                    numb->digits = digit_buf;
+                    numb->su_digits = su_buf;
+                    numb->scale = scale;
+
+                    /* restore the original locale */
+                    setlocale(LC_NUMERIC, locale);
+
+                    return CIF_OK;
+                }
+
+                if (su_buf != NULL) free(su_buf);
+
+                FAILURE_HANDLER(su):
                 free(digit_buf);
             }
 
@@ -2249,11 +2299,12 @@ int cif_value_get_text(cif_value_t *value, UChar **text) {
         case CIF_CHAR_KIND:
             /* fall through */
         case CIF_NUMB_KIND:
+            assert(value->as_char.text != NULL);
             text_copy = cif_u_strdup(value->as_char.text);
             if (text_copy) {
                 *text = text_copy;
             } else {
-                return CIF_ERROR;
+                return CIF_MEMORY_ERROR;
             } 
             break;
         default:
@@ -2346,7 +2397,7 @@ int cif_value_insert_element_at(
                     value->as_list.elements = new_elements;
                     value->as_list.capacity = new_cap;
                 } else {
-                    DEFAULT_FAIL(soft);
+                    FAIL(soft, CIF_MEMORY_ERROR);
                 }
             }
 
