@@ -1,0 +1,54 @@
+Intellectual Property Notes
+===========================
+
+As described in file COPYING, the CIF API source distribution contains code
+belonging to multiple parties and subject to multiple licenses.  Additionally,
+the implementation probably practices a patent owned by the International Union
+of Crystallography.  These notes convey the author's understanding of the
+intellectual property factors in play.
+
+CIF API core software, documentation, examples, and tests
+---------------------------------------------------------
+The bulk of the source distribution -- including, but not limited to,
+everything in the distribution's src/, misc/, dox-html/, and dox-man/
+subdirectory trees except 'Makefile.in' files -- is the property of
+the CIF API authors.  The license, if any, under which you are permitted
+to copy or use these materials is described elsewhere.
+
+GNU Autotools
+-------------
+The CIF API build system contains code from the GNU Autotools suite, which is
+the property of the Free Software Foundation.  The CIF API authors provide it
+to you as they are permitted to do under the terms of version 3 of the GNU
+General Public License.  You must accept a license from the FSF to make or
+transfer a copy of the FSF code, which license can be version 2 of the GPL
+or any later version, but you do not require a license to *use* the FSF code.
+
+Although FSF code is involved in *building* the API library and example
+programs, no FSF code is incorporated into the built binaries or
+documentation, therefore you do not need to license from the FSF for any part
+of the library, documentation, or example programs, or anything derived or
+built from them.
+
+UTHash
+------
+The CIF API implementation uses the UTHash C macro package belonging
+to Troy D. Hanson.  Its license (in uthash/LICENSE) places mild conditions
+on redistributing the source code, with which this distribution complies.
+The UTHash license allows unrestricted freedom to distribute and use
+binary forms of the UTHash code.
+
+IUCr's STAR patent
+------------------
+The IUCr's intellectual property policy extends broad rights to practice its
+STAR patent, but the policy nevertheless restricts software purporting to
+process CIF data. The CIF API implementation does purport to process CIF
+data: it purports to read files written to the CIF standard (versions 1.1
+and 2.0), and it purports to write files in CIF format (version 2.0).  The
+CIF API implementation is distributed to you in the belief that it extracts
+data correctly from CIF files and produces CIF 2.0 conformant CIF files,
+as required to satisfy the conditions of the patent license.  The CIF API
+does not claim to read *definitions* from data dictionaries, notwithstanding
+the fact that it will read the CIF data items with which the definitions
+in a CIF-format data dictionary are expressed.
+
