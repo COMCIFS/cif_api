@@ -115,14 +115,14 @@ int cif_create(cif_t **cif) {
                 if (fks_enabled == 0) {
                     SET_RESULT(CIF_ENVIRONMENT_ERROR);
                 } else if (BEGIN(temp->db) == SQLITE_OK) {
-                    int i;
+                    const char * const *stmt_p;
 
                     /* Execute each statement in the 'schema_statements' array */
-                    for (i = 0; i < DDL_STMT_COUNT; i++) {
-                        if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, schema_statements[i], NULL, NULL, NULL))
-                                != SQLITE_OK) {
+                    for (stmt_p = schema_statements; *stmt_p; stmt_p += 1) {
+                        if (DEBUG_WRAP(temp->db, sqlite3_exec(temp->db, *stmt_p, NULL, NULL, NULL)) != SQLITE_OK) {
 #ifdef DEBUG
-                            fprintf(stderr, "Error occurs in DDL statement %d:\n%s\n", i, schema_statements[i]);
+                            fprintf(stderr, "Error occurs in DDL statement %d:\n%s\n",
+                                    (int)(stmt_p - schema_statements), *stmt_p);
 #endif
                             DEFAULT_FAIL(hard);
                         }

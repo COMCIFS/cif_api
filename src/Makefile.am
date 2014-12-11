@@ -100,12 +100,12 @@ internal/schema.h: $(top_srcdir)/misc/cif_schema.sql Makefile.am
 	@$(MKDIR_P) internal
 	echo "#ifndef INTERNAL_SCHEMA_H" > $@
 	echo "#define INTERNAL_SCHEMA_H" >> $@
-	echo "#define DDL_STMT_COUNT (`$(SED) -e '$(SED_SQL_MANGLER)' < $< | grep '^,$$' | $(COUNT_LINES)` + 1)" >> $@
-	echo "static const char * const schema_statements[DDL_STMT_COUNT] = {" >> $@
+	echo "static const char * const schema_statements[] = {" >> $@
 	$(GREP) '[^[:space:]]' $< \
 	  | $(GREP) -v '\s*--' \
 	  | $(SED) -e '$(SED_SQL_MANGLER)' \
 	  >> $@
+	echo ', NULL' >> $@
 	echo "};" >> $@
 	echo "#endif" >> $@
 

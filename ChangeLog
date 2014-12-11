@@ -25,6 +25,11 @@ Version 0.2.0.2
   Added error code CIF_MEMORY_ERROR, and updated substantially all functions
   that perform dynamic memory allocation to raise that error code in the
   event of a memory allocation failure.
+* Removed the build dependency on a line-counting command
+  Updated the build system -- in particular, the part that generates a header
+  file from the database schema -- to remove the need to count lines.  The
+  generated header is slightly different, and the code that uses it is
+  adjusted to match.
 
 Version 0.2.0.1
 * C++ compatibility in cif_cstr_to_ustr()

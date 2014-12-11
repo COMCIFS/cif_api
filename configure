@@ -799,7 +799,6 @@ PROFILING_CPPFLAGS
 WARNING_FLAGS
 C_STD_FLAGS
 DOXYGEN
-COUNT_LINES
 install_docs_FALSE
 install_docs_TRUE
 build_examples_FALSE
@@ -932,7 +931,6 @@ enable_profiling
 enable_query_profiling
 with_examples
 with_docs
-with_line_counter
 with_test_fuzz
 '
       ac_precious_vars='build_alias
@@ -1620,11 +1618,6 @@ Optional Packages:
   --with-examples         build and install the example programs
   --without-docs          do not install the documentation. See also
                           --enable-doc-rebuild. [default=yes]
-  --with-line-counter=<line count command>
-                          specifies a command that counts lines read from its
-                          standard input and writes the count to its standard
-                          output. If not specified, configure will attempt to
-                          guess.
   --with-test-fuzz=<fuzz ulps>
                           specifies a relative fuzz factor for the tests to
                           use in inexact floating-point comparisons.
@@ -4435,13 +4428,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:4438: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:4431: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4441: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:4434: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:4444: output\"" >&5)
+  (eval echo "\"\$as_me:4437: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -5647,7 +5640,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 5650 "configure"' > conftest.$ac_ext
+  echo '#line 5643 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7503,11 +7496,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7506: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7499: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7510: \$? = $ac_status" >&5
+   echo "$as_me:7503: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7842,11 +7835,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7845: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7838: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7849: \$? = $ac_status" >&5
+   echo "$as_me:7842: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7947,11 +7940,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7950: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7943: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7954: \$? = $ac_status" >&5
+   echo "$as_me:7947: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8002,11 +7995,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8005: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7998: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8009: \$? = $ac_status" >&5
+   echo "$as_me:8002: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10805,7 +10798,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10808 "configure"
+#line 10801 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10901,7 +10894,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10904 "configure"
+#line 10897 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11323,85 +11316,6 @@ fi
 else
   install_docs_TRUE='#'
   install_docs_FALSE=
-fi
-
-
-# We need a program that will count lines and report the result to stdout:
-
-# Check whether --with-line-counter was given.
-if test "${with_line_counter+set}" = set; then
-  withval=$with_line_counter;
-    case $withval in
-  yes|no) { { $as_echo "$as_me:$LINENO: error: --with-line-counter must specify a line-counting command" >&5
-$as_echo "$as_me: error: --with-line-counter must specify a line-counting command" >&2;}
-   { (exit 1); exit 1; }; } ;;
-  *) if test "x$withval" = x; then
-  { { $as_echo "$as_me:$LINENO: error: the line-counter command must not be empty" >&5
-$as_echo "$as_me: error: the line-counter command must not be empty" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-     ;;
-esac
-
-    COUNT_LINES="$withval"
-
-else
-
-    for ac_prog in wc
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_path_COUNT_LINES+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  case $COUNT_LINES in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_COUNT_LINES="$COUNT_LINES" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_COUNT_LINES="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-COUNT_LINES=$ac_cv_path_COUNT_LINES
-if test -n "$COUNT_LINES"; then
-  { $as_echo "$as_me:$LINENO: result: $COUNT_LINES" >&5
-$as_echo "$COUNT_LINES" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  test -n "$COUNT_LINES" && break
-done
-test -n "$COUNT_LINES" || COUNT_LINES="none"
-
-    case ${COUNT_LINES} in
-  */wc) COUNT_LINES="${COUNT_LINES} --lines" ;;
-  *) { { $as_echo "$as_me:$LINENO: error: I don't know how to count lines.  Try telling me via --with-line-counter." >&5
-$as_echo "$as_me: error: I don't know how to count lines.  Try telling me via --with-line-counter." >&2;}
-   { (exit 1); exit 1; }; } ;;
-esac
-
-
 fi
 
 
@@ -12487,30 +12401,6 @@ $as_echo "$as_me: error: Documentation regeneration is enabled, but doxygen is n
 
 fi
 
-
-
-
-# test the line counter
-{ $as_echo "$as_me:$LINENO: checking whether '${COUNT_LINES}' works" >&5
-$as_echo_n "checking whether '${COUNT_LINES}' works... " >&6; }
-line_count=`${COUNT_LINES} 2>/dev/null <<EOF || echo failed
-line 1
-line 2
-line 3
-EOF
-`
-if test "x${line_count}" = x3; then
-  { $as_echo "$as_me:$LINENO: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-
-    { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-    { { $as_echo "$as_me:$LINENO: error: command '${COUNT_LINES}' does not count lines correctly.  Try specifying a different command via --with-line-counter" >&5
-$as_echo "$as_me: error: command '${COUNT_LINES}' does not count lines correctly.  Try specifying a different command via --with-line-counter" >&2;}
-   { (exit 1); exit 1; }; }
-
-fi
 
 
 

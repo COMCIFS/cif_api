@@ -106,23 +106,6 @@ AC_ARG_WITH([docs],
 
 AM_CONDITIONAL([install_docs], [test "x$[]{with_docs}" = xyes])
 
-# We need a program that will count lines and report the result to stdout:
-AC_ARG_WITH([line-counter],
-  [AS_HELP_STRING([--with-line-counter=<line count command>],
-    [specifies a command that counts lines read from its standard input and writes the count to its standard output.  If not specified, configure will attempt to guess.])],
-  [
-    AS_CASE([$[]withval],
-      [yes|no], [AC_MSG_ERROR([--with-line-counter must specify a line-counting command])],
-      [AS_IF([test "x$[]withval" = x], [AC_MSG_ERROR([the line-counter command must not be empty])])]
-    )
-    COUNT_LINES="$[]withval"
-  ], [
-    AC_PATH_PROGS([COUNT_LINES], [wc], [none])
-    AS_CASE([$[]{COUNT_LINES}],
-      [*/wc], [COUNT_LINES="$[]{COUNT_LINES} --lines"],
-      [AC_MSG_ERROR([I don't know how to count lines.  Try telling me via --with-line-counter.])])
-  ])
-  
 AC_ARG_WITH([test-fuzz],
   [AS_HELP_STRING([--with-test-fuzz=<fuzz ulps>],
     [specifies a relative fuzz factor for the tests to use in inexact floating-point comparisons. [default=2]])],
@@ -161,22 +144,6 @@ AS_IF([test "x$[]{DOXYGEN}" = x && test "x$[]{enable_doc_rebuild}" = xyes], [
 ])
 
 AC_SUBST([DOXYGEN])
-
-# test the line counter
-AC_MSG_CHECKING([whether '$[]{COUNT_LINES}' works])
-line_count=`$[]{COUNT_LINES} 2>/dev/null <<EOF || echo failed
-line 1
-line 2
-line 3
-EOF
-`
-AS_IF([test "x$[]{line_count}" = x3],
-  [AC_MSG_RESULT([yes])],
-  [
-    AC_MSG_RESULT([no])
-    AC_MSG_ERROR([command '$[]{COUNT_LINES}' does not count lines correctly.  Try specifying a different command via --with-line-counter])
-  ])
-AC_SUBST([COUNT_LINES])
 
 # Output C/cpp flags that define the C language standards that must be
 # supported, if such flags are known.  Although not harmful for production

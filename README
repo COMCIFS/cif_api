@@ -55,16 +55,6 @@ specific to this package follow:
 * At present, the --enable-extra-warnings configuration option is effective
   only for gcc.
 
-* Configuring the project successfully depends on a line-counting command.
-  The configure program will attempt to guess a suitable one, but if it
-  cannot find one it recognizes then the builder may need to specify an
-  appropriate one via the --with-line-counter configuration option.  Example:
-      ./configure --with-line-counter='/usr/bin/wc --lines'
-  (Though configure knows about wc in particular, so you should not need this
-  option if wc is present in the executable path.)  The line-counter is a
-  build-time requirement only; it is no longer required once the library is
-  built.
-
 * There are a few other project-specific configuration options, but
   they are adequately explained in configure's help text.
 
