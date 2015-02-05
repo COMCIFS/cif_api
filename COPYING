@@ -32,9 +32,10 @@ file format, which is parent to CIF, and it is likely that the CIF API
 implementation practices that patent.  Nothing in this license conveys any
 rights to do so, but the IUCr itself extends broad and liberal permission,
 as described in its policy on its CIF and STAR intellectual property:
-http://www.iucr.org/iucr-top/ipr.html.  To the best of its author's knowledge,
-the CIF API implementation provided herein satisfies the IUCr's terms for
-licensure to practice the STAR patent.
+http://www.iucr.org/iucr-top/ipr.html.  The CIF API author holds no other
+rights to practice the patent, but to the best of his knowledge, the CIF
+API implementation satisfies the IUCr's terms for licensure.
+
 
 This software and documentation comes with NO WARRANTY, neither express nor
 implied, not even a warranty of fitness for any particular purpose.  Use only
