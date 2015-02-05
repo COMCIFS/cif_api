@@ -2,7 +2,7 @@
  * addauthor.c
  *
  * A toy program to add author information to a CIF.  The main purpose of this
- * program is to demonstrate CIF output, but you would probably not want to
+ * program is to demonstrate CIF output, but you would probably want to
  * use a different approach to the problem in the real world because this one
  * loses all formatting and comments (they are not semantically significant).
  *
