@@ -44,7 +44,7 @@
  * (possibly IUCr) and the correct licensing (anticipated to be an open-source license of some sort) can be determined.
  *
  * @section concepts Concepts
- * Beyond general CIF concepts (see Internationhal Tables for Crystallography, Vol G, Hall & McMahon eds.) and
+ * Beyond general CIF concepts (see <i>Internationhal Tables for Crystallography, Vol G</i>, Hall & McMahon eds.) and
  * additions and extensions brought by CIF 2.0, the CIF API has a few additional concepts that users and developers
  * should understand.
  *
@@ -57,7 +57,7 @@
  *
  * That kind of abstraction is by no means novel, but the important and perhaps distinguishing point is that the
  * interface definitions intentionally do not specify the internal form of the data.  The documentation therefore
- * uses the generic term "managed" to describe the data that the core CIF manipulation functions operate on, which is
+ * uses the generic term "managed" to describe the data that the core CIF manipulation functions operate upon, which is
  * implementation dependent.  The author imagines that most implementations will use some kind of in-memory
  * implementation separate from any source file, but implementations that operate directly on physical files are
  * conceivable and allowed.  Thus, where the documentation describes "managed" CIFs or CIF sub-objects, it is
@@ -83,8 +83,8 @@
  *
  * @subsection oo Object Orientation
  * One of the outcomes of using opaque data structures is a generally object-oriented approach to the
- * interface specifications, in plain C.  Each function can be considered a method of some object type, taking a
- * pointer to an instance of that type as its first argument (or a pointer to a pointer in the case of creation
+ * interface specifications, in plain C.  Most functions can be considered methods of some object type, taking a
+ * pointer to an instance of that type as their first argument (or a pointer to a pointer in the case of creation
  * functions), and it is primarily via such functions (methods) that users interact with their data.  This OO
  * character follows from the API design objectives; it is not an independent objective of its own.
  * 
@@ -115,7 +115,7 @@
  * specified to be (and @em always expected to be) "NUL-terminated".  These are analogous to traditional
  * C strings, but with units of type @c UChar instead of the traditional @c char .  Users may need to be aware,
  * however, that this form is an encoding of Unicode in UTF-16 (with native byte order).  In particular,
- * characters outside the Unicode "basic multilingual plane" are represented via two consecutive UChar units
+ * characters outside the Unicode "basic multilingual plane" are represented via two consecutive @c UChar units
  * drawn from special ranges (a "surrogate pair" in Unicode terminology).  "NUL-terminated" refers to using a
  * trailing sentinel value to mark the end of a string; as in traditional strings, the sentinel is the NUL character,
  * which has code point (numeric value) 0.  Unlike in traditional strings, however, @c UChar is a 16-bit (minimum)

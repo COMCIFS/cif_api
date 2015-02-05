@@ -45,6 +45,7 @@ int main(void) {
     U_STRING_DECL(name1l, "_name1", 7);
     U_STRING_DECL(name2l, "_name2", 7);
     U_STRING_DECL(name3l, "_name3", 7);
+    U_STRING_DECL(name4l, "_name4", 7);
     U_STRING_DECL(name1u, "_Name1", 7);
     U_STRING_DECL(name2u, "_NAME2", 7);
     U_STRING_DECL(name3u, "_nAMe3", 7);
@@ -62,6 +63,7 @@ int main(void) {
     U_STRING_INIT(name1l, "_name1", 7);
     U_STRING_INIT(name2l, "_name2", 7);
     U_STRING_INIT(name3l, "_name3", 7);
+    U_STRING_INIT(name4l, "_name4", 7);
     U_STRING_INIT(name1u, "_Name1", 7);
     U_STRING_INIT(name2u, "_NAME2", 7);
     U_STRING_INIT(name3u, "_nAMe3", 7);
@@ -197,6 +199,36 @@ int main(void) {
     TEST(cif_pktitr_next_packet(iterator, NULL), CIF_FINISHED, test_name, 85);
     TEST(cif_pktitr_close(iterator), CIF_OK, test_name, 86);
     cif_packet_free(packet);
+    packet = NULL;
+
+    /* test adding a loop item with a NULL default value */
+
+        /* Add the name.  There was once a bug causing this call to produce a segmentation fault. */
+    TEST(cif_loop_add_item(loop, name4l, NULL), CIF_OK, test_name, 87);
+
+        /* Check the packet values */
+    TEST(cif_loop_get_packets(loop, &iterator), CIF_OK, test_name, 88);
+    for (i = 0; i < 3; i++) {
+        double d;
+
+        TEST(cif_pktitr_next_packet(iterator, &packet), CIF_OK, test_name, 89 + (11 * i));
+        TEST(cif_packet_get_item(packet, name1l, &value1), CIF_OK, test_name, 90 + (11 * i));
+        TEST(cif_value_kind(value1), CIF_NUMB_KIND, test_name, 91 + (11 * i));
+        TEST(cif_value_get_number(value1, &d), CIF_OK, test_name, 92 + (11 * i));
+        TEST(d != (double) i, 0, test_name, 93 + (11 * i));
+        TEST(cif_value_get_su(value1, &d), CIF_OK, test_name, 94 + (11 * i));
+        TEST(d != 0.0, 0, test_name, 95 + (11 * i));
+        TEST(cif_packet_get_item(packet, name2l, &value2), CIF_OK, test_name, 96 + (11 * i));
+        TEST(cif_value_kind(value2), CIF_NA_KIND, test_name, 97 + (11 * i));
+        TEST(cif_packet_get_item(packet, name4l, &value3), CIF_OK, test_name, 98 + (11 * i));
+        TEST(cif_value_kind(value3), CIF_UNK_KIND, test_name, 99 + (11 * i));
+        /* value1, value2, and value3 belong to the packet */
+    }   /* Last subtest number == 121 */
+    TEST(cif_pktitr_next_packet(iterator, NULL), CIF_FINISHED, test_name, 122);
+    TEST(cif_pktitr_close(iterator), CIF_OK, test_name, 123);
+    cif_packet_free(packet);
+
+    cif_loop_free(loop);
 
     DESTROY_BLOCK(test_name, block);
     DESTROY_CIF(test_name, cif);

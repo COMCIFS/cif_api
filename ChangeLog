@@ -1,5 +1,14 @@
 CIF API Change Log
 
+Version 0.2.0.3
+* Bug in cif_loop_add_item()
+  Fixed a bug in which cif_loop_add_item() did not correctly handle a NULL
+  default value.
+* Documentation of packet iterator effects
+  Documentation of the possible negative effects and constraints of open
+  packet iterators was added to the general packet iterator description and
+  to the docs of cif_loop_get_packets().
+
 Version 0.2.0.2
 * Issues with ssize_t
   Fixed a header declaration and build configuration issue resulting in

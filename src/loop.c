@@ -260,9 +260,19 @@ int cif_loop_add_item(
     if ((loop == NULL) || (loop->container == NULL) || (loop->container->cif == NULL)) {
         return CIF_INVALID_HANDLE;
     } else {
+        cif_value_t *default_val;
+
+        if (val) {
+            default_val = val;
+        } else if ((result = cif_value_create(CIF_UNK_KIND, &default_val)) != CIF_OK) {
+            return result;
+        }
         if ((result = cif_normalize_item_name(item_name, -1, &norm_name, CIF_INVALID_ITEMNAME)) == CIF_OK) {
-            result = cif_loop_add_item_internal(loop, item_name, norm_name, val, &changes);
+            result = cif_loop_add_item_internal(loop, item_name, norm_name, default_val, &changes);
             free(norm_name);
+        }
+        if (!val) {
+            cif_value_free(default_val);
         }
         return result;
     }

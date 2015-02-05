@@ -1780,11 +1780,12 @@ CIF_INTFUNC_DECL(cif_loop_add_packet, (
  * @brief Creates an iterator over the packets in the specified loop.
  *
  * After successful return and before the iterator is closed or aborted, behavior is undefined if the underlying
- * loop is modified other than via the iterator.  Furthermore, other modifications to the same managed CIF made
- * while an iterator is active may be sensitive to the iterator, in that it is undefined whether they will be
- * retained if the iterator is aborted or closed unsuccessfully.  As a result of these constraints, users are advised
- * to maintain as few active iterators as feasible for any given CIF, and to minimize non-iterator operations performed
- * while any iterator is active on the same target CIF.
+ * loop is accessed (even just for reading) other than via the iterator.  Furthermore, other modifications to the
+ * same managed CIF made while an iterator is active may be sensitive to the iterator, in that it is undefined
+ * whether they will be retained if the iterator is aborted or closed unsuccessfully.  As a result of these constraints,
+ * users are advised to maintain as few active iterators as feasible for any given CIF, to minimize non-iterator
+ * operations performed while any iterator is active on the same target CIF, and to close or abort iterators as
+ * soon as possible after they cease to be required.
  *
  * @param[in] loop a handle on the loop whose packets are requested; must be non-NULL and valid
  *
@@ -1831,15 +1832,23 @@ CIF_INTFUNC_DECL(cif_loop_get_packets, (
  *         @c cif_pktitr_close() or @c cif_pktitr_abort(), and one of those operations should be performed in a timely
  *         manner.
  *
+ * The CIF data model does not accommodate loops without any packets, but the CIF API definition requires such
+ * loops to be accommodated in memory, at least transiently.  It is for such packetless loops alone that
+ * a packet iterator can proceed directly from @b NEW to @b FINISHED.
+ *
  * Inasmuch as CIF loops are only incidentally ordered, the sequence in which loop packets are presented by an iterator
  * is not defined by these specifications.
  *
  * While iteration of a given loop is underway, it is implementation-defined what effect, if any, modifications
  * to that loop other than by the iterator itself (including by a different iterator) have on the iteration results.
  *
- * The CIF data model does not accommodate loops without any packets, but the CIF API definition requires such
- * loops to be accommodated in memory, at least transiently.  It is for such packetless loops alone that
- * a packet iterator can proceed directly from @b NEW to @b FINISHED.
+ * An open packet iterator potentially places both hard and soft constraints on use of the CIF with which it is
+ * associated.  In particular, open iterators may interfere with other accesses to the same underlying data -- even
+ * for reading -- and it is undefined how closing or aborting an iterator affects other open iterators.  When multiple
+ * iterators must be held open at the same time, it is safest (but not guaranteed safe) to close / abort them in
+ * reverse order of their creation.  Additionally, and secondarily to the preceding, packet iterators should be closed
+ * or aborted as soon as they cease to be needed.  More specific guidance may be associated with particular API
+ * implementations.
  */
 
 /**
