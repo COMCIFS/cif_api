@@ -8,6 +8,11 @@ Version 0.2.0.3
   Documentation of the possible negative effects and constraints of open
   packet iterators was added to the general packet iterator description and
   to the docs of cif_loop_get_packets().
+* Fixed a narrow text-folding failure case
+  The text block line-folding code used by cif_write() could produce invalid
+  output because it failed to protect against lines being folded immediately
+  before a semicolon (only a problem when not also prefixing).  That issue is
+  now resolved.
 
 Version 0.2.0.2
 * Issues with ssize_t

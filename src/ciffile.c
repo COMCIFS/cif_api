@@ -31,8 +31,18 @@
 #define CIF_NOWRAP    0
 #define CIF_WRAP      1
 
-#define PREFIX "> "
-#define PREFIX_LENGTH 2
+/* ***
+ * For text folding
+ */
+
+#define PREFIX         "> "
+#define PREFIX_LENGTH  2
+
+/* half-width of the window around the target line length wherein we prefer to choose a line-folding point */
+#define FOLDING_WINDOW 6
+
+/*
+ ***/
 
 /*
  * Expands to the lesser of its arguments.  The arguments may be evaluated more than once.
@@ -97,6 +107,16 @@ static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
         (t = write_literal((c), " ", 1, CIF_NOWRAP)), \
         ((t == -CIF_OVERLENGTH_LINE) ? write_newline(c) : (t == 1)) \
     ) \
+)
+
+/*
+ * Evaluates a pair of UChar values to determine whether they are a lead and trail surrogate, respectively
+ */
+#define IS_SURROGATE_PAIR(u1, u2) (     \
+        ((u2) >= MIN_TRAIL_SURROGATE)   \
+        && ((u2) <= MAX_SURROGATE)      \
+        && ((u1) >= MIN_LEAD_SURROGATE) \
+        && ((u1) < MIN_TRAIL_SURROGATE) \
 )
 
 static void ustream_to_unicode_callback(const void *context, UConverterToUnicodeArgs *args, const char *codeUnits,
@@ -183,11 +203,13 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
  * @param[in] do_fold indicates whether to actually perform folding.  If this argument evaluates to false, then the
  *         full number of code units in @c line is returned
  * @param[in] target_length the desired length of the folded segment, in code @i units (not code @i points )
- * @param[in] window the variance allowed in the length of folded segments other than the last, in code units
+ * @param[in] window the variance allowed in the length of folded segments other than the last, in code units;
+ *         should be less than @c target_length
+ * @param[in] for_prefix non-zero if the folded text will also be prefixed, otherwise 0
  *
- * @return the number of code units in the first folded segment; zero if @c line is an empty Unicode string
+ * @return the number of code units in the first folded segment; <= 0 if no suitable fold point is found
  */
-static int fold_line(const UChar *line, int do_fold, int target_length, int window);
+static int fold_line(const UChar *line, int do_fold, int target_length, int window, int for_prefix);
 
 /*
  * An internal function for writing a character value in quoted form.  Returns a CIF API result code.
@@ -303,7 +325,7 @@ int cif_write_options_create(struct cif_write_opts_s **opts) {
  * that (for example) fgets() would store to its target string when it processes that bit pattern as input.  The
  * following code nevertheless assumes all those things to be true.
  */
-#define BUFFER_SIZE  2048
+#define BUFFER_SIZE  4096
 int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
     FAILURE_HANDLING;
     unsigned char buffer[BUFFER_SIZE];
@@ -836,6 +858,7 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
         int32_t length = 0;
         int32_t consec_semis = 0;
         int32_t most_semis = 0;
+        /* extra_space accounts for space consumed by preceding output that must not be separated from the current */
         int32_t extra_space = (IS_SEPARATE_VALUES(context) ? 0 : LAST_COLUMN(context));
         int has_nl_semi = CIF_FALSE;
         int emulates_prefix = CIF_FALSE;
@@ -879,23 +902,23 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
 
         /* If the longest line surpasses the length limit then we cannot use anything other than a text block */
         if (max_line <= (LINE_LENGTH(context))) {
+
+            /* If there are no newlines in the text, then all options are on the table */
             if (char_counts[UCHAR_NL] == 0) {
                 /* Maybe single-delimited */
-                if (char_counts[UCHAR_SQ] == 0) {
-                    /* write the value as an apostrophe-delimited string */
-                    result = write_quoted(context, text, length, UCHAR_SQ);
-                    goto done;
-                } else if (char_counts[UCHAR_DQ] == 0) {
-                    result = write_quoted(context, text, length, UCHAR_DQ);
-                    goto done;
-                } /* else neither (single) apostrophe or quotation mark is suitable */
+                if (max_line <= (LINE_LENGTH(context) - (2 + extra_space))) {
+                    if (char_counts[UCHAR_SQ] == 0) {
+                        /* write the value as an apostrophe-delimited string */
+                        result = write_quoted(context, text, length, UCHAR_SQ);
+                        goto done;
+                    } else if (char_counts[UCHAR_DQ] == 0) {
+                        result = write_quoted(context, text, length, UCHAR_DQ);
+                        goto done;
+                    } /* else neither (single) apostrophe or quotation mark is suitable */
+                }
 
                 /* maybe triple-delimited */
-                /*
-                 * If we are forbidden to precede the value with whitespace then it must fit on the remainder of the
-                 * current line.
-                 */
-                if (max_line <= (LINE_LENGTH(context)) - (6 + extra_space)) {
+                if (max_line <= (LINE_LENGTH(context) - (6 + extra_space))) {
                     /* 
                      * line 1 lengths expressed to write_triple_quoted() here include the closing delimiter, because it
                      * will appear on the first line.  Line 1 lengths NEVER include the opening delimiter.
@@ -910,7 +933,6 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
                 }
 
             } else 
-
             /*
              * We can use triple quotes if neither the first line nor the last is too long, and if the text does not
              * contain both triple delimiters.
@@ -932,7 +954,7 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
         if (allow_text) {
             /* write as a text block, possibly with line-folding and/or prefixing  */
             int fold = ((max_line > LINE_LENGTH(context))
-                    || (most_semis >= LINE_LENGTH(context))
+                    || (most_semis >= (LINE_LENGTH(context) - 1))
                     || ((!has_nl_semi) && ((first_line + 1) > LINE_LENGTH(context))));
 
             if (!has_nl_semi) { /* otherwise it's redundant to perform the following test */
@@ -983,12 +1005,18 @@ static int write_char(void *context, cif_value_t *char_value, int allow_text) {
  *         caller retains responsibility for managing the space
  * @param[in] length the length of the text, in @c UChar units; must be consistent with the content of @c text
  * @param[in] fold if true, the line-folding protocol should be applied to the block contents
- * @param[in] prefix if true, the prefix fold protocol should be applied to the block contents
+ * @param[in] prefix if true, the prefix protocol should be applied to the block contents
  */
 static int write_text(void *context, UChar *text, int32_t length, int fold, int prefix) {
     /* TODO: test on text containing surrogate pairs -- the expected lengths may be wrong */
     int expected = 2 + (prefix ? (PREFIX_LENGTH + 1) : 0) + (fold ? 1 : 0);
     int32_t nchars;
+
+    /*
+     * This function is assumed to be called only for data that cannot be represented in other forms.  In particular,
+     * it is assumed not to be called for an empty string (for which this implementation would do the wrong thing).
+     */
+    assert(*text);
 
     /* opening delimiter and flags */
     nchars = u_fprintf(CONTEXT_UFILE(context), "\n;%s%s", (prefix ? PREFIX "\\" : ""), (fold ? "\\" : ""));
@@ -1003,51 +1031,47 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
             return CIF_ERROR;
         }
     } else {
-        int prefix_length = (prefix ? PREFIX_LENGTH : 0);
         int target_length = LINE_LENGTH(context) - 8;
-        char prefix_text[3] = PREFIX;
-        UChar *saved;
+        char prefix_text[] = PREFIX;
+        int prefix_chars;
         UChar *tok;
+        UChar *next_tok;
 
-        if (!prefix) {
+        assert(target_length > FOLDING_WINDOW);
+
+        if (prefix) {
+            prefix_chars = sizeof(prefix_text) - 1;
+        } else {
             prefix_text[0] = '\0';
+            prefix_chars = 0;
         }
 
         /* each logical line, delimited from the previous one by a newline */
-        for (tok = text; tok != NULL; tok = saved) {
-            int len;
+        for (tok = text; tok != NULL; tok = next_tok) {
 
-            saved = u_strchr(tok, '\n');
-            if (saved != NULL) {
-                *saved = 0;
-                saved += 1;
+            next_tok = u_strchr(tok, '\n');
+            if (next_tok != NULL) {
+                *next_tok = 0;
+                next_tok += 1;
             }
 
-            if (*tok == 0) {
-                if (!write_newline(context)) {
+            /* each folded segment, until the line is consumed */
+            while (*tok != 0) {
+                int len = fold_line(tok, fold, target_length, FOLDING_WINDOW, prefix);
+
+                if (len <= 0) {
+                    /* should not happen */
+                    return CIF_INTERNAL_ERROR;
+                }
+
+                expected = 1 + prefix_chars + len;
+                nchars = u_fprintf(CONTEXT_UFILE(context), "\n%s%*.*S%s", prefix_text, len, len, tok,
+                        ((tok[len] == 0) ? "" : (expected += 1, "\\")));
+                if (nchars != expected) {
                     return CIF_ERROR;
                 }
-            } else {
-                int printed = CIF_FALSE;
 
-                /* each folded segment */
-                do {
-                    len = fold_line(tok, fold, target_length, 6);
-
-                    if ((len == 0) && printed) {
-                        break;
-                    }
-
-                    expected = len + prefix_length + 1;
-                    nchars = u_fprintf(CONTEXT_UFILE(context), "\n%s%*.*S%s", prefix_text, len, len, tok,
-                            ((tok[len] == 0) ? "" : (expected += 1, "\\")));
-                    if (nchars != expected) {
-                        return CIF_ERROR;
-                    }
-
-                    printed = CIF_TRUE;
-                    tok += len;
-                } while (CIF_TRUE);
+                tok += len;
             }
         }
     }
@@ -1061,9 +1085,10 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
     return CIF_OK;
 }
 
-static int fold_line(const UChar *line, int do_fold, int target_length, int window) {
+static int fold_line(const UChar *line, int do_fold, int target_length, int window, int for_prefix) {
     int low_candidate = -1;
     int len;
+    int counter;
 
     if (!do_fold) {
         return u_strlen(line);
@@ -1098,20 +1123,40 @@ static int fold_line(const UChar *line, int do_fold, int target_length, int wind
                 /* there is no candidate in the bottom half of the window */
                 return high_candidate;
             } else {
-                /* len and low_candidate are both in the window; return the one closer to target_length */
+                /* The high and low_candidates are both in the window; return the one closer to target_length */
                 return (((high_candidate + low_candidate) / 2) < target_length ? high_candidate : low_candidate);
             }
         }
     }
 
-    /* No better candidate was found, so fold at the target length, avoiding splitting surrogate pairs */
-    /* TODO: avoid folding immediately before a semicolon (unless prefixing is in effect, too) */
-    if ((line[target_length] >= MIN_TRAIL_SURROGATE) && (line[target_length] <= MAX_SURROGATE)
-            && (line[target_length - 1] >= MIN_LEAD_SURROGATE) && (line[target_length - 1] < MIN_TRAIL_SURROGATE)) {
-        target_length -= 1;
+    /*
+     * No better candidate was found, so fold at or near the target length.  Avoid splitting surrogate pairs, and
+     * if prefixing is not being performed then avoid splitting immediately before a semicolon.
+     */
+    len = target_length;
+    for (counter = 0; counter <= 2 * window; counter += 1) {
+        len += (counter & 0x1) ? +counter : -counter;
+        if (((line[len] != UCHAR_SEMI) || for_prefix) && !IS_SURROGATE_PAIR(line[len - 1], line[len])) {
+            return len;
+        }
     }
 
-    return target_length;
+    /* There is no suitable fold point in the window; scan downward from there to find one */
+    while (--len > 0) {
+        if (((line[len] != UCHAR_SEMI) || for_prefix) && !IS_SURROGATE_PAIR(line[len - 1], line[len])) {
+            return len;
+        }
+    }
+
+    /* As a last resort, scan upward from the end of the window */
+    for (len = target_length + window + 1; line[len] != 0; len += 1) {
+        if (((line[len] != UCHAR_SEMI) || for_prefix) && !IS_SURROGATE_PAIR(line[len - 1], line[len])) {
+            return len;
+        }
+    }
+
+    /* no fold point was found */
+    return 0;
 }
 
 static int write_quoted(void *context, const UChar *text, int32_t length, char delimiter) {
