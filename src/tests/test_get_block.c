@@ -14,8 +14,8 @@
 
 int main(void) {
     char test_name[80] = "test_get_block";
-    cif_t *cif = NULL;
-    cif_block_t *block;
+    cif_tp *cif = NULL;
+    cif_block_tp *block;
 #define NUM_PAIRS 4
     char code_pairs[NUM_PAIRS][2][64] = {
         {"Block", "bLOck"},

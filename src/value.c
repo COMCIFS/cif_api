@@ -85,7 +85,7 @@ int fegetround(void);
  * for NULL (not empty) strings.
  *
  * @param[in] string a pointer to the NUL-terminated Unicode string to serialize; may be NULL
- * @param[in,out] buffer a pointer to the @c write_buffer_t buffer to which the serialized form should be appended;
+ * @param[in,out] buffer a pointer to the @c write_buffer_tp buffer to which the serialized form should be appended;
  *         must not be NULL.
  * @param[in] onerr the label to which execution should branch in the event that an error occurs; must be defined in the
  *         scope where this macro is used.
@@ -93,7 +93,7 @@ int fegetround(void);
 #define SERIALIZE_USTRING(string, buffer, onerr) do { \
     const UChar *str = (string); \
     int SU_result; \
-    write_buffer_t *us_buf = (buffer); \
+    write_buffer_tp *us_buf = (buffer); \
     ssize_t us_size = ((str == NULL) ? (ssize_t) -1 : (ssize_t) u_strlen(str)); \
     if ((SU_result = cif_buf_write(us_buf, &us_size, sizeof(ssize_t))) != CIF_OK) FAIL(onerr, SU_result); \
     if ((SU_result = cif_buf_write(us_buf, str, us_size * sizeof(UChar))) != CIF_OK) FAIL(onerr, SU_result); \
@@ -107,14 +107,14 @@ int fegetround(void);
  *
  * @param[out] dest a Unicode string pointer to be pointed at the deserialized string; its initial value is ignored.
  *         may be set NULL
- * @param[in,out] a @c read_buffer_t from which the serialized string data should be read; on success its position is
+ * @param[in,out] a @c read_buffer_tp from which the serialized string data should be read; on success its position is
  *         immediately after the last byte of the serialized string, but on failure its position becomes undefined;
  *         must not be NULL.
  * @param[in] onerr the name of the failure handler to which execution should branch in the event that an error occurs;
  *         must be defined in the scope where this macro is used.
  */
 #define DESERIALIZE_USTRING(dest, buffer, onerr) do { \
-    read_buffer_t *us_buf = (buffer); \
+    read_buffer_tp *us_buf = (buffer); \
     ssize_t _size; \
     if (cif_buf_read(us_buf, &_size, sizeof(ssize_t)) == sizeof(ssize_t)) { \
         if (_size < 0) { \
@@ -138,18 +138,18 @@ int fegetround(void);
 /**
  * @brief Serializes a value object and any component objects, appending the result to the specified buffer.
  *
- * @param[in] value a pointer to the @c cif_value_t object to serialize; must not be NULL.
- * @param[in,out] a @c read_buffer_t from which the serialized string data should be read; on success its position is
+ * @param[in] value a pointer to the @c cif_value_tp object to serialize; must not be NULL.
+ * @param[in,out] a @c read_buffer_tp from which the serialized string data should be read; on success its position is
  *         immediately after the last byte of the serialized string, but on failure its position becomes undefined;
  *         must not be NULL.
  * @param[in] onerr the label to which execution should branch in the event that an error occurs; must be defined in the
  *         scope where this macro is used.
  */
 #define SERIALIZE(value, buffer, onerr) do { \
-    cif_value_t *val = (cif_value_t *) (value); \
-    write_buffer_t *s_buf = (buffer); \
+    cif_value_tp *val = (cif_value_tp *) (value); \
+    write_buffer_tp *s_buf = (buffer); \
     int S_result; \
-    if ((S_result = cif_buf_write(s_buf, val, sizeof(cif_kind_t))) != CIF_OK) FAIL(onerr, S_result); \
+    if ((S_result = cif_buf_write(s_buf, val, sizeof(cif_kind_tp))) != CIF_OK) FAIL(onerr, S_result); \
     switch (val->kind) { \
         case CIF_NUMB_KIND: \
         case CIF_CHAR_KIND: \
@@ -173,8 +173,8 @@ int fegetround(void);
  * which it points, overwriting anything already there; otherwise a new value object is allocated and (on success) a
  * pointer to it assigned (therefore @p value must be an lvalue).
  *
- * The type to which the value pointer points is canonically @c cif_value_t, but it can also be a struct having a
- * @c cif_value_t as its first member (note: an actual value object, not a pointer to one).  This affords a limited
+ * The type to which the value pointer points is canonically @c cif_value_tp, but it can also be a struct having a
+ * @c cif_value_tp as its first member (note: an actual value object, not a pointer to one).  This affords a limited
  * form of polymorphism.
  *
  * As an implementation limitation, this macro must not appear more than once in any function.
@@ -182,21 +182,21 @@ int fegetround(void);
  * @param[in] value_type the type to which @p value points.
  * @param[in,out] value a pointer to receive the deserialized value, either into its existing referrent or into a newly-
  *         allocated referrent.
- * @param[in,out] buffer the @c read_buffer_t from which to obtain the serialized value
+ * @param[in,out] buffer the @c read_buffer_tp from which to obtain the serialized value
  * @param[in] onerr the name of the failure handler to which execution should branch in the event of error; must be
  *         name a failure handler defined in the scope where this macro is used.
  */
 #define DESERIALIZE(value_type, value, buffer, onerr) do { \
-    read_buffer_t *_buf = (buffer); \
+    read_buffer_tp *_buf = (buffer); \
     value_type *val = ((value != NULL) ? (value) : (value_type *) malloc(sizeof(value_type))); \
     if (val == NULL) { \
         FAIL(onerr, CIF_MEMORY_ERROR); \
     } else { \
-        cif_value_t *v = (cif_value_t *) val; \
-        cif_kind_t _kind; \
+        cif_value_tp *v = (cif_value_tp *) val; \
+        cif_kind_tp _kind; \
         int _D_result; \
         v->kind = CIF_UNK_KIND; \
-        if (cif_buf_read(_buf, &_kind, sizeof(cif_kind_t)) == sizeof(cif_kind_t)) { \
+        if (cif_buf_read(_buf, &_kind, sizeof(cif_kind_tp)) == sizeof(cif_kind_tp)) { \
             switch(_kind) { \
                 case CIF_CHAR_KIND: \
                     v->kind = CIF_CHAR_KIND; \
@@ -279,22 +279,22 @@ int fegetround(void);
  * Creates a new dynamic buffer with the specified initial capacity.
  * Returns a pointer to the buffer structure, or NULL if buffer creation fails.
  */
-static buffer_t *cif_buf_create(size_t cap);
+static buffer_tp *cif_buf_create(size_t cap);
 
 /*
  * Releases a writeable dynamic buffer and all resources associated with it.  A no-op if the argument is NULL.
  */
-static void cif_buf_free(write_buffer_t *buf);
+static void cif_buf_free(write_buffer_tp *buf);
 
 /*
  * Writes bytes to a dynamic buffer, starting at its current position.
  * The buffer capacity is expanded as needed to accommodate the specified number of bytes, and possibly more.
  * The third argument may be zero, in which case the function is a no-op.
  * Returns CIF_OK on success or an error code on failure.  The buffer is unmodified on failure.
- * Behavior is undefined if buf does not point to a valid buffer_t object, or if start does not point to an
+ * Behavior is undefined if buf does not point to a valid buffer_tp object, or if start does not point to an
  * allocated block of memory at least len bytes long, or if the source is inside the buffer.
  */
-static int cif_buf_write(write_buffer_t *buf, const void *src, size_t len);
+static int cif_buf_write(write_buffer_tp *buf, const void *src, size_t len);
 
 /*
  * Reads up to the specified number of bytes from the specified dynamic buffer into the specified destination,
@@ -302,7 +302,7 @@ static int cif_buf_write(write_buffer_t *buf, const void *src, size_t len);
  * Returns the number of bytes transferred to the destination (which will be zero when no more are available and
  * when the third argument is zero).  
  */
-static size_t cif_buf_read(read_buffer_t *buf, void *dest, size_t max);
+static size_t cif_buf_read(read_buffer_tp *buf, void *dest, size_t max);
 
 /*
  * (macro) Returns the buffer's internal position to the beginning, leaving its limit intact.
@@ -342,10 +342,10 @@ static int cif_value_clone_list(struct list_value_s *value, struct list_value_s 
 /*
  * Composite-value serialization and deserialization functions
  */
-static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf);
-static int cif_table_serialize(struct table_value_s *table, write_buffer_t *buf);
-static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf);
-static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf);
+static int cif_list_serialize(struct list_value_s *list, write_buffer_tp *buf);
+static int cif_table_serialize(struct table_value_s *table, write_buffer_tp *buf);
+static int cif_list_deserialize(struct list_value_s *list, read_buffer_tp *buf);
+static int cif_table_deserialize(struct table_value_s *table, read_buffer_tp *buf);
 
 /**
  * @brief produces an unsigned digit-string representation of the specified double, rounded to the specified scale
@@ -582,14 +582,14 @@ static int cif_value_clone_list(struct list_value_s *value, struct list_value_s 
     FAILURE_HANDLING;
 
     cif_list_init(clone);
-    clone->elements = (cif_value_t **) malloc(sizeof(cif_value_t *) * value->size);
+    clone->elements = (cif_value_tp **) malloc(sizeof(cif_value_tp *) * value->size);
     if (clone->elements == NULL) {
         FAIL(soft, CIF_MEMORY_ERROR);
     } else {
         clone->capacity = value->size;
         for (; clone->size < value->size; clone->size += 1) {
             int result;
-            cif_value_t **element = clone->elements + clone->size;
+            cif_value_tp **element = clone->elements + clone->size;
 
             *element = NULL;
             result = cif_value_clone(value->elements[clone->size], element);
@@ -632,7 +632,7 @@ static int cif_value_clone_table(struct table_value_s *value, struct table_value
                 if (new_entry->key_orig == NULL) {
                     SET_RESULT(CIF_MEMORY_ERROR);
                 } else {
-                    cif_value_t *new_value = &(new_entry->as_value);
+                    cif_value_tp *new_value = &(new_entry->as_value);
 
                     new_value->kind = CIF_UNK_KIND;
                     if (cif_value_clone(&(entry->as_value), &new_value) == CIF_OK) {
@@ -665,7 +665,7 @@ static int cif_value_clone_table(struct table_value_s *value, struct table_value
 /*
  * Serializes a list value, not including the initial value-type code.  May recurse, directly or indirectly.
  */
-static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf) {
+static int cif_list_serialize(struct list_value_s *list, write_buffer_tp *buf) {
     FAILURE_HANDLING;
 
     if (cif_buf_write(buf, &(list->size), sizeof(size_t)) == CIF_OK) {
@@ -684,7 +684,7 @@ static int cif_list_serialize(struct list_value_s *list, write_buffer_t *buf) {
 /*
  * Serializes a table value, not including the initial value-type code.  May recurse, directly or indirectly.
  */
-static int cif_table_serialize(struct table_value_s *table, write_buffer_t *buf) {
+static int cif_table_serialize(struct table_value_s *table, write_buffer_tp *buf) {
     FAILURE_HANDLING;
     struct entry_s *element;
     struct entry_s *temp;
@@ -719,7 +719,7 @@ static int cif_table_serialize(struct table_value_s *table, write_buffer_t *buf)
  * Deserializes a list value from the given buffer into the specified, existing value object.
  * Returns CIF_OK on success, or an error code on failure.  May recurse, directly or indirectly.
  */
-static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf) {
+static int cif_list_deserialize(struct list_value_s *list, read_buffer_tp *buf) {
     FAILURE_HANDLING;
     size_t capacity;
 
@@ -732,7 +732,7 @@ static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf) {
             list->size = 0;
             return CIF_OK;
         } else {
-            cif_value_t **elements = (cif_value_t **) malloc(sizeof(cif_value_t *) * capacity);
+            cif_value_tp **elements = (cif_value_tp **) malloc(sizeof(cif_value_tp *) * capacity);
 
             if (elements == NULL) {
                 SET_RESULT(CIF_MEMORY_ERROR);
@@ -741,7 +741,7 @@ static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf) {
 
                 for (size = 0; size < capacity; size += 1) {
                     elements[size] = NULL;  /* essential */
-                    DESERIALIZE(cif_value_t, elements[size], buf, element);
+                    DESERIALIZE(cif_value_tp, elements[size], buf, element);
                 }
 
                 /* the 'list' argument is modified only now that we have successfully deserialized a whole list */
@@ -771,9 +771,9 @@ static int cif_list_deserialize(struct list_value_s *list, read_buffer_t *buf) {
  *
  * Returns CIF_OK on success, or an error code on failure.  May recurse, directly or indirectly.
  */
-static int cif_table_deserialize(struct table_value_s *table, read_buffer_t *buf) {
+static int cif_table_deserialize(struct table_value_s *table, read_buffer_tp *buf) {
     FAILURE_HANDLING;
-    cif_value_t temp;
+    cif_value_tp temp;
     UChar *key;
     UChar *key_orig;
     struct entry_s *entry;
@@ -1589,8 +1589,8 @@ static double to_double(const char *ddigits, int scale) {
     }
 }
 
-static buffer_t *cif_buf_create(size_t cap) {
-    buffer_t *buf = (buffer_t *) malloc(sizeof(buffer_t));
+static buffer_tp *cif_buf_create(size_t cap) {
+    buffer_tp *buf = (buffer_tp *) malloc(sizeof(buffer_tp));
 
     if (buf != NULL) {
         buf->for_writing.start = (char *) malloc(cap);
@@ -1605,7 +1605,7 @@ static buffer_t *cif_buf_create(size_t cap) {
     return NULL;
 }
 
-static void cif_buf_free(write_buffer_t *buf) {
+static void cif_buf_free(write_buffer_tp *buf) {
     if (buf != NULL) {
         if (buf->start != NULL) {
             free(buf->start);
@@ -1614,7 +1614,7 @@ static void cif_buf_free(write_buffer_t *buf) {
     }
 }
 
-static int cif_buf_write(write_buffer_t *buf, const void *src, size_t len) {
+static int cif_buf_write(write_buffer_tp *buf, const void *src, size_t len) {
     size_t needed_cap = buf->position + len;
 
     if (needed_cap < buf->position) { /* overflow */
@@ -1654,7 +1654,7 @@ static int cif_buf_write(write_buffer_t *buf, const void *src, size_t len) {
     return CIF_OK;
 }
 
-static size_t cif_buf_read(read_buffer_t *buf, void *dest, size_t max) {
+static size_t cif_buf_read(read_buffer_tp *buf, void *dest, size_t max) {
     if ((buf->position >= buf->limit) || (max == 0)) {
         return 0;
     } else {
@@ -1698,9 +1698,9 @@ static int frac_bits(double d, int *exponent) {
 extern "C" {
 #endif
 
-int cif_value_create(cif_kind_t kind, cif_value_t **value) {
+int cif_value_create(cif_kind_tp kind, cif_value_tp **value) {
     FAILURE_HANDLING;
-    cif_value_t *temp = (cif_value_t *) malloc(sizeof(cif_value_t));
+    cif_value_tp *temp = (cif_value_tp *) malloc(sizeof(cif_value_tp));
 
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
@@ -1775,10 +1775,10 @@ void cif_value_free(union cif_value_u *value) {
     }
 }
 
-int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
+int cif_value_clone(cif_value_tp *value, cif_value_tp **clone) {
     FAILURE_HANDLING;
-    cif_value_t *temp;
-    cif_value_t *to_free = NULL;
+    cif_value_tp *temp;
+    cif_value_tp *to_free = NULL;
 
     if (*clone != NULL) {
         cif_value_clean(*clone);
@@ -1824,7 +1824,7 @@ int cif_value_clone(cif_value_t *value, cif_value_t **clone) {
  * Note: in addition to its publicly-documented use, this function may be used to initialize value objects allocated on
  * the stack, provided that their kind is pre-initialized to CIF_UNK_KIND.
  */
-int cif_value_init(cif_value_t *value, cif_kind_t kind) {
+int cif_value_init(cif_value_tp *value, cif_kind_tp kind) {
     if (kind == CIF_NUMB_KIND) {
         return cif_value_init_numb(value, 0.0, 0.0, 0, 1);
     } else {
@@ -1862,14 +1862,14 @@ int cif_value_init(cif_value_t *value, cif_kind_t kind) {
     }
 }
 
-int cif_value_serialize(cif_value_t *value, buffer_t **buf) {
+int cif_value_serialize(cif_value_tp *value, buffer_tp **buf) {
     FAILURE_HANDLING;
-    buffer_t *temp = cif_buf_create(DEFAULT_SERIALIZATION_CAP);
+    buffer_tp *temp = cif_buf_create(DEFAULT_SERIALIZATION_CAP);
 
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
-        write_buffer_t *wbuf = &(temp->for_writing);  /* wbuf is an alias of temp */
+        write_buffer_tp *wbuf = &(temp->for_writing);  /* wbuf is an alias of temp */
         SERIALIZE(value, wbuf, fail);
         *buf = temp;
         return CIF_OK;
@@ -1881,15 +1881,15 @@ int cif_value_serialize(cif_value_t *value, buffer_t **buf) {
     FAILURE_TERMINUS;
 }
 
-int cif_value_deserialize(const void *src, size_t len, cif_value_t *dest) {
+int cif_value_deserialize(const void *src, size_t len, cif_value_tp *dest) {
     FAILURE_HANDLING;
-    read_buffer_t buf;
+    read_buffer_tp buf;
 
     buf.start = (const char *) src;
     buf.capacity = len;
     buf.limit = len;
     buf.position = 0;
-    DESERIALIZE(cif_value_t, dest, &buf, fail);
+    DESERIALIZE(cif_value_tp, dest, &buf, fail);
 
     SET_RESULT(CIF_OK);
 
@@ -1897,7 +1897,7 @@ int cif_value_deserialize(const void *src, size_t len, cif_value_t *dest) {
     GENERAL_TERMINUS;
 }
 
-int cif_value_parse_numb(cif_value_t *n, UChar *text) {
+int cif_value_parse_numb(cif_value_tp *n, UChar *text) {
     FAILURE_HANDLING;
     struct numb_value_s *numb = &(n->as_numb);
     size_t pos = 0;
@@ -2062,7 +2062,7 @@ int cif_value_parse_numb(cif_value_t *n, UChar *text) {
     FAILURE_TERMINUS;
 }
 
-int cif_value_init_char(cif_value_t *value, UChar *text) {
+int cif_value_init_char(cif_value_tp *value, UChar *text) {
     if (text == NULL) {
         return CIF_ARGUMENT_ERROR;
     } else {
@@ -2073,7 +2073,7 @@ int cif_value_init_char(cif_value_t *value, UChar *text) {
     }
 }
 
-int cif_value_copy_char(cif_value_t *value, const UChar *text) {
+int cif_value_copy_char(cif_value_tp *value, const UChar *text) {
     if (text == NULL) {
         return CIF_ARGUMENT_ERROR;
     } else {
@@ -2093,7 +2093,7 @@ int cif_value_copy_char(cif_value_t *value, const UChar *text) {
     }
 }
 
-int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int max_leading_zeroes) {
+int cif_value_init_numb(cif_value_tp *n, double val, double su, int scale, int max_leading_zeroes) {
     if ((su < 0.0) || (-scale < LEAST_DBL_10_DIGIT) || (-scale > DBL_MAX_10_EXP) || (max_leading_zeroes < 0)) {
         return CIF_ARGUMENT_ERROR;
     } else {
@@ -2175,7 +2175,7 @@ int cif_value_init_numb(cif_value_t *n, double val, double su, int scale, int ma
  * here is sufficient for a 128-bit integer, so more than enough for any currently-known implementation.
  */
 #define BUF_SIZE 50
-int cif_value_autoinit_numb(cif_value_t *numb, double val, double su, unsigned int su_rule) {
+int cif_value_autoinit_numb(cif_value_tp *numb, double val, double su, unsigned int su_rule) {
     if ((su >= 0.0) && (su_rule >= 2)) {
         /* Arguments appear valid */
 
@@ -2262,11 +2262,11 @@ int cif_value_autoinit_numb(cif_value_t *numb, double val, double su, unsigned i
         return CIF_ARGUMENT_ERROR;
     }
 }
-cif_kind_t cif_value_kind(cif_value_t *value) {
+cif_kind_tp cif_value_kind(cif_value_tp *value) {
     return value->kind;
 }
 
-int cif_value_get_number(cif_value_t *n, double *val) {
+int cif_value_get_number(cif_value_tp *n, double *val) {
     if (n->kind != CIF_NUMB_KIND) {
         return CIF_ARGUMENT_ERROR;
     } else {
@@ -2278,7 +2278,7 @@ int cif_value_get_number(cif_value_t *n, double *val) {
     }
 }
 
-int cif_value_get_su(cif_value_t *n, double *su) {
+int cif_value_get_su(cif_value_tp *n, double *su) {
     if (n->kind != CIF_NUMB_KIND) {
         return CIF_ARGUMENT_ERROR;
     } else {
@@ -2292,7 +2292,7 @@ int cif_value_get_su(cif_value_t *n, double *su) {
     }
 }
 
-int cif_value_get_text(cif_value_t *value, UChar **text) {
+int cif_value_get_text(cif_value_tp *value, UChar **text) {
     UChar *text_copy;
 
     switch (value->kind) {
@@ -2316,7 +2316,7 @@ int cif_value_get_text(cif_value_t *value, UChar **text) {
 }
 
 int cif_value_get_element_count(
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t *count) {
     switch (value->kind) {
         case CIF_LIST_KIND:
@@ -2331,9 +2331,9 @@ int cif_value_get_element_count(
 }
 
 int cif_value_get_element_at(
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t **element) {
+        cif_value_tp **element) {
     if (value->kind != CIF_LIST_KIND) {
         return CIF_ARGUMENT_ERROR;
     } else if (index >= value->as_list.size) {
@@ -2345,15 +2345,15 @@ int cif_value_get_element_at(
 }
 
 int cif_value_set_element_at(
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t *element) {
+        cif_value_tp *element) {
     if (value->kind != CIF_LIST_KIND) {
         return CIF_ARGUMENT_ERROR;
     } else if (index >= value->as_list.size) {
         return CIF_INVALID_INDEX;
     } else {
-        cif_value_t *target = value->as_list.elements[index];
+        cif_value_tp *target = value->as_list.elements[index];
 
         if (target == element) {
             return CIF_OK;
@@ -2368,16 +2368,16 @@ int cif_value_set_element_at(
 }
 
 int cif_value_insert_element_at(
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t *element) {
+        cif_value_tp *element) {
     if (value->kind != CIF_LIST_KIND) {
         return CIF_ARGUMENT_ERROR;
     } else if (index > value->as_list.size) {
         return CIF_INVALID_INDEX;
     } else {
         FAILURE_HANDLING;
-        cif_value_t *clone = NULL;
+        cif_value_tp *clone = NULL;
         int result = ((element == NULL) ? cif_value_create(CIF_UNK_KIND, &clone) : cif_value_clone(element, &clone));
 
         if (result == CIF_OK) {
@@ -2386,13 +2386,13 @@ int cif_value_insert_element_at(
             if (value->as_list.size >= value->as_list.capacity) {
                 /* expand list capacity */
                 size_t new_cap;
-                cif_value_t **new_elements;
+                cif_value_tp **new_elements;
 
                 assert (value->as_list.size == value->as_list.capacity);
 
                 new_cap = value->as_list.capacity
                         + ((value->as_list.capacity < 10) ?  4 : (value->as_list.capacity / 2));
-                new_elements = (cif_value_t **) realloc(value->as_list.elements, sizeof(cif_value_t *) * new_cap);
+                new_elements = (cif_value_tp **) realloc(value->as_list.elements, sizeof(cif_value_tp *) * new_cap);
                 if (new_elements != NULL) {
                     value->as_list.elements = new_elements;
                     value->as_list.capacity = new_cap;
@@ -2422,9 +2422,9 @@ int cif_value_insert_element_at(
 }
 
 int cif_value_remove_element_at(
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t **element) {
+        cif_value_tp **element) {
     if (value->kind != CIF_LIST_KIND) {
         return CIF_ARGUMENT_ERROR;
     } else if (index >= value->as_list.size) {

@@ -14,8 +14,8 @@
 
 int main(void) {
     char test_name[80] = "test_create_block1";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
     U_STRING_DECL(block_code, "block", 6);
     UChar *code;
 

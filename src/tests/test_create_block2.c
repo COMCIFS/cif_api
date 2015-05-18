@@ -13,7 +13,7 @@
 
 int main(void) {
     char test_name[80] = "test_create_block2";
-    cif_t *cif = NULL;
+    cif_tp *cif = NULL;
 #define NUM_PATTERNS 8
     char code_patterns[NUM_PATTERNS][64] = {
         "",
@@ -42,7 +42,7 @@ int main(void) {
     };
     UChar buffer[CIF_LINE_LENGTH];
     int counter;
-    cif_block_t *block;
+    cif_block_tp *block;
 
 #define TO_U(s) TO_UNICODE((s), buffer, CIF_LINE_LENGTH)
 

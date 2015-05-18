@@ -40,11 +40,11 @@
 int main(int argc, char *argv[]) {
     struct cif_parse_opts_s *parse_opts;
     struct cif_write_opts_s *write_opts;
-    cif_t *cif = NULL;          /* it's important to initialize this pointer to NULL */
-    cif_block_t **all_blocks;
-    cif_block_t **current_block;
-    cif_packet_t *packet;
-    cif_value_t *value = NULL;  /* it's important to initialize this pointer to NULL */
+    cif_tp *cif = NULL;          /* it's important to initialize this pointer to NULL */
+    cif_block_tp **all_blocks;
+    cif_block_tp **current_block;
+    cif_packet_tp *packet;
+    cif_value_tp *value = NULL;  /* it's important to initialize this pointer to NULL */
     /*
      * NOTE: this sort of initialization works (only) as long as the source
      * character encoding is congruent with Unicode for the characters involved.
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 
     /* add the specified author to each block */
     for (current_block = all_blocks; *current_block; current_block += 1) {
-        cif_loop_t *author_loop;
+        cif_loop_tp *author_loop;
         int result = cif_container_get_item_loop(*current_block, authorname_name, &author_loop);
 
         switch (result) {

@@ -11,17 +11,16 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "test.h"
 
 int main(void) {
     char test_name[80] = "test_loop_set_category";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_block_t *block2 = NULL;
-    cif_frame_t *frame = NULL;
-    cif_loop_t *loop = NULL;
-    cif_loop_t *loop2 = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_loop_tp *loop = NULL;
+    cif_loop_tp *loop2 = NULL;
     UChar *temp;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(block2_code, "block2", 7);

@@ -13,9 +13,9 @@
 
 int main(void) {
     char test_name[80] = "test_block_get_frame";
-    cif_t *cif = NULL;
-    cif_block_t *block;
-    cif_frame_t *frame;
+    cif_tp *cif = NULL;
+    cif_block_tp *block;
+    cif_frame_tp *frame;
 #define NUM_PAIRS 3
     char code_pairs[NUM_PAIRS][2][64] = {
         {"Frame", "frAme"},

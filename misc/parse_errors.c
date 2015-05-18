@@ -3,7 +3,7 @@ int record_error(int error_code, size_t line, size_t column, const UChar *text, 
     return CIF_OK;
 }
 void count_errors(FILE *in) {
-    cif_t *cif = NULL;
+    cif_tp *cif = NULL;
     int num_errors = 0;
     struct cif_parse_opts_s *opts = NULL;
 

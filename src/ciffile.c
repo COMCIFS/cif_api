@@ -130,63 +130,63 @@ static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count,
 /*
  * Handles the beginning of a CIF by outputting a CIF version comment
  */
-static int write_cif_start(cif_t *cif, void *context);
+static int write_cif_start(cif_tp *cif, void *context);
 
 /*
  * Handles the end of a CIF by outputting a newline
  */
-static int write_cif_end(cif_t *cif, void *context);
+static int write_cif_end(cif_tp *cif, void *context);
 
 /*
  * Handles the beginning of a CIF data block by outputting a block header
  */
-static int write_container_start(cif_container_t *block, void *context);
+static int write_container_start(cif_container_tp *block, void *context);
 
 /*
  * Handles the end of a CIF data block by outputting a newline
  */
-static int write_container_end(cif_container_t *block, void *context);
+static int write_container_end(cif_container_tp *block, void *context);
 
 /*
  * Handles the beginning of a loop by outputting a loop header
  * (unless it is the scalar loop)
  */
-static int write_loop_start(cif_loop_t *loop, void *context);
+static int write_loop_start(cif_loop_tp *loop, void *context);
 
 /*
  * Handles the end of a loop by outputting a newline
  */
-static int write_loop_end(cif_loop_t *loop, void *context);
+static int write_loop_end(cif_loop_tp *loop, void *context);
 
 /*
  * Handles the beginning of a loop packet by doing nothing
  */
-static int write_packet_start(cif_packet_t *packet, void *context);
+static int write_packet_start(cif_packet_tp *packet, void *context);
 
 /*
  * Handles the end of a loop packet by outputting a newline
  */
-static int write_packet_end(cif_packet_t *packet, void *context);
+static int write_packet_end(cif_packet_tp *packet, void *context);
 
 /*
  * Handles a data item by outputting it, possibly preceded by its data name
  */
-static int write_item(UChar *name, cif_value_t *value, void *context);
+static int write_item(UChar *name, cif_value_tp *value, void *context);
 
 /*
  * An internal function for writing a list value.  Returns a CIF API result code.
  */
-static int write_list(void *context, cif_value_t *char_value);
+static int write_list(void *context, cif_value_tp *char_value);
 
 /*
  * An internal function for writing a table value.  Returns a CIF API result code.
  */
-static int write_table(void *context, cif_value_t *char_value);
+static int write_table(void *context, cif_value_tp *char_value);
 
 /*
  * An internal function for writing a char value in an appropriate form.  Returns a CIF API result code.
  */
-static int write_char(void *context, cif_value_t *char_value, int allow_text);
+static int write_char(void *context, cif_value_tp *char_value, int allow_text);
 
 /*
  * An internal function for writing a text block.  Returns a CIF API result code.
@@ -225,7 +225,7 @@ static int write_triple_quoted(void *context, const UChar *text, int32_t line1_l
 /*
  * An internal function for writing a NUMB value.  Returns a CIF API result code.
  */
-static int write_numb(void *context, cif_value_t *numb_value);
+static int write_numb(void *context, cif_value_tp *numb_value);
 
 /*
  * An internal function for outputting a literal byte string.  Returns the number of Unicode characters written,
@@ -246,7 +246,7 @@ static int32_t write_uliteral(void *context, const UChar *text, int length, int 
 static int write_newline(void *context);
 
 /* A CIF handler that handles nothing */
-static cif_handler_t DEFAULT_CIF_HANDLER = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+static cif_handler_tp DEFAULT_CIF_HANDLER = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 /* The CIF parsing options used when none are provided by the caller */
 static struct cif_parse_opts_s DEFAULT_OPTIONS =
@@ -326,11 +326,11 @@ int cif_write_options_create(struct cif_write_opts_s **opts) {
  * following code nevertheless assumes all those things to be true.
  */
 #define BUFFER_SIZE  4096
-int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
+int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_tp **cifp) {
     FAILURE_HANDLING;
     unsigned char buffer[BUFFER_SIZE];
     size_t count;
-    cif_t *cif;
+    cif_tp *cif;
     const char *encoding_name;
     uchar_stream_t ustream;
     UErrorCode error_code = U_ZERO_ERROR;
@@ -463,8 +463,8 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_t **cifp) {
  * Formats the CIF data represented by the 'cif' handle to the specified
  * output.
  */
-int cif_write(FILE *stream, struct cif_write_opts_s *options UNUSED, cif_t *cif) {
-    cif_handler_t handler = {
+int cif_write(FILE *stream, struct cif_write_opts_s *options UNUSED, cif_tp *cif) {
+    cif_handler_tp handler = {
         write_cif_start,
         write_cif_end,
         write_container_start,
@@ -580,18 +580,18 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
 }
 
 
-static int write_cif_start(cif_t *cif UNUSED, void *context) {
+static int write_cif_start(cif_tp *cif UNUSED, void *context) {
     int num_written = u_fprintf(CONTEXT_UFILE(context), "#\\#CIF_2.0\n");
 
     SET_LAST_COLUMN(context, 0);
     return ((num_written > 0) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
-static int write_cif_end(cif_t *cif UNUSED, void *context) {
+static int write_cif_end(cif_tp *cif UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
-static int write_container_start(cif_container_t *block, void *context) {
+static int write_container_start(cif_container_tp *block, void *context) {
     UChar *code;
     int result = cif_container_get_code(block, &code);
     const char *this_header_type = header_type[(CONTEXT_DEPTH(context) == 0) ? 0 : 1];
@@ -607,7 +607,7 @@ static int write_container_start(cif_container_t *block, void *context) {
     return result;
 }
 
-static int write_container_end(cif_container_t *block UNUSED, void *context) {
+static int write_container_end(cif_container_tp *block UNUSED, void *context) {
     CONTEXT_INC_DEPTH(context, -1);
     SET_LAST_COLUMN(context, 0);  /* anticipates the next line */
     if (CONTEXT_DEPTH(context) == 0) {
@@ -617,7 +617,7 @@ static int write_container_end(cif_container_t *block UNUSED, void *context) {
     }
 }
 
-static int write_loop_start(cif_loop_t *loop, void *context) {
+static int write_loop_start(cif_loop_tp *loop, void *context) {
     UChar *category;
     int result;
 
@@ -670,20 +670,20 @@ static int write_loop_start(cif_loop_t *loop, void *context) {
     return result;
 }
 
-static int write_loop_end(cif_loop_t *loop UNUSED, void *context) {
+static int write_loop_end(cif_loop_tp *loop UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
-static int write_packet_start(cif_packet_t *packet UNUSED, void *context UNUSED) {
+static int write_packet_start(cif_packet_tp *packet UNUSED, void *context UNUSED) {
     /* No particular action */
     return CIF_TRAVERSE_CONTINUE;
 }
 
-static int write_packet_end(cif_packet_t *packet UNUSED, void *context) {
+static int write_packet_end(cif_packet_tp *packet UNUSED, void *context) {
     return (write_newline(context) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
 }
 
-static int write_item(UChar *name, cif_value_t *value, void *context) {
+static int write_item(UChar *name, cif_value_tp *value, void *context) {
     FAILURE_HANDLING;
     int temp;
 
@@ -734,7 +734,7 @@ static int write_item(UChar *name, cif_value_t *value, void *context) {
     FAILURE_TERMINUS;
 }
 
-static int write_list(void *context, cif_value_t *list_value) {
+static int write_list(void *context, cif_value_tp *list_value) {
     size_t count;
     
     if (cif_value_get_element_count(list_value, &count) != CIF_OK) {
@@ -749,7 +749,7 @@ static int write_list(void *context, cif_value_t *list_value) {
         SET_WRITE_ITEM_NAMES(context, CIF_FALSE);
         SET_SEPARATE_VALUES(context, CIF_TRUE);
         for (index = 0; index < count; index += 1) {
-            cif_value_t *element;
+            cif_value_tp *element;
             int result;
 
             if (cif_value_get_element_at(list_value, index, &element) != CIF_OK) {
@@ -771,7 +771,7 @@ static int write_list(void *context, cif_value_t *list_value) {
     return CIF_ERROR;
 }
 
-static int write_table(void *context, cif_value_t *table_value) {
+static int write_table(void *context, cif_value_tp *table_value) {
     FAILURE_HANDLING;
     const UChar **keys;
     int result;
@@ -787,8 +787,8 @@ static int write_table(void *context, cif_value_t *table_value) {
 
             SET_WRITE_ITEM_NAMES(context, CIF_FALSE);
             for (key = keys; *key; key += 1) {
-                cif_value_t *kv = NULL;
-                cif_value_t *value = NULL;
+                cif_value_tp *kv = NULL;
+                cif_value_tp *value = NULL;
 
                 if (cif_value_get_item_by_key(table_value, *key, &value) != CIF_OK) {
                     FAIL(soft, CIF_INTERNAL_ERROR);
@@ -845,7 +845,7 @@ static int write_table(void *context, cif_value_t *table_value) {
     FAILURE_TERMINUS;
 }
 
-static int write_char(void *context, cif_value_t *char_value, int allow_text) {
+static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
     int result;
     UChar *text;
 
@@ -1202,7 +1202,7 @@ static int write_triple_quoted(void *context, const UChar *text, int32_t line1_l
     return (nchars >= (line1_length + 6)) ? CIF_OK : CIF_ERROR;
 }
 
-static int write_numb(void *context, cif_value_t *numb_value) {
+static int write_numb(void *context, cif_value_tp *numb_value) {
     int result;
     UChar *text;
 

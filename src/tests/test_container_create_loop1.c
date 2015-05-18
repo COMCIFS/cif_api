@@ -11,17 +11,16 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "test.h"
 
 int main(void) {
     char test_name[80] = "test_container_create_loop1";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_block_t *block2 = NULL;
-    cif_frame_t *frame = NULL;
-    cif_frame_t *frame2 = NULL;
-    cif_loop_t *loop = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_frame_tp *frame2 = NULL;
+    cif_loop_tp *loop = NULL;
 #define NUM_NAMES 8
 #define BUFLEN 64
     const char name_patterns[NUM_NAMES][BUFLEN] = {
@@ -73,7 +72,7 @@ int main(void) {
     /* Verify that none of the blocks or frames under test already (think they) have the target loops */
 
 #define CHECK_CATEGORY_ABSENT(container, category, subtest) do { \
-        cif_container_t *_cont = (container); \
+        cif_container_tp *_cont = (container); \
         UChar *cat = (category); \
         int _st = (subtest); \
         if (cif_container_get_category_loop(_cont, cat, NULL) != CIF_NOSUCH_LOOP) { \
@@ -82,7 +81,7 @@ int main(void) {
         } \
     } while (0)
 #define CHECK_ITEM_ABSENT(container, item, subtest) do { \
-        cif_container_t *_cont = (container); \
+        cif_container_tp *_cont = (container); \
         UChar *itm = (item); \
         int _st = (subtest); \
         if (cif_container_get_item_loop(_cont, itm, NULL) != CIF_NOSUCH_ITEM) { \
@@ -91,7 +90,7 @@ int main(void) {
         } \
     } while (0)
 #define TEST_LOOP_ABSENT(container, subtest) do { \
-        cif_container_t *cont = (container); \
+        cif_container_tp *cont = (container); \
         int st = (subtest); \
         CHECK_CATEGORY_ABSENT(cont, category,  st); \
         CHECK_CATEGORY_ABSENT(cont, category2, st); \
@@ -102,7 +101,7 @@ int main(void) {
         } \
     } while (0)
 #define TEST_LOOP_PRESENT(container, category, names, subtest) do { \
-        cif_container_t *cont = (container); \
+        cif_container_tp *cont = (container); \
         UChar *cat = (category); \
         UChar **name_strings = (names); \
         int st = (subtest); \

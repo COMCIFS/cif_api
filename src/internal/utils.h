@@ -291,14 +291,14 @@ extern int total_queries;
  * Releases any resources associated with the named prepared statement of the
  * specified CIF, and clears the pointer to it.  Any error is ignored.
  *
- * c: an expression of type cif_t or, equivalently, cif_t *,
+ * c: an expression of type cif_tp or, equivalently, cif_tp *,
  *    representing the CIF whose prepared statement is to be dropped.
  *    It is an error for the expression to evaluate to NULL at runtime.
  * stmt_name: the name of the statement to drop, less the trailing "_stmt"
  *    tag, as plain text.
  */
 #define DROP_STMT(c, stmt_name) do { \
-    cif_t *d_cif = (c); \
+    cif_tp *d_cif = (c); \
     sqlite3_finalize(d_cif->stmt_name##_stmt); \
     d_cif->stmt_name##_stmt = NULL; \
 } while (0)
@@ -309,7 +309,7 @@ extern int total_queries;
  * be returned from the context function if a presumed-usable statement is
  * not ultimately prepared.
  *
- * c: an expression of type cif_t or, equivalently, cif_t *,
+ * c: an expression of type cif_tp or, equivalently, cif_tp *,
  *    representing the CIF for which to prepare a statement.
  *    It is an error for the expression to evaluate to NULL at runtime.
  * stmt_name: the name of the statement to prepare, less the trailing "_stmt"
@@ -318,7 +318,7 @@ extern int total_queries;
  *    null-terminated UTF-8 byte string
  */
 #define PREPARE_STMT(c, stmt_name, sql) do { \
-    cif_t *p_cif = (c); \
+    cif_tp *p_cif = (c); \
     int _t; \
     if ((p_cif->stmt_name##_stmt == NULL) \
             || (IS_HARD_ERROR(DEBUG_WRAP(p_cif->db, sqlite3_reset(p_cif->stmt_name##_stmt)), _t) != 0) \
@@ -413,9 +413,9 @@ extern int total_queries;
 #define SET_VALUE_PROPS(stmt, col_ofs, val, onsqlerr, ondataerr) do { \
     sqlite3_stmt *s = (stmt); \
     int ofs = (col_ofs); \
-    cif_value_t *v = (val); \
+    cif_value_tp *v = (val); \
     double svp_d; \
-    buffer_t *buf; \
+    buffer_tp *buf; \
     int _svp_result; \
     if (sqlite3_bind_int(s, 1 + ofs, v->kind) != SQLITE_OK) { \
         DEFAULT_FAIL(onsqlerr); \
@@ -458,10 +458,10 @@ extern int total_queries;
 /* column order: kind, val, val_text, val_digits, su_digits, scale */
 #define GET_VALUE_PROPS(_s, _ofs, _val, errlabel) do { \
     sqlite3_stmt *_stmt = (_s); \
-    cif_value_t *_value = (_val); \
+    cif_value_tp *_value = (_val); \
     int _col_ofs = (_ofs); \
     const void *_blob; \
-    _value->kind = (cif_kind_t) sqlite3_column_int(_stmt, _col_ofs); \
+    _value->kind = (cif_kind_tp) sqlite3_column_int(_stmt, _col_ofs); \
     switch (_value->kind) { \
         case CIF_CHAR_KIND: \
             GET_COLUMN_STRING(_stmt, _col_ofs + 2, _value->as_char.text, HANDLER_LABEL(errlabel)); \
@@ -510,10 +510,10 @@ extern "C" {
  * nonzero)
  */
 int cif_create_block_internal(
-        cif_t *cif,
+        cif_tp *cif,
         const UChar *code,
         int lenient,
-        cif_block_t **block
+        cif_block_tp **block
         ) INTERNAL ;
 
 /*
@@ -521,10 +521,10 @@ int cif_create_block_internal(
  * validation to be suppressed (when 'lenient' is nonzero)
  */
 int cif_container_create_frame_internal(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *code,
         int lenient,
-        cif_frame_t **frame
+        cif_frame_tp **frame
         ) INTERNAL ;
 
 /*
@@ -532,10 +532,10 @@ int cif_container_create_frame_internal(
  * of changes (== the number of loop packets) back to the caller
  */
 int cif_loop_add_item_internal(
-        cif_loop_t *loop,
+        cif_loop_tp *loop,
         const UChar *item_name,
         const UChar *norm_name,
-        cif_value_t *val,
+        cif_value_tp *val,
         int *changes
         ) INTERNAL ;
 
@@ -551,7 +551,7 @@ int cif_loop_add_item_internal(
  *         for the provided names.
  */
 int cif_packet_create_norm(
-        cif_packet_t **packet,
+        cif_packet_tp **packet,
         UChar **names,
         int avoid_aliasing
         ) INTERNAL;
@@ -662,8 +662,8 @@ CIF_VOIDFUNC_DECL(cif_map_entry_free_internal, (
  * Returns NULL if serialization fails (most likely because of insufficient memory).
  */
 int cif_value_serialize(
-        cif_value_t *value,
-        buffer_t **buf
+        cif_value_tp *value,
+        buffer_tp **buf
         ) INTERNAL;
 
 /*
@@ -673,7 +673,7 @@ int cif_value_serialize(
 int cif_value_deserialize(
         const void *src,
         size_t len,
-        cif_value_t *dest
+        cif_value_tp *dest
         ) INTERNAL;
 
 /*
@@ -683,9 +683,9 @@ int cif_value_deserialize(
  * transaction management is performed.
  */
 int cif_container_set_all_values(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
-        cif_value_t *val
+        cif_value_tp *val
         ) INTERNAL;
 
 /*
@@ -693,7 +693,7 @@ int cif_container_set_all_values(
  * use by the library -- client code should instead call cif_pkitr_close() or cif_pktitr_abort().
  */
 void cif_pktitr_free(
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ) INTERNAL_VOID;
 
 /*
@@ -704,14 +704,14 @@ void cif_pktitr_free(
  *         and an initial CIF version assertion / evaluation
  * @param[in] not_utf8 if non-zero, indicates that the characters provided by the scanner's character source are known
  *         to be derived from an encoded byte sequence via an encoding different from UTF-8
- * @param[in,out] dest a pointer to a @c cif_t object to update with the CIF data read from the provided source.  May
+ * @param[in,out] dest a pointer to a @c cif_tp object to update with the CIF data read from the provided source.  May
  *         be NULL, in which case a semantic-free syntax check of the provided character stream is performed without
  *         recording anything
  */
 int cif_parse_internal(
         struct scanner_s *scanner,
         int not_utf8,
-        cif_t *dest
+        cif_tp *dest
         ) INTERNAL;
 
 #ifdef __cplusplus

@@ -12,23 +12,22 @@
 #include "../cif.h"
 #include "uthash.h"
 
-#define USE_USTDERR
 #include "test.h"
 
 int main(void) {
     char test_name[80] = "test_container_remove_item";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_frame_t *frame = NULL;
-    cif_loop_t *loop = NULL;
-    cif_loop_t *loop2 = NULL;
-    cif_packet_t *packet = NULL;
-    cif_packet_t *packet2 = NULL;
-    cif_pktitr_t *iterator = NULL;
-    cif_value_t *value = NULL;
-    cif_value_t *value1 = NULL;
-    cif_value_t *value2 = NULL;
-    cif_value_t *value3 = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_loop_tp *loop = NULL;
+    cif_loop_tp *loop2 = NULL;
+    cif_packet_tp *packet = NULL;
+    cif_packet_tp *packet2 = NULL;
+    cif_pktitr_tp *iterator = NULL;
+    cif_value_tp *value = NULL;
+    cif_value_tp *value1 = NULL;
+    cif_value_tp *value2 = NULL;
+    cif_value_tp *value3 = NULL;
     UChar *names[5];
     int i;
     double d;

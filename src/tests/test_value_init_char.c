@@ -12,7 +12,7 @@
 
 int main(void) {
     char test_name[80] = "test_value_init_char";
-    cif_value_t *value;
+    cif_value_tp *value;
     UChar buffer[240];
     UChar *init_text;
     UChar *text;

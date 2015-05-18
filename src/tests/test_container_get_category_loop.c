@@ -15,10 +15,10 @@
 
 int main(void) {
     char test_name[80] = "test_container_get_category_loop";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_block_t *block2 = NULL;
-    cif_loop_t *loop = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_loop_tp *loop = NULL;
     UChar *item_names[4] = { NULL, NULL, NULL, NULL };
     UChar **test_names;
     U_STRING_DECL(block_code, "block", 6);

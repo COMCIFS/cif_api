@@ -27,8 +27,8 @@ int main(void) {
         "comment_only.cif"
     };
     char file_name[BUFFER_SIZE];
-    cif_t *cif = NULL;
-    cif_block_t **block_list;
+    cif_tp *cif = NULL;
+    cif_block_tp **block_list;
     int count;
 
     /* Initialize data and prepare the test fixture */

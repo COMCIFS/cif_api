@@ -19,15 +19,15 @@ int main(void) {
     char local_file_name[] = "simple_containers.cif";
     char file_name[BUFFER_SIZE];
     FILE * cif_file;
-    cif_t *cif = NULL;
-    cif_block_t **block_list;
-    cif_block_t **block_p;
-    cif_block_t *block = NULL;
-    cif_block_t *block2 = NULL;
-    cif_frame_t **frame_list;
-    cif_frame_t **frame_p;
-    cif_frame_t *frame = NULL;
-    cif_frame_t *frame2 = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp **block_list;
+    cif_block_tp **block_p;
+    cif_block_tp *block = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_frame_tp **frame_list;
+    cif_frame_tp **frame_p;
+    cif_frame_tp *frame = NULL;
+    cif_frame_tp *frame2 = NULL;
     UChar *ustr = NULL;
     size_t count;
 

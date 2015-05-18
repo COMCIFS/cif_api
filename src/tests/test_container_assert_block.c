@@ -14,9 +14,9 @@
 
 int main(void) {
     char test_name[80] = "test_container_assert_block";
-    cif_t *cif = NULL;
-    cif_container_t *block = NULL;
-    cif_container_t *frame = NULL;
+    cif_tp *cif = NULL;
+    cif_container_tp *block = NULL;
+    cif_container_tp *frame = NULL;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
 

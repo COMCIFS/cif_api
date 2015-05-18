@@ -52,11 +52,9 @@ struct set_el {
     UT_hash_handle hh;
 };
 
-#ifdef USE_USTDERR
 static UFILE *ustderr = NULL;
 
 #define INIT_USTDERR do { if (ustderr == NULL) ustderr = u_finit(stderr, NULL, NULL); } while (0)
-#endif
 
 #define TESTHEADER(name) do { \
   fprintf(stderr, "\n-- %s --\n", (name)); \

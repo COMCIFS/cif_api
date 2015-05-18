@@ -15,11 +15,11 @@
 
 int main(void) {
     char test_name[80] = "test_nesting";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_value_t *value;
-    cif_value_t *value1;
-    cif_value_t *value2;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_value_tp *value;
+    cif_value_tp *value1;
+    cif_value_tp *value2;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(item1l, "_item1", 7);
 

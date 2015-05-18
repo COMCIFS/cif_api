@@ -17,15 +17,15 @@
 
 int main(void) {
     char test_name[80] = "test_loop_destroy";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_frame_t *frame = NULL;
-    cif_loop_t *loop;
-    cif_loop_t *loop1;
-    cif_loop_t *loop2;
-    cif_packet_t *packet;
-    cif_value_t *value1;
-    cif_value_t *value2;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_loop_tp *loop;
+    cif_loop_tp *loop1;
+    cif_loop_tp *loop2;
+    cif_packet_tp *packet;
+    cif_value_tp *value1;
+    cif_value_tp *value2;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
     U_STRING_DECL(item1l, "_item1", 7);

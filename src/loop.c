@@ -21,7 +21,7 @@
 static const char MULTIPLE_SCALAR_MESSAGE[49] = "Attempted to create multiple values for a scalar";
 
 static int dup_ustrings(UChar ***dest, UChar *src[]);
-static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, int normalize);
+static int cif_loop_get_names_internal(cif_loop_tp *loop, UChar ***item_names, int normalize);
 
 static int dup_ustrings(UChar ***dest, UChar *src[]) {
     if (src == NULL) {
@@ -77,7 +77,7 @@ extern "C" {
 
 /* safe to be called by anyone */
 void cif_loop_free(
-        cif_loop_t *loop
+        cif_loop_tp *loop
         ) {
     if (loop->category != NULL) free(loop->category);
     if (loop->names != NULL) {
@@ -92,11 +92,11 @@ void cif_loop_free(
 
 /* safe to be called by anyone */
 int cif_loop_destroy(
-        cif_loop_t *loop
+        cif_loop_tp *loop
         ) {
     FAILURE_HANDLING;
-    cif_container_t *container = loop->container;
-    cif_t *cif;
+    cif_container_tp *container = loop->container;
+    cif_tp *cif;
 
     if (container == NULL) {
         return CIF_INVALID_HANDLE;
@@ -136,7 +136,7 @@ int cif_loop_destroy(
 }
 
 /* does not touch the database */
-int cif_loop_get_category(cif_loop_t *loop, UChar **category) {
+int cif_loop_get_category(cif_loop_tp *loop, UChar **category) {
     if (loop->category == NULL) {
         *category = NULL;
         return CIF_OK;
@@ -152,8 +152,8 @@ int cif_loop_get_category(cif_loop_t *loop, UChar **category) {
     }
 }
 
-int cif_loop_set_category(cif_loop_t *loop, const UChar *category) {
-    cif_container_t *container = loop->container;
+int cif_loop_set_category(cif_loop_tp *loop, const UChar *category) {
+    cif_container_tp *container = loop->container;
     UChar *category_temp;
 
     if (category == NULL) {
@@ -188,7 +188,7 @@ int cif_loop_set_category(cif_loop_t *loop, const UChar *category) {
 
         return CIF_OK;
     } else {
-        cif_t *cif = container->cif;
+        cif_tp *cif = container->cif;
 
         if (cif == NULL) {
             return CIF_ERROR;
@@ -243,15 +243,15 @@ int cif_loop_set_category(cif_loop_t *loop, const UChar *category) {
 }
 
 /* safe to be called by anyone */
-int cif_loop_get_names(cif_loop_t *loop, UChar ***item_names) {
+int cif_loop_get_names(cif_loop_tp *loop, UChar ***item_names) {
     return cif_loop_get_names_internal(loop, item_names, CIF_FALSE);
 }
 
 /* safe to be called by anyone */
 int cif_loop_add_item(
-        cif_loop_t *loop,
+        cif_loop_tp *loop,
         const UChar *item_name,
-        cif_value_t *val
+        cif_value_tp *val
         ) {
     UChar *norm_name;
     int changes;  /* ignored */
@@ -260,7 +260,7 @@ int cif_loop_add_item(
     if ((loop == NULL) || (loop->container == NULL) || (loop->container->cif == NULL)) {
         return CIF_INVALID_HANDLE;
     } else {
-        cif_value_t *default_val;
+        cif_value_tp *default_val;
 
         if (val) {
             default_val = val;
@@ -279,16 +279,16 @@ int cif_loop_add_item(
 }
 
 int cif_loop_add_item_internal(
-        cif_loop_t *loop,
+        cif_loop_tp *loop,
         const UChar *item_name,
         const UChar *norm_name,
-        cif_value_t *val,
+        cif_value_tp *val,
         int *changes
         ) {
     FAILURE_HANDLING;
     NESTTX_HANDLING;
-    cif_container_t *container = loop->container;
-    cif_t *cif = container->cif;
+    cif_container_tp *container = loop->container;
+    cif_tp *cif = container->cif;
 
     /*
      * Create any needed prepared statements, or prepare the existing one(s)
@@ -349,13 +349,13 @@ int cif_loop_add_item_internal(
 
 /* safe to be called by anyone */
 int cif_loop_add_packet(
-        cif_loop_t *loop,
-        cif_packet_t *packet
+        cif_loop_tp *loop,
+        cif_packet_tp *packet
         ) {
     FAILURE_HANDLING;
     NESTTX_HANDLING;
-    cif_container_t *container = loop->container;
-    cif_t *cif;
+    cif_container_tp *container = loop->container;
+    cif_tp *cif;
 
     if (container == NULL) {
         return CIF_INVALID_HANDLE;
@@ -496,13 +496,13 @@ int cif_loop_add_packet(
 
 /* not safe to be called by other library functions */
 int cif_loop_get_packets(
-        cif_loop_t *loop,
-        cif_pktitr_t **iterator
+        cif_loop_tp *loop,
+        cif_pktitr_tp **iterator
         ) {
     FAILURE_HANDLING;
-    cif_container_t *container = loop->container;
-    cif_t *cif;
-    cif_pktitr_t *temp_it;
+    cif_container_tp *container = loop->container;
+    cif_tp *cif;
+    cif_pktitr_tp *temp_it;
 
     if (container == NULL) {
         return CIF_INVALID_HANDLE;
@@ -512,7 +512,7 @@ int cif_loop_get_packets(
         cif = container->cif;
     }
 
-    temp_it = (cif_pktitr_t *) malloc(sizeof(cif_pktitr_t));
+    temp_it = (cif_pktitr_tp *) malloc(sizeof(cif_pktitr_tp));
     if (!temp_it) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -578,8 +578,8 @@ int cif_loop_get_packets(
 }
 #endif
 
-static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, int normalize) {
-    cif_container_t *container = loop->container;
+static int cif_loop_get_names_internal(cif_loop_tp *loop, UChar ***item_names, int normalize) {
+    cif_container_tp *container = loop->container;
 
     if (item_names == NULL) {
         return CIF_ARGUMENT_ERROR;
@@ -591,7 +591,7 @@ static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, in
     } else {
         FAILURE_HANDLING;
         NESTTX_HANDLING;
-        cif_t *cif = container->cif;
+        cif_tp *cif = container->cif;
 
         /*
          * Create any needed prepared statements, or prepare the existing one(s)
@@ -606,9 +606,9 @@ static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, in
                     && (sqlite3_bind_int64(cif->get_loop_names_stmt, 2, loop->loop_num) == SQLITE_OK)) {
                 STEP_HANDLING;
                 int name_count = 0;
-                string_element_t *name_list = NULL;
-                string_element_t *next_name;
-                string_element_t *temp_name;
+                string_element_tp *name_list = NULL;
+                string_element_tp *next_name;
+                string_element_tp *temp_name;
 
                 while (CIF_TRUE) {
                     UChar **temp_names;
@@ -616,7 +616,7 @@ static int cif_loop_get_names_internal(cif_loop_t *loop, UChar ***item_names, in
                     /* read the names and copy them into application space */
                     switch (STEP_STMT(cif, get_loop_names)) {
                         case SQLITE_ROW:
-                            next_name = (string_element_t *) malloc(sizeof(string_element_t));
+                            next_name = (string_element_tp *) malloc(sizeof(string_element_tp));
 
                             if (next_name != NULL) {
                                 GET_COLUMN_STRING(cif->get_loop_names_stmt, 0, next_name->string, HANDLER_LABEL(name));

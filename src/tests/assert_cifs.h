@@ -50,7 +50,7 @@ struct comparison_context_s {
  * Asserts that the two provided CIFs are equivalent, meaning that they have the same block codes
  * and that their corresponding blocks are equivalent
  */
-static int assert_cifs_equal(cif_t *cif1, cif_t *cif2);
+static int assert_cifs_equal(cif_tp *cif1, cif_tp *cif2);
 
 /*
  * The following cif_handler callback functions jointly implement an equivalency comparison for whole CIFs.  The
@@ -58,21 +58,21 @@ static int assert_cifs_equal(cif_t *cif1, cif_t *cif2);
  * appear in the same order in their loops, that simplifies the implementation and is satisfactory for the purposes
  * for which this is intended.
  */
-static int handle_cif_comparison(cif_t *cif, void *context);
-static int finish_cif_comparison(cif_t *cif, void *context);
-static int handle_block_comparison(cif_container_t *block, void *context);
-static int handle_frame_comparison(cif_container_t *frame, void *context);
-static int finish_container_comparison(cif_container_t *container, void *context);
-static int handle_container(cif_container_t *container, cif_container_t *other_container,
+static int handle_cif_comparison(cif_tp *cif, void *context);
+static int finish_cif_comparison(cif_tp *cif, void *context);
+static int handle_block_comparison(cif_container_tp *block, void *context);
+static int handle_frame_comparison(cif_container_tp *frame, void *context);
+static int finish_container_comparison(cif_container_tp *container, void *context);
+static int handle_container(cif_container_tp *container, cif_container_tp *other_container,
         struct comparison_context_s *context);
-static int handle_loop_comparison(cif_loop_t *loop, void *context);
-static int finish_loop_comparison(cif_loop_t *loop, void *context);
-static int handle_packet_comparison(cif_packet_t *packet, void *context);
-static int finish_packet_comparison(cif_packet_t *packet, void *context);
-static int handle_item_comparison(UChar *name, cif_value_t *value, void *context);
+static int handle_loop_comparison(cif_loop_tp *loop, void *context);
+static int finish_loop_comparison(cif_loop_tp *loop, void *context);
+static int handle_packet_comparison(cif_packet_tp *packet, void *context);
+static int finish_packet_comparison(cif_packet_tp *packet, void *context);
+static int handle_item_comparison(UChar *name, cif_value_tp *value, void *context);
 
-static int assert_cifs_equal(cif_t *cif1, cif_t *cif2) {
-    cif_handler_t comparison_handler = {
+static int assert_cifs_equal(cif_tp *cif1, cif_tp *cif2) {
+    cif_handler_tp comparison_handler = {
             handle_cif_comparison,       /* cif_start */
             finish_cif_comparison,       /* cif_end */
             handle_block_comparison,     /* block_start */
@@ -101,15 +101,15 @@ static int assert_cifs_equal(cif_t *cif1, cif_t *cif2) {
     return ((result == CIF_OK) && context.equal);
 }
 
-static int handle_cif_comparison(cif_t *cif UNUSED, void *context) {
+static int handle_cif_comparison(cif_tp *cif UNUSED, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
-    cif_t *other = (cif_t *) comp_context->other_cif;
+    cif_tp *other = (cif_tp *) comp_context->other_cif;
     struct context_stack_s *stack_p;
-    cif_block_t **blocks;
+    cif_block_tp **blocks;
     int block_count = 0;
 
     if (cif_get_all_blocks(other, &blocks) == CIF_OK) {
-        cif_block_t **next_block_p;
+        cif_block_tp **next_block_p;
 
         for (next_block_p = blocks; *next_block_p; next_block_p += 1) {
             block_count += 1;
@@ -138,7 +138,7 @@ static int handle_cif_comparison(cif_t *cif UNUSED, void *context) {
     return CIF_TRAVERSE_END;
 }
 
-static int finish_cif_comparison(cif_t *cif UNUSED, void *context) {
+static int finish_cif_comparison(cif_tp *cif UNUSED, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
 
@@ -152,16 +152,16 @@ static int finish_cif_comparison(cif_t *cif UNUSED, void *context) {
     return CIF_TRAVERSE_CONTINUE;
 }
 
-static int handle_block_comparison(cif_container_t *block, void *context) {
+static int handle_block_comparison(cif_container_tp *block, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
-    cif_t *other_cif;
+    cif_tp *other_cif;
     UChar *my_code;
 
     assert(stack_p);
-    other_cif = (cif_t *) stack_p->item;
+    other_cif = (cif_tp *) stack_p->item;
     if(cif_container_get_code(block, &my_code) == CIF_OK) {
-        cif_container_t *other_block;
+        cif_container_tp *other_block;
         int result = cif_get_block(other_cif, my_code, &other_block);
 
         free(my_code);
@@ -178,16 +178,16 @@ static int handle_block_comparison(cif_container_t *block, void *context) {
     return CIF_TRAVERSE_END;
 }
 
-static int handle_frame_comparison(cif_container_t *frame, void *context) {
+static int handle_frame_comparison(cif_container_tp *frame, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
-    cif_container_t *other_container;
+    cif_container_tp *other_container;
     UChar *my_code;
 
     assert(stack_p);
-    other_container = (cif_container_t *) stack_p->item;
+    other_container = (cif_container_tp *) stack_p->item;
     if(cif_container_get_code(frame, &my_code) == CIF_OK) {
-        cif_container_t *other_frame;
+        cif_container_tp *other_frame;
         int result = cif_container_get_frame(other_container, my_code, &other_frame);
 
         free(my_code);
@@ -204,14 +204,14 @@ static int handle_frame_comparison(cif_container_t *frame, void *context) {
     return CIF_TRAVERSE_END;
 }
 
-static int handle_container(cif_container_t *container, cif_container_t *other_container,
+static int handle_container(cif_container_tp *container, cif_container_tp *other_container,
         struct comparison_context_s *context) {
     struct context_stack_s *stack_p;
-    cif_container_t **frames;
+    cif_container_tp **frames;
 
     if (cif_container_get_all_frames(container, &frames) == CIF_OK) {
-        cif_container_t **frame_p;
-        cif_loop_t **loops;
+        cif_container_tp **frame_p;
+        cif_loop_tp **loops;
         int frame_count = 0;
 
         for (frame_p = frames; *frame_p; frame_p += 1) {
@@ -221,7 +221,7 @@ static int handle_container(cif_container_t *container, cif_container_t *other_c
         free(frames);
 
         if (cif_container_get_all_loops(container, &loops) == CIF_OK) {
-            cif_loop_t **loop_p;
+            cif_loop_tp **loop_p;
             int loop_count = 0;
 
             for (loop_p = loops; *loop_p; loop_p += 1) {
@@ -251,7 +251,7 @@ static int handle_container(cif_container_t *container, cif_container_t *other_c
     return CIF_TRAVERSE_END;
 }
 
-static int finish_container_comparison(cif_container_t *container UNUSED, void *context) {
+static int finish_container_comparison(cif_container_tp *container UNUSED, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
     int rval;
@@ -268,27 +268,27 @@ static int finish_container_comparison(cif_container_t *container UNUSED, void *
     } else {
         rval = CIF_TRAVERSE_CONTINUE;
     }
-    cif_container_free((cif_container_t *) stack_p->item);
+    cif_container_free((cif_container_tp *) stack_p->item);
     free(stack_p);
 
     return rval;
 }
 
-static int handle_loop_comparison(cif_loop_t *loop, void *context) {
+static int handle_loop_comparison(cif_loop_tp *loop, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
-    cif_container_t *other_container;
+    cif_container_tp *other_container;
     UChar **my_data_names;
     int is_equal = 0;
 
     assert(stack_p);
-    other_container = (cif_container_t *) stack_p->item;
+    other_container = (cif_container_tp *) stack_p->item;
 
     /* ignores loop categories */
 
     if (cif_loop_get_names(loop, &my_data_names) == CIF_OK) {
         UChar **my_name_p = my_data_names;
-        cif_loop_t *other_loop;
+        cif_loop_tp *other_loop;
 
         /* Retrieve the analogous loop */
         assert(*my_data_names);
@@ -333,7 +333,7 @@ static int handle_loop_comparison(cif_loop_t *loop, void *context) {
 
                     if ((*my_name_p == NULL) && (HASH_COUNT(other_datanames_head) == 0)) {
                         /* all names matched with none left over */
-                        cif_pktitr_t *other_packets;
+                        cif_pktitr_tp *other_packets;
 
                         if (cif_loop_get_packets(other_loop, &other_packets) == CIF_OK) {
                             int ignored;
@@ -409,17 +409,17 @@ static int handle_loop_comparison(cif_loop_t *loop, void *context) {
     return (is_equal ? CIF_TRAVERSE_CONTINUE : CIF_TRAVERSE_END);
 }
 
-static int finish_loop_comparison(cif_loop_t *loop UNUSED, void *context) {
+static int finish_loop_comparison(cif_loop_tp *loop UNUSED, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
-    cif_pktitr_t *other_packets;
-    cif_loop_t *other_loop;
+    cif_pktitr_tp *other_packets;
+    cif_loop_tp *other_loop;
     int ignored;
     int rval;
 
     assert(stack_p);
     comp_context->parent = stack_p->next;
-    other_packets = (cif_pktitr_t *) stack_p->item;
+    other_packets = (cif_pktitr_tp *) stack_p->item;
     if ((stack_p->children_remaining == 0) || (cif_pktitr_next_packet(other_packets, NULL) != CIF_FINISHED)) {
         /* differing numbers of loop packets */
         if (comp_context->verbose) {
@@ -437,21 +437,21 @@ static int finish_loop_comparison(cif_loop_t *loop UNUSED, void *context) {
     assert(stack_p);
     comp_context->parent = stack_p->next;
     comp_context->parent->elements_remaining -= 1;
-    other_loop = (cif_loop_t *) stack_p->item;
+    other_loop = (cif_loop_tp *) stack_p->item;
     cif_loop_free(other_loop);
     free(stack_p);
 
     return rval;
 }
 
-static int handle_packet_comparison(cif_packet_t *packet UNUSED, void *context) {
+static int handle_packet_comparison(cif_packet_tp *packet UNUSED, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
-    cif_pktitr_t *other_packets;
-    cif_packet_t *other_packet = NULL;
+    cif_pktitr_tp *other_packets;
+    cif_packet_tp *other_packet = NULL;
 
     assert(stack_p);
-    other_packets = (cif_pktitr_t *) stack_p->item;
+    other_packets = (cif_pktitr_tp *) stack_p->item;
     switch (cif_pktitr_next_packet(other_packets, &other_packet)) {
         case CIF_OK:
             stack_p = (struct context_stack_s *) malloc(sizeof(struct context_stack_s));
@@ -482,7 +482,7 @@ static int handle_packet_comparison(cif_packet_t *packet UNUSED, void *context) 
     return CIF_TRAVERSE_END;
 }
 
-static int finish_packet_comparison(cif_packet_t *packet UNUSED, void *context) {
+static int finish_packet_comparison(cif_packet_tp *packet UNUSED, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
     int rval;
@@ -498,20 +498,20 @@ static int finish_packet_comparison(cif_packet_t *packet UNUSED, void *context) 
     } else {
         rval = CIF_TRAVERSE_CONTINUE;
     }
-    cif_packet_free((cif_packet_t *) stack_p->item);
+    cif_packet_free((cif_packet_tp *) stack_p->item);
     free(stack_p);
 
     return rval;
 }
 
-static int handle_item_comparison(UChar *name, cif_value_t *value, void *context) {
+static int handle_item_comparison(UChar *name, cif_value_tp *value, void *context) {
     struct comparison_context_s *comp_context = (struct comparison_context_s *) context;
     struct context_stack_s *stack_p = comp_context->parent;
-    cif_packet_t *other_packet;
-    cif_value_t *other_value = NULL;
+    cif_packet_tp *other_packet;
+    cif_value_tp *other_value = NULL;
 
     assert(stack_p);
-    other_packet = (cif_packet_t *) stack_p->item;
+    other_packet = (cif_packet_tp *) stack_p->item;
     if (cif_packet_get_item(other_packet, name, &other_value) == CIF_OK) {
         stack_p->elements_remaining -= 1;
         if (assert_values_equal(value, other_value)) {

@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-int cif_packet_create(cif_packet_t **packet, UChar **names) {
+int cif_packet_create(cif_packet_tp **packet, UChar **names) {
     /* This is just a name-normalizing wrapper around cif_packet_create_norm() */
     FAILURE_HANDLING;
     UChar **names_norm;
@@ -105,14 +105,14 @@ int cif_packet_create(cif_packet_t **packet, UChar **names) {
  * this function is hard to use because it does not record the original item
  * names; instead, it just sets them to the (provided) normalized names.
  */
-int cif_packet_create_norm(cif_packet_t **packet, UChar **names, int avoid_aliasing) {
+int cif_packet_create_norm(cif_packet_tp **packet, UChar **names, int avoid_aliasing) {
     FAILURE_HANDLING;
-    cif_packet_t *temp_packet;
+    cif_packet_tp *temp_packet;
 
     assert(names != NULL);
     assert(packet != NULL);
 
-    temp_packet = (cif_packet_t *) malloc(sizeof(cif_packet_t));
+    temp_packet = (cif_packet_tp *) malloc(sizeof(cif_packet_tp));
     if (temp_packet == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {

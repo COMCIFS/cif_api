@@ -33,7 +33,7 @@ static const char scalar_errmsg[22] = "duplicate scalar loop";
  * Returns CIF_OK if the handle is valid, CIF_INVALID_HANDLE if it is determined to be invalid, or CIF_ERROR if an
  * error occurs while determining the handle's validity.
  */
-static int cif_container_validate(cif_container_t *container);
+static int cif_container_validate(cif_container_tp *container);
 
 /*
  * Creates a new loop in the specified container, labeled with the specified category, and having original and
@@ -41,11 +41,11 @@ static int cif_container_validate(cif_container_t *container);
  * a check that there is at least one name.  The loop does not initially contain any packets.
  */
 static int cif_container_create_loop_internal(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *category,
         UChar *names[],
         UChar *names_norm[],
-        cif_loop_t **loop
+        cif_loop_tp **loop
         );
 
 /*
@@ -60,9 +60,9 @@ static int cif_container_create_loop_internal(
  * the caller is responsible for releasing these when appropriate.
  */
 static int cif_container_get_item_loop_internal (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *name,
-        cif_loop_t *loop
+        cif_loop_tp *loop
         );
 
 /*
@@ -70,10 +70,10 @@ static int cif_container_get_item_loop_internal (
  * normalized and valid.  The container and value are assumed valid.  No transaction management is performed.
  */
 static int cif_container_add_scalar(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
         const UChar *name_orig,
-        cif_value_t *val
+        cif_value_tp *val
         );
 
 /*
@@ -83,9 +83,9 @@ static int cif_container_add_scalar(
  * Returns CIF_OK if the handle is valid, CIF_INVALID_HANDLE if it is determined to be invalid, or CIF_ERROR if an
  * error occurs while determining the handle's validity.
  */
-static int cif_container_validate(cif_container_t *container) {
+static int cif_container_validate(cif_container_tp *container) {
     FAILURE_HANDLING;
-    cif_t *cif;
+    cif_tp *cif;
 
     if (container == NULL) {
         return CIF_INVALID_HANDLE;
@@ -122,15 +122,15 @@ static int cif_container_validate(cif_container_t *container) {
  * consistent.
  */
 static int cif_container_create_loop_internal(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *category,
         UChar *names[],
         UChar *names_norm[],
-        cif_loop_t **loop
+        cif_loop_tp **loop
         ) {
     FAILURE_HANDLING;
-    cif_loop_t *temp;
-    cif_t *cif;
+    cif_loop_tp *temp;
+    cif_tp *cif;
 
     cif = container->cif;
 
@@ -146,7 +146,7 @@ static int cif_container_create_loop_internal(
 
     TRACELINE;
 
-    temp = (cif_loop_t *) malloc(sizeof(cif_loop_t));
+    temp = (cif_loop_tp *) malloc(sizeof(cif_loop_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -268,12 +268,12 @@ static int cif_container_create_loop_internal(
 }
 
 static int cif_container_get_item_loop_internal (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *name,
-        cif_loop_t *loop
+        cif_loop_tp *loop
         ) {
     FAILURE_HANDLING;
-    cif_t *cif = container->cif;
+    cif_tp *cif = container->cif;
 
     /*
      * Create any needed prepared statements or prepare the existing one(s)
@@ -318,16 +318,16 @@ static int cif_container_get_item_loop_internal (
 }
 
 static int cif_container_add_scalar(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
         const UChar *name_orig,
-        cif_value_t *val
+        cif_value_tp *val
         ) {
     FAILURE_HANDLING;
-    cif_loop_t *loop;
+    cif_loop_tp *loop;
     UChar null_char = 0;
     UChar *none = NULL;
-    cif_packet_t *packet = NULL;
+    cif_packet_tp *packet = NULL;
     int result;
     int num_packets;
 
@@ -368,13 +368,13 @@ static int cif_container_add_scalar(
 extern "C" {
 #endif
 
-int cif_container_create_frame(cif_container_t *container, const UChar *code, cif_frame_t **frame) {
+int cif_container_create_frame(cif_container_tp *container, const UChar *code, cif_frame_tp **frame) {
     return cif_container_create_frame_internal(container, code, 0, frame);
 }
 
-int cif_container_create_frame_internal(cif_container_t *container, const UChar *code, int lenient, cif_frame_t **frame) {
+int cif_container_create_frame_internal(cif_container_tp *container, const UChar *code, int lenient, cif_frame_tp **frame) {
     FAILURE_HANDLING;
-    cif_frame_t *temp;
+    cif_frame_tp *temp;
     struct cif_s *cif;
 
     TRACELINE;
@@ -392,7 +392,7 @@ int cif_container_create_frame_internal(cif_container_t *container, const UChar 
 
     TRACELINE;
 
-    temp = (cif_frame_t *) malloc(sizeof(cif_frame_t));
+    temp = (cif_frame_tp *) malloc(sizeof(cif_frame_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -471,12 +471,12 @@ int cif_container_create_frame_internal(cif_container_t *container, const UChar 
 }
 
 int cif_container_get_frame(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *code,
-        cif_frame_t **frame
+        cif_frame_tp **frame
         ) {
     FAILURE_HANDLING;
-    cif_frame_t *temp;
+    cif_frame_tp *temp;
     struct cif_s *cif;
 
     /* validate, and normalize the frame code */
@@ -490,7 +490,7 @@ int cif_container_get_frame(
      */
     PREPARE_STMT(cif, get_frame, GET_FRAME_SQL);
 
-    temp = (cif_frame_t *) malloc(sizeof(cif_frame_t));
+    temp = (cif_frame_tp *) malloc(sizeof(cif_frame_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -537,15 +537,15 @@ int cif_container_get_frame(
     FAILURE_TERMINUS;
 }
 
-int cif_container_get_all_frames(cif_container_t *container, cif_frame_t ***frames) {
+int cif_container_get_all_frames(cif_container_tp *container, cif_frame_tp ***frames) {
     FAILURE_HANDLING;
     struct frame_el {
-        cif_frame_t frame; /* must be first */
+        cif_frame_tp frame; /* must be first */
         struct frame_el *next;
     } *head = NULL;
     struct frame_el **next_frame_p = &head;
     struct frame_el *next_frame;
-    cif_t *cif;
+    cif_tp *cif;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
 
@@ -561,7 +561,7 @@ int cif_container_get_all_frames(cif_container_t *container, cif_frame_t ***fram
         STEP_HANDLING;
         int result;
         size_t frame_count = 0;
-        cif_frame_t **temp_frames;
+        cif_frame_tp **temp_frames;
 
         while (IS_HARD_ERROR(STEP_STMT(cif, get_all_frames), result) == 0) {
             switch (result) {
@@ -574,7 +574,7 @@ int cif_container_get_all_frames(cif_container_t *container, cif_frame_t ***fram
                     if (*next_frame_p == NULL) {
                         FAIL(soft, CIF_MEMORY_ERROR);
                     } else {
-                        cif_frame_t *temp = &((*next_frame_p)->frame);
+                        cif_frame_tp *temp = &((*next_frame_p)->frame);
 
                         /* handle the linked-list next pointer */
                         next_frame_p = &((*next_frame_p)->next);
@@ -597,7 +597,7 @@ int cif_container_get_all_frames(cif_container_t *container, cif_frame_t ***fram
                     break;
                 case SQLITE_DONE:
                     /* aggregate the results into the needed form, and return it */
-                    temp_frames = (cif_frame_t **) malloc((frame_count + 1) * sizeof(cif_frame_t *));
+                    temp_frames = (cif_frame_tp **) malloc((frame_count + 1) * sizeof(cif_frame_tp *));
                     if (temp_frames == NULL) {
                         FAIL(soft, CIF_MEMORY_ERROR);
                     } else {
@@ -635,7 +635,7 @@ int cif_container_get_all_frames(cif_container_t *container, cif_frame_t ***fram
 
 /* safe to be called by anyone */
 void cif_container_free(
-        cif_container_t *container
+        cif_container_tp *container
         ) {
     if (container != NULL) {
         /* don't free the 'cif' pointer */
@@ -647,13 +647,13 @@ void cif_container_free(
 
 /* safe to be called by anyone */
 int cif_container_destroy(
-        cif_container_t *container
+        cif_container_tp *container
         ) {
     if (container == NULL) {
         return CIF_INVALID_HANDLE;
     } else {
         STEP_HANDLING;
-        cif_t *cif = container->cif;
+        cif_tp *cif = container->cif;
 
         PREPARE_STMT(cif, destroy_container, DESTROY_CONTAINER_SQL);
         if ((sqlite3_bind_int64(cif->destroy_container_stmt, 1, container->id) == SQLITE_OK) 
@@ -671,7 +671,7 @@ int cif_container_destroy(
 
 /* does not touch the database */
 int cif_container_get_code(
-        cif_container_t *container,
+        cif_container_tp *container,
         UChar **code) {
     UChar *temp = cif_u_strdup(container->code_orig);
 
@@ -686,7 +686,7 @@ int cif_container_get_code(
 }
 
 /* does not touch the database */
-int cif_container_assert_block(cif_container_t *container) {
+int cif_container_assert_block(cif_container_tp *container) {
     return ((container == NULL) ? CIF_ERROR : (container->parent_id < 0) ? CIF_OK : CIF_ARGUMENT_ERROR);
 }
 
@@ -695,10 +695,10 @@ int cif_container_assert_block(cif_container_t *container) {
  * wrapper around cif_container_create_loop_internal
  */
 int cif_container_create_loop(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *category,
         UChar *names[],
-        cif_loop_t **loop
+        cif_loop_tp **loop
         ) {
     FAILURE_HANDLING;
     UChar **name_orig_p;
@@ -748,13 +748,13 @@ int cif_container_create_loop(
 
 /* safe to be called by anyone */
 int cif_container_get_category_loop(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *category,
-        cif_loop_t **loop
+        cif_loop_tp **loop
         ) {
     FAILURE_HANDLING;
-    cif_loop_t *temp;
-    cif_t *cif;
+    cif_loop_tp *temp;
+    cif_tp *cif;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
     if (category == NULL) return CIF_INVALID_CATEGORY;
@@ -767,7 +767,7 @@ int cif_container_get_category_loop(
      */
     PREPARE_STMT(cif, get_cat_loop, GET_CAT_LOOP_SQL);
 
-    temp = (cif_loop_t *) malloc(sizeof(cif_loop_t));
+    temp = (cif_loop_tp *) malloc(sizeof(cif_loop_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -811,16 +811,16 @@ int cif_container_get_category_loop(
 }
 
 int cif_container_get_item_loop(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
-        cif_loop_t **loop
+        cif_loop_tp **loop
         ) {
     FAILURE_HANDLING;
-    cif_loop_t *temp;
+    cif_loop_tp *temp;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
 
-    temp = (cif_loop_t *) malloc(sizeof(cif_loop_t));
+    temp = (cif_loop_tp *) malloc(sizeof(cif_loop_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -853,10 +853,10 @@ int cif_container_get_item_loop(
     FAILURE_TERMINUS;
 }
 
-int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops) {
+int cif_container_get_all_loops(cif_container_tp *container, cif_loop_tp ***loops) {
     FAILURE_HANDLING;
     NESTTX_HANDLING;
-    cif_t *cif;
+    cif_tp *cif;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
 
@@ -867,7 +867,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
 
         if (result == CIF_OK) {        
             struct loop_el {
-                cif_loop_t loop; /* must be first */
+                cif_loop_tp loop; /* must be first */
                 struct loop_el *next;
             } *head = NULL;
             struct loop_el **next_loop_p = &head;
@@ -881,7 +881,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
 
             if (sqlite3_bind_int64(cif->get_all_loops_stmt, 1, container->id) == SQLITE_OK) {
                 STEP_HANDLING;
-                cif_loop_t **temp_loops;
+                cif_loop_tp **temp_loops;
                 size_t loop_count = 0;
 
                 while (IS_HARD_ERROR(STEP_STMT(cif, get_all_loops), result) == 0) {
@@ -895,7 +895,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
                             if (*next_loop_p == NULL) {
                                 FAIL(soft, CIF_MEMORY_ERROR);
                             } else {
-                                cif_loop_t *temp = &((*next_loop_p)->loop);
+                                cif_loop_tp *temp = &((*next_loop_p)->loop);
 
                                 /* handle the linked-list next pointer */
                                 next_loop_p = &((*next_loop_p)->next);
@@ -911,7 +911,7 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
                             break;
                         case SQLITE_DONE:
                             /* aggregate the results into the needed form, and return it */
-                            temp_loops = (cif_loop_t **) malloc((loop_count + 1) * sizeof(cif_loop_t *));
+                            temp_loops = (cif_loop_tp **) malloc((loop_count + 1) * sizeof(cif_loop_tp *));
 
                             if (temp_loops == NULL) {
                                 FAIL(soft, CIF_MEMORY_ERROR);
@@ -958,9 +958,9 @@ int cif_container_get_all_loops(cif_container_t *container, cif_loop_t ***loops)
     FAILURE_TERMINUS;
 }
 
-int cif_container_prune(cif_container_t *container) {
+int cif_container_prune(cif_container_tp *container) {
     FAILURE_HANDLING;
-    cif_t *cif = container->cif;
+    cif_tp *cif = container->cif;
 
     /*
      * Create any needed prepared statements, or prepare the existing one(s)
@@ -990,12 +990,12 @@ int cif_container_prune(cif_container_t *container) {
  * Does no transaction management (so either autocommits or works in the context of an existing TX)
  */
 int cif_container_set_all_values(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
-        cif_value_t *val
+        cif_value_tp *val
         ) {
     FAILURE_HANDLING;
-    cif_t *cif;
+    cif_tp *cif;
 
     if (container == NULL) return CIF_INVALID_HANDLE;
     if (item_name == NULL) return CIF_INVALID_ITEMNAME;
@@ -1030,12 +1030,12 @@ int cif_container_set_all_values(
 }
 
 int cif_container_get_value(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *name,
-        cif_value_t **val
+        cif_value_tp **val
         ) {
     FAILURE_HANDLING;
-    cif_t *cif = container->cif;
+    cif_tp *cif = container->cif;
     UChar *name_norm;
     int result;
 
@@ -1065,7 +1065,7 @@ int cif_container_get_value(
                     TRACELINE;
                     while (val != NULL) {
                         /* load the value from the DB */
-                        cif_value_t *temp = (cif_value_t *) malloc(sizeof(cif_value_t));
+                        cif_value_tp *temp = (cif_value_tp *) malloc(sizeof(cif_value_tp));
 
                         if (temp == NULL) {
                             SET_RESULT(CIF_MEMORY_ERROR);
@@ -1079,7 +1079,7 @@ int cif_container_get_value(
                             } else {
                                 cif_value_clean(*val);
                                 /* make a _shallow_ copy of 'temp' where 'val' points */
-                                memcpy(*val, temp, sizeof(cif_value_t));
+                                memcpy(*val, temp, sizeof(cif_value_tp));
                                 free(temp);
                                 break;
                             }
@@ -1115,12 +1115,12 @@ int cif_container_get_value(
 
 /* Not safe to be called by other library functions */
 int cif_container_set_value(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *name_orig,
-        cif_value_t *val
+        cif_value_tp *val
         ) {
     FAILURE_HANDLING;
-    cif_loop_t item_loop;
+    cif_loop_tp item_loop;
     UChar *name;
     sqlite3 *db = container->cif->db;
     int result;
@@ -1133,7 +1133,7 @@ int cif_container_set_value(
         SET_RESULT(result);
     } else {
         if (BEGIN(db) == SQLITE_OK) {
-            cif_value_t temp_val;
+            cif_value_tp temp_val;
 
             if (val == NULL) {
                 temp_val.kind = CIF_UNK_KIND;
@@ -1171,11 +1171,11 @@ int cif_container_set_value(
 
 /* not safe to be called by other library functions */
 int cif_container_remove_item(
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name
         ) {
     FAILURE_HANDLING;
-    cif_t *cif;
+    cif_tp *cif;
     UChar *normalized_name;
     int result;
 

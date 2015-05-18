@@ -325,17 +325,17 @@ static const UChar CIF2_MAGIC[MAGIC_LENGTH]
 /* static function headers */
 
 /* grammar productions */
-static int parse_cif(struct scanner_s *scanner, cif_t *cifp);
-static int parse_container(struct scanner_s *scanner, cif_container_t *container, int is_block);
-static int parse_item(struct scanner_s *scanner, cif_container_t *container, UChar *name);
-static int parse_loop(struct scanner_s *scanner, cif_container_t *container);
-static int parse_loop_header(struct scanner_s *scanner, cif_container_t *container, string_element_t **name_list_head,
+static int parse_cif(struct scanner_s *scanner, cif_tp *cifp);
+static int parse_container(struct scanner_s *scanner, cif_container_tp *container, int is_block);
+static int parse_item(struct scanner_s *scanner, cif_container_tp *container, UChar *name);
+static int parse_loop(struct scanner_s *scanner, cif_container_tp *container);
+static int parse_loop_header(struct scanner_s *scanner, cif_container_tp *container, string_element_tp **name_list_head,
         int *name_countp);
-static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, string_element_t *first_name,
+static int parse_loop_packets(struct scanner_s *scanner, cif_loop_tp *loop, string_element_tp *first_name,
         UChar *names[], int column_count);
-static int parse_list(struct scanner_s *scanner, cif_value_t **listp);
-static int parse_table(struct scanner_s *scanner, cif_value_t **tablep);
-static int parse_value(struct scanner_s *scanner, cif_value_t **valuep);
+static int parse_list(struct scanner_s *scanner, cif_value_tp **listp);
+static int parse_table(struct scanner_s *scanner, cif_value_tp **tablep);
+static int parse_value(struct scanner_s *scanner, cif_value_tp **valuep);
 
 /* scanning functions */
 static int next_token(struct scanner_s *scanner);
@@ -350,7 +350,7 @@ static int get_first_char(struct scanner_s *scanner);
 static int get_more_chars(struct scanner_s *scanner);
 
 /* other functions */
-static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_length, cif_value_t **dest);
+static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_length, cif_value_tp **dest);
 
 /* function-like macros */
 
@@ -655,7 +655,7 @@ int cif_parse_error_die(int code, size_t line UNUSED, size_t column UNUSED, cons
     return code;
 }
 
-int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
+int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_tp *dest) {
     FAILURE_HANDLING;
 
     scanner->buffer = (UChar *) malloc(BUF_SIZE_INITIAL * sizeof(UChar));
@@ -772,7 +772,7 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_t *dest) {
  * If the provided CIF handle is NULL then a syntax-only check is performed, but nothing is stored.  In that mode,
  * semantic constraints such as uniqueness of block codes, frame codes, and data names are not checked.
  */
-static int parse_cif(struct scanner_s *scanner, cif_t *cif) {
+static int parse_cif(struct scanner_s *scanner, cif_tp *cif) {
     int result;
 
     result = OPTIONAL_CALL(scanner->handler->handle_cif_start, (cif, scanner->user_data), CIF_OK);
@@ -789,7 +789,7 @@ static int parse_cif(struct scanner_s *scanner, cif_t *cif) {
         /* default: do nothing */
     }
     while (result == CIF_OK) {
-        cif_block_t *block = NULL;
+        cif_block_tp *block = NULL;
         int32_t token_length;
         UChar *token_value;
 
@@ -890,7 +890,7 @@ static int parse_cif(struct scanner_s *scanner, cif_t *cif) {
     return ((result > CIF_OK) ? result : CIF_OK);
 }
 
-static int parse_container(struct scanner_s *scanner, cif_container_t *container, int is_block) {
+static int parse_container(struct scanner_s *scanner, cif_container_tp *container, int is_block) {
     int result;
 
     if (scanner->skip_depth > 0) {
@@ -923,7 +923,7 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
         UChar *token_value;
         UChar *name;
         enum token_type alt_ttype = QVALUE;
-        cif_container_t *frame;
+        cif_container_tp *frame;
 
         if ((result = next_token(scanner)) != CIF_OK) {
             break;
@@ -1158,11 +1158,11 @@ static int parse_container(struct scanner_s *scanner, cif_container_t *container
     return result;
 }
 
-static int parse_item(struct scanner_s *scanner, cif_container_t *container, UChar *name) {
+static int parse_item(struct scanner_s *scanner, cif_container_tp *container, UChar *name) {
     int result = next_token(scanner);
 
     if (result == CIF_OK) {
-        cif_value_t *value = NULL;
+        cif_value_tp *value = NULL;
         enum token_type alt_ttype = QVALUE;
     
         if (scanner->skip_depth > 0) {
@@ -1238,10 +1238,10 @@ static int parse_item(struct scanner_s *scanner, cif_container_t *container, UCh
     return result;
 }
 
-static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
-    string_element_t *first_name = NULL;          /* the first data name in the header */
+static int parse_loop(struct scanner_s *scanner, cif_container_tp *container) {
+    string_element_tp *first_name = NULL;          /* the first data name in the header */
     int name_count = 0;
-    cif_loop_t *loop = NULL;
+    cif_loop_tp *loop = NULL;
     int result;
 
     if (scanner->skip_depth > 0) {
@@ -1269,12 +1269,12 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
                 result = CIF_MEMORY_ERROR;
                 goto loop_end;
             } else {
-                string_element_t *next_name;
+                string_element_tp *next_name;
                 int name_index = 0;
                 int column_count = 0;
                
                 /* dummy_loop is a static adapter; of its elements, it owns only 'category' */
-                cif_loop_t dummy_loop = { NULL, -1, NULL, NULL };
+                cif_loop_tp dummy_loop = { NULL, -1, NULL, NULL };
 
                 dummy_loop.container = container;
                 dummy_loop.names = names; 
@@ -1340,7 +1340,7 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
 
     /* clean up the header name linked list */
     while (first_name != NULL) {
-        string_element_t *next = first_name->next;
+        string_element_tp *next = first_name->next;
 
         if (first_name->string != NULL) {
             free(first_name->string);
@@ -1372,9 +1372,9 @@ static int parse_loop(struct scanner_s *scanner, cif_container_t *container) {
     return result;
 }
 
-static int parse_loop_header(struct scanner_s *scanner, cif_container_t *container, string_element_t **name_list_head,
+static int parse_loop_header(struct scanner_s *scanner, cif_container_tp *container, string_element_tp **name_list_head,
         int *name_countp) {
-    string_element_t **next_namep = name_list_head;  /* a pointer to the pointer to the next data name in the header */
+    string_element_tp **next_namep = name_list_head;  /* a pointer to the pointer to the next data name in the header */
     int result;
 
     /* parse the header */
@@ -1382,7 +1382,7 @@ static int parse_loop_header(struct scanner_s *scanner, cif_container_t *contain
         int32_t token_length = TVALUE_LENGTH(scanner);
         UChar *token_value = TVALUE_START(scanner);
 
-        *next_namep = (string_element_t *) malloc(sizeof(string_element_t));
+        *next_namep = (string_element_tp *) malloc(sizeof(string_element_tp));
         if (*next_namep == NULL) {
             return CIF_MEMORY_ERROR;
         } else {
@@ -1428,25 +1428,25 @@ static int parse_loop_header(struct scanner_s *scanner, cif_container_t *contain
     return result;
 }
 
-static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, string_element_t *first_name,
+static int parse_loop_packets(struct scanner_s *scanner, cif_loop_tp *loop, string_element_tp *first_name,
         UChar *names[], int column_count) {
-    cif_packet_t *packet;
+    cif_packet_tp *packet;
     int result = cif_packet_create(&packet, names);
 
     /* read packets */
     if (result == CIF_OK) {
-        cif_value_t **packet_values = (cif_value_t **) malloc(column_count * sizeof(cif_value_t *));
+        cif_value_tp **packet_values = (cif_value_tp **) malloc(column_count * sizeof(cif_value_tp *));
 
         if (packet_values == NULL) {
             result = CIF_MEMORY_ERROR;
         } else {
-            cif_value_t *dummy_value = NULL;
+            cif_value_tp *dummy_value = NULL;
 
             result = cif_value_create(CIF_UNK_KIND, &dummy_value);
             if (result == CIF_OK) {
                 int have_packets = CIF_FALSE;
                 int column_index = 0;
-                string_element_t *next_name;
+                string_element_tp *next_name;
 
                 /*
                  * Extract pointers to the packet's values once, for access by index, to avoid a normalizing and hashing
@@ -1472,7 +1472,7 @@ static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, strin
                 next_name = first_name;
                 while ((result = next_token(scanner)) == CIF_OK) {
                     UChar *name;
-                    cif_value_t *value = NULL;
+                    cif_value_tp *value = NULL;
                     enum token_type alt_ttype = QVALUE;
 
                     switch (scanner->ttype) {
@@ -1656,8 +1656,8 @@ static int parse_loop_packets(struct scanner_s *scanner, cif_loop_t *loop, strin
     return result;
 }
 
-static int parse_list(struct scanner_s *scanner, cif_value_t **listp) {
-    cif_value_t *list = NULL;
+static int parse_list(struct scanner_s *scanner, cif_value_tp **listp) {
+    cif_value_tp *list = NULL;
     size_t next_index = 0;
     int result;
 
@@ -1671,7 +1671,7 @@ static int parse_list(struct scanner_s *scanner, cif_value_t **listp) {
     }
 
     while (result == CIF_OK) {
-        cif_value_t *element = NULL;
+        cif_value_tp *element = NULL;
         enum token_type alt_ttype = QVALUE;
 
         if ((result = next_token(scanner)) != CIF_OK) {
@@ -1741,14 +1741,14 @@ static int parse_list(struct scanner_s *scanner, cif_value_t **listp) {
     return result;
 }
 
-static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
+static int parse_table(struct scanner_s *scanner, cif_value_tp **tablep) {
     /*
      * Implementation note: this function is designed to minimize the damage caused by input malformation.  If a
      * key or value is dropped, or if a key is turned into a value by removing its colon or inserting whitespace
      * before it, then only one table entry is lost.  Furthermore, this function recognizes and handles unquoted
      * keys, provided that the configured error callback does not abort parsing when notified of the problem.
      */
-    cif_value_t *table;
+    cif_value_tp *table;
     int result;
 
     assert (tablep != NULL);
@@ -1762,7 +1762,7 @@ static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
     while (result == CIF_OK) {
         /* parse (key, value) pairs */
         UChar *key = NULL;
-        cif_value_t *value = NULL;
+        cif_value_tp *value = NULL;
 
         /* scan the next key, if any */
 
@@ -1927,11 +1927,11 @@ static int parse_table(struct scanner_s *scanner, cif_value_t **tablep) {
 /*
  * Parses a value of any of the supported types.  The next token must represent a value, or the start of one.
  */
-static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
+static int parse_value(struct scanner_s *scanner, cif_value_tp **valuep) {
     int result = next_token(scanner);
 
     if (result == CIF_OK) {
-        cif_value_t *value = *valuep;
+        cif_value_tp *value = *valuep;
 
         /* build a value object or modify the provided one, as appropriate */
         if ((value != NULL) || ((result = cif_value_create(CIF_UNK_KIND, &value)) == CIF_OK)) {
@@ -2025,9 +2025,9 @@ static int parse_value(struct scanner_s *scanner, cif_value_t **valuep) {
  * (on success) to be of kind CIF_CHAR_KIND, holding the parsed text.  Otherwise, a new value
  * object is created and its handle recorded where dest points.
  */
-static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_length, cif_value_t **dest) {
+static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_length, cif_value_tp **dest) {
     FAILURE_HANDLING;
-    cif_value_t *value = *dest;
+    cif_value_tp *value = *dest;
     int result = (value == NULL) ? cif_value_create(CIF_UNK_KIND, &value) : CIF_OK;
 
     if (result != CIF_OK) {

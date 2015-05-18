@@ -120,7 +120,7 @@ static int convert_to_standalone(cif_map_t *map) {
     FAILURE_TERMINUS;
 }
 
-static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value, int invalidity_code) {
+static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_tp *value, int invalidity_code) {
     /*
      * In the event that the specified key is new to the given map and the map is not already standalone,
      * a necessary side effect of this function is to convert the map to standalone.  This follows from the need
@@ -157,9 +157,9 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                     /*
                      * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger
                      * assertions about aliasing than otherwise it could do (for otherwise, there is a need to cast
-                     * &item to (cif_value_t **)).  This allows for stronger optimizations on the whole file.
+                     * &item to (cif_value_tp **)).  This allows for stronger optimizations on the whole file.
                      */
-                    cif_value_t *existing_value = &(item->as_value);
+                    cif_value_tp *existing_value = &(item->as_value);
 
                     if (key_orig != item->key_orig) {
                         assert(map->is_standalone != 0);
@@ -196,7 +196,7 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
                          * Using a local pointer to the value enables the compiler (GCC, at least) to prove stronger
                          * assertions about aliasing than otherwise it could do (see above):
                          */
-                        cif_value_t *new_value = &(item->as_value);
+                        cif_value_tp *new_value = &(item->as_value);
 
                         new_value->kind = CIF_UNK_KIND;
                         if ((value == NULL) || cif_value_clone(value, &new_value) == CIF_OK) {
@@ -227,7 +227,7 @@ static int cif_map_set_item(cif_map_t *map, const UChar *key, cif_value_t *value
  * case, CIF_OK is returned if the named item was initially present; otherwise,
  * CIF_NOSUCH_ITEM is returned.
  */
-static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_t **value, int do_remove,
+static int cif_map_retrieve_item(cif_map_t *map, const UChar *key, cif_value_tp **value, int do_remove,
         int invalidity_code) {
     FAILURE_HANDLING;
     UChar *key_norm;
@@ -283,30 +283,30 @@ void cif_map_entry_free_internal(struct entry_s *entry, cif_map_t *map) {
     cif_value_free(&(entry->as_value));
 }
 
-void cif_packet_free(cif_packet_t *packet) {
+void cif_packet_free(cif_packet_tp *packet) {
     if (packet != NULL) {
         cif_map_clean(&(packet->map));
         free(packet);
     }
 }
 
-int cif_packet_get_names(cif_packet_t *packet, const UChar ***names) {
+int cif_packet_get_names(cif_packet_tp *packet, const UChar ***names) {
     return cif_map_get_keys(&(packet->map), names);
 }
 
-int cif_packet_set_item(cif_packet_t *packet, const UChar *name, cif_value_t *value) {
+int cif_packet_set_item(cif_packet_tp *packet, const UChar *name, cif_value_tp *value) {
     return cif_map_set_item(&(packet->map), name, value, CIF_INVALID_ITEMNAME);
 }
 
-int cif_packet_get_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
+int cif_packet_get_item(cif_packet_tp *packet, const UChar *name, cif_value_tp **value) {
     return cif_map_retrieve_item(&(packet->map), name, value, 0, CIF_NOSUCH_ITEM);
 }
 
-int cif_packet_remove_item(cif_packet_t *packet, const UChar *name, cif_value_t **value) {
+int cif_packet_remove_item(cif_packet_tp *packet, const UChar *name, cif_value_tp **value) {
     return cif_map_retrieve_item(&(packet->map), name, value, 1, CIF_NOSUCH_ITEM);
 }
 
-int cif_value_get_keys(cif_value_t *table, const UChar ***keys) {
+int cif_value_get_keys(cif_value_tp *table, const UChar ***keys) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_get_keys(&(table->as_table.map), keys);
     } else {
@@ -314,7 +314,7 @@ int cif_value_get_keys(cif_value_t *table, const UChar ***keys) {
     }
 }
 
-int cif_value_set_item_by_key(cif_value_t *table, const UChar *key, cif_value_t *item) {
+int cif_value_set_item_by_key(cif_value_tp *table, const UChar *key, cif_value_tp *item) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_set_item(&(table->as_table.map), key, item, CIF_INVALID_INDEX);
     } else {
@@ -322,7 +322,7 @@ int cif_value_set_item_by_key(cif_value_t *table, const UChar *key, cif_value_t 
     }
 }
 
-int cif_value_get_item_by_key(cif_value_t *table, const UChar *name, cif_value_t **value) {
+int cif_value_get_item_by_key(cif_value_tp *table, const UChar *name, cif_value_tp **value) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_retrieve_item(&(table->as_table.map), name, value, 0, CIF_NOSUCH_ITEM);
     } else {
@@ -330,7 +330,7 @@ int cif_value_get_item_by_key(cif_value_t *table, const UChar *name, cif_value_t
     }
 }
 
-int cif_value_remove_item_by_key(cif_value_t *table, const UChar *name, cif_value_t **value) {
+int cif_value_remove_item_by_key(cif_value_tp *table, const UChar *name, cif_value_tp **value) {
     if (table->kind == CIF_TABLE_KIND) {
         return cif_map_retrieve_item(&(table->as_table.map), name, value, 1, CIF_NOSUCH_ITEM);
     } else {

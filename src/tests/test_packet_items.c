@@ -17,11 +17,11 @@ static int test_name_list(UChar **expected, const UChar **observed);
 
 int main(void) {
     char test_name[80] = "test_packet_items";
-    cif_packet_t *packet = NULL;
-    cif_value_t *value = NULL;
-    cif_value_t *value1 = NULL;
-    cif_value_t *value2 = NULL;
-    cif_value_t *value3 = NULL;
+    cif_packet_tp *packet = NULL;
+    cif_value_tp *value = NULL;
+    cif_value_tp *value1 = NULL;
+    cif_value_tp *value2 = NULL;
+    cif_value_tp *value3 = NULL;
     UChar invalid_name1[5] = { 0x5F, 0x4B, 0xFFFF, 0x79, 0 };
     UChar invalid_name2[5] = { 0x5F, 0x4B, 0x20, 0x79, 0 };
     UChar name1[5] = { 0x5F, 0x4B, 0x45, 0x79, 0 };

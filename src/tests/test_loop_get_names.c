@@ -24,10 +24,10 @@
 #define EXPECTED_LOOPS 4
 int main(void) {
     char test_name[80] = "test_loop_get_names";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_loop_t *loop1;
-    cif_loop_t *loop2;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_loop_tp *loop1;
+    cif_loop_tp *loop2;
     U_STRING_DECL(block_code, "block1", 7);
     U_STRING_DECL(item1, "_item1", 7);
     UChar *items[NUM_ITEMS + 1];

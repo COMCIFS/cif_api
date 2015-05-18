@@ -13,7 +13,6 @@
 #include "uthash.h"
 
 #include "assert_value.h"
-#define USE_USTDERR
 #include "test.h"
 
 #define CLEAN_NAMELIST(nl) do { \
@@ -26,17 +25,17 @@ int compare_namelists(UChar *expected[], UChar *observed[]);
 
 int main(void) {
     char test_name[80] = "test_loop_add_item";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_loop_t *loop = NULL;
-    cif_loop_t *loop2 = NULL;
-    cif_pktitr_t *iterator = NULL;
-    cif_packet_t *packet = NULL;
-    cif_packet_t *packet2 = NULL;
-    cif_value_t *value = NULL;
-    cif_value_t *value1 = NULL;
-    cif_value_t *value2 = NULL;
-    cif_value_t *value3 = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_loop_tp *loop = NULL;
+    cif_loop_tp *loop2 = NULL;
+    cif_pktitr_tp *iterator = NULL;
+    cif_packet_tp *packet = NULL;
+    cif_packet_tp *packet2 = NULL;
+    cif_value_tp *value = NULL;
+    cif_value_tp *value1 = NULL;
+    cif_value_tp *value2 = NULL;
+    cif_value_tp *value3 = NULL;
     UChar *names[5];
     UChar **names2;
     UChar *category = NULL;

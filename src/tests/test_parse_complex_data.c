@@ -19,16 +19,16 @@
 int main(void) {
     char test_name[80] = "test_parse_complex_data";
     char local_file_name[] = "complex_data.cif";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
     char file_name[BUFFER_SIZE];
     FILE * cif_file;
-    cif_block_t **block_list;
-    cif_loop_t **loop_list;
-    cif_loop_t *loop;
-    cif_value_t *value = NULL;
-    cif_value_t *element = NULL;
-    cif_value_t *el_element = NULL;
+    cif_block_tp **block_list;
+    cif_loop_tp **loop_list;
+    cif_loop_tp *loop;
+    cif_value_tp *value = NULL;
+    cif_value_tp *element = NULL;
+    cif_value_tp *el_element = NULL;
     UChar **name_list;
     UChar **name_p;
     UChar *ustr;

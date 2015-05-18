@@ -13,7 +13,7 @@
 
 int main(void) {
     char test_name[80] = "test_value_get_number";
-    cif_value_t *value;
+    cif_value_tp *value;
     double d;
 
     TESTHEADER(test_name);

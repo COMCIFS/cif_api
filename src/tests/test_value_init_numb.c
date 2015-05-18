@@ -17,7 +17,7 @@
 
 int main(void) {
     char test_name[80] = "test_value_init_numb";
-    cif_value_t *value;
+    cif_value_tp *value;
     UChar *text;
     double d;
     U_STRING_DECL(v0, "0", 2);

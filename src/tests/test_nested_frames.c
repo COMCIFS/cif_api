@@ -15,10 +15,10 @@
 
 int main(void) {
     char test_name[80] = "test_nested_frames";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_frame_t *frame = NULL;
-    cif_frame_t *frame2 = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_frame_tp *frame2 = NULL;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
     U_STRING_DECL(frame2_code, "frame2", 7);

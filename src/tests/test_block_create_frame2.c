@@ -13,10 +13,10 @@
 
 int main(void) {
     char test_name[80] = "test_block_create_frame2";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_block_t *block2 = NULL;
-    cif_frame_t *frame = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_frame_tp *frame = NULL;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(block2_code, "block2", 7);
 
@@ -60,7 +60,7 @@ int main(void) {
 
     /* Test creating frames with duplicate codes in the same block and in different blocks */
     for (counter = 0; counter < NUM_PAIRS; counter++) {
-        cif_frame_t *frame2 = NULL;
+        cif_frame_tp *frame2 = NULL;
 
         TEST(
             cif_block_create_frame(block, TO_U(code_pairs[counter][0]), &frame),

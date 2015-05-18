@@ -15,17 +15,16 @@
 #include <assert.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "test.h"
 
-static int assert_values_equal(cif_value_t *value1, cif_value_t *value2);
-static int assert_lists_equal(cif_value_t *list1, cif_value_t *list2);
-static int assert_tables_equal(cif_value_t *table1, cif_value_t *table2);
+static int assert_values_equal(cif_value_tp *value1, cif_value_tp *value2);
+static int assert_lists_equal(cif_value_tp *list1, cif_value_tp *list2);
+static int assert_tables_equal(cif_value_tp *table1, cif_value_tp *table2);
 
-static int assert_values_equal(cif_value_t *value1, cif_value_t *value2) {
+static int assert_values_equal(cif_value_tp *value1, cif_value_tp *value2) {
     int rval = 0;
-    cif_kind_t kind1 = cif_value_kind(value1);
-    cif_kind_t kind2 = cif_value_kind(value2);
+    cif_kind_tp kind1 = cif_value_kind(value1);
+    cif_kind_tp kind2 = cif_value_kind(value2);
 
     INIT_USTDERR;
     assert(value1 != NULL);
@@ -78,7 +77,7 @@ static int assert_values_equal(cif_value_t *value1, cif_value_t *value2) {
     return rval;
 }
 
-static int assert_lists_equal(cif_value_t *list1, cif_value_t *list2) {
+static int assert_lists_equal(cif_value_tp *list1, cif_value_tp *list2) {
     size_t count1, count2;
     
     if ((cif_value_get_element_count(list1, &count1) != CIF_OK)
@@ -90,8 +89,8 @@ static int assert_lists_equal(cif_value_t *list1, cif_value_t *list2) {
         return 0;
     } else {
         for (count2 = 0; count2 < count1; count2 += 1) {
-            cif_value_t *value1;
-            cif_value_t *value2;
+            cif_value_tp *value1;
+            cif_value_tp *value2;
 
             if ((cif_value_get_element_at(list1, count2, &value1) != CIF_OK)
                     || (cif_value_get_element_at(list2, count2, &value2) != CIF_OK)
@@ -111,7 +110,7 @@ static int assert_lists_equal(cif_value_t *list1, cif_value_t *list2) {
     }
 }
 
-static int assert_tables_equal(cif_value_t *table1, cif_value_t *table2) {
+static int assert_tables_equal(cif_value_tp *table1, cif_value_tp *table2) {
     size_t count1, count2;
     const UChar **keys;
     
@@ -127,8 +126,8 @@ static int assert_tables_equal(cif_value_t *table1, cif_value_t *table2) {
         int rval = 1;
 
         for (count2 = 0; count2 < count1; count2 += 1) {
-            cif_value_t *value1;
-            cif_value_t *value2;
+            cif_value_tp *value1;
+            cif_value_tp *value2;
 
             assert(keys[count2] != NULL);
             if ((cif_value_get_item_by_key(table1, keys[count2], &value1) != CIF_OK)

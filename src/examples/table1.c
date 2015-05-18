@@ -68,9 +68,9 @@ static void print_header(UFILE *out) {
  * If no such datum is present then the row is skipped.  Values of types other than NUMB or CHAR are output as
  * empty strings.
  */
-static void print_simple_row(UFILE *out, cif_block_t *block, UChar *heading, UChar *data_name) {
+static void print_simple_row(UFILE *out, cif_block_tp *block, UChar *heading, UChar *data_name) {
     /* retrieve the value, if any, for the specified item */
-    cif_value_t *value = NULL; /* it's important to initialize this pointer to NULL */
+    cif_value_tp *value = NULL; /* it's important to initialize this pointer to NULL */
     int result = cif_container_get_value(block, data_name, &value);
     UChar *value_text = NULL;
 
@@ -117,8 +117,8 @@ static void print_simple_row(UFILE *out, cif_block_t *block, UChar *heading, UCh
     cif_value_free(value);
 }
 
-static void print_size_row(UFILE *out, cif_block_t *block) {
-    cif_value_t *values[3] = { NULL, NULL, NULL }; /* it's important to initialize these pointers to NULL */
+static void print_size_row(UFILE *out, cif_block_tp *block) {
+    cif_value_tp *values[3] = { NULL, NULL, NULL }; /* it's important to initialize these pointers to NULL */
     UChar datanames[3][32] = {
             { '_', 'e', 'x', 'p', 't', 'l', '_', 'c', 'r', 'y', 's', 't', 'a', 'l', '_', 's', 'i', 'z', 'e', '_', 'm', 'a', 'x', 0 },
             { '_', 'e', 'x', 'p', 't', 'l', '_', 'c', 'r', 'y', 's', 't', 'a', 'l', '_', 's', 'i', 'z', 'e', '_', 'm', 'i', 'd', 0 },
@@ -178,7 +178,7 @@ static void print_size_row(UFILE *out, cif_block_t *block) {
  * Prints an XHTML heading and data table for the given CIF data block
  */
 #define BUFSIZE 80
-static void print_table1(UFILE *out, cif_block_t *block) {
+static void print_table1(UFILE *out, cif_block_tp *block) {
     UChar *code;
     UChar heading_buffer[BUFSIZE];
     UChar dataname_buffer[BUFSIZE];
@@ -248,11 +248,11 @@ static void print_trailer(UFILE *out) {
  */
 int main(int argc, char *argv[]) {
     struct cif_parse_opts_s *options;
-    cif_t *cif = NULL;  /* it's important to initialize this pointer to NULL */
+    cif_tp *cif = NULL;  /* it's important to initialize this pointer to NULL */
     int first_file;
     UFILE *ustdout;
-    cif_block_t **all_blocks;
-    cif_block_t **current_block;
+    cif_block_tp **all_blocks;
+    cif_block_tp **current_block;
 
     /* handle command-line arguments */
     CHECK_CALL(cif_parse_options_create(&options), "prepare parse options");

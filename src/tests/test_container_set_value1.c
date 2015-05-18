@@ -15,13 +15,13 @@
 
 int main(void) {
     char test_name[80] = "test_container_set_value1";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_frame_t *frame = NULL;
-    cif_loop_t *loop;
-    cif_value_t *value1;
-    cif_value_t *value2;
-    cif_value_t *value3;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_loop_tp *loop;
+    cif_value_tp *value1;
+    cif_value_tp *value2;
+    cif_value_tp *value3;
     UChar key0[1] = { 0 };
     UChar key1[3] = { 0x20, 0x20, 0 };
     UChar key2[4] = { 0x41, 0x7b, 0x7d, 0 };

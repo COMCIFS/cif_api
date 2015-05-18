@@ -1,4 +1,4 @@
-int assign_loop_category(cif_loop_t *loop, void *context) {
+int assign_loop_category(cif_loop_tp *loop, void *context) {
     UChar **names;
     UChar **next;
     UChar *dot_location;
@@ -21,9 +21,9 @@ int assign_loop_category(cif_loop_t *loop, void *context) {
 }
 
 void parse_with_categories(FILE *in) {
-    cif_t *cif = NULL;
+    cif_tp *cif = NULL;
     struct cif_parse_opts_s *opts = NULL;
-    cif_handler_t handler = { NULL, NULL, NULL, NULL, NULL, NULL, assign_loop_category, NULL, NULL, NULL, NULL };
+    cif_handler_tp handler = { NULL, NULL, NULL, NULL, NULL, NULL, assign_loop_category, NULL, NULL, NULL, NULL };
 
     cif_parse_options_create(&opts);
     opts->handler = &handler;

@@ -25,13 +25,13 @@
  *
  * Returns CIF_OK on success of an error code (probably CIF_ERROR) on failure
  */
-static int cif_pktitr_reset_packet_number(cif_loop_t *loop);
+static int cif_pktitr_reset_packet_number(cif_loop_tp *loop);
 
-static int cif_pktitr_reset_packet_number(cif_loop_t *loop) {
+static int cif_pktitr_reset_packet_number(cif_loop_tp *loop) {
     FAILURE_HANDLING;
     STEP_HANDLING;
-    cif_container_t *container = loop->container;
-    cif_t *cif = container->cif;
+    cif_container_tp *container = loop->container;
+    cif_tp *cif = container->cif;
 
     /*
      * Create any needed prepared statements or prepare the existing one(s)
@@ -55,10 +55,10 @@ extern "C" {
 #endif
 
 int cif_pktitr_close(
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ) {
     int result = CIF_OK;
-    cif_t *cif = iterator->loop->container->cif;
+    cif_tp *cif = iterator->loop->container->cif;
 
     if (COMMIT(cif->db) != SQLITE_OK) {
         result = CIF_ERROR;
@@ -71,12 +71,12 @@ int cif_pktitr_close(
 }
 
 int cif_pktitr_abort(
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ) {
     /* This implementation never returns CIF_NOT_SUPPORTED */
 
     int result = CIF_OK;
-    cif_t *cif = iterator->loop->container->cif;
+    cif_tp *cif = iterator->loop->container->cif;
 
     if (ROLLBACK(cif->db) != SQLITE_OK) {
         result = CIF_ERROR;
@@ -88,7 +88,7 @@ int cif_pktitr_abort(
 }
 
 void cif_pktitr_free(
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ) {
     struct set_element_s *element;
     struct set_element_s *temp;
@@ -117,8 +117,8 @@ void cif_pktitr_free(
 #define uthash_fatal(msg) FAIL(soft, CIF_MEMORY_ERROR)
 
 int cif_pktitr_next_packet(
-        cif_pktitr_t *iterator,
-        cif_packet_t **packet
+        cif_pktitr_tp *iterator,
+        cif_packet_tp **packet
         ) {
     if (iterator->finished != 0) {
         return CIF_FINISHED;
@@ -126,7 +126,7 @@ int cif_pktitr_next_packet(
         FAILURE_HANDLING;
         sqlite3_stmt *stmt = iterator->stmt;
         int current_row = sqlite3_column_int(stmt, 0);
-        cif_packet_t *temp_packet;
+        cif_packet_tp *temp_packet;
         int result;
     
         assert (iterator->item_names != NULL);
@@ -220,7 +220,7 @@ int cif_pktitr_next_packet(
                             cif_value_clean(&(target->as_value));
 
                             /* make the target value a *shallow* copy of the source value */
-                            memcpy(&(target->as_value), &(entry->as_value), sizeof(cif_value_t));
+                            memcpy(&(target->as_value), &(entry->as_value), sizeof(cif_value_tp));
     
                             /* release the temporary entry itself, but not any resources it refers to */
                             cif_map_entry_clean_metadata_internal(entry, &(temp_packet->map));
@@ -273,8 +273,8 @@ int cif_pktitr_next_packet(
 } while (0)
 
 int cif_pktitr_update_packet(
-        cif_pktitr_t *iterator,
-        cif_packet_t *packet
+        cif_pktitr_tp *iterator,
+        cif_packet_tp *packet
         ) {
     FAILURE_HANDLING;
 
@@ -285,8 +285,8 @@ int cif_pktitr_update_packet(
         /* no packet has yet been returned, or the last returned has been removed */
         SET_RESULT(CIF_MISUSE);
     } else {
-        cif_container_t *container = iterator->loop->container;
-        cif_t *cif = container->cif;
+        cif_container_tp *container = iterator->loop->container;
+        cif_tp *cif = container->cif;
         struct entry_s *scalar;
         struct entry_s *temp;
 
@@ -347,7 +347,7 @@ int cif_pktitr_update_packet(
 }
 
 int cif_pktitr_remove_packet(
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ) {
     FAILURE_HANDLING;
 
@@ -358,9 +358,9 @@ int cif_pktitr_remove_packet(
         /* no packet has yet been returned, or the last returned has already been removed */
         SET_RESULT(CIF_MISUSE);
     } else {
-        cif_loop_t *loop = iterator->loop;
-        cif_container_t *container = iterator->loop->container;
-        cif_t *cif = container->cif;
+        cif_loop_tp *loop = iterator->loop;
+        cif_container_tp *container = iterator->loop->container;
+        cif_tp *cif = container->cif;
         UChar *category;
         int result;
 

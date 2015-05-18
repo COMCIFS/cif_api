@@ -11,7 +11,6 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "assert_cifs.h"
 #include "test.h"
 
@@ -20,10 +19,10 @@
 int main(void) {
     char test_name[80] = "test_write_simple";
     FILE * cif_file;
-    cif_t *cif = NULL;
-    cif_t *cif_readback = NULL;
-    cif_block_t *block = NULL;
-    cif_value_t *value = NULL;
+    cif_tp *cif = NULL;
+    cif_tp *cif_readback = NULL;
+    cif_block_tp *block = NULL;
+    cif_value_tp *value = NULL;
     UChar value_sq_string[] = { 'S', 'a', 'y', ' ', '"', 'B', 'o', 'o', '"', 0 };
     UChar value_dq_string[] = { 'D', 'r', '.', ' ', 'O', '\'', 'M', 'a', 'l', 'l', 'e', 'y', 0 };
     UChar value_text_string[] = { 'D', 'e', 'l', 'i', 'm', 's', ' ', 'a', 'r', 'e', ':', 0x0a, '\'', '\'', '\'', ' ',

@@ -11,7 +11,6 @@
 #include "../cif.h"
 
 #include "assert_doubles.h"
-#define USE_USTDERR
 #include "test.h"
 
 #ifndef DBL_TEST_ULPS
@@ -20,7 +19,7 @@
 
 int main(void) {
     char test_name[80] = "test_value_autoinit_numb";
-    cif_value_t *value;
+    cif_value_tp *value;
     UChar *text;
     double d;
     double d1;

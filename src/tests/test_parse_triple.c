@@ -19,11 +19,11 @@
 int main(void) {
     char test_name[80] = "test_parse_triple";
     char local_file_name[] = "triple.cif";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
     char file_name[BUFFER_SIZE];
     FILE * cif_file;
-    cif_value_t *value = NULL;
+    cif_value_tp *value = NULL;
     UChar *ustr;
 
     U_STRING_DECL(block_code,           "triple", 12);

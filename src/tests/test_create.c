@@ -13,7 +13,7 @@
 
 int main(void) {
     char test_name[80] = "test_create";
-    cif_t *cif = NULL;
+    cif_tp *cif = NULL;
     int result;
 
     TESTHEADER(test_name);

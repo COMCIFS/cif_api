@@ -1,5 +1,5 @@
 void traditional(FILE *in) {
-    cif_t *cif = NULL;
+    cif_tp *cif = NULL;
 
     cif_parse(in, NULL, &cif);
     /* results are available via 'cif' if anything was successfully parsed */

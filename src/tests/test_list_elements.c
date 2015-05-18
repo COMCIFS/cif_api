@@ -16,10 +16,10 @@
 
 int main(void) {
     char test_name[80] = "test_list_elements";
-    cif_value_t *value = NULL;
-    cif_value_t *element1 = NULL;
-    cif_value_t *element2 = NULL;
-    cif_value_t *element3 = NULL;
+    cif_value_tp *value = NULL;
+    cif_value_tp *element1 = NULL;
+    cif_value_tp *element2 = NULL;
+    cif_value_tp *element3 = NULL;
     UChar *text1;
     size_t count;
     double d1;

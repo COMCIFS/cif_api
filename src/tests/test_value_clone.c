@@ -12,10 +12,10 @@
 
 int main(void) {
     char test_name[80] = "test_value_clone";
-    cif_value_t *value = NULL;
-    cif_value_t *clone = NULL;
-    cif_value_t *element = NULL;
-    cif_value_t *element2 = NULL;
+    cif_value_tp *value = NULL;
+    cif_value_tp *clone = NULL;
+    cif_value_tp *element = NULL;
+    cif_value_tp *element2 = NULL;
     U_STRING_DECL(value_text, "value text", 11);
     U_STRING_DECL(numb_text, "1.234(5)", 9);
     U_STRING_DECL(one, "1.000", 6);

@@ -21,9 +21,9 @@ int main(void) {
     char local_file_name[] = "text_fields.cif";
     char file_name[BUFFER_SIZE];
     FILE * cif_file;
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_value_t *value = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_value_tp *value = NULL;
     UChar *ustr;
 
     U_STRING_DECL(block_code,           "text_fields", 12);

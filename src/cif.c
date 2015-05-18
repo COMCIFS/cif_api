@@ -25,11 +25,11 @@
 #define INIT_STMT(cif, stmt_name) cif->stmt_name##_stmt = NULL
 
 static int cif_create_callback(void *context, int n_columns, char **column_texts, char **column_names);
-static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context);
-static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *context);
-static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context);
-static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *context);
-static int walk_item(UChar *name, cif_value_t *value, cif_handler_t *handler, void *context);
+static int walk_container(cif_container_tp *container, int depth, cif_handler_tp *handler, void *context);
+static int walk_loops(cif_container_tp *container, cif_handler_tp *handler, void *context);
+static int walk_loop(cif_loop_tp *loop, cif_handler_tp *handler, void *context);
+static int walk_packet(cif_packet_tp *packet, cif_handler_tp *handler, void *context);
+static int walk_item(UChar *name, cif_value_tp *value, cif_handler_tp *handler, void *context);
 
 
 #ifdef DEBUG
@@ -74,13 +74,13 @@ static int cif_create_callback(void *context, int n_columns UNUSED, char **colum
 extern "C" {
 #endif
 
-int cif_create(cif_t **cif) {
+int cif_create(cif_tp **cif) {
     FAILURE_HANDLING;
-    cif_t *temp;
+    cif_tp *temp;
 
     if (cif == NULL) return CIF_ARGUMENT_ERROR;
 
-    temp = (cif_t *) malloc(sizeof(cif_t));
+    temp = (cif_tp *) malloc(sizeof(cif_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -182,7 +182,7 @@ int cif_create(cif_t **cif) {
     FAILURE_TERMINUS;
 }
 
-int cif_destroy(cif_t *cif) {
+int cif_destroy(cif_tp *cif) {
     sqlite3_stmt *stmt;
 
     /* ensure that there is no open transaction; will fail harmlessly if there already is none */
@@ -204,13 +204,13 @@ int cif_destroy(cif_t *cif) {
     }
 }
 
-int cif_create_block(cif_t *cif, const UChar *code, cif_block_t **block) {
+int cif_create_block(cif_tp *cif, const UChar *code, cif_block_tp **block) {
     return code ? cif_create_block_internal(cif, code, 0, block) : CIF_ARGUMENT_ERROR;
 }
 
-int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_block_t **block) {
+int cif_create_block_internal(cif_tp *cif, const UChar *code, int lenient, cif_block_tp **block) {
     FAILURE_HANDLING;
-    cif_block_t *temp;
+    cif_block_tp *temp;
     int result;
 
     if (cif == NULL) return CIF_INVALID_HANDLE;
@@ -223,7 +223,7 @@ int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_bl
      */
     PREPARE_STMT(cif, create_block, CREATE_BLOCK_SQL);
 
-    temp = (cif_block_t *) malloc(sizeof(cif_block_t));
+    temp = (cif_block_tp *) malloc(sizeof(cif_block_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -290,9 +290,9 @@ int cif_create_block_internal(cif_t *cif, const UChar *code, int lenient, cif_bl
     FAILURE_TERMINUS;
 }
 
-int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
+int cif_get_block(cif_tp *cif, const UChar *code, cif_block_tp **block) {
     FAILURE_HANDLING;
-    cif_block_t *temp;
+    cif_block_tp *temp;
 
     if (cif == NULL) return CIF_INVALID_HANDLE;
 
@@ -302,7 +302,7 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
      */
     PREPARE_STMT(cif, get_block, GET_BLOCK_SQL);
 
-    temp = (cif_block_t *) malloc(sizeof(cif_block_t));
+    temp = (cif_block_tp *) malloc(sizeof(cif_block_tp));
     if (temp == NULL) {
         SET_RESULT(CIF_MEMORY_ERROR);
     } else {
@@ -347,16 +347,16 @@ int cif_get_block(cif_t *cif, const UChar *code, cif_block_t **block) {
     FAILURE_TERMINUS;
 }
 
-int cif_get_all_blocks(cif_t *cif, cif_block_t ***blocks) {
+int cif_get_all_blocks(cif_tp *cif, cif_block_tp ***blocks) {
     FAILURE_HANDLING;
     STEP_HANDLING;
     struct block_el {
-        cif_block_t block;  /* must be first */
+        cif_block_tp block;  /* must be first */
         struct block_el *next;
     } *head = NULL;
     struct block_el **next_block_p = &head;
     struct block_el *next_block;
-    cif_block_t **temp_blocks;
+    cif_block_tp **temp_blocks;
     size_t block_count = 0;
     int result;
 
@@ -379,7 +379,7 @@ int cif_get_all_blocks(cif_t *cif, cif_block_t ***blocks) {
                 if (*next_block_p == NULL) {
                     FAIL(soft, CIF_MEMORY_ERROR);
                 } else {
-                    cif_block_t *temp = &((*next_block_p)->block);
+                    cif_block_tp *temp = &((*next_block_p)->block);
 
                     /* handle the linked-list next pointer */
                     next_block_p = &((*next_block_p)->next);
@@ -402,7 +402,7 @@ int cif_get_all_blocks(cif_t *cif, cif_block_t ***blocks) {
                 break;
             case SQLITE_DONE:
                 /* aggregate the results into the needed form, and return it */
-                temp_blocks = (cif_block_t **) malloc((block_count + 1) * sizeof(cif_block_t *));
+                temp_blocks = (cif_block_tp **) malloc((block_count + 1) * sizeof(cif_block_tp *));
                 if (temp_blocks == NULL) {
                     FAIL(soft, CIF_MEMORY_ERROR);
                 } else {
@@ -440,8 +440,8 @@ int cif_get_all_blocks(cif_t *cif, cif_block_t ***blocks) {
 #define HANDLER_RESULT(handler_name, args, default_val) (handler->handle_ ## handler_name ? \
         handler->handle_ ## handler_name args : (default_val))
 
-int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
-    cif_container_t **blocks;
+int cif_walk(cif_tp *cif, cif_handler_tp *handler, void *context) {
+    cif_container_tp **blocks;
 
     /* call the handler for this element */
     int result = HANDLER_RESULT(cif_start, (cif, context), CIF_TRAVERSE_CONTINUE);
@@ -452,7 +452,7 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
             result = cif_get_all_blocks(cif, &blocks);
             if (result == CIF_OK) {
                 int handle_blocks = CIF_TRUE;
-                cif_container_t **current_block;
+                cif_container_tp **current_block;
 
                 for (current_block = blocks; *current_block; current_block += 1) {
                     if (handle_blocks) {
@@ -506,7 +506,7 @@ int cif_walk(cif_t *cif, cif_handler_t *handler, void *context) {
 }
 #endif
 
-static int walk_container(cif_container_t *container, int depth, cif_handler_t *handler, void *context) {
+static int walk_container(cif_container_tp *container, int depth, cif_handler_tp *handler, void *context) {
     /* call the handler for this element */
     int result = (depth ? HANDLER_RESULT(frame_start, (container, context), CIF_TRAVERSE_CONTINUE)
                        : HANDLER_RESULT(block_start, (container, context), CIF_TRAVERSE_CONTINUE));
@@ -515,13 +515,13 @@ static int walk_container(cif_container_t *container, int depth, cif_handler_t *
         return result;
     } else {
         /* handle this container's save frames */
-        cif_container_t **frames;
+        cif_container_tp **frames;
 
         result = cif_container_get_all_frames(container, &frames);
         if (result != CIF_OK) {
             return result;
         } else {
-            cif_container_t **current_frame;
+            cif_container_tp **current_frame;
             int handle_frames = CIF_TRUE;
             int handle_loops = CIF_TRUE;
 
@@ -568,13 +568,13 @@ static int walk_container(cif_container_t *container, int depth, cif_handler_t *
     }
 }
 
-static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *context) {
+static int walk_loops(cif_container_tp *container, cif_handler_tp *handler, void *context) {
     int result;
-    cif_loop_t **loops;
+    cif_loop_tp **loops;
 
     result = cif_container_get_all_loops(container, &loops);
     if (result == CIF_OK) {
-        cif_loop_t **current_loop;
+        cif_loop_tp **current_loop;
         int handle_loops = CIF_TRUE;
 
         for (current_loop = loops; *current_loop != NULL; current_loop += 1) {
@@ -599,19 +599,19 @@ static int walk_loops(cif_container_t *container, cif_handler_t *handler, void *
     return result;
 }
 
-static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context) {
+static int walk_loop(cif_loop_tp *loop, cif_handler_tp *handler, void *context) {
     int result = HANDLER_RESULT(loop_start, (loop, context), CIF_TRAVERSE_CONTINUE);
 
     if (result != CIF_TRAVERSE_CONTINUE) {
         return result;
     } else {
-        cif_pktitr_t *iterator = NULL;
+        cif_pktitr_tp *iterator = NULL;
 
         result = cif_loop_get_packets(loop, &iterator);
         if (result != CIF_OK) {
             return result;
         } else {
-            cif_packet_t *packet = NULL;
+            cif_packet_tp *packet = NULL;
             int close_result;
 
             while ((result = cif_pktitr_next_packet(iterator, &packet)) == CIF_OK) {
@@ -649,7 +649,7 @@ static int walk_loop(cif_loop_t *loop, cif_handler_t *handler, void *context) {
     }
 }
 
-static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *context) {
+static int walk_packet(cif_packet_tp *packet, cif_handler_tp *handler, void *context) {
     int handler_result = HANDLER_RESULT(packet_start, (packet, context), CIF_TRAVERSE_CONTINUE);
 
     if (handler_result != CIF_TRAVERSE_CONTINUE) {
@@ -676,6 +676,6 @@ static int walk_packet(cif_packet_t *packet, cif_handler_t *handler, void *conte
     }
 }
 
-static int walk_item(UChar *name, cif_value_t *value, cif_handler_t *handler, void *context) {
+static int walk_item(UChar *name, cif_value_tp *value, cif_handler_tp *handler, void *context) {
     return HANDLER_RESULT(item, (name, value, context), CIF_TRAVERSE_CONTINUE);
 }

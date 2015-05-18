@@ -77,8 +77,8 @@
  * function docs for information about responsibility for array elements, as distinguished from responsibility for the
  * array itself.
  *
- * It should be borne in mind that CIF API handle objects, such as those of types @c cif_container_t and
- * @c cif_loop_t , are separate resources from the corresponding parts of managed CIFs.  At any given time, for any
+ * It should be borne in mind that CIF API handle objects, such as those of types @c cif_container_tp and
+ * @c cif_loop_tp , are separate resources from the corresponding parts of managed CIFs.  At any given time, for any
  * given
  * part of a managed CIF, there may be any number -- including zero -- of extant, valid handles.  New handles can be
  * obtained for existing managed CIF pieces, and handles can be released without affecting the underlying managed CIF.
@@ -94,9 +94,9 @@
  * @li The function cif_value_clean() is unusual in that it releases internal resources held by its argument without
  *         releasing the argument itself (converting it to a kind of value that does not require dynamically-allocated
  *         internal resources).
- * @li There is only one handle object for each overall managed CIF (of type @c cif_t ).  There is therefore no
+ * @li There is only one handle object for each overall managed CIF (of type @c cif_tp ).  There is therefore no
  *         function @c cif_free() ; use @c cif_destroy() instead.
- * @li There is no creation function for transparent data type @c cif_handler_t .
+ * @li There is no creation function for transparent data type @c cif_handler_tp .
  */
 
 /**
@@ -511,26 +511,26 @@
 #define CIF_MISSING_PREFIX    141
 
 /**
- * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should continue
+ * @brief A return code for CIF-handler functions (see @c cif_handler_tp) that indicates CIF traversal should continue
  *        along its normal path; has the same value as CIF_OK
  */
 #define CIF_TRAVERSE_CONTINUE       0
 
 /**
- * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should bypass
+ * @brief A return code for CIF-handler functions (see @c cif_handler_tp) that indicates CIF traversal should bypass
  *        the current element, or at least any untraversed children, and thereafter proceed along the normal path
  */
 #define CIF_TRAVERSE_SKIP_CURRENT  -1
 
 /**
- * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should bypass
+ * @brief A return code for CIF-handler functions (see @c cif_handler_tp) that indicates CIF traversal should bypass
  *        the current element, or at least any untraversed children, and any untraversed siblings, and thereafter
  *        proceed along the normal path
  */
 #define CIF_TRAVERSE_SKIP_SIBLINGS -2
 
 /**
- * @brief A return code for CIF-handler functions (see @c cif_handler_t) that indicates CIF traversal should stop
+ * @brief A return code for CIF-handler functions (see @c cif_handler_tp) that indicates CIF traversal should stop
  *        immediately
  */
 #define CIF_TRAVERSE_END           -3
@@ -575,34 +575,34 @@ static const UChar cif_uchar_nul = 0;
 /**
  * @brief An opaque handle on a managed CIF.
  */
-typedef struct cif_s cif_t;
+typedef struct cif_s cif_tp;
 
 /**
  * @brief An opaque handle on a managed CIF data block or save frame.
  *
  * From a structural perspective, save frames and data blocks are distinguished only by nesting level: data blocks are
  * (the only meaningful) top-level components of whole CIFs, whereas save frames are nested inside data blocks.  They
- * are otherwise exactly the same with respect to contents and allowed operations, and @c cif_container_t models
+ * are otherwise exactly the same with respect to contents and allowed operations, and @c cif_container_tp models
  * that commonality.
  */
-typedef struct cif_container_s cif_container_t;
+typedef struct cif_container_s cif_container_tp;
 
 /**
- * @brief Equivalent to and interchangeable with @c cif_container_t, but helpful for bookkeeping to track those
+ * @brief Equivalent to and interchangeable with @c cif_container_tp, but helpful for bookkeeping to track those
  *         containers that are supposed to be data blocks
  */
-typedef struct cif_container_s cif_block_t;
+typedef struct cif_container_s cif_block_tp;
 
 /**
- * @brief Equivalent to and interchangeable with @c cif_container_t, but helpful for bookkeeping to track those
+ * @brief Equivalent to and interchangeable with @c cif_container_tp, but helpful for bookkeeping to track those
  *         containers that are supposed to be save frames
  */
-typedef struct cif_container_s cif_frame_t;
+typedef struct cif_container_s cif_frame_tp;
 
 /**
  * @brief An opaque handle on a managed CIF loop
  */
-typedef struct cif_loop_s cif_loop_t;
+typedef struct cif_loop_s cif_loop_tp;
 
 /**
  * @brief An opaque data structure representing a CIF loop packet.
@@ -610,21 +610,21 @@ typedef struct cif_loop_s cif_loop_t;
  * This is not a "handle" in the sense of some of the other opaque data types, as instances have no direct connection
  * to a managed CIF.
  */
-typedef struct cif_packet_s cif_packet_t;
+typedef struct cif_packet_s cif_packet_tp;
 
 /**
  * @brief An opaque data structure encapsulating the state of an iteration through the packets of a loop in an
  *         managed CIF
  */
-typedef struct cif_pktitr_s cif_pktitr_t;
+typedef struct cif_pktitr_s cif_pktitr_tp;
 
 /**
  * @brief The type of all data value objects
  */
-typedef union cif_value_u cif_value_t;
+typedef union cif_value_u cif_value_tp;
 
 /**
- * @brief The type used for codes representing the dynamic kind of the data in a @c cif_value_t object
+ * @brief The type used for codes representing the dynamic kind of the data in a @c cif_value_tp object
  */
 typedef enum { 
     /**
@@ -656,7 +656,7 @@ typedef enum {
      * @brief The kind code representing the unknown/unspecified data value
      */
     CIF_UNK_KIND = 5
-} cif_kind_t;
+} cif_kind_tp;
 
 /**
  * @brief A set of functions defining a handler interface for directing and taking appropriate action in response
@@ -678,39 +678,39 @@ typedef enum {
 typedef struct {
 
     /** @brief A handler function for the beginning of a top-level CIF object */
-    int (*handle_cif_start)(cif_t *cif, void *context);
+    int (*handle_cif_start)(cif_tp *cif, void *context);
 
     /** @brief A handler function for the end of a top-level CIF object */
-    int (*handle_cif_end)(cif_t *cif, void *context);
+    int (*handle_cif_end)(cif_tp *cif, void *context);
 
     /** @brief A handler function for the beginning of a data block */
-    int (*handle_block_start)(cif_container_t *block, void *context);
+    int (*handle_block_start)(cif_container_tp *block, void *context);
 
     /** @brief A handler function for the end of a data block */
-    int (*handle_block_end)(cif_container_t *block, void *context);
+    int (*handle_block_end)(cif_container_tp *block, void *context);
 
     /** @brief A handler function for the beginning of a save frame */
-    int (*handle_frame_start)(cif_container_t *frame, void *context);
+    int (*handle_frame_start)(cif_container_tp *frame, void *context);
 
     /** @brief A handler function for the end of a save frame */
-    int (*handle_frame_end)(cif_container_t *frame, void *context);
+    int (*handle_frame_end)(cif_container_tp *frame, void *context);
 
     /** @brief A handler function for the beginning of a loop */
-    int (*handle_loop_start)(cif_loop_t *loop, void *context);
+    int (*handle_loop_start)(cif_loop_tp *loop, void *context);
 
     /** @brief A handler function for the end of a loop */
-    int (*handle_loop_end)(cif_loop_t *loop, void *context);
+    int (*handle_loop_end)(cif_loop_tp *loop, void *context);
 
     /** @brief A handler function for the beginning of a loop packet */
-    int (*handle_packet_start)(cif_packet_t *packet, void *context);
+    int (*handle_packet_start)(cif_packet_tp *packet, void *context);
 
     /** @brief A handler function for the end of a loop packet */
-    int (*handle_packet_end)(cif_packet_t *packet, void *context);
+    int (*handle_packet_end)(cif_packet_tp *packet, void *context);
 
     /** @brief A handler function for data items (there are not separate beginning and end callbacks) */
-    int (*handle_item)(UChar *name, cif_value_t *value, void *context);
+    int (*handle_item)(UChar *name, cif_value_tp *value, void *context);
 
-} cif_handler_t;
+} cif_handler_tp;
 
 /**
  * @brief The type of a callback function to be invoked when a parse error occurs.
@@ -730,7 +730,7 @@ typedef struct {
  * @return zero if the parse should continue (with implementation-dependent best-effort error recovery), or nonzero
  *         if the parse should be aborted, forwarding the return code to the caller of the parser 
  */
-typedef int (*cif_parse_error_callback_t)(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
+typedef int (*cif_parse_error_callback_tp)(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
  * @brief The type of a callback function by which a client application can be notified of whitespace encountered
@@ -757,7 +757,7 @@ typedef int (*cif_parse_error_callback_t)(int code, size_t line, size_t column, 
  *         incrementing it results in a valid pointer value is undefined.
  * @param[in,out] data a pointer to the user data object provided by the parser caller
  */
-typedef void (*cif_whitespace_callback_t)(size_t line, size_t column, const UChar *ws, size_t length, void *data);
+typedef void (*cif_whitespace_callback_tp)(size_t line, size_t column, const UChar *ws, size_t length, void *data);
 
 /**
  * @brief Represents a collection of CIF parsing options.
@@ -887,7 +887,7 @@ struct cif_parse_opts_s {
      * @brief A set of handler functions by which the application can be notified of details of the parse progress as
      *         they occur, and through which it can influence the data recorded; may be @c NULL.
      *
-     * If not itself NULL, then any non-null handler functions in the cif_handler_t to which this option points will
+     * If not itself NULL, then any non-null handler functions in the cif_handler_tp to which this option points will
      * be invoked by the parser at appropriate times as it traverses the input CIF text.  The handlers' return codes
      * @c CIF_TRAVERSE_SKIP_CURRENT and @c CIF_TRAVERSE_SKIP_SIBLINGS are interpreted as directing which data to record
      * in the target CIF, if indeed the user has provided one.  (The parser cannot altogether skip parsing any part
@@ -895,7 +895,7 @@ struct cif_parse_opts_s {
      * not invoked for entities thereby passed over.  Handlers may modify the CIF under construction, subject to the
      * limitations inherent in the CIF being incompletely constructed when they are called.
      */
-    cif_handler_t *handler;
+    cif_handler_tp *handler;
 
     /**
      * @brief A callback function by which the client application can be notified about whitespace encountered outside
@@ -906,7 +906,7 @@ struct cif_parse_opts_s {
      * other elements appearing in the CIF.  The parser does not guarantee to collect @em maximal whitespace runs;
      * it may at times split consecutive whitespace into multiple runs, performing a callback for each one.
      */
-    cif_whitespace_callback_t whitespace_callback;
+    cif_whitespace_callback_tp whitespace_callback;
 
     /**
      * @brief A callback function by which the client application can be notified about parse errors, affording it the
@@ -920,7 +920,7 @@ struct cif_parse_opts_s {
      * If @c NULL, or if parse options are not specified, then the parser will operate as if the error handler were
      * @c cif_parse_error_die().
      */
-    cif_parse_error_callback_t error_callback;
+    cif_parse_error_callback_tp error_callback;
 
     /**
      * @brief A pointer to user data to be forwarded to all callback functions invoked by the parser; opaque to the
@@ -968,7 +968,7 @@ extern "C" {
  *
  * @b CIF @b handler @b callbacks.  The parse options allow the caller to register a variety of callback functions by
  * which the parse can be tracked and influenced.  Most of these are wrapped together in the @c handler option, by
- * which a @c cif_handler_t object can be provided.  Handler functions belonging to such a handler will be called when
+ * which a @c cif_handler_tp object can be provided.  Handler functions belonging to such a handler will be called when
  * appropriate during CIF parsing, and the returned navigational signals direct which parts of the input data are
  * included in the in-memory CIF rpresentation, if any, constructed by the parse.  To some extent, the CIF can be
  * modified during parse time, too; for example, loop categories may be assigned via callback.
@@ -1006,7 +1006,7 @@ extern "C" {
 CIF_INTFUNC_DECL(cif_parse, (
         FILE *stream,
         struct cif_parse_opts_s *options,
-        cif_t **cif
+        cif_tp **cif
         ));
 
 /**
@@ -1076,7 +1076,7 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
 CIF_INTFUNC_DECL(cif_write, (
         FILE *stream,
         struct cif_write_opts_s *options,
-        cif_t *cif
+        cif_tp *cif
         ));
 
 /**
@@ -1122,7 +1122,7 @@ CIF_INTFUNC_DECL(cif_write_options_create, (
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 CIF_INTFUNC_DECL(cif_create, (
-        cif_t **cif
+        cif_tp **cif
         ));
 
 /**
@@ -1139,7 +1139,7 @@ CIF_INTFUNC_DECL(cif_create, (
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 CIF_INTFUNC_DECL(cif_destroy, (
-        cif_t *cif
+        cif_tp *cif
         ));
 
 /*
@@ -1173,9 +1173,9 @@ CIF_INTFUNC_DECL(cif_destroy, (
  *        @li @c CIF_ERROR for most other failures
  */
 CIF_INTFUNC_DECL(cif_create_block, (
-        cif_t *cif,
+        cif_tp *cif,
         const UChar *code,
-        cif_block_t **block
+        cif_block_tp **block
         ));
 
 /**
@@ -1197,9 +1197,9 @@ CIF_INTFUNC_DECL(cif_create_block, (
  *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_get_block, (
-        cif_t *cif,
+        cif_tp *cif,
         const UChar *code,
-        cif_block_t **block
+        cif_block_tp **block
         ));
 
 /**
@@ -1216,8 +1216,8 @@ CIF_INTFUNC_DECL(cif_get_block, (
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_get_all_blocks, (
-        cif_t *cif,
-        cif_block_t ***blocks
+        cif_tp *cif,
+        cif_block_tp ***blocks
         ));
 
 /**
@@ -1239,8 +1239,8 @@ CIF_INTFUNC_DECL(cif_get_all_blocks, (
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR) on failure
  */
 CIF_INTFUNC_DECL(cif_walk, (
-        cif_t *cif,
-        cif_handler_t *handler,
+        cif_tp *cif,
+        cif_handler_tp *handler,
         void *context
         ));
 
@@ -1343,9 +1343,9 @@ CIF_INTFUNC_DECL(cif_walk, (
  *        @li @c CIF_ERROR for most other failures
  */
 CIF_INTFUNC_DECL(cif_container_create_frame, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *code,
-        cif_frame_t **frame
+        cif_frame_tp **frame
         ));
 
 /**
@@ -1356,7 +1356,7 @@ CIF_INTFUNC_DECL(cif_container_create_frame, (
  *         invalidated by this function
  */
 CIF_VOIDFUNC_DECL(cif_container_free, (
-        cif_container_t *container
+        cif_container_tp *container
         ));
 
 /**
@@ -1369,7 +1369,7 @@ CIF_VOIDFUNC_DECL(cif_container_free, (
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_container_destroy, (
-        cif_container_t *container
+        cif_container_tp *container
         ));
 
 /**
@@ -1390,9 +1390,9 @@ CIF_INTFUNC_DECL(cif_container_destroy, (
  *         bearing the given code in the given CIF, or an error code (typically @c CIF_ERROR ) if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_container_get_frame, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *code,
-        cif_frame_t **frame
+        cif_frame_tp **frame
         ));
 
 /**
@@ -1409,8 +1409,8 @@ CIF_INTFUNC_DECL(cif_container_get_frame, (
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_container_get_all_frames, (
-        cif_container_t *container,
-        cif_frame_t ***frames
+        cif_container_tp *container,
+        cif_frame_tp ***frames
         ));
 
 /**
@@ -1426,7 +1426,7 @@ CIF_INTFUNC_DECL(cif_container_get_all_frames, (
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_container_get_code, (
-        cif_container_t *container,
+        cif_container_tp *container,
         UChar **code
         ));
 
@@ -1439,7 +1439,7 @@ CIF_INTFUNC_DECL(cif_container_get_code, (
  *         it is @c NULL
  */
 CIF_INTFUNC_DECL(cif_container_assert_block, (
-        cif_container_t *container
+        cif_container_tp *container
         ));
 
 /**
@@ -1470,10 +1470,10 @@ CIF_INTFUNC_DECL(cif_container_assert_block, (
  *        @li @c CIF_ERROR in most other failure cases
  */
 CIF_INTFUNC_DECL(cif_container_create_loop, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *category,
         UChar *names[],
-        cif_loop_t **loop
+        cif_loop_tp **loop
         ));
 
 /**
@@ -1497,9 +1497,9 @@ CIF_INTFUNC_DECL(cif_container_create_loop, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_container_get_category_loop, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *category,
-        cif_loop_t **loop
+        cif_loop_tp **loop
         ));
 
 /**
@@ -1524,9 +1524,9 @@ CIF_INTFUNC_DECL(cif_container_get_category_loop, (
  *         The return code does not depend on whether @c loop is NULL.
  */
 CIF_INTFUNC_DECL(cif_container_get_item_loop, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
-        cif_loop_t **loop
+        cif_loop_tp **loop
         ));
 
 /**
@@ -1543,8 +1543,8 @@ CIF_INTFUNC_DECL(cif_container_get_item_loop, (
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_container_get_all_loops, (
-        cif_container_t *container,
-        cif_loop_t ***loops
+        cif_container_tp *container,
+        cif_loop_tp ***loops
         ));
 
 /**
@@ -1561,7 +1561,7 @@ CIF_INTFUNC_DECL(cif_container_get_all_loops, (
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_container_prune, (
-        cif_container_t *container
+        cif_container_tp *container
         ));
 
 /**
@@ -1586,9 +1586,9 @@ CIF_INTFUNC_DECL(cif_container_prune, (
  * @return Returns a result code as described above, or @c CIF_ERROR if an error occurs
  */
 CIF_INTFUNC_DECL(cif_container_get_value, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
-        cif_value_t **val
+        cif_value_tp **val
         ));
 
 /**
@@ -1610,9 +1610,9 @@ CIF_INTFUNC_DECL(cif_container_get_value, (
  *         @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_container_set_value, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name,
-        cif_value_t *val
+        cif_value_tp *val
         ));
 
 /**
@@ -1629,7 +1629,7 @@ CIF_INTFUNC_DECL(cif_container_set_value, (
  *         container, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_container_remove_item, (
-        cif_container_t *container,
+        cif_container_tp *container,
         const UChar *item_name
         ));
 
@@ -1648,7 +1648,7 @@ CIF_INTFUNC_DECL(cif_container_remove_item, (
  * @param[in] loop the loop handle to free; must be non-NULL and valid
  */
 CIF_VOIDFUNC_DECL(cif_loop_free, (
-        cif_loop_t *loop
+        cif_loop_tp *loop
         ));
 
 /**
@@ -1666,7 +1666,7 @@ CIF_VOIDFUNC_DECL(cif_loop_free, (
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 CIF_INTFUNC_DECL(cif_loop_destroy, (
-        cif_loop_t *loop
+        cif_loop_tp *loop
         ));
 
 /**
@@ -1683,7 +1683,7 @@ CIF_INTFUNC_DECL(cif_loop_destroy, (
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_loop_get_category, (
-        cif_loop_t *loop,
+        cif_loop_tp *loop,
         UChar **category
         ));
 
@@ -1703,7 +1703,7 @@ CIF_INTFUNC_DECL(cif_loop_get_category, (
  * @return @c CIF_OK on success, or an error code on failure, typically either @c CIF_RESERVED_LOOP or @c CIF_ERROR
  */
 CIF_INTFUNC_DECL(cif_loop_set_category, (
-        cif_loop_t *loop,
+        cif_loop_tp *loop,
         const UChar *category
         ));
 
@@ -1721,7 +1721,7 @@ CIF_INTFUNC_DECL(cif_loop_set_category, (
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
 CIF_INTFUNC_DECL(cif_loop_get_names, (
-        cif_loop_t *loop,
+        cif_loop_tp *loop,
         UChar ***item_names
         ));
 
@@ -1747,9 +1747,9 @@ CIF_INTFUNC_DECL(cif_loop_get_names, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_loop_add_item, (
-        cif_loop_t *loop,
+        cif_loop_tp *loop,
         const UChar *item_name,
-        cif_value_t *val
+        cif_value_tp *val
         ));
 
 /* items are removed directly from containers, not from loops */
@@ -1772,8 +1772,8 @@ CIF_INTFUNC_DECL(cif_loop_add_item, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_loop_add_packet, (
-        cif_loop_t *loop,
-        cif_packet_t *packet
+        cif_loop_tp *loop,
+        cif_packet_tp *packet
         ));
 
 /**
@@ -1797,8 +1797,8 @@ CIF_INTFUNC_DECL(cif_loop_add_packet, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_loop_get_packets, (
-        cif_loop_t *loop,
-        cif_pktitr_t **iterator
+        cif_loop_tp *loop,
+        cif_pktitr_tp **iterator
         ));
 
 /**
@@ -1863,7 +1863,7 @@ CIF_INTFUNC_DECL(cif_loop_get_packets, (
  * @return @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_pktitr_close, (
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ));
 
 /**
@@ -1879,7 +1879,7 @@ CIF_INTFUNC_DECL(cif_pktitr_close, (
  *         @c CIF_ERROR ) in all other cases
  */
 CIF_INTFUNC_DECL(cif_pktitr_abort, (
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ));
 
 /**
@@ -1904,8 +1904,8 @@ CIF_INTFUNC_DECL(cif_pktitr_abort, (
  *         contents of any pre-existing packet provided to the function are undefined (but valid)
  */
 CIF_INTFUNC_DECL(cif_pktitr_next_packet, (
-        cif_pktitr_t *iterator,
-        cif_packet_t **packet
+        cif_pktitr_tp *iterator,
+        cif_packet_tp **packet
         ));
 
 /**
@@ -1929,8 +1929,8 @@ CIF_INTFUNC_DECL(cif_pktitr_next_packet, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_pktitr_update_packet, (
-        cif_pktitr_t *iterator,
-        cif_packet_t *packet
+        cif_pktitr_tp *iterator,
+        cif_packet_tp *packet
         ));
 
 /**
@@ -1948,7 +1948,7 @@ CIF_INTFUNC_DECL(cif_pktitr_update_packet, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_pktitr_remove_packet, (
-        cif_pktitr_t *iterator
+        cif_pktitr_tp *iterator
         ));
 
 /**
@@ -1979,7 +1979,7 @@ CIF_INTFUNC_DECL(cif_pktitr_remove_packet, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_packet_create, (
-        cif_packet_t **packet, 
+        cif_packet_tp **packet, 
         UChar **names
         ));
 
@@ -1998,7 +1998,7 @@ CIF_INTFUNC_DECL(cif_packet_create, (
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_packet_get_names, (
-        cif_packet_t *packet,
+        cif_packet_tp *packet,
         const UChar ***names
         ));
 
@@ -2028,9 +2028,9 @@ CIF_INTFUNC_DECL(cif_packet_get_names, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_packet_set_item, (
-        cif_packet_t *packet, 
+        cif_packet_tp *packet, 
         const UChar *name, 
-        cif_value_t *value
+        cif_value_tp *value
         ));
 
 /**
@@ -2051,9 +2051,9 @@ CIF_INTFUNC_DECL(cif_packet_set_item, (
  *         otherwise.
  */
 CIF_INTFUNC_DECL(cif_packet_get_item, (
-        cif_packet_t *packet, 
+        cif_packet_tp *packet, 
         const UChar *name, 
-        cif_value_t **value
+        cif_value_tp **value
         ));
 
 /**
@@ -2073,9 +2073,9 @@ CIF_INTFUNC_DECL(cif_packet_get_item, (
  *         otherwise (including if the given name is not a valid CIF item name).
  */
 CIF_INTFUNC_DECL(cif_packet_remove_item, (
-        cif_packet_t *packet, 
+        cif_packet_tp *packet, 
         const UChar *name, 
-        cif_value_t **value
+        cif_value_tp **value
         ));
 
 /**
@@ -2087,7 +2087,7 @@ CIF_INTFUNC_DECL(cif_packet_remove_item, (
  * @param[in] packet a pointer to the packet to free
  */
 CIF_VOIDFUNC_DECL(cif_packet_free, (
-        cif_packet_t *packet
+        cif_packet_tp *packet
         ));
 
 /**
@@ -2096,16 +2096,16 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * @defgroup value_funcs Functions for manipulating value objects
  *
  * @{
- * CIF data values are represented by and to CIF API functions via the opaque data type @c cif_value_t .  Because this
- * type is truly opaque, @c cif_value_t objects cannot directly be declared.  Independent value objects must instead
+ * CIF data values are represented by and to CIF API functions via the opaque data type @c cif_value_tp .  Because this
+ * type is truly opaque, @c cif_value_tp objects cannot directly be declared.  Independent value objects must instead
  * be created via function @c cif_value_create() , and @em independent ones should be released via @c cif_value_free()
  * when they are no longer needed.  Unlike the "handles" on CIF structural components that are used in several other
- * parts of the API, @c cif_value_t objects are complete data objects, independent from the backing CIF storage
+ * parts of the API, @c cif_value_tp objects are complete data objects, independent from the backing CIF storage
  * mechanism, albeit sometimes parts of aggregate value objects.
  *
  * The API classifies values into several distinct "kinds": character (Unicode string) values, apparently-numeric
  * values, list values, table values, unknown-value place holders, and not-applicable/default-value place holders.
- * These alternatives are represented by the enumeration @c cif_kind_t.  Value kinds are assigned when values are
+ * These alternatives are represented by the enumeration @c cif_kind_tp.  Value kinds are assigned when values are
  * created, but may be changed by re-initialization.  Several functions serve this purpose: @c cif_value_init(), of
  * course, but also @c cif_value_init_char(), @c cif_value_copy_char(), @c cif_value_parse_numb(),
  * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  If it is unknown, the kind of a value object can be
@@ -2147,8 +2147,8 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_value_create, (
-        cif_kind_t kind,
-        cif_value_t **value
+        cif_kind_tp kind,
+        cif_value_tp **value
         ));
 
 /**
@@ -2164,7 +2164,7 @@ CIF_INTFUNC_DECL(cif_value_create, (
  *         no specific failure conditions are currently defined.
  */
 CIF_VOIDFUNC_DECL(cif_value_clean, (
-        cif_value_t *value
+        cif_value_tp *value
         ));
 
 /**
@@ -2176,7 +2176,7 @@ CIF_VOIDFUNC_DECL(cif_value_clean, (
  * @param[in,out] value a valid pointer to the value object to free, or NULL
  */
 CIF_VOIDFUNC_DECL(cif_value_free, (
-        cif_value_t *value
+        cif_value_tp *value
         ));
 
 /**
@@ -2197,8 +2197,8 @@ CIF_VOIDFUNC_DECL(cif_value_free, (
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_value_clone, (
-        cif_value_t *value,
-        cif_value_t **clone
+        cif_value_tp *value,
+        cif_value_tp **clone
         ));
 
 /**
@@ -2221,8 +2221,8 @@ CIF_INTFUNC_DECL(cif_value_clone, (
  * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
  */
 CIF_INTFUNC_DECL(cif_value_init, (
-        cif_value_t *value,
-        cif_kind_t kind
+        cif_value_tp *value,
+        cif_kind_tp kind
         ));
 
 /**
@@ -2244,7 +2244,7 @@ CIF_INTFUNC_DECL(cif_value_init, (
  * @sa cif_value_copy_char()
  */
 CIF_INTFUNC_DECL(cif_value_init_char, (
-        cif_value_t *value,
+        cif_value_tp *value,
         UChar *text
         ));
 
@@ -2265,7 +2265,7 @@ CIF_INTFUNC_DECL(cif_value_init_char, (
  * @sa cif_value_init_char()
  */
 CIF_INTFUNC_DECL(cif_value_copy_char, (
-        cif_value_t *value,
+        cif_value_tp *value,
         const UChar *text
         ));
 
@@ -2293,7 +2293,7 @@ CIF_INTFUNC_DECL(cif_value_copy_char, (
  *         @li @c CIF_ERROR in most other cases
  */
 CIF_INTFUNC_DECL(cif_value_parse_numb, (
-        cif_value_t *numb, 
+        cif_value_tp *numb, 
         UChar *text
         ));
 
@@ -2341,7 +2341,7 @@ CIF_INTFUNC_DECL(cif_value_parse_numb, (
  * @return Returns CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure.
  */
 CIF_INTFUNC_DECL(cif_value_init_numb, (
-        cif_value_t *numb, 
+        cif_value_tp *numb, 
         double val, 
         double su, 
         int scale, 
@@ -2384,7 +2384,7 @@ CIF_INTFUNC_DECL(cif_value_init_numb, (
  * @return Returns CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure.
  */
 CIF_INTFUNC_DECL(cif_value_autoinit_numb, (
-        cif_value_t *numb, 
+        cif_value_tp *numb, 
         double val, 
         double su, 
         unsigned int su_rule
@@ -2400,8 +2400,8 @@ CIF_INTFUNC_DECL(cif_value_autoinit_numb, (
  *
  * @return Returns the kind code of the specified value
  */
-CIF_FUNC_DECL(cif_kind_t, cif_value_kind, (
-        cif_value_t *value
+CIF_FUNC_DECL(cif_kind_tp, cif_value_kind, (
+        cif_value_tp *value
         ));
 
 /**
@@ -2419,7 +2419,7 @@ CIF_FUNC_DECL(cif_kind_t, cif_value_kind, (
  *         another code, typically @c CIF_ERROR, if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_value_get_number, (
-        cif_value_t *numb,
+        cif_value_tp *numb,
         double *val
         ));
 
@@ -2437,7 +2437,7 @@ CIF_INTFUNC_DECL(cif_value_get_number, (
  *         another code, typically @c CIF_ERROR, if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_value_get_su, (
-        cif_value_t *numb,
+        cif_value_tp *numb,
         double *su
         ));
 
@@ -2466,7 +2466,7 @@ CIF_INTFUNC_DECL(cif_value_get_su, (
  * @return Returns @c CIF_OK on success, or @c CIF_ERROR on failure
  */
 CIF_INTFUNC_DECL(cif_value_get_text, (
-        cif_value_t *value,
+        cif_value_tp *value,
         UChar **text
         ));
 
@@ -2484,7 +2484,7 @@ CIF_INTFUNC_DECL(cif_value_get_text, (
  * @return @c CIF_OK if the value has kind @c CIF_LIST_KIND or @c CIF_TABLE_KIND, otherwise @c CIF_ARGUMENT_ERROR
  */
 CIF_INTFUNC_DECL(cif_value_get_element_count, (
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t *count
         ));
 
@@ -2512,9 +2512,9 @@ CIF_INTFUNC_DECL(cif_value_get_element_count, (
  *     @c CIF_OK if @c index is less than the number of elements in the list, else @c CIF_INVALID_INDEX .
  */
 CIF_INTFUNC_DECL(cif_value_get_element_at, (
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t **element
+        cif_value_tp **element
         ));
 
 /**
@@ -2545,9 +2545,9 @@ CIF_INTFUNC_DECL(cif_value_get_element_at, (
  * @sa cif_value_set_item_by_key()
  */
 CIF_INTFUNC_DECL(cif_value_set_element_at, (
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t *element
+        cif_value_tp *element
         ));
 
 /**
@@ -2574,9 +2574,9 @@ CIF_INTFUNC_DECL(cif_value_set_element_at, (
  * @sa cif_value_set_element_at()
  */
 CIF_INTFUNC_DECL(cif_value_insert_element_at, (
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t *element
+        cif_value_tp *element
         ));
 
 /**
@@ -2603,9 +2603,9 @@ CIF_INTFUNC_DECL(cif_value_insert_element_at, (
  * @sa cif_value_remove_item_by_key()
  */
 CIF_INTFUNC_DECL(cif_value_remove_element_at, (
-        cif_value_t *value,
+        cif_value_tp *value,
         size_t index,
-        cif_value_t **element
+        cif_value_tp **element
         ));
 
 /**
@@ -2630,7 +2630,7 @@ CIF_INTFUNC_DECL(cif_value_remove_element_at, (
  *             described
  */
 CIF_INTFUNC_DECL(cif_value_get_keys, (
-        cif_value_t *table,
+        cif_value_tp *table,
         const UChar ***keys
         ));
 
@@ -2662,9 +2662,9 @@ CIF_INTFUNC_DECL(cif_value_get_keys, (
  * @sa cif_value_set_element_at()
  */
 CIF_INTFUNC_DECL(cif_value_set_item_by_key, (
-        cif_value_t *table, 
+        cif_value_tp *table, 
         const UChar *key, 
-        cif_value_t *item
+        cif_value_tp *item
         ));
 
 /**
@@ -2693,9 +2693,9 @@ CIF_INTFUNC_DECL(cif_value_set_item_by_key, (
  * @sa cif_value_get_element_at()
  */
 CIF_INTFUNC_DECL(cif_value_get_item_by_key, (
-        cif_value_t *table, 
+        cif_value_tp *table, 
         const UChar *key, 
-        cif_value_t **value
+        cif_value_tp **value
         ));
 
 /**
@@ -2722,9 +2722,9 @@ CIF_INTFUNC_DECL(cif_value_get_item_by_key, (
  * @sa cif_value_remove_element_at()
  */
 CIF_INTFUNC_DECL(cif_value_remove_item_by_key, (
-        cif_value_t *table, 
+        cif_value_tp *table, 
         const UChar *key, 
-        cif_value_t **value
+        cif_value_tp **value
         ));
 
 /**

@@ -12,7 +12,7 @@
 
 int main(void) {
     char test_name[80] = "test_value_create";
-    cif_value_t *value;
+    cif_value_tp *value;
     UChar *text;
     size_t count;
     U_STRING_DECL(zero, "0", 2);
@@ -84,7 +84,7 @@ int main(void) {
 
     /* Test creating a value of invalid kind */ 
     value = NULL;
-    TEST(cif_value_create((cif_kind_t) 42, &value), CIF_ARGUMENT_ERROR, test_name, 36);
+    TEST(cif_value_create((cif_kind_tp) 42, &value), CIF_ARGUMENT_ERROR, test_name, 36);
     TEST((value != NULL), 0, test_name, 37);
 
     return 0;

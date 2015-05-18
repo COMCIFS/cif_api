@@ -20,16 +20,16 @@ static int count_names(const UChar **names);
 
 int main(void) {
     char test_name[80] = "test_loop_packets";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_frame_t *frame = NULL;
-    cif_loop_t *loop;
-    cif_pktitr_t *pktitr;
-    cif_packet_t *packet;
-    cif_value_t *value;
-    cif_value_t *value1;
-    cif_value_t *value2;
-    cif_value_t *value3;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_loop_tp *loop;
+    cif_pktitr_tp *pktitr;
+    cif_packet_tp *packet;
+    cif_value_tp *value;
+    cif_value_tp *value1;
+    cif_value_tp *value2;
+    cif_value_tp *value3;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
     U_STRING_DECL(item1l, "_item1", 7);

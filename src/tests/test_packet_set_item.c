@@ -16,9 +16,9 @@ static int test_name_list(UChar **expected, int num_expected, const UChar **obse
 
 int main(void) {
     char test_name[80] = "test_packet_set_item";
-    cif_packet_t *packet = NULL;
-    cif_value_t *value = NULL;
-    cif_value_t *value2 = NULL;
+    cif_packet_tp *packet = NULL;
+    cif_value_tp *value = NULL;
+    cif_value_tp *value2 = NULL;
     const UChar **item_names = NULL;
     UChar *used_names[5] = { NULL, NULL, NULL, NULL, NULL };
     UChar *text = NULL;

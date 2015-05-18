@@ -65,11 +65,11 @@ static void print_header(UFILE *out) {
  * Prints an XHTML heading and coordinate table for the given CIF data block
  */
 #define BUFSIZE 80
-static void print_table3(UFILE *out, cif_block_t *block) {
+static void print_table3(UFILE *out, cif_block_tp *block) {
     UChar *code;
-    cif_loop_t *coordinate_loop;
-    cif_pktitr_t *iterator;
-    cif_packet_t *packet = NULL;  /* it is important that this pointer be initialized to NULL */
+    cif_loop_tp *coordinate_loop;
+    cif_pktitr_tp *iterator;
+    cif_packet_tp *packet = NULL;  /* it is important that this pointer be initialized to NULL */
     /* declare data name variables the ICU way: */
     U_STRING_DECL(label_name, "_atom_site_label", 17);
     U_STRING_DECL(x_name, "_atom_site_fract_x", 19);
@@ -114,7 +114,7 @@ static void print_table3(UFILE *out, cif_block_t *block) {
 
         u_fprintf(out, "<tr>");
         for (counter = 0; counter < 5; counter += 1) {
-            cif_value_t *value;
+            cif_value_tp *value;
             UChar *text;
 
             CHECK_CALL(cif_packet_get_item(packet, names[counter], &value),
@@ -149,11 +149,11 @@ static void print_trailer(UFILE *out) {
  */
 int main(int argc, char *argv[]) {
     struct cif_parse_opts_s *options;
-    cif_t *cif = NULL;  /* it's important to initialize this pointer to NULL */
+    cif_tp *cif = NULL;  /* it's important to initialize this pointer to NULL */
     int first_file;
     UFILE *ustdout;
-    cif_block_t **all_blocks;
-    cif_block_t **current_block;
+    cif_block_tp **all_blocks;
+    cif_block_tp **current_block;
 
     /* handle command-line arguments */
     CHECK_CALL(cif_parse_options_create(&options), "prepare parse options");

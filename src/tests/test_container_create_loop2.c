@@ -11,15 +11,14 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "test.h"
 
 int main(void) {
     char test_name[80] = "test_container_create_loop2";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_loop_t *loop = NULL;
-    cif_block_t *block2;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_loop_tp *loop = NULL;
+    cif_block_tp *block2;
 #define NUM_NAMES 6
 #define BUFLEN 64
     const char invalid_patterns[NUM_NAMES][BUFLEN] = {

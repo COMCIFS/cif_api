@@ -40,7 +40,7 @@ int main(void) {
         error_callback, /* error callback function */
         NULL  /* no user data */
     };
-    cif_t *cif = NULL;
+    cif_tp *cif = NULL;
     U_STRING_DECL(code_block1,       "block1", 7);
 
     U_STRING_INIT(code_block1,       "block1", 7);

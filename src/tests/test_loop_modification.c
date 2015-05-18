@@ -15,25 +15,25 @@
 #include "assert_value.h"
 #include "test.h"
 
-static cif_packet_t *clone_packet(cif_packet_t *packet);
-static cif_packet_t *lookup_packet(cif_packet_t **packets, const UChar *key_name, cif_value_t *find);
-static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2);
-static int assert_packets(cif_pktitr_t *pktitr, cif_packet_t *expected[], const UChar *key_name);
+static cif_packet_tp *clone_packet(cif_packet_tp *packet);
+static cif_packet_tp *lookup_packet(cif_packet_tp **packets, const UChar *key_name, cif_value_tp *find);
+static int assert_packets_equal(cif_packet_tp *packet1, cif_packet_tp *packet2);
+static int assert_packets(cif_pktitr_tp *pktitr, cif_packet_tp *expected[], const UChar *key_name);
 
 int main(void) {
     char test_name[80] = "test_loop_modification";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_loop_t *loop;
-    cif_pktitr_t *pktitr;
-    cif_packet_t *packet;
-    cif_packet_t *packet2;
-    cif_packet_t *packet3;
-    cif_packet_t *reference_packets[5] = { NULL, NULL, NULL, NULL, NULL };
-    cif_value_t *value;
-    cif_value_t *value1;
-    cif_value_t *value2;
-    cif_value_t *value3;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_loop_tp *loop;
+    cif_pktitr_tp *pktitr;
+    cif_packet_tp *packet;
+    cif_packet_tp *packet2;
+    cif_packet_tp *packet3;
+    cif_packet_tp *reference_packets[5] = { NULL, NULL, NULL, NULL, NULL };
+    cif_value_tp *value;
+    cif_value_tp *value1;
+    cif_value_tp *value2;
+    cif_value_tp *value3;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(item1l, "_item1", 7);
     U_STRING_DECL(item2l, "_item2", 7);
@@ -281,8 +281,8 @@ int main(void) {
 /*
  * Clones a packet and returns a pointer to the clone.  Returns NULL on failure.
  */
-static cif_packet_t *clone_packet(cif_packet_t *packet) {
-    cif_packet_t *clone = NULL;
+static cif_packet_tp *clone_packet(cif_packet_tp *packet) {
+    cif_packet_tp *clone = NULL;
     const UChar **names;
 
     if (cif_packet_get_names(packet, &names) == CIF_OK) {
@@ -290,7 +290,7 @@ static cif_packet_t *clone_packet(cif_packet_t *packet) {
             const UChar **name_p;
 
             for (name_p = names; *name_p != NULL; name_p += 1) {
-                cif_value_t *value;
+                cif_value_tp *value;
 
                 /* 'value' does not need to be released because it belongs to 'packet' */
                 /* 'value' is automatically cloned into 'clone'; no need to clone it explicitly */
@@ -317,11 +317,11 @@ static cif_packet_t *clone_packet(cif_packet_t *packet) {
  *
  * All packets should have an item of the specified key_name.
  */
-static cif_packet_t *lookup_packet(cif_packet_t **packets, const UChar *key_name, cif_value_t *find) {
-    cif_packet_t **packet_p;
+static cif_packet_tp *lookup_packet(cif_packet_tp **packets, const UChar *key_name, cif_value_tp *find) {
+    cif_packet_tp **packet_p;
 
     for (packet_p = packets; *packet_p != NULL; packet_p += 1) {
-        cif_value_t *value;
+        cif_value_tp *value;
 
         if (cif_packet_get_item(*packet_p, key_name, &value) != CIF_OK) {
             return NULL;
@@ -339,7 +339,7 @@ static cif_packet_t *lookup_packet(cif_packet_t **packets, const UChar *key_name
  * being equal.  Returns a nonzero value if the assertion is true, or 0 if it
  * is false.
  */
-static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2) {
+static int assert_packets_equal(cif_packet_tp *packet1, cif_packet_tp *packet2) {
     const UChar **item_names;
     int rval = 0;
 
@@ -349,15 +349,15 @@ static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2) {
          * That's convenient, but we really need only a name set, so cloning
          * the whole thing is overkill.
          */
-        cif_packet_t *clone = clone_packet(packet2);
+        cif_packet_tp *clone = clone_packet(packet2);
 
         if (clone != NULL) {
             const UChar **name_p;
 
             /* check each item in packet1 to see whether it matches an item in the clone of packet2 */
             for (name_p = item_names; *name_p != NULL; name_p += 1) {
-                cif_value_t *value1;
-                cif_value_t *value2;
+                cif_value_tp *value1;
+                cif_value_tp *value2;
 
                 if ((cif_packet_get_item(packet1, *name_p, &value1) != CIF_OK)
                         || (cif_packet_get_item(clone, *name_p, &value2) != CIF_OK)
@@ -395,10 +395,10 @@ static int assert_packets_equal(cif_packet_t *packet1, cif_packet_t *packet2) {
  * This function is inherently destructive in that it iterates over some or all
  * of the packets available from the given iterator.
  */
-static int assert_packets(cif_pktitr_t *pktitr, cif_packet_t *expected[], const UChar *key_name) {
+static int assert_packets(cif_pktitr_tp *pktitr, cif_packet_tp *expected[], const UChar *key_name) {
     unsigned int count;
     unsigned int expected_mask;
-    cif_packet_t *packet = NULL;
+    cif_packet_tp *packet = NULL;
     int rval = 0;
 
     /*
@@ -410,8 +410,8 @@ static int assert_packets(cif_pktitr_t *pktitr, cif_packet_t *expected[], const 
 
     /* iterate over the available packets */
     for (;;) {
-        cif_value_t *key;
-        cif_packet_t *expected_packet;
+        cif_value_tp *key;
+        cif_packet_tp *expected_packet;
 
         switch (cif_pktitr_next_packet(pktitr, &packet)) {
             default:            /* error */

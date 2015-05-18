@@ -15,10 +15,10 @@
 
 int main(void) {
     char test_name[80] = "test_block_get_all_frames";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_block_t *block2 = NULL;
-    cif_frame_t **frames = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_frame_tp **frames = NULL;
     UChar *code;
     U_STRING_DECL(block0, "b0", 3);
     U_STRING_DECL(b2, "b2", 3);

@@ -11,16 +11,15 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "test.h"
 
 int main(void) {
     char test_name[80] = "test_container_prune";
-    cif_t *cif = NULL;
-    cif_block_t *block = NULL;
-    cif_block_t *block2 = NULL;
-    cif_loop_t *loop = NULL;
-    cif_packet_t *packet = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp *block = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_loop_tp *loop = NULL;
+    cif_packet_tp *packet = NULL;
 #define MAX_NAMES 5
     UChar *names[MAX_NAMES + 1];
     UChar *names2[MAX_NAMES + 1];

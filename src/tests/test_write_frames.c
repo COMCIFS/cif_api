@@ -11,7 +11,6 @@
 #include <unicode/ustring.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "assert_cifs.h"
 #include "test.h"
 
@@ -20,14 +19,14 @@
 int main(void) {
     char test_name[80] = "test_write_frames";
     FILE * cif_file;
-    cif_t *cif = NULL;
-    cif_t *cif_readback = NULL;
-    cif_block_t *block = NULL;
-    cif_frame_t *frame1 = NULL;
-    cif_frame_t *frame2 = NULL;
-    cif_loop_t *loop = NULL;
-    cif_packet_t *packet = NULL;
-    cif_value_t *value = NULL;
+    cif_tp *cif = NULL;
+    cif_tp *cif_readback = NULL;
+    cif_block_tp *block = NULL;
+    cif_frame_tp *frame1 = NULL;
+    cif_frame_tp *frame2 = NULL;
+    cif_loop_tp *loop = NULL;
+    cif_packet_tp *packet = NULL;
+    cif_value_tp *value = NULL;
 
     UChar frame1_code[] = { 'f', 'r', 'a', 'm', 'e', '1', 0 };
     UChar frame2_code[] = { 'f', 'r', 'a', 'm', 'e', '2', 0 };

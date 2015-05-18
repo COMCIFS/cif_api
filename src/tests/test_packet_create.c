@@ -16,8 +16,8 @@ static int test_name_list(UChar **expected, const UChar **observed);
 
 int main(void) {
     char test_name[80] = "test_packet_create";
-    cif_packet_t *packet = NULL;
-    cif_value_t *value = NULL;
+    cif_packet_tp *packet = NULL;
+    cif_value_tp *value = NULL;
     UChar empty_name[1] = { 0 };
     UChar invalid_name1[5] = { 0x5F, 0x4B, 0xFFFF, 0x79, 0 };
     UChar invalid_name2[5] = { 0x5F, 0x4B, 0x20, 0x79, 0 };

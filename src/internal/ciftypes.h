@@ -124,7 +124,7 @@ struct cif_s {
 /* data containers block and frame */
 
 struct cif_container_s {
-    cif_t *cif;
+    cif_tp *cif;
     sqlite_int64 id;
     UChar *code;
     UChar *code_orig;
@@ -134,7 +134,7 @@ struct cif_container_s {
 /* loops */
 
 struct cif_loop_s {
-    cif_container_t *container;
+    cif_container_tp *container;
     int loop_num;
     UChar *category;
     UChar **names;
@@ -170,7 +170,7 @@ struct cif_packet_s {
  */
 struct cif_pktitr_s {
     sqlite3_stmt *stmt;
-    cif_loop_t *loop;
+    cif_loop_tp *loop;
     UChar **item_names;              /* must record _normalized_ names */
     struct set_element_s *name_set;  /* a set representation of 'item_names' */
     int previous_row_num;
@@ -182,12 +182,12 @@ struct cif_pktitr_s {
 /* IMPORTANT: the order of the members of the following value structures is significant. */
 
 typedef struct char_value_s {
-    cif_kind_t kind;  /* expected: CIF_CHAR_KIND */
+    cif_kind_tp kind;  /* expected: CIF_CHAR_KIND */
     UChar *text;
-} cif_char_t;
+} cif_char_tp;
 
 typedef struct numb_value_s {
-    cif_kind_t kind;  /* expected: CIF_NUMB_KIND */
+    cif_kind_tp kind;  /* expected: CIF_NUMB_KIND */
     UChar *text;
     int sign;         /* expected: +-1 */
     /*
@@ -198,38 +198,38 @@ typedef struct numb_value_s {
     char *digits;
     char *su_digits;
     int scale;
-} cif_numb_t;
+} cif_numb_tp;
 
 struct list_element_s;
 
 typedef struct list_value_s {
-    cif_kind_t kind;  /* expected: CIF_LIST_KIND */
-    cif_value_t **elements;
+    cif_kind_tp kind;  /* expected: CIF_LIST_KIND */
+    cif_value_tp **elements;
     size_t size;
     size_t capacity;
-} cif_list_t;
+} cif_list_tp;
 
 typedef struct table_value_s {
-    cif_kind_t kind;  /* expected: CIF_TABLE_KIND */
+    cif_kind_tp kind;  /* expected: CIF_TABLE_KIND */
     cif_map_t map;
-} cif_table_t;
+} cif_table_tp;
 
 union cif_value_u {
-    cif_kind_t kind;
-    cif_char_t as_char;
-    cif_numb_t as_numb;
-    cif_list_t as_list;
-    cif_table_t as_table;
+    cif_kind_tp kind;
+    cif_char_tp as_char;
+    cif_numb_tp as_numb;
+    cif_list_tp as_list;
+    cif_table_tp as_table;
     /* nothing (else) for kinds CIF_NA_KIND and CIF_UNK_KIND */
 };
 
 struct list_element_s {
-    cif_value_t as_value; /* not a pointer */
+    cif_value_tp as_value; /* not a pointer */
     struct list_element_s *next;
 };
 
 struct entry_s {
-    cif_value_t as_value; /* not a pointer; MUST BE FIRST */
+    cif_value_tp as_value; /* not a pointer; MUST BE FIRST */
     UChar *key;
     UChar *key_orig;
     UT_hash_handle hh;
@@ -241,7 +241,7 @@ struct entry_s {
 typedef struct string_el {
     struct string_el *next;
     UChar *string;
-} string_element_t;
+} string_element_tp;
 
 /*
  * reads characters from the specified source, of a runtime type appropriate for the pointed-to function, into the
@@ -299,9 +299,9 @@ struct scanner_s {
     int max_frame_depth;
 
     /* user callback support */
-    cif_handler_t *handler;
-    cif_parse_error_callback_t error_callback;
-    cif_whitespace_callback_t whitespace_callback;
+    cif_handler_tp *handler;
+    cif_parse_error_callback_tp error_callback;
+    cif_whitespace_callback_tp whitespace_callback;
     void *user_data;
 
     /*

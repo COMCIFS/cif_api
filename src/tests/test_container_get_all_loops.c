@@ -13,7 +13,6 @@
 #include <unicode/ustdio.h>
 #include "../cif.h"
 
-#define USE_USTDERR
 #include "test.h"
 
 #define NAME_UCHARS 8
@@ -21,12 +20,12 @@
 #define EXPECTED_LOOPS 4
 int main(void) {
     char test_name[80] = "test_container_get_all_loops";
-    cif_t *cif = NULL;
-    cif_block_t *block1 = NULL;
-    cif_block_t *block2 = NULL;
-    cif_frame_t *frame = NULL;
-    cif_loop_t **loops;
-    cif_loop_t **loop_ctr;
+    cif_tp *cif = NULL;
+    cif_block_tp *block1 = NULL;
+    cif_block_tp *block2 = NULL;
+    cif_frame_tp *frame = NULL;
+    cif_loop_tp **loops;
+    cif_loop_tp **loop_ctr;
     UChar item_names[NUM_NAMES][NAME_UCHARS];
     UChar *loop_items[NUM_NAMES + 2];
     UChar *expected_items[EXPECTED_LOOPS][NUM_NAMES + 1];

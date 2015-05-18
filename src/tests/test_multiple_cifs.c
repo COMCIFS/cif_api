@@ -15,8 +15,8 @@
 
 int main(void) {
     char test_name[80] = "test_multiple_cifs";
-    cif_t *cif1 = NULL;
-    cif_t *cif2 = NULL;
+    cif_tp *cif1 = NULL;
+    cif_tp *cif2 = NULL;
     U_STRING_DECL(block_code, "block", 6);
 
     /* Initialize data and prepare the test fixture */

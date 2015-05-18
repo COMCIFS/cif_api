@@ -19,7 +19,7 @@ TO_REMOVE=
 	#include "cif.h"
 	
 	int main(int argc, char *argv[]) {
-  	    cif_t *cif;
+  	    cif_tp *cif;
   	    int result = cif_create(&cif);
   	    result = cif_destroy(cif);
   	    return 0;

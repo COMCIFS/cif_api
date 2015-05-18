@@ -18,10 +18,10 @@ static int test_key_list(UChar **expected, int num_expected, const UChar **obser
 
 int main(void) {
     char test_name[80] = "test_table_elements";
-    cif_value_t *value = NULL;
-    cif_value_t *element1 = NULL;
-    cif_value_t *element2 = NULL;
-    cif_value_t *element3 = NULL;
+    cif_value_tp *value = NULL;
+    cif_value_tp *element1 = NULL;
+    cif_value_tp *element2 = NULL;
+    cif_value_tp *element3 = NULL;
     UChar empty_key[1] = { 0 };
     UChar invalid_key[4] = { 'K', 0xFFFF, 'y', 0 };
     UChar uncomposed_key[5] = { 'K', 0x0073, 0x0307, 0x0323, 0 };

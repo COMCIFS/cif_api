@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 
         for (file_number = first_file; file_number < argc; file_number += 1) {
             FILE *file;
-            cif_t *cif = NULL; /* it's important to initialize this pointer to NULL */
+            cif_tp *cif = NULL; /* it's important to initialize this pointer to NULL */
 
             if (strcmp(argv[file_number], "-") == 0) {
                 /* File name "-" is taken to mean the program's standard input */

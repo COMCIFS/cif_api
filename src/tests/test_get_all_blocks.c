@@ -15,9 +15,9 @@
 
 int main(void) {
     char test_name[80] = "test_get_all_blocks";
-    cif_t *cif = NULL;
-    cif_block_t **blocks = NULL;
-    cif_block_t *block = NULL;
+    cif_tp *cif = NULL;
+    cif_block_tp **blocks = NULL;
+    cif_block_tp *block = NULL;
     UChar *code;
     U_STRING_DECL(block0, "b0", 3);
     U_STRING_DECL(block1, "b1", 3);
