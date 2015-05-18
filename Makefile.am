@@ -8,8 +8,10 @@ SUBDIRS = src
 
 ACLOCAL_AMFLAGS = -I m4
 
-# 'distcheck' should verify that building the examples and rebuilding the documentation both work
-AM_DISTCHECK_CONFIGURE_FLAGS = --enable-doc-rebuild --with-examples
+# 'distcheck' should verify that building the examples works.
+# It would be nice to test documentation rebuilding, too, but 'distcheck'
+# doesn't like it that 'distclean' doesn't then remove the generarted docs.
+AM_DISTCHECK_CONFIGURE_FLAGS = --with-examples
 
 doxygen_examples = \
   misc/basic_parsing.c \
