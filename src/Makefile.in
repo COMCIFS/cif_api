@@ -2887,7 +2887,7 @@ internal/schema.h: $(top_srcdir)/misc/cif_schema.sql Makefile.am
 	  | $(GREP) -v '\s*--' \
 	  | $(SED) -e '$(SED_SQL_MANGLER)' \
 	  >> $@
-	echo ', NULL' >> $@
+	echo ', (char *) 0' >> $@
 	echo "};" >> $@
 	echo "#endif" >> $@
 
