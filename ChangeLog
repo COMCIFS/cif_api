@@ -1,5 +1,10 @@
 CIF API Change Log
 
+Version 0.3.0
+* Changed type names
+  Because POSIX reserves type names ending in _t, the names of all types
+  provided by the CIF API have been changed to use _tp instead.
+
 Version 0.2.0.3
 * Bug in cif_loop_add_item()
   Fixed a bug in which cif_loop_add_item() did not correctly handle a NULL
