@@ -81,7 +81,7 @@
  * By default, however, the parser stops at the first error it encounters.  Inasmuch as very many CIFs contain at least
  * minor errors, it may be desirable to instruct the parser to attempt to push past all or certain kinds of errors,
  * extracting @ref error_recovery "a best-guess interpretation of the remainder of the input".  Such behavior can be obtained by providing an
- * error-handling callback function of type matching @c cif_parse_error_callback_t .  Such a function serves not only
+ * error-handling callback function of type matching @c cif_parse_error_callback_tp .  Such a function serves not only
  * to control which errors are bypassed, but also, if so written, to pass on details of each error to the caller.  For
  * example, this code counts the number of CIF syntax and semantic errors in the input CIF: @include parse_errors.c
  * 
@@ -92,7 +92,7 @@
  * @subsection parser-callbacks Parser callbacks
  * Parsing a CIF from an external representation is in many ways analogous to performing a depth-first traversal of
  * a pre-parsed instance of the CIF data model, as the @c cif_walk() function does.  In view of this similarity, a @c
- * cif_handler_t object such as is also used with @c cif_walk() can be provided among the parse options to facilitate
+ * cif_handler_tp object such as is also used with @c cif_walk() can be provided among the parse options to facilitate
  * caller monitoring and control of the parse process.  The handler callbacks can probe and to some
  * extent modify the CIF as it is parsed, including by instructing the parser to suppress (but not altogether skip)
  * some portions of the input.  This facility has applications from parse-time data selection to validation and beyond;
@@ -143,22 +143,24 @@
  * <table>
  * <tr><th>Condition</th><th>Code</th><th>Recovery action</th></tr>
  * <tr><td>Wrong character encoding</td><td>@c CIF_WRONG_ENCODING</td><td>ignore the problem</td></tr>
- * <tr><td colspan='3'>CIF 2.0 must consist of Unicode character data encoded in UTF-8, but that character data can be
- *     parsed just as easily if it is encoded differently (provided the encoding can be determined), even though such
- *     input does not comply with the CIF 2.0 specifications.</td></tr>
+ * <tr><td colspan='3'>CIF 2.0 must consist of Unicode character data encoded in UTF-8, and this error is emitted if the
+ * input is recognized to be encoded differently.  That this error is emitted at all generally means that the parser has
+ * identified the signature of a different (known) encoding, so it can recover by reading the data according to the
+ * detected encoding, even though such input does not comply with the CIF 2.0 specifications.</td></tr>
  * <tr><td>Disallowed input character</td><td>@c CIF_DISALLOWED_CHAR</td><td>substitute a replacement character</td></tr>
- * <tr><td colspan='3'>Which characters are allowed and which is the replacement character depends on which version
- *     of CIF is being parsed.</td></tr>
+ * <tr><td colspan='3'>This error indicates that an input character outside the allowed set was read.  The parser can
+ * recover by substituting a replacement character.  Which characters are allowed and which is the replacement
+ * character depends on which version of CIF is being parsed.</td></tr>
  * <tr><td>Missing whitespace</td><td>@c CIF_MISSING_SPACE</td><td>assume the omitted whitespace</td></tr>
  * <tr><td colspan='3'>Whitespace separation is required between most CIF grammatic units.  In some cases, the omission
- *     of such whitespace can be recognized by the parser, resulting in this error.  This is the error that will be
- *     reported when a CIF1-style string with embedded delimiter is encountered when parsing in CIF 2 mode.  If the
- *     opening delimiter of a table is omitted then this error will occur at trailing colon of each table key.</td></tr>
+ *     of such whitespace can be recognized by the parser, resulting in this error.  In particular, this is the error
+ *     that will be reported when a CIF1-style string with embedded delimiter is encountered when parsing in CIF 2 mode.
+ *     If the opening delimiter of a table is omitted then this error will occur at trailing colon of each table key.</td></tr>
  * <tr><td>Invalid block code</td><td>@c CIF_INVALID_BLOCKCODE</td><td>use the block code anyway</td></tr>
  * <tr><td colspan='3'>Although the API's CIF manipulation functions will not allow blocks with invalid codes to be
  *     created directly by client programs, the parser can and will create such blocks to accommodate inputs that
  *     use such codes.  The result is not a valid instance of the CIF data model.</td></tr>
- * <tr><td>Duplicate block code</td><td>@c CIF_CUP_BLOCKCODE</td><td>reopen the specified block</td></tr>
+ * <tr><td>Duplicate block code</td><td>@c CIF_DUP_BLOCKCODE</td><td>reopen the specified block</td></tr>
  * <tr><td colspan='3'>Block codes must be unique within a given CIF.  To handle a duplicate block code, the parser
  *     reopens the specified block and parses the following contents into it.  This may well lead to additional errors
  *     being reported.</td></tr>
@@ -170,9 +172,9 @@
  * <tr><td colspan='3'>Although the API's CIF manipulation functions will not allow save frames with invalid codes to be
  *     created directly by client programs, the parser can and will create such frames to accommodate inputs that
  *     use such codes.  The result is not a valid instance of the CIF data model.</td></tr>
- * <tr><td>Duplicate frame code</td><td>@c CIF_CUP_FRAMECODE</td><td>reopen the specified frame</td></tr>
+ * <tr><td>Duplicate frame code</td><td>@c CIF_DUP_FRAMECODE</td><td>reopen the specified frame</td></tr>
  * <tr><td colspan='3'>Save frame codes must be unique within a their containing block or save frame.  To handle a
- *     duplicate block code, the parser reopens the specified frame and parses the following contents into it.  This may
+ *     duplicate frame code, the parser reopens the specified frame and parses the following contents into it.  This may
  *     well lead to additional errors being reported.</td></tr>
  * <tr><td>Disallowed save frame</td><td>@c CIF_FRAME_NOT_ALLOWED</td><td>accept the save frame</td></tr>
  * <tr><td colspan='3'>This error occurs when a save frame header is encountered while parsing with save frame support
@@ -180,9 +182,8 @@
  *     default level.</td></tr>
  * <tr><td>Unterminated save frame</td><td>@c CIF_NO_FRAME_TERM</td><td>assume the missing terminator</td></tr>
  * <tr><td colspan='3'>This error occurs when a data block header is encountered while parsing a save frame, or when a
- *     save frame header is encountered while parsing a save frame with nested frames disabled.  The parser recovers by
- *     assuming the missing save frame terminator at the position where the error is detected.  When parsing with
- *     nested save frames enabled, this error may occur two or more times in a row at the same parse position.</td></tr>
+ *     save frame header is encountered while parsing a save frame with nested frames disabled (the default).  The
+ *     parser recovers by assuming the missing save frame terminator at the position where the error is detected.</td></tr>
  * <tr><td>Unterminated save frame at end-of-file</td><td>@c CIF_EOF_IN_FRAME</td><td>assume the missing terminator</td></tr>
  * <tr><td colspan='3'>This is basically the same as the CIF_NO_FRAME_TERM case, but triggered when the end of input
  *     occurs while parsing a save frame.  This case is distinguished in part because it may indicate a truncated
@@ -203,14 +204,14 @@
  *     data value.</td></tr>
  * <tr><td>Missing data value</td><td>@c CIF_MISSING_VALUE</td><td>use a synthetic unknown value</td></tr>
  * <tr><td colspan='3'>This error occurs when a data name or table key appears without a paired value.  The parser
- *     recovers by synthesizing unknown-value placeholder value is synthesized in these cases</td></tr>
+ *     recovers by synthesizing unknown-value placeholder value.</td></tr>
  * <tr><td>Empty loop header</td><td>@c CIF_NULL_LOOP</td><td>ignore</td></tr>
  * <tr><td colspan='3'>This occurs when the @c loop_ keyword appears without at least one subsequent data name.  The
  *     parser recovers by ignoring it.</td></tr>
  * <tr><td>Truncated loop packet</td><td>@c CIF_PARTIAL_PACKET</td><td>fill out the packet with unknown values</td></tr>
  * <tr><td colspan='3'>This error occurs when the number of data values in a loop is not an integral multiple of the
- *     number of data names.  In such cases, the final places in the packet are filled out with unknown-value
- *     placeholder values.</td></tr>
+ *     number of data names.  In such cases, the parser can recover by filling in the missing values with out with
+ *     unknown-value placeholder values.</td></tr>
  * <tr><td>Empty loop</td><td>@c CIF_EMPTY_LOOP</td><td>accept</td></tr>
  * <tr><td colspan='3'>This occurs when a valid loop header is not followed by any values.  The parser recovers by
  *     accepting the empty loop, which can be accommodated by the API's internal CIF representation.  The result is not
@@ -243,11 +244,12 @@
  *     by accepting the value as-is.</td></tr>
  * <tr><td>Unquoted reserved word</td><td>@c CIF_RESERVED_WORD</td><td>drop</td></tr>
  * <tr><td colspan='3'>The the strings 'data_' (without a block code), 'stop_', and 'global_' are reserved and must
- *     not appear in CIFs.  If the parser encounters one, it can recover by dropping it.</td></tr>
+ *     not appear as unquoted complete words in CIFs.  If the parser encounters one, it can recover by dropping
+ *     it.</td></tr>
  * <tr><td>Overlength line</td><td>@c CIF_OVERLENGTH_LINE</td><td>drop</td></tr>
  * <tr><td colspan='3'>If a CIF input line exceeds the allowed number of @i characters (2048 in CIF 1.1 and CIF 2.0)
  *     then the parser can recover by ignoring the problem.  Note that the limit is expressed in Unicode characters --
- *     not bytes, nor even @c UChar code units.</td></tr>
+ *     not bytes, nor even @c UChar code units -- and it does not include line terminators.</td></tr>
  * <tr><td>Missing endquote</td><td>@c CIF_MISSING_ENDQUOTE</td><td>assume the quote</td></tr>
  * <tr><td colspan='3'>When a (single-) apostrophe-quoted or quotation-mark-quoted string is not terminated before the end of
  *     the line on which it begins, the parser can recover by assuming the missing delimiter at the end of the line.
@@ -260,7 +262,7 @@
  * <tr><td>Disallowed first character</td><td>@c CIF_DISALLOWED_INITIAL_CHAR</td><td>accept</td></tr>
  * <tr><td colspan='3'>There are slightly different rules for the first character of a CIF than for others, in that a Unicode
  *     byte-order mark (U+FEFF) is allowed there.  Moreover, an unexpected character at that position can be an
- *     indication of a mis-identified character encoding.  The parser can recover be accepting the character, but
+ *     indication of a mis-identified character encoding.  The parser can recover by accepting the character, but
  *     that @i will result in at least one subsequent error.</td></tr>
  * </table>
  */

@@ -1,5 +1,5 @@
 int record_error(int error_code, size_t line, size_t column, const UChar *text, size_t length, void *data) {
-    ((int *) data) += 1;
+    *((int *) data) += 1;
     return CIF_OK;
 }
 void count_errors(FILE *in) {
