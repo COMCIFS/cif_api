@@ -16,11 +16,10 @@ int main(void) {
     UChar buffer[240];
     UChar *copy_text;
     UChar *text;
-    UChar *unused;
 
     TESTHEADER(test_name);
 
-    unused = TO_UNICODE("\\nSome text.\\n"
+    TO_UNICODE("\\nSome text.\\n"
             "  With multiple lines and U\\u0308nicode characters \\tfrom various planes (\\U0001F649: \\U0010DEAF).\\n"
             "  There's also a hyphen or two, and \"quoted\" text.", buffer, 240);
 

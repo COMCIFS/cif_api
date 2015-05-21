@@ -29,7 +29,7 @@ int main(void) {
     cif_loop_tp *loop1;
     cif_loop_tp *loop2;
     U_STRING_DECL(block_code, "block1", 7);
-    U_STRING_DECL(item1, "_item1", 7);
+    UChar item1[] = { '_', 'i', 't', 'e', 'm', '1', 0 };
     UChar *items[NUM_ITEMS + 1];
     UChar **names;
 
@@ -37,7 +37,6 @@ int main(void) {
     TESTHEADER(test_name);
 
     U_STRING_INIT(block_code, "block1", 7);
-    U_STRING_INIT(item1, "_item1", 7);
 
     CREATE_CIF(test_name, cif);
     CREATE_BLOCK(test_name, cif, block_code, block);

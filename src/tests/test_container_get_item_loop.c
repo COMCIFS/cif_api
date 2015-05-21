@@ -24,12 +24,12 @@ int main(void) {
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
     U_STRING_DECL(item1l, "_item1", 7);
-    U_STRING_DECL(item2l, "_item2", 7);
+    /* U_STRING_DECL(item2l, "_item2", 7); */
     U_STRING_DECL(item3l, "_item3", 7);
     U_STRING_DECL(item4l, "_item4", 7);
-    U_STRING_DECL(item1u, "_Item1", 7);
-    U_STRING_DECL(item2u, "_ITEM2", 7);
-    U_STRING_DECL(item3u, "_iTeM3", 7);
+    UChar item1u[] = { '_', 'I', 't', 'e', 'm', '1', 0 };
+    UChar item2u[] = { '_', 'I', 'T', 'E', 'M', '2', 0 };
+    UChar item3u[] = { '_', 'i', 'T', 'e', 'M', '3', 0 };
     U_STRING_DECL(invalid, "in valid", 9);
 
     /* Initialize data and prepare the test fixture */
@@ -38,12 +38,9 @@ int main(void) {
     U_STRING_INIT(block_code, "block", 6);
     U_STRING_INIT(frame_code, "frame", 6);
     U_STRING_INIT(item1l, "_item1", 7);
-    U_STRING_INIT(item2l, "_item2", 7);
+    /* U_STRING_INIT(item2l, "_item2", 7); */
     U_STRING_INIT(item3l, "_item3", 7);
     U_STRING_INIT(item4l, "_item4", 7);
-    U_STRING_INIT(item1u, "_Item1", 7);
-    U_STRING_INIT(item2u, "_ITEM2", 7);
-    U_STRING_INIT(item3u, "_iTeM3", 7);
     U_STRING_INIT(invalid, "in valid", 9);
 
     CREATE_CIF(test_name, cif);

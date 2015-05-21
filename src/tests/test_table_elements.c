@@ -22,32 +22,24 @@ int main(void) {
     cif_value_tp *element1 = NULL;
     cif_value_tp *element2 = NULL;
     cif_value_tp *element3 = NULL;
-    UChar empty_key[1] = { 0 };
-    UChar invalid_key[4] = { 'K', 0xFFFF, 'y', 0 };
-    UChar uncomposed_key[5] = { 'K', 0x0073, 0x0307, 0x0323, 0 };
-    UChar equivalent_key[5] = { 'K', 0x0073, 0x0323, 0x0307, 0 };
-    UChar equiv2_key[4] =     { 'K', 0x1e61, 0x0323, 0 };
-    UChar normalized_key[3] = { 'K', 0x1e69, 0 };
-    UChar folded_key[3] =     { 'k', 0x1e69, 0 };
+    UChar empty_key[] = { 0 };
+    UChar invalid_key[] = { 'K', 0xFFFF, 'y', 0 };
+    UChar uncomposed_key[] = { 'K', 0x0073, 0x0307, 0x0323, 0 };
+    UChar equivalent_key[] = { 'K', 0x0073, 0x0323, 0x0307, 0 };
+    UChar equiv2_key[] =     { 'K', 0x1e61, 0x0323, 0 };
+    UChar normalized_key[] = { 'K', 0x1e69, 0 };
+    UChar folded_key[] =     { 'k', 0x1e69, 0 };
     UChar *all_keys[4];
     const UChar **keys;
     UChar *text1;
     UChar *text2;
     size_t count;
     double d1;
-    U_STRING_DECL(value_text, "value text", 11);
-    U_STRING_DECL(value_text2, "value text 2", 13);
-    U_STRING_DECL(value_text3, "vALuE_TEXt 3", 13);
-    U_STRING_DECL(key1, "key 1", 6);
-    U_STRING_DECL(KEY1, "KEY 1", 6);
-    U_STRING_DECL(blank_key, "  ", 3);
-
-    U_STRING_INIT(value_text, "value text", 11);
-    U_STRING_INIT(value_text2, "value text 2", 13);
-    U_STRING_INIT(value_text3, "vALuE_TEXt 3", 13);
-    U_STRING_INIT(key1, "key 1", 6);
-    U_STRING_INIT(KEY1, "KEY 1", 6);
-    U_STRING_INIT(blank_key, "  ", 3);
+    UChar value_text[] =  { 'v', 'a', 'l', 'u', 'e', ' ', 't', 'e', 'x', 't', 0 };
+    UChar value_text2[] = { 'v', 'a', 'l', 'u', 'e', ' ', 't', 'e', 'x', 't', ' ', '2', 0 };
+    UChar value_text3[] = { 'v', 'A', 'L', 'u', 'E', '_', 'T', 'E', 'X', 't', ' ', '3', 0 };
+    UChar key1[] =        { 'k', 'e', 'y', ' ', '1', 0 };
+    UChar blank_key[] =   { ' ', ' ', 0 };
 
     TESTHEADER(test_name);
 

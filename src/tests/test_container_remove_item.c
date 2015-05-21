@@ -14,6 +14,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 int main(void) {
     char test_name[80] = "test_container_remove_item";
     cif_tp *cif = NULL;
@@ -33,9 +35,9 @@ int main(void) {
     double d;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
-    U_STRING_DECL(name1l, "_name1", 7);
-    U_STRING_DECL(name2l, "_name2", 7);
-    U_STRING_DECL(name3l, "_name3", 7);
+    UChar name1l[] = { '_', 'n', 'a', 'm', 'e', '1', 0 };
+    UChar name2l[] = { '_', 'n', 'a', 'm', 'e', '2', 0 };
+    UChar name3l[] = { '_', 'n', 'a', 'm', 'e', '3', 0 };
     U_STRING_DECL(name1u, "_Name1", 7);
     U_STRING_DECL(name2u, "_NAME2", 7);
     U_STRING_DECL(name3u, "_nAMe3", 7);
@@ -49,9 +51,6 @@ int main(void) {
     /* Initialize data and prepare the test fixture */
     U_STRING_INIT(block_code, "block", 6);
     U_STRING_INIT(frame_code, "frame", 6);
-    U_STRING_INIT(name1l, "_name1", 7);
-    U_STRING_INIT(name2l, "_name2", 7);
-    U_STRING_INIT(name3l, "_name3", 7);
     U_STRING_INIT(name1u, "_Name1", 7);
     U_STRING_INIT(name2u, "_NAME2", 7);
     U_STRING_INIT(name3u, "_nAMe3", 7);

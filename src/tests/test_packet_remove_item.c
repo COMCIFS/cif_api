@@ -24,19 +24,15 @@ int main(void) {
     UChar *text = NULL;
     UChar uncomposed_name[6] = { 0x5f, 'K', 0x0073, 0x0307, 0x0323, 0 };
     UChar equivalent_name[6] = { 0x5f, 'k', 0x0073, 0x0323, 0x0307, 0 };
-    U_STRING_DECL(simple_name, "_name", 6);
-    U_STRING_DECL(invalid_name, "name", 5);
-    U_STRING_DECL(another_name, "_aNotheR.name", 14);
-    U_STRING_DECL(third_name, "_a_#third#.$name", 17);
+    UChar simple_name[] = { '_', 'n', 'a', 'm', 'e', 0 };
+    UChar invalid_name[] = { 'n', 'a', 'm', 'e', 0 };
+    UChar another_name[] = { '_', 'a', 'N', 'o', 't', 'h', 'e', 'R', '.', 'n', 'a', 'm', 'e', 0 };
+    UChar third_name[] = { '_', 'a', '_', '#', 't', 'h', 'i', 'r', 'd', '#', '.', '$', 'n', 'a', 'm', 'e', 0 };
     U_STRING_DECL(text1, "one", 4);
     U_STRING_DECL(text2, "two", 4);
     U_STRING_DECL(text3, "three", 6);
     U_STRING_DECL(text4, "four", 5);
 
-    U_STRING_INIT(simple_name, "_name", 6);
-    U_STRING_INIT(invalid_name, "name", 5);
-    U_STRING_INIT(another_name, "_aNotheR.name", 14);
-    U_STRING_INIT(third_name, "_a_#third#.$name", 17);
     U_STRING_INIT(text1, "one", 4);
     U_STRING_INIT(text2, "two", 4);
     U_STRING_INIT(text3, "three", 6);

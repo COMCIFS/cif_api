@@ -13,6 +13,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 int main(void) {
     char test_name[80] = "test_loop_set_category";
     cif_tp *cif = NULL;
@@ -29,11 +31,11 @@ int main(void) {
     U_STRING_DECL(category2, "category2", 10);
     U_STRING_DECL(empty, "", 1);
     U_STRING_DECL(category4, " ", 2);
-    U_STRING_DECL(name1, "_1", 3);
-    U_STRING_DECL(name2, "_two", 5);
-    U_STRING_DECL(name3, "_III", 5);
-    U_STRING_DECL(name4, "_other", 7);
-    U_STRING_DECL(name5, "_five", 6);
+    UChar name1[] = { '_', '1', 0 };
+    UChar name2[] = { '_', 't', 'w', 'o', 0 };
+    UChar name3[] = { '_', 'I', 'I', 'I', 0 };
+    UChar name4[] = { '_', 'o', 't', 'h', 'e', 'r', 0 };
+    UChar name5[] = { '_', 'f', 'i', 'v', 'e', 0 };
     UChar *names[4];
 
     /* Initialize data and prepare the test fixture */
@@ -48,11 +50,6 @@ int main(void) {
     U_STRING_INIT(category2, "category2", 10);
     U_STRING_INIT(empty, "", 1);
     U_STRING_INIT(category4, " ", 2);
-    U_STRING_INIT(name1, "_1", 3);
-    U_STRING_INIT(name2, "_two", 5);
-    U_STRING_INIT(name3, "_III", 5);
-    U_STRING_INIT(name4, "_other", 7);
-    U_STRING_INIT(name5, "_five", 6);
     names[0] = name1;
     names[1] = name2;
     names[2] = name3;

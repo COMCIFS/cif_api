@@ -13,6 +13,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 int main(void) {
     char test_name[80] = "test_value_parse_numb";
     cif_value_tp *value;

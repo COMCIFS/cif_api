@@ -27,13 +27,13 @@ int main(void) {
     cif_value_tp *value3;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
-    U_STRING_DECL(item1l, "_item1", 7);
-    U_STRING_DECL(item2l, "_item2", 7);
-    U_STRING_DECL(item3l, "_item3", 7);
-    U_STRING_DECL(item1u, "_Item1", 7);
-    U_STRING_DECL(item2u, "_ITEM2", 7);
-    U_STRING_DECL(item3u, "_iTeM3", 7);
-    U_STRING_DECL(char_value1, "simple_Value", 13);
+    UChar item1l[] = { '_', 'i', 't', 'e', 'm', '1', 0 };
+    UChar item2l[] = { '_', 'i', 't', 'e', 'm', '2', 0 };
+    UChar item3l[] = { '_', 'i', 't', 'e', 'm', '3', 0 };
+    UChar item1u[] = { '_', 'I', 't', 'e', 'm', '1', 0 };
+    UChar item2u[] = { '_', 'I', 'T', 'E', 'M', '2', 0 };
+    UChar item3u[] = { '_', 'i', 'T', 'e', 'M', '3', 0 };
+    UChar char_value1[] = { 's', 'i', 'm', 'p', 'l', 'e', '_', 'V', 'a', 'l', 'u', 'e', 0 };
     UChar *names[4];
     int i;
     int mask;
@@ -44,13 +44,6 @@ int main(void) {
 
     U_STRING_INIT(block_code, "block", 6);
     U_STRING_INIT(frame_code, "frame", 6);
-    U_STRING_INIT(item1l, "_item1", 7);
-    U_STRING_INIT(item2l, "_item2", 7);
-    U_STRING_INIT(item3l, "_item3", 7);
-    U_STRING_INIT(item1u, "_Item1", 7);
-    U_STRING_INIT(item2u, "_ITEM2", 7);
-    U_STRING_INIT(item3u, "_iTeM3", 7);
-    U_STRING_INIT(char_value1, "simple_Value", 13);
     names[0] = item1u;
     names[1] = item2u;
     names[2] = item3u;

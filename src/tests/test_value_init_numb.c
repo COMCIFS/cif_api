@@ -20,7 +20,6 @@ int main(void) {
     cif_value_tp *value;
     UChar *text;
     double d;
-    U_STRING_DECL(v0, "0", 2);
     U_STRING_DECL(v450_s1, "450.0", 6);
     U_STRING_DECL(v450_s0, "450", 4);
     U_STRING_DECL(v450_sm1, "4.5e+02", 8);
@@ -33,7 +32,6 @@ int main(void) {
     U_STRING_DECL(vm0_6s_10_s0, "1(1)", 5);
     U_STRING_DECL(vm0_00000042s_00000017_s8, "4.2e-07(17)", 12);
 
-    U_STRING_INIT(v0, "0", 2);
     U_STRING_INIT(v450_s1, "450.0", 6);
     U_STRING_INIT(v450_s0, "450", 4);
     U_STRING_INIT(v450_sm1, "4.5e+02", 8);

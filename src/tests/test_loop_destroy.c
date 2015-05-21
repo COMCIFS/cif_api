@@ -28,9 +28,9 @@ int main(void) {
     cif_value_tp *value2;
     U_STRING_DECL(block_code, "block", 6);
     U_STRING_DECL(frame_code, "frame", 6);
-    U_STRING_DECL(item1l, "_item1", 7);
-    U_STRING_DECL(item2l, "_item2", 7);
-    U_STRING_DECL(item3l, "_item3", 7);
+    UChar item1l[] = { '_', 'i', 't', 'e', 'm', '1', 0 };
+    UChar item2l[] = { '_', 'i', 't', 'e', 'm', '2', 0 };
+    UChar item3l[] = { '_', 'i', 't', 'e', 'm', '3', 0 };
     UChar *item_names[4];
 
     /* Initialize data and prepare the test fixture */
@@ -38,9 +38,6 @@ int main(void) {
 
     U_STRING_INIT(block_code, "block", 6);
     U_STRING_INIT(frame_code, "frame", 6);
-    U_STRING_INIT(item1l, "_item1", 7);
-    U_STRING_INIT(item2l, "_item2", 7);
-    U_STRING_INIT(item3l, "_item3", 7);
 
     item_names[0] = item1l;
     item_names[1] = item2l;

@@ -13,6 +13,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 int main(void) {
     char test_name[80] = "test_container_create_loop2";
     cif_tp *cif = NULL;
@@ -35,18 +37,15 @@ int main(void) {
     int counter;
     int subtest;
     U_STRING_DECL(block_code, "block", 6);
-    U_STRING_DECL(name0, "_item0", 7);
-    U_STRING_DECL(name1, "_item1", 7);
-    U_STRING_DECL(name2, "_item2", 7);
+    UChar name0[] = { '_', 'i', 't', 'e', 'm', '0', 0 };
+    UChar name1[] = { '_', 'i', 't', 'e', 'm', '1', 0 };
+    UChar name2[] = { '_', 'i', 't', 'e', 'm', '2', 0 };
 
     /* Initialize data and prepare the test fixture */
 
     INIT_USTDERR;
     TESTHEADER(test_name);
     U_STRING_INIT(block_code, "block", 6);
-    U_STRING_INIT(name0, "_item0", 7);
-    U_STRING_INIT(name1, "_item1", 7);
-    U_STRING_INIT(name2, "_item2", 7);
     CREATE_CIF(test_name, cif);
     CREATE_BLOCK(test_name, cif, block_code, block);
 

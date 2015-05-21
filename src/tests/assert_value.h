@@ -17,6 +17,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 static int assert_values_equal(cif_value_tp *value1, cif_value_tp *value2);
 static int assert_lists_equal(cif_value_tp *list1, cif_value_tp *list2);
 static int assert_tables_equal(cif_value_tp *table1, cif_value_tp *table2);

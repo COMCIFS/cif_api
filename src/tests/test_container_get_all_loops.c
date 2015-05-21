@@ -15,6 +15,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 #define NAME_UCHARS 8
 #define NUM_NAMES 8
 #define EXPECTED_LOOPS 4

@@ -24,7 +24,7 @@ int main(void) {
     U_STRING_DECL(block2, "b2", 3);
     U_STRING_DECL(frame1, "f1", 3);
     U_STRING_DECL(frame2, "f2", 3);
-    UChar *codes[4];
+    const UChar *codes[4];
     int subtest;
 
     U_STRING_INIT(block0, "b0", 3);

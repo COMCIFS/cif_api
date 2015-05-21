@@ -42,8 +42,8 @@ int main(void) {
     U_STRING_DECL(value_block1_s1,   "block1/s1", 10);
     U_STRING_DECL(value_block1_s2,   "block1/s2", 10);
     U_STRING_DECL(value_block3_s1,   "block3/s1", 10);
-    UChar *value_block1;
-    UChar *value_block3;
+    const UChar *value_block1;
+    const UChar *value_block3;
 
     U_STRING_INIT(code_block1,       "block1", 7);
     U_STRING_INIT(code_block2,       "block2", 7);

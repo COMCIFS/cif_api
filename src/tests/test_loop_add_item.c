@@ -41,36 +41,32 @@ int main(void) {
     UChar *category = NULL;
     int i;
     U_STRING_DECL(block_code, "block", 6);
-    U_STRING_DECL(name1l, "_name1", 7);
-    U_STRING_DECL(name2l, "_name2", 7);
-    U_STRING_DECL(name3l, "_name3", 7);
-    U_STRING_DECL(name4l, "_name4", 7);
+    UChar name1l[] = { '_', 'n', 'a', 'm', 'e', '1', 0 };
+    UChar name2l[] = { '_', 'n', 'a', 'm', 'e', '2', 0 };
+    UChar name3l[] = { '_', 'n', 'a', 'm', 'e', '3', 0 };
+    UChar name4l[] = { '_', 'n', 'a', 'm', 'e', '4', 0 };
     U_STRING_DECL(name1u, "_Name1", 7);
     U_STRING_DECL(name2u, "_NAME2", 7);
     U_STRING_DECL(name3u, "_nAMe3", 7);
     U_STRING_DECL(scalar1l, "_scalar1", 9);
     U_STRING_DECL(scalar2l, "_scalar2", 9);
     U_STRING_DECL(scalar3l, "_scalar3", 9);
-    U_STRING_DECL(scalar1u, "_sCaLar1", 9);
-    U_STRING_DECL(scalar2u, "_SCaLar2", 9);
+    /* U_STRING_DECL(scalar1u, "_sCaLar1", 9); */
+    /* U_STRING_DECL(scalar2u, "_SCaLar2", 9); */
     U_STRING_DECL(scalar3u, "_scalaR3", 9);
     U_STRING_DECL(invalid, "in valid", 9);
 
 
     /* Initialize data and prepare the test fixture */
     U_STRING_INIT(block_code, "block", 6);
-    U_STRING_INIT(name1l, "_name1", 7);
-    U_STRING_INIT(name2l, "_name2", 7);
-    U_STRING_INIT(name3l, "_name3", 7);
-    U_STRING_INIT(name4l, "_name4", 7);
     U_STRING_INIT(name1u, "_Name1", 7);
     U_STRING_INIT(name2u, "_NAME2", 7);
     U_STRING_INIT(name3u, "_nAMe3", 7);
     U_STRING_INIT(scalar1l, "_scalar1", 9);
     U_STRING_INIT(scalar2l, "_scalar2", 9);
     U_STRING_INIT(scalar3l, "_scalar3", 9);
-    U_STRING_INIT(scalar1u, "_sCaLar1", 9);
-    U_STRING_INIT(scalar2u, "_SCaLar2", 9);
+    /* U_STRING_INIT(scalar1u, "_sCaLar1", 9); */
+    /* U_STRING_INIT(scalar2u, "_SCaLar2", 9); */
     U_STRING_INIT(scalar3u, "_scalaR3", 9);
     U_STRING_INIT(invalid, "in valid", 9);
 

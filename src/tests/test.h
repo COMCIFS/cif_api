@@ -52,8 +52,6 @@ struct set_el {
     UT_hash_handle hh;
 };
 
-static UFILE *ustderr = NULL;
-
 #define INIT_USTDERR do { if (ustderr == NULL) ustderr = u_finit(stderr, NULL, NULL); } while (0)
 
 #define TESTHEADER(name) do { \
@@ -142,7 +140,7 @@ static UFILE *ustderr = NULL;
 #define CREATE_BLOCK(n, cif, code, block) do { \
     const char *_test_name = (n); \
     int _result; \
-    UChar *_code = (code); \
+    const UChar *_code = (code); \
     fprintf(stderr, "%s: Creating a managed data block...\n", _test_name); \
     _result = cif_create_block((cif), _code, &block); \
     if (_result != CIF_OK) { \
@@ -174,7 +172,7 @@ static UFILE *ustderr = NULL;
 #define CREATE_FRAME(n, block, code, frame) do { \
     const char *_test_name = (n); \
     int _result; \
-    UChar *_code = (code); \
+    const UChar *_code = (code); \
     fprintf(stderr, "%s: Creating a managed save frame...\n", _test_name); \
     _result = cif_block_create_frame((block), _code, &frame); \
     if (_result != CIF_OK) { \
@@ -216,3 +214,4 @@ static UFILE *ustderr = NULL;
 } while (0)
 
 #endif
+

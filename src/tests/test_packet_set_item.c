@@ -24,14 +24,11 @@ int main(void) {
     UChar *text = NULL;
     UChar uncomposed_name[6] = { 0x5f, 'K', 0x0073, 0x0307, 0x0323, 0 };
     UChar equivalent_name[6] = { 0x5f, 'K', 0x0073, 0x0323, 0x0307, 0 };
-    U_STRING_DECL(simple_name, "_name", 6);
-    U_STRING_DECL(invalid_name, "name", 5);
-    U_STRING_DECL(another_name, "_another.name", 14);
+    UChar simple_name[] = { '_', 'n', 'a', 'm', 'e', 0 };
+    UChar invalid_name[] = { 'n', 'a', 'm', 'e', 0 };
+    UChar another_name[] = { '_', 'a', 'n', 'o', 't', 'h', 'e', 'r', '.', 'n', 'a', 'm', 'e', 0 };
     U_STRING_DECL(value_text, "Value teXt", 11);
 
-    U_STRING_INIT(simple_name, "_name", 6);
-    U_STRING_INIT(invalid_name, "name", 5);
-    U_STRING_INIT(another_name, "_another.name", 14);
     U_STRING_INIT(value_text, "Value teXt", 11);
 
     TESTHEADER(test_name);

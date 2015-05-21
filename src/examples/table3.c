@@ -76,7 +76,7 @@ static void print_table3(UFILE *out, cif_block_tp *block) {
     U_STRING_DECL(y_name, "_atom_site_fract_y", 19);
     U_STRING_DECL(z_name, "_atom_site_fract_z", 19);
     U_STRING_DECL(u_name, "_atom_site_U_iso_or_equiv", 26);
-    UChar *names[5];
+    const UChar *names[5];
 
     /* initialize the data name variables the ICU way: */
     U_STRING_INIT(label_name, "_atom_site_label", 17);

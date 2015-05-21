@@ -13,6 +13,8 @@
 #include "assert_doubles.h"
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 #ifndef DBL_TEST_ULPS
 #define DBL_TEST_ULPS DEFAULT_ULPS
 #endif

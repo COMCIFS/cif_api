@@ -13,6 +13,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 int main(void) {
     char test_name[80] = "test_container_create_loop1";
     cif_tp *cif = NULL;
@@ -73,7 +75,7 @@ int main(void) {
 
 #define CHECK_CATEGORY_ABSENT(container, category, subtest) do { \
         cif_container_tp *_cont = (container); \
-        UChar *cat = (category); \
+        const UChar *cat = (category); \
         int _st = (subtest); \
         if (cif_container_get_category_loop(_cont, cat, NULL) != CIF_NOSUCH_LOOP) { \
             u_fprintf(ustderr, "error: category %S reported already present\n", cat); \
@@ -82,7 +84,7 @@ int main(void) {
     } while (0)
 #define CHECK_ITEM_ABSENT(container, item, subtest) do { \
         cif_container_tp *_cont = (container); \
-        UChar *itm = (item); \
+        const UChar *itm = (item); \
         int _st = (subtest); \
         if (cif_container_get_item_loop(_cont, itm, NULL) != CIF_NOSUCH_ITEM) { \
             u_fprintf(ustderr, "error: item %S reported already present\n", itm); \
@@ -102,7 +104,7 @@ int main(void) {
     } while (0)
 #define TEST_LOOP_PRESENT(container, category, names, subtest) do { \
         cif_container_tp *cont = (container); \
-        UChar *cat = (category); \
+        const UChar *cat = (category); \
         UChar **name_strings = (names); \
         int st = (subtest); \
         UChar **n; \

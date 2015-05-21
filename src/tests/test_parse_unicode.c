@@ -28,7 +28,6 @@ int main(void) {
     cif_loop_tp **all_loops = NULL;
     cif_loop_tp **loop_p = NULL;
     cif_loop_tp *loop = NULL;
-    cif_loop_tp *scalar_loop = NULL;
     cif_value_tp *value = NULL;
     UChar *ustr;
     size_t count;
@@ -90,7 +89,6 @@ int main(void) {
         if (ustr) {
             /* must be the scalar loop */
             TEST_NOT(*ustr == 0, 0, test_name, 2 * count + 18);
-            scalar_loop = *loop_p;
             free(ustr);
         }
         cif_loop_free(*loop_p);

@@ -25,9 +25,9 @@ int main(void) {
     U_STRING_DECL(block2_code, "block2", 7);
     U_STRING_DECL(category, "category", 9);
     U_STRING_DECL(category2, "category two", 13);
-    U_STRING_DECL(item1, "_item1", 7);
-    U_STRING_DECL(item2, "_item2", 7);
-    U_STRING_DECL(item3, "_item3", 7);
+    UChar item1[] = { '_', 'i', 't', 'e', 'm', '1', 0 };
+    UChar item2[] = { '_', 'i', 't', 'e', 'm', '2', 0 };
+    UChar item3[] = { '_', 'i', 't', 'e', 'm', '3', 0 };
 
     /* Initialize data and prepare the test fixture */
     TESTHEADER(test_name);
@@ -35,9 +35,6 @@ int main(void) {
     U_STRING_INIT(block2_code, "block2", 7);
     U_STRING_INIT(category, "category", 9);
     U_STRING_INIT(category2, "category two", 13);
-    U_STRING_INIT(item1, "_item1", 7);
-    U_STRING_INIT(item2, "_item2", 7);
-    U_STRING_INIT(item3, "_item3", 7);
 
     CREATE_CIF(test_name, cif);
     CREATE_BLOCK(test_name, cif, block_code, block);

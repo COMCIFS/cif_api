@@ -13,6 +13,8 @@
 
 #include "test.h"
 
+static UFILE *ustderr = NULL;
+
 int main(void) {
     char test_name[80] = "test_container_prune";
     cif_tp *cif = NULL;
@@ -27,11 +29,11 @@ int main(void) {
     U_STRING_DECL(block_code2, "block2", 6);
     U_STRING_DECL(category, "category", 9);
     U_STRING_DECL(category2, "category2", 10);
-    U_STRING_DECL(name1, "_name1", 7);
-    U_STRING_DECL(name2, "_name2", 7);
-    U_STRING_DECL(name3, "_name3", 7);
-    U_STRING_DECL(name4, "_name4", 7);
-    U_STRING_DECL(name5, "_name5", 7);
+    UChar name1[] = { '_', 'n', 'a', 'm', 'e', '1', 0 };
+    UChar name2[] = { '_', 'n', 'a', 'm', 'e', '2', 0 };
+    UChar name3[] = { '_', 'n', 'a', 'm', 'e', '3', 0 };
+    UChar name4[] = { '_', 'n', 'a', 'm', 'e', '4', 0 };
+    UChar name5[] = { '_', 'n', 'a', 'm', 'e', '5', 0 };
 
     /* Initialize data and prepare the test fixture */
     INIT_USTDERR;
@@ -40,11 +42,6 @@ int main(void) {
     U_STRING_INIT(block_code2, "block2", 6);
     U_STRING_INIT(category, "category", 9);
     U_STRING_INIT(category2, "category2", 10);
-    U_STRING_INIT(name1, "_name1", 7);
-    U_STRING_INIT(name2, "_name2", 7);
-    U_STRING_INIT(name3, "_name3", 7);
-    U_STRING_INIT(name4, "_name4", 7);
-    U_STRING_INIT(name5, "_name5", 7);
     CREATE_CIF(test_name, cif);
     CREATE_BLOCK(test_name, cif, block_code, block);
     CREATE_BLOCK(test_name, cif, block_code2, block2);
