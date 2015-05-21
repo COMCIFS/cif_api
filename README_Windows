@@ -1,0 +1,116 @@
+Special notes for Windows builds
+--------------------------------
+
+Native Windows versions of the library have been built and successfully
+tested with the MinGW-w64 GCC toolchain, running in an MSYS2 environment on
+a Windows 7/x86_64 machine.  More details on this procedure are presented
+below.  Inasmuch as great care has been devoted to ensuring the code avoids
+(unconditional) non-standardisms and reliance on implementation-defined
+behavior, however, and given that its external dependencies (ICU and
+SQLIte 3) are available for Windows from their respective authors, it
+should be straightforward to build the library, examples, and test programs
+via other Windows toolchains as well.
+
+
+* Building CIF API with MinGW-w64 on MSYS2 *
+
+Step 1: Set up an MSYS2 environment
+- An installer is available from the Project's Sourceforge site:
+  http://sourceforge.net/projects/msys2/
+
+- It's best to avoid installing in or under a directory with whitespace in
+  its name (i.e. "Program Files").
+
+- The installer will provide launchers for several variants of the MSYS2
+  environment; the "MinGW-w64 Win64 Shell" launcher was used for CIF API
+  building.  (This launches a bash shell running in a window.)
+
+- In the MSYS2 environment, /home can be mapped to the Windows user
+  directory by adding an entry to /c/etc/fstab:
+
+  /c/Users /home any binary,bind,posix=0,nouser
+
+  Configuring so (and afterward launching a new instance of the environment)
+  is useful for ensuring that the contents of user home directories are
+  preserved in the event that MSYS2 is removed or updated (as the users'
+  Windows "home" directories will be used).
+
+- Install the needed toolchain and dependencies via the MSYS2 package
+  manager, 'pacman':
+
+  pacman --sync mingw-w64-x86_64-toolchain
+  pacman --sync mingw-w64-x86_64-icu
+  pacman --sync mingw-w64-x86_64-sqlite3
+
+
+Step 2: Building the CIF API
+- Building the project in MSYS2 is nearly identical to building it
+  on Linux or OS X.
+
+- Unpack the source distribution into a directory of your choice:
+
+  cd work
+  tar xzf cif-api-0.3.0.tgz
+  cd cif-api-0.3.0
+
+- Configure for building.  This is where the main difference comes
+  in, as building native Win32 binaries with MinGW-w64 is an act of
+  cross compilation.  You must therefore pass an appropriate --host
+  option to the 'configure' program, for example
+
+  ./configure --host=x86_64-w64-mingw32
+
+  to build a 64-bit library for 64-bit Windows.  Alternatively, these
+  host triplets might also be of interest: 'i686-w64-mingw32' for a 32-bit
+  library and executables for 64-bit Windows, or 'i686-w32-mingw32' for a
+  32-bit and executables for 32-bit Windows (which should also run on
+  64-bit Windows).
+
+  You may also provide any of the other options supported by the
+  configuration program, such as '--enable-examples', '--prefix', or
+  '--bindir'.
+
+- Build via the 'make' command.  Unless you are cross-compiling a version
+  that will not run on the build host (i.e. a 64-bit build on a machine
+  running 32-bit Windows), you are advised to build and run the tests, too.
+
+  'make' or 'make all' - build the library, and, if selected, the example
+                         programs
+  'make check'         - build everything that 'make all' would build that
+                         is not yet built, and also build and run the test
+                         suite.
+
+- Install via the 'make' command:
+
+  make install
+
+  The software will be installed to the directory specified via 'configure'
+  (MSYS2's /usr/local/bin by default).  Note in particular that the DLL is
+  installed in the configured 'bin' directory, not the 'lib' directory.  The
+  libdir does receive a couple of files, but these can be ignored.
+
+
+* Building the CIF API with other toolchains *
+
+No support is currently provided for building on Windows with other
+toolchains, such as Visual Studio, but inasmuch as the code is highly
+portable and has already been adapted for Win32 on the MinGW64 tools,
+it is anticipated that builds via other toolchains will be relatively
+straightforward.  With that said, there are a few things to be aware of:
+
+- The few conditional compilation directives that distinguish
+  Windows-specific details from others do so based on whether the
+  _WIN32 preprocessor macro is defined.
+
+- When building the CIF API itself for Win32, the library's external
+  functions will be declared __declspec(dllexport), PROVIDED THAT the
+  preprocessor macro DLL_EXPORT is defined.  To build a static library,
+  ensure that DLL_EXPORT is not defined, AND define preprocessor macro
+  LIBCIF_STATIC.
+
+- When building Windows programs that use the CIF API cif.h header file,
+  the DLL_EXPORT macro must NOT be defined.  No macro is needed to provide
+  for linking against a DLL version of the API library, but to link against a
+  static version of the library, the macro LIBCIF_STATIC should be
+  defined prior to including the cif.h header.
+
