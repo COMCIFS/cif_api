@@ -1,7 +1,5 @@
-CIF API 0.2.0
-=============
-
-!!! VERSION 0.2.0 IS A BETA TEST RELEASE OF THE CIF API. !!!
+CIF API 0.3.0 (release)
+=======================
 
 The CIF API provides a standard C interface for reading, writing, and
 manipulating Crystallographic Information Files (CIFs).  It is targeted
@@ -34,8 +32,9 @@ specific to this package follow:
   its headers and development libraries are required to build the CIF API
   library and tests.  At least the ICU development libraries will be required
   to build programs that use the CIF API library.  The CIF API was developed
-  and tested against ICU 3.6, and it is expected to be compatible also with
-  subsequent versions.
+  and tested against ICU 4.2, and it is expected to be compatible also with
+  subsequent versions and some earlier versions (at least back to v3.6, which
+  was used in early development).
 
 * The package depends on SQLite for its CIF storage engine.  It was developed
   and tested against SQLite 3.6.20, and is expected to work with many later

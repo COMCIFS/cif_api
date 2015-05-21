@@ -4,6 +4,17 @@ Version 0.3.0
 * Changed type names
   Because POSIX reserves type names ending in _t, the names of all types
   provided by the CIF API have been changed to use _tp instead.
+* Provisions for recent ICU
+  Versions of ICU more recent than the one against which the library was
+  initially developed incorporate a change that causes a host of
+  const-correctness warnings to be emitted during compilation, mostly from the
+  tests.  These issues were resolved with respect to ICU 55-1 (and the code is
+  still fine with respect to ICU 4.2.1).
+* Building on Win32/Win64
+  Updated for building as a native DLL on Windows (Win32 / Win64).  The
+  MinGW-w64 toolchain was specifically targeted, but overall the changes were
+  few, and the code is overall very portable, so it is likely that the result
+  could be ported to other Windows toolchains with comparative ease.
 
 Version 0.2.0.3
 * Bug in cif_loop_add_item()
