@@ -10,6 +10,8 @@
 #include "config.h"
 #endif
 
+#include "internal/compat.h"
+
 #include <stdlib.h>
 #include <unicode/ustring.h>
 #include <unicode/uchar.h>

@@ -10,6 +10,8 @@
 #include "config.h"
 #endif
 
+#include "internal/compat.h"
+
 #include <stddef.h>
 #include <sqlite3.h>
 

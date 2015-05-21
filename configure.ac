@@ -13,9 +13,12 @@ AC_INIT([CIF API], [0.3.0], [John[.]Bollinger[@]StJude[.]org])
 AC_CONFIG_SRCDIR([src/cif.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
-dnl AM_INIT_AUTOMAKE
 AM_INIT_AUTOMAKE([parallel-tests])
-LT_INIT([disable-static])
+
+# Option win32-dll indicates that the package *can* produce clean Win32 DLLs,
+# not that those are necessarily the target for the current build.
+LT_INIT([disable-static win32-dll])
+
 AC_CONFIG_HEADERS([config.h])
 
 # User options

@@ -213,5 +213,20 @@ struct set_el {
     else { sprintf(_d, "%s/" DATA_DIR "/", _cifapi_src); } \
 } while (0)
 
+#ifdef _WIN32
+#define tmpfile cif_win32_tmpfile
+
+FILE *cif_win32_tmpfile(void);
+
+FILE *cif_win32_tmpfile(void) {
+    char *filename = _tempnam(NULL, "test");
+    FILE *file = fopen(filename, "w+bTD");
+
+    free(filename);
+    return file;
+}
+
+#endif
+
 #endif
 

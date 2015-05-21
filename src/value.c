@@ -10,6 +10,8 @@
 #include "config.h"
 #endif
 
+#include "internal/compat.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -1419,7 +1421,6 @@ static double to_double(const char *ddigits, int scale) {
             uint32_t *lsd;
 
             /* The extreme *decimal* places that may need to be supported in this computation */
-            int lsp_min;
             int msp_max;
 
             /* data tracking the state of processing of the input digit string */
@@ -1455,17 +1456,14 @@ static double to_double(const char *ddigits, int scale) {
             /* Determine which decimal digit positions may be needed */
             if (right_shift_max > 0) {
                 /* Each right shift by one bit requires an additional decimal digit. */
-                lsp_min = lsp - right_shift_max;
                 msp_max = msp;
             } else if (right_shift_min < 0) {
                 /*
                  * Each left shift by log2(10) bits, or fraction thereof, requires an additional decimal digit.
                  * We approximate with a few more than may be needed, by (under)estimating log2(10) as 3.
                  */
-                lsp_min = lsp;
                 msp_max = msp + ((2 - right_shift_min) / 3);
             } else {
-                lsp_min = lsp;
                 msp_max = msp;
             }
 

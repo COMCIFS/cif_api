@@ -14,6 +14,8 @@
 #include "config.h"
 #endif
 
+#include "internal/compat.h"
+
 #include <stdlib.h>
 #include <assert.h>
 #include "cif.h"

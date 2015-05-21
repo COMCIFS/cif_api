@@ -70,12 +70,13 @@ libcif_la_SOURCES = \
   cif.h \
   internal/buffer.h \
   internal/ciftypes.h \
+  internal/compat.h \
   internal/sql.h \
   internal/utils.h \
   internal/value.h
 nodist_libcif_la_SOURCES = $(BUILT_SOURCES)
 libcif_la_LIBADD = $(ICU_LIBS)
-libcif_la_LDFLAGS = $(AM_LDFLAGS) $(LIB_VERSION_FLAGS)
+libcif_la_LDFLAGS = $(AM_LDFLAGS) $(LIB_VERSION_FLAGS) -no-undefined
 
 LDADD = libcif.la
 

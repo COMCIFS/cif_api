@@ -271,12 +271,14 @@
  * The CIF parser implemented herein is a predictive recursive descent parser with full error recovery.
  */
 
-#include <stdio.h>
-#include <assert.h>
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include "internal/compat.h"
+
+#include <stdio.h>
+#include <assert.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

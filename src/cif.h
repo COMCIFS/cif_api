@@ -27,9 +27,23 @@
 #define WARN_UNUSED
 #endif
 
-#define CIF_FUNC_DECL(type, name, params) type name params WARN_UNUSED
+#ifdef _WIN32
+#ifdef DLL_EXPORT
+#define DECLSPEC __declspec(dllexport)
+#else
+#ifndef LIBCIF_STATIC
+#define DECLSPEC __declspec(dllimport)
+#endif
+#endif
+#endif
+
+#ifndef DECLSPEC
+#define DECLSPEC
+#endif
+
+#define CIF_FUNC_DECL(type, name, params) DECLSPEC type name params WARN_UNUSED
 #define CIF_INTFUNC_DECL(name, params) CIF_FUNC_DECL(int, name, params)
-#define CIF_VOIDFUNC_DECL(name, params) void name params
+#define CIF_VOIDFUNC_DECL(name, params) DECLSPEC void name params
 
 /**
  * @page resource_mgmt Resource management with CIF API

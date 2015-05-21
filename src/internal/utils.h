@@ -21,8 +21,14 @@
 
 #ifdef __GNUC__
 #define UNUSED   __attribute__ ((__unused__))
+#ifdef __MINGW32__
+/* The __visibility__ attribute is not supported on win32 */
+#define INTERNAL __attribute__ ((__warn_unused_result__))
+#define INTERNAL_VOID
+#else
 #define INTERNAL __attribute__ ((__visibility__ ("hidden"), __warn_unused_result__))
 #define INTERNAL_VOID __attribute__ ((__visibility__ ("hidden")))
+#endif
 #else
 #define UNUSED
 #define INTERNAL
