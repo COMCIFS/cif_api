@@ -22,6 +22,7 @@ EXTRA_DIST = \
   dox-html \
   dox-man \
   Doxyfile.in \
+  IP_Notes \
   README \
   README_Windows \
   extras/README \

@@ -277,6 +277,7 @@ EXTRA_DIST = \
   dox-html \
   dox-man \
   Doxyfile.in \
+  IP_Notes \
   README \
   README_Windows \
   extras/README \
@@ -312,7 +313,8 @@ EXTRA_DIST = \
   uthash/utstring.h \
   $(doxygen_examples)
 
-CLEANFILES = Doxyfile gmon.out
+CLEANFILES = gmon.out
+DISTCLEANFILES = Doxyfile
 @make_docs_FALSE@doxygen_html_targets = 
 @make_docs_TRUE@doxygen_html_targets = dox-html
 @make_docs_FALSE@doxygen_man_targets = 
@@ -747,6 +749,7 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
