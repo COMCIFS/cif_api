@@ -58,6 +58,7 @@ EXTRA_DIST = \
   $(doxygen_examples)
   
 CLEANFILES = gmon.out
+DISTCLEANFILES = Doxyfile
 
 if make_docs
 doxygen_html_targets = dox-html

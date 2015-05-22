@@ -312,7 +312,7 @@ EXTRA_DIST = \
   uthash/utstring.h \
   $(doxygen_examples)
 
-CLEANFILES = gmon.out
+CLEANFILES = Doxyfile gmon.out
 @make_docs_FALSE@doxygen_html_targets = 
 @make_docs_TRUE@doxygen_html_targets = dox-html
 @make_docs_FALSE@doxygen_man_targets = 
