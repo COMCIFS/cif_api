@@ -23,6 +23,7 @@ EXTRA_DIST = \
   dox-man \
   Doxyfile.in \
   README \
+  README_Windows \
   extras/README \
   extras/cif2.ebnf \
   extras/cif_parser.y \
