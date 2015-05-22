@@ -636,9 +636,9 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-ICU_CPPFLAGS
 SQLITE_CPPFLAGS
 ICU_LIBS
+ICU_CPPFLAGS
 win32_FALSE
 win32_TRUE
 PROFILING_LDFLAGS
@@ -13108,6 +13108,19 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "No pkg-config information for any of: ${icuio_tags}
 See \`config.log' for more details" "$LINENO" 5; }
 fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU CPP flags" >&5
+$as_echo_n "checking for ICU CPP flags... " >&6; }
+    ICU_CPPFLAGS=`pkg-config --cflags-only-I ${tag} 2>/dev/null` || {
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+      { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Could not retrieve flags for package ${tag}
+See \`config.log' for more details" "$LINENO" 5; }
+    }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${ICU_CPPFLAGS}" >&5
+$as_echo "${ICU_CPPFLAGS}" >&6; }
+    CPPFLAGS="${CPPFLAGS} ${ICU_CPPFLAGS}"
 
 else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -13115,6 +13128,7 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "pkg-config not found
 See \`config.log' for more details" "$LINENO" 5; }
 fi
+
 
 
 # Specific functions

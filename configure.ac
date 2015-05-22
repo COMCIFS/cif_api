@@ -230,8 +230,16 @@ AS_IF([which pkg-config >/dev/null], [
     done
     AC_MSG_RESULT([${ICU_LIBS}])
     AS_IF([test "x${ICU_LIBS}" = x], [AC_MSG_FAILURE([No pkg-config information for any of: ${icuio_tags}])])
+    AC_MSG_CHECKING([for ICU CPP flags])
+    ICU_CPPFLAGS=`pkg-config --cflags-only-I ${tag} 2>/dev/null` || {
+      AC_MSG_RESULT([])
+      AC_MSG_FAILURE([Could not retrieve flags for package $[]{tag}])
+    }
+    AC_MSG_RESULT([${ICU_CPPFLAGS}])
+    CPPFLAGS="${CPPFLAGS} ${ICU_CPPFLAGS}"
   ],
   [AC_MSG_FAILURE([pkg-config not found])])
+AC_SUBST([ICU_CPPFLAGS])
 AC_SUBST([ICU_LIBS])
 
 # Specific functions

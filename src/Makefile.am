@@ -110,6 +110,7 @@ SED_SQL_MANGLER = \
 
 internal/schema.h: $(top_srcdir)/misc/cif_schema.sql Makefile.am
 	@$(MKDIR_P) internal
+	echo SED script is: '$(SED_SQL_MANGLER)'
 	echo "#ifndef INTERNAL_SCHEMA_H" > $@
 	echo "#define INTERNAL_SCHEMA_H" >> $@
 	echo "static const char * const schema_statements[] = {" >> $@

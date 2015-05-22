@@ -57,6 +57,18 @@ specific to this package follow:
 * There are a few other project-specific configuration options, but
   they are adequately explained in configure's help text.
 
+The package has been built and tested successfully on Linux (CentOS 6, Debian;
+this is the primary development platform), on OS X 10.8, and on Windows 7.
+For OS X builds, the needed dependencies are readily available via the "Fink"
+package management system and its public repositories, among other means.
+For Windows, the dependencies are available via the MinGW-w64 project, and
+further information is provided in file README_Windows.  Those approaches
+assume you want to use the provided package build system; other approaches
+may be available if you want to build the project with a different toolchain,
+such as Visual Studio on Windows or XCode on OS X.  The project has few,
+if any, toolchain dependencies, but only limited support is available for
+such build strategies.
+
 
 The principal author of the CIF API software, documentation, and build system
 is John C. Bollinger, Ph.D, of Memphis, Tennessee, U.S.A..  E-mail
