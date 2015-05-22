@@ -826,7 +826,16 @@ include_HEADERS = cif.h
 LIB_CURRENT = 0
 LIB_REVISION = 1
 LIB_AGE = 0
-LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
+@win32_FALSE@LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
+@win32_TRUE@LIB_VERSION_FLAGS = -avoid-version
+@win32_FALSE@INSTALL_HOOKS = 
+@win32_TRUE@INSTALL_HOOKS = install_import_lib
+@win32_FALSE@UNINSTALL_HOOKS = 
+@win32_TRUE@UNINSTALL_HOOKS = uninstall_import_lib
+@win32_FALSE@CLEANFILES = $(BUILT_SOURCES) gmon.out tests/linktest.c \
+@win32_FALSE@	tests/linktest.lo tests/linktest
+@win32_TRUE@CLEANFILES = libcif.def $(BUILT_SOURCES) gmon.out \
+@win32_TRUE@	tests/linktest.c tests/linktest.lo tests/linktest
 EXTRA_DIST = notes.txt style.txt tests/assert_cifs.h \
 	tests/assert_doubles.h tests/assert_value.h tests/test.h \
 	tests/link.test
@@ -838,8 +847,6 @@ AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)
 AM_CFLAGS = $(PROFILING_CFLAGS)
 AM_LDFLAGS = $(PROFILING_LDFLAGS)
 BUILT_SOURCES = internal/schema.h
-CLEANFILES = $(BUILT_SOURCES) gmon.out tests/linktest.c \
-	tests/linktest.lo tests/linktest
 cif2_syncheck_SOURCES = \
   examples/syncheck.c \
   cif.h \
@@ -2816,7 +2823,8 @@ install-dvi: install-dvi-am
 install-dvi-am:
 
 install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
-
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 install-html: install-html-am
 
 install-html-am:
@@ -2857,9 +2865,10 @@ ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-includeHEADERS \
 	uninstall-libLTLIBRARIES
-
-.MAKE: all check check-am check-html install install-am install-strip \
-	recheck-html
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
+.MAKE: all check check-am check-html install install-am \
+	install-exec-am install-strip recheck-html uninstall-am
 
 .PHONY: CTAGS GTAGS all all-am am--mostlyclean-test-html check \
 	check-TESTS check-am check-html clean clean-binPROGRAMS \
@@ -2868,15 +2877,16 @@ uninstall-am: uninstall-binPROGRAMS uninstall-includeHEADERS \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-binPROGRAMS install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-includeHEADERS install-info \
-	install-info-am install-libLTLIBRARIES install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	recheck recheck-html tags uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-includeHEADERS \
+	install-dvi-am install-exec install-exec-am install-exec-hook \
+	install-html install-html-am install-includeHEADERS \
+	install-info install-info-am install-libLTLIBRARIES \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am recheck recheck-html \
+	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-hook uninstall-includeHEADERS \
 	uninstall-libLTLIBRARIES
 
 
@@ -2892,6 +2902,18 @@ internal/schema.h: $(top_srcdir)/misc/cif_schema.sql Makefile.am
 	echo ', (char *) 0' >> $@
 	echo "};" >> $@
 	echo "#endif" >> $@
+
+install-exec-hook: $(INSTALL_HOOKS)
+uninstall-hook: $(UNINSTALL_HOOKS)
+
+install_import_lib:
+	gendef $(DESTDIR)$(bindir)/libcif.dll
+	dlltool -k --input-def libcif.def --output-lib $(DESTDIR)$(bindir)/libcif.lib
+
+uninstall_import_lib:
+	rm $(DESTDIR)$(bindir)/libcif.lib
+
+.PHONY: install_import_lib
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

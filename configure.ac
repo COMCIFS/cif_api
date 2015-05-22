@@ -203,6 +203,14 @@ AC_SUBST([PROFILING_CPPFLAGS])
 AC_SUBST([PROFILING_CFLAGS])
 AC_SUBST([PROFILING_LDFLAGS])
 
+AC_EGREP_CPP([windows], [
+#ifdef _WIN32
+  windows
+#endif
+], [is_windows=yes], [is_windows=no])
+
+AM_CONDITIONAL([win32], [test "x${is_windows}" = xyes])
+
 # Headers
 AC_CHECK_HEADERS([fenv.h])
 

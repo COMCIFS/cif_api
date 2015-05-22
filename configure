@@ -639,6 +639,8 @@ LIBOBJS
 ICU_CPPFLAGS
 SQLITE_CPPFLAGS
 ICU_LIBS
+win32_FALSE
+win32_TRUE
 PROFILING_LDFLAGS
 PROFILING_CFLAGS
 PROFILING_CPPFLAGS
@@ -12938,6 +12940,32 @@ esac
 
 
 
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef _WIN32
+  windows
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "windows" >/dev/null 2>&1; then :
+  is_windows=yes
+else
+  is_windows=no
+fi
+rm -f conftest*
+
+
+ if test "x${is_windows}" = xyes; then
+  win32_TRUE=
+  win32_FALSE='#'
+else
+  win32_TRUE='#'
+  win32_FALSE=
+fi
+
+
 # Headers
 for ac_header in fenv.h
 do :
@@ -13450,6 +13478,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${win32_TRUE}" && test -z "${win32_FALSE}"; then
+  as_fn_error $? "conditional \"win32\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

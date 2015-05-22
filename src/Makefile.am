@@ -37,7 +37,18 @@ bin_PROGRAMS =
 LIB_CURRENT = 0
 LIB_REVISION = 1
 LIB_AGE = 0
-LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
+
+if win32
+  LIB_VERSION_FLAGS = -avoid-version
+  INSTALL_HOOKS = install_import_lib
+  UNINSTALL_HOOKS = uninstall_import_lib
+  CLEANFILES = libcif.def
+else
+  LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
+  INSTALL_HOOKS = 
+  UNINSTALL_HOOKS = 
+  CLEANFILES =
+endif
 
 EXTRA_DIST = notes.txt style.txt
 
@@ -51,7 +62,7 @@ AM_LDFLAGS = $(PROFILING_LDFLAGS)
 
 BUILT_SOURCES = internal/schema.h
 
-CLEANFILES = $(BUILT_SOURCES) gmon.out
+CLEANFILES += $(BUILT_SOURCES) gmon.out
 
 include examples.am
 include tests.am
@@ -109,4 +120,16 @@ internal/schema.h: $(top_srcdir)/misc/cif_schema.sql Makefile.am
 	echo ', (char *) 0' >> $@
 	echo "};" >> $@
 	echo "#endif" >> $@
+
+install-exec-hook: $(INSTALL_HOOKS)
+uninstall-hook: $(UNINSTALL_HOOKS)
+
+install_import_lib:
+	gendef $(DESTDIR)$(bindir)/libcif.dll
+	dlltool -k --input-def libcif.def --output-lib $(DESTDIR)$(bindir)/libcif.lib
+
+uninstall_import_lib:
+	rm $(DESTDIR)$(bindir)/libcif.lib
+
+.PHONY: install_import_lib
 
