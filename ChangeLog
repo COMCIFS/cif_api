@@ -15,6 +15,10 @@ Version 0.3.0
   MinGW-w64 toolchain was specifically targeted, but overall the changes were
   few, and the code is overall very portable, so it is likely that the result
   could be ported to other Windows toolchains with comparative ease.
+* Bulding on OS X
+  Not much was really needed to provide for building on OS X, but a small
+  build system change cleaned up an issue encountered when relying on Fink for
+  dependencies.
 
 Version 0.2.0.3
 * Bug in cif_loop_add_item()
