@@ -11,7 +11,7 @@
  * @tableofcontents
  * The CIF API provides a parser for CIF 2.0, flexible enough to parse CIF 1.1 documents as well.  Inasmuch
  * as most CIFs conforming to the less formal conventions predating the CIF 1.1 specification can be successfully parsed
- * as CIF 1.1, the parser will handle substantially all CIFs conforming to any current or historic CIF specification.
+ * as CIF 1.1, the parser will handle substantially all CIFs conforming to any current or historic version of CIF.
  *
  * @section versions CIF versions
  * To date there have been two formal specifications for the CIF file format, v1.1 and v2.0, and a body of less formal
@@ -50,7 +50,7 @@
  * The primary impetus for another CIF revision arose from the concept of adding "methods" to CIF dictionaries, while
  * continuing to express those dictionaries in CIF format.  This necessitated support for new data types (list and
  * table) in CIF, and the opportunity was taken to also extend CIF's character repertoire to the whole Unicode space.
- * CIF 2.0 also solves the long standing issue that even restricting characters to 7-bit ASCII, there are data that
+ * CIF 2.0 also solves the longstanding issue that even restricting characters to 7-bit ASCII, there are data that
  * cannot be expressed as CIF 1.1 values.
  *
  * The cost of these changes is a considerably higher level of incompatibility between CIF 2.0 and CIF 1.1 than between

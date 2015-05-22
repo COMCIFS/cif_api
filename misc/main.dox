@@ -96,7 +96,7 @@
  *         functions;
  * @li providing necessary resource management functions (@c cif_*_free() and in some cases @c cif_*_clean() );
  * @li preferring to copy data to avoid aliasing, so that management responsibilities remain clear; which allows that
- * @li composite objects take responsibility for managing their components
+ * @li composite objects taking responsibility for managing their components
  *
  * @subsection unicode Unicode
  * CIF 2.0 expands the CIF character repertoire to all of Unicode, therefore the API must provide for representing
@@ -113,15 +113,16 @@
  *
  * API users will frequently run into function arguments that are specified to be "Unicode strings", typically
  * specified to be (and @em always expected to be) "NUL-terminated".  These are analogous to traditional
- * C strings, but with units of type @c UChar instead of the traditional @c char .  Users may need to be aware,
- * however, that this form is an encoding of Unicode in UTF-16 (with native byte order).  In particular,
+ * C strings, but with units of type @c UChar instead of the traditional @c char .  Using @c UChar units instead
+ * of @c char units for Unicode strings makes working with Unicode strings fairly natural, especially with the ICU
+ * library's analogs of most of the familiar C string functions.  Users may need to be aware, however, that this form
+ * is an encoding of Unicode in UTF-16 (with native byte order).  In particular,
  * characters outside the Unicode "basic multilingual plane" are represented via two consecutive @c UChar units
  * drawn from special ranges (a "surrogate pair" in Unicode terminology).  "NUL-terminated" refers to using a
  * trailing sentinel value to mark the end of a string; as in traditional strings, the sentinel is the NUL character,
  * which has code point (numeric value) 0.  Unlike in traditional strings, however, @c UChar is a 16-bit (minimum)
- * type, so a single 0 @em byte is not sufficient to end a Unicode string.  Using @c UChar units instead of @c char
- * units for Unicode strings makes working with Unicode strings fairly natural, especially with the ICU library's
- * analogs of most of the familiar C string functions.
+ * type, so a single 0 @em byte is not sufficient to end a Unicode string.  Indeed, it is common for Unicode strings
+ * to contain internal 0 bytes.
  *
  * When matching "case insensitive" strings for lookup or uniqueness-checking purposes, the API uses a normalized
  * form obtained by first converting the original string to Unicode normalization form NFD, then applying the
