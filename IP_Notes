@@ -5,7 +5,8 @@ As described in file COPYING, the CIF API source distribution contains code
 belonging to multiple parties and subject to multiple licenses.  Additionally,
 the implementation probably practices a patent owned by the International Union
 of Crystallography.  These notes convey the author's understanding of the
-intellectual property factors in play.
+intellectual property factors in play.  Inasmuch as the author is not an
+attorney, that understanding may be incomplete and / or inaccurate.
 
 CIF API core software, documentation, examples, and tests
 ---------------------------------------------------------
