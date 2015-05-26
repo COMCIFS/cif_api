@@ -2009,7 +2009,7 @@ CIF_INTFUNC_DECL(cif_pktitr_remove_packet, (
  */
 CIF_INTFUNC_DECL(cif_packet_create, (
         cif_packet_tp **packet, 
-        UChar **names
+        UChar *names[]
         ));
 
 /**

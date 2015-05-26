@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-int cif_packet_create(cif_packet_tp **packet, UChar **names) {
+int cif_packet_create(cif_packet_tp **packet, UChar *names[]) {
     /* This is just a name-normalizing wrapper around cif_packet_create_norm() */
     FAILURE_HANDLING;
     UChar **names_norm;
