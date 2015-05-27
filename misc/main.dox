@@ -14,9 +14,10 @@
  *     library, and
  * @li an @em implementation of the interface functions and data types.
  *
- * Only the interface portion is intended as a COMCIFS-sanctioned standard; the reference implementation is provided
- * to validate the form and clarify the intent of the interface specifications.  Nevertheless, the intent is that the
- * final form of the reference implementation should be sufficiently stable and robust for general use.
+ * Only the interface portion is proposed as a COMCIFS-sanctioned standard; the reference implementation is provided
+ * to validate the form and clarify the intent of the interface specifications.  In other words, it is both proof
+ * of concept and reference implementation.  Nevertheless, the the implementation is sufficiently stable and robust
+ * for general use.
  *
  * This initiative arose from a COMCIFS resolution adopted at the 2011 triennial conference of the International Union
  * of Crystallography (IUCr).  The intent was to create a standard programming interface for interacting with CIF data,
@@ -24,20 +25,15 @@
  * chose an approach whereby multiple common programming languages could be bound to the same underlying API, instead
  * of a family of separate, language-specific APIs being defined.  The best <i>lingua franca</i> for that purpose is
  * standard C, so the API and reference implementation are written in a C form that is compliant with C89, C99, and
- * C++98.
+ * C2011, as well as with C++98 and C++2011.
  *
- * At this time the core, parsing, and formatting API definitions are fairly firm, though clarifications and minor
- * modifications may yet be introduced before the first official release.  The reference implementation of those is
- * feature-complete, but not fully tested.  In particular, the CIF parser and formatter are as-yet largely untested.
- * The core API for manipulating in-memory CIF data is rather better tested, with automated tests covering most
- * features and nearly all functions of that part of the API.  No API specifically supporting validation is yet
- * defined as part of this effort, though the parsing API contains hooks that could be used to attach trans-parse
- * validation functions.  Inasmuch as CIF validation is highly dependent on the relevant DDL -- which
- * is out of scope for this API -- the extent of specific validation support that may ever be implemented herein is
- * unclear.
+ * No API specifically supporting validation is defined as part of this effort, though the parsing API contains hooks
+ * that could be used to attach trans-parse validation functions.  Inasmuch as CIF validation is specific to the
+ * relevant DDL, which is out of scope for this API, the extent of specific validation support that may be
+ * implemented in any future release is unclear.
  *
  * @section rights Rights and License
- * The documentation, interface definition, and reference implementation are copyright 2013-2014 John C. Bollinger.
+ * The documentation, interface definition, and reference implementation are copyright 2013-2015 John C. Bollinger.
  * All rights are reserved.
  *
  * These restrictive rights are asserted to preserve initial control over the works until the appropriate rights-holder
@@ -59,7 +55,7 @@
  * interface definitions intentionally do not specify the internal form of the data.  The documentation therefore
  * uses the generic term "managed" to describe the data that the core CIF manipulation functions operate upon, which is
  * implementation dependent.  The author imagines that most implementations will use some kind of in-memory
- * implementation separate from any source file, but implementations that operate directly on physical files are
+ * form separate from any source file, but implementations that operate directly on physical files are
  * conceivable and allowed.  Thus, where the documentation describes "managed" CIFs or CIF sub-objects, it is
  * referring to whatever form and location the implementation treats as its working space.
  *
@@ -122,7 +118,7 @@
  * trailing sentinel value to mark the end of a string; as in traditional strings, the sentinel is the NUL character,
  * which has code point (numeric value) 0.  Unlike in traditional strings, however, @c UChar is a 16-bit (minimum)
  * type, so a single 0 @em byte is not sufficient to end a Unicode string.  Indeed, it is common for Unicode strings
- * to contain internal 0 bytes.
+ * to contain isolated internal @c 0 bytes.
  *
  * When matching "case insensitive" strings for lookup or uniqueness-checking purposes, the API uses a normalized
  * form obtained by first converting the original string to Unicode normalization form NFD, then applying the
@@ -130,6 +126,7 @@
  * form NFC.  The procedure is suggested in Unicode's own discussion of the problem, which notes that it has the
  * necessary property that if its output is fed back as input, then the same output is reproduced.  It also has
  * the desired property that any two character sequences that correspond to the same printed text will have the same
- * normalized form under the algorithm, which the case-folding algorithm alone does not ensure.
+ * normalized form under the algorithm, which the case-folding algorithm alone does not ensure.  COMCIFS has approved
+ * use of this normalized form for evaluating "case-insensitive" string matching in CIF.
  */
 
