@@ -39,6 +39,7 @@ EXTRA_DIST = \
   IP_Notes \
   README \
   README_Windows \
+  ReleaseNotes \
   extras/README \
   extras/cif2.ebnf \
   extras/cif_parser.y \
@@ -47,6 +48,7 @@ EXTRA_DIST = \
   misc/dox.css \
   misc/footer.html \
   misc/main.dox \
+  test-data/README \
   test-data/bom.cif \
   test-data/bom_ver2.cif \
   test-data/cif_core.dic \
