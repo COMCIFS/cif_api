@@ -1,0 +1,22 @@
+CIF API 0.3.0 Release Notes
+---------------------------
+
+Version 0.3.0 of the CIF API is a production release.  Significant changes
+relative to the previous release (0.2.0) include:
+
+ - Type names have been changed.
+   The implementation had adopted the convention of assigning type names ending
+   in suffix '_t', but all such names are reserved by POSIX.  These names
+   were changed by appending a 'p', so that the suffix is now '_tp'.  This
+   does not affect binary compatibility, but it does affect source
+   compatibility.
+
+
+----
+Copyright 2015 John C. Bollinger
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+----

@@ -42,6 +42,12 @@ Step 1: Set up an MSYS2 environment
   pacman --sync mingw-w64-x86_64-icu
   pacman --sync mingw-w64-x86_64-sqlite3
 
+- The "install" make target seems to require the installing user to have
+  "Full Control" of the destination directories, which by default are
+  /usr/local/bin, /usr/local/lib, and /usr/local/include in the MSYS2
+  environment.  The '--prefix' and other configuration options can be
+  used to direct installation elsewhere, if desired.
+
 
 Step 2: Building the CIF API
 - Building the project in MSYS2 is nearly identical to building it
@@ -56,7 +62,7 @@ Step 2: Building the CIF API
 - Configure for building.  This is where the main difference comes
   in, as building native Win32 binaries with MinGW-w64 is an act of
   cross compilation.  You must therefore pass an appropriate --host
-  option to the 'configure' program, for example
+  option to the 'configure' program.  For example, use
 
   ./configure --host=x86_64-w64-mingw32
 
@@ -72,7 +78,8 @@ Step 2: Building the CIF API
 
 - Build via the 'make' command.  Unless you are cross-compiling a version
   that will not run on the build host (i.e. a 64-bit build on a machine
-  running 32-bit Windows), you are advised to build and run the tests, too.
+  running 32-bit Windows, if that were possible), you are advised to build
+  and run the tests, too.
 
   'make' or 'make all' - build the library, and, if selected, the example
                          programs
@@ -109,8 +116,17 @@ straightforward.  With that said, there are a few things to be aware of:
   LIBCIF_STATIC.
 
 - When building Windows programs that use the CIF API cif.h header file,
-  the DLL_EXPORT macro must NOT be defined.  No macro is needed to provide
-  for linking against a DLL version of the API library, but to link against a
-  static version of the library, the macro LIBCIF_STATIC should be
-  defined prior to including the cif.h header.
+  the DLL_EXPORT macro must NOT be defined.  No macro or other special
+  provision is needed for linking against a DLL version of the API library,
+  but to link against a static version of the library, the macro
+  LIBCIF_STATIC should be defined prior to including the cif.h header.
+
+----
+Copyright 2015 John C. Bollinger
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+----
 

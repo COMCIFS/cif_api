@@ -1,3 +1,13 @@
+----
+CIF API implementation notes
+
+Copyright 2014, 2015 John C. Bollinger
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+----
 
 The SQLite CIF storage engine requires SQLite 3.6.19 or later, compiled
 with foreign key and trigger support.  The system will detect whether
@@ -26,3 +36,4 @@ support.  Currently, only gprof profiling is supported.  If you do enable
 profiling then you probably also want to configure with --disable-shared,
 as the GNU profiling system doesn't seem to collect profiling data from
 shared libraries.
+

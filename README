@@ -10,14 +10,6 @@ Pre-built, doxygen-generated programmer's documentation is available in
 dox-html/, and pre-built, doxygen-generated man pages are available in
 dox-man/.
 
-Refer to file COPYING for conditions for copying the contents of the
-package, in either source or binary form, except the contents of the uthash/
-directory.  See uthash/LICENSE for information about copying the contents of
-that directory; it is under those terms that uthash is herein distributed to
-you.  Note in particular that the uthash license terms permit *binary*
-distribution without constraint, whereas source distribution is subject to
-modest constraints.
-
 The package includes several example programs to demonstrate the API's usage;
 see src/examples.  These may optionally be built (and installed) with the
 API library.  One of them is a text-mode CIF 2.0 file syntax checker, which
@@ -48,8 +40,8 @@ specific to this package follow:
   Considerable effort was devoted, however, to restricting implementation code
   to the intersection of standard C90 and standard C99, and additionally to
   avoiding code that has different meaning in C and C++.  With very few
-  caveats, any compiler that is compliant with any one of C90, C99, or C++98
-  should be able to build the project.
+  caveats, any compiler that is compliant with any one of C90, C99, C2011,
+  C++98, or C++2011 should be able to build the project.
 
 * At present, the --enable-extra-warnings configuration option is effective
   only for gcc.
@@ -74,4 +66,13 @@ The principal author of the CIF API software, documentation, and build system
 is John C. Bollinger, Ph.D, of Memphis, Tennessee, U.S.A..  E-mail
 correspondance intended for him may be directed to
     John <DOT> Bollinger <AT> StJude <DOT> org.
+
+----
+Copyright 2014, 2015 John C. Bollinger
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+----
 

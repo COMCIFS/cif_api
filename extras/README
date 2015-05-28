@@ -1,5 +1,6 @@
 Extra CIF-related Files
 
+
 cif2.ebnf
 ---------
 This file provides a description of the CIF2 language in ISO/IEC 14977 EBNF form.  Although machine-readable, it is
@@ -26,4 +27,14 @@ demonstration purposes.
 
 The scanner and parser have been only lightly tested.  They are specific to CIF 2.0, and would require modifications
 (mostly to the scanner) to properly handle other versions of CIF.
+
+
+----
+Copyright 2014, 2015 John C. Bollinger
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+----
 

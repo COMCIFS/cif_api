@@ -1,4 +1,14 @@
+----
 Programming Style and Conventions for the CIF API Library
+
+Copyright 2014, 2015 John C. Bollinger
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+----
+
 
 In (as yet) no particular order:
 
@@ -55,7 +65,7 @@ implementation and use constraints:
   constituent objects must not simultaneously belong to other aggregates, even
   though pointers to those components may be held and used for other purposes.
   All API functions for manipulating these objects are designed to enforce the
-  constraints without special attention from by caller. 
+  constraints without special attention by caller. 
 
 * Aggregate values added to the in-memory representation of a CIF are *copied*
   into it in a manner not specified here.  The copy belongs to the in-memory
