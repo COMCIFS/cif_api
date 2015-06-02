@@ -48,21 +48,6 @@
  * relevant DDL, which is out of scope for this API, the extent of specific validation support that may be
  * implemented in any future release is unclear.
  *
- * @section rights Rights and License
- * The CIF API, including, but not limited to, documentation, interface definition, and reference implementation, is 
- * the copyrighted property of John Bollinger (Copyright 2014, 2015 John C. Bollinger).
- *
- * The CIF API is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General
- * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * The CIF API is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
- * more details.
- *
- * You should have received a copy of the GNU Lesser General Public License along with the CIF API.  If not, see
- * <http://www.gnu.org/licenses>.
- *
  * @section concepts Concepts
  * Beyond general CIF concepts (see <i>Internationhal Tables for Crystallography, Vol G</i>, Hall & McMahon eds.) and
  * additions and extensions brought by CIF 2.0, the CIF API has a few additional concepts that users and developers
@@ -152,5 +137,20 @@
  * the desired property that any two character sequences that correspond to the same printed text will have the same
  * normalized form under the algorithm, which the case-folding algorithm alone does not ensure.  COMCIFS has approved
  * use of this normalized form for evaluating "case-insensitive" string matching in CIF.
+ *
+ * @section rights Rights and License
+ * The CIF API, including, but not limited to, documentation, interface definition, and reference implementation, is 
+ * the copyrighted property of John Bollinger (Copyright 2014, 2015 John C. Bollinger).
+ *
+ * The CIF API is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * The CIF API is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with the CIF API.  If not, see
+ * <http://www.gnu.org/licenses>.
  */
 
