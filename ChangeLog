@@ -3,22 +3,28 @@ CIF API Change Log
 Version 0.3.0
 * Changed type names
   Because POSIX reserves type names ending in _t, the names of all types
-  provided by the CIF API have been changed to use _tp instead.
+  provided by the CIF API have been changed to use suffix _tp instead.
 * Provisions for recent ICU
   Versions of ICU more recent than the one against which the library was
   initially developed incorporate a change that causes a host of
   const-correctness warnings to be emitted during compilation, mostly from the
   tests.  These issues were resolved with respect to ICU 55-1 (and the code is
   still fine with respect to ICU 4.2.1).
-* Building on Win32/Win64
+* Building on Win32 / Win64
   Updated for building as a native DLL on Windows (Win32 / Win64).  The
   MinGW-w64 toolchain was specifically targeted, but overall the changes were
   few, and the code is overall very portable, so it is likely that the result
-  could be ported to other Windows toolchains with comparative ease.
+  could be adapted for other Windows toolchains with comparative ease.
 * Bulding on OS X
   Not much was really needed to provide for building on OS X, but a small
   build system change cleaned up an issue encountered when relying on Fink for
   dependencies.
+* Support for non-standard whitespace and EOL
+  Added parser options enabling it to recognize some program-specified
+  additional characters as having significance as CIF whitespace or
+  end-of-line.  Aimed mainly at early CIFs that use vertical tabs and / or
+  form feeds for whitespace and end-of-line purposes, respectively, this
+  feature is in fact a bit more general than that.
 
 Version 0.2.0.3
 * Bug in cif_loop_add_item()

@@ -186,6 +186,7 @@ am__EXEEXT_2 = tests/test_create$(EXEEXT) \
 	tests/test_container_assert_block$(EXEEXT) \
 	tests/test_ustrdup$(EXEEXT) tests/test_normalize$(EXEEXT) \
 	tests/test_container_prune$(EXEEXT) \
+	tests/test_parse_10$(EXEEXT) \
 	tests/test_parse_simple_data$(EXEEXT) \
 	tests/test_parse_list_data$(EXEEXT) \
 	tests/test_parse_table_data$(EXEEXT) \
@@ -401,6 +402,10 @@ tests_test_packet_set_item_SOURCES = tests/test_packet_set_item.c
 tests_test_packet_set_item_OBJECTS = test_packet_set_item.$(OBJEXT)
 tests_test_packet_set_item_LDADD = $(LDADD)
 tests_test_packet_set_item_DEPENDENCIES = libcif.la
+tests_test_parse_10_SOURCES = tests/test_parse_10.c
+tests_test_parse_10_OBJECTS = test_parse_10.$(OBJEXT)
+tests_test_parse_10_LDADD = $(LDADD)
+tests_test_parse_10_DEPENDENCIES = libcif.la
 tests_test_parse_cif1_quoting_SOURCES =  \
 	tests/test_parse_cif1_quoting.c
 tests_test_parse_cif1_quoting_OBJECTS =  \
@@ -561,7 +566,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_nesting.c tests/test_normalize.c \
 	tests/test_packet_create.c tests/test_packet_items.c \
 	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_parse_cif1_quoting.c \
+	tests/test_parse_10.c tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
 	tests/test_parse_nested.c tests/test_parse_simple_containers.c \
@@ -601,7 +606,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	tests/test_nesting.c tests/test_normalize.c \
 	tests/test_packet_create.c tests/test_packet_items.c \
 	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_parse_cif1_quoting.c \
+	tests/test_parse_10.c tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
 	tests/test_parse_nested.c tests/test_parse_simple_containers.c \
@@ -928,6 +933,7 @@ compiled_tests = \
     tests/test_ustrdup \
     tests/test_normalize \
     tests/test_container_prune \
+    tests/test_parse_10 \
     tests/test_parse_simple_data \
     tests/test_parse_list_data \
     tests/test_parse_table_data \
@@ -1250,6 +1256,9 @@ tests/test_packet_remove_item$(EXEEXT): $(tests_test_packet_remove_item_OBJECTS)
 tests/test_packet_set_item$(EXEEXT): $(tests_test_packet_set_item_OBJECTS) $(tests_test_packet_set_item_DEPENDENCIES) $(EXTRA_tests_test_packet_set_item_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_packet_set_item$(EXEEXT)
 	$(LINK) $(tests_test_packet_set_item_OBJECTS) $(tests_test_packet_set_item_LDADD) $(LIBS)
+tests/test_parse_10$(EXEEXT): $(tests_test_parse_10_OBJECTS) $(tests_test_parse_10_DEPENDENCIES) $(EXTRA_tests_test_parse_10_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_parse_10$(EXEEXT)
+	$(LINK) $(tests_test_parse_10_OBJECTS) $(tests_test_parse_10_LDADD) $(LIBS)
 tests/test_parse_cif1_quoting$(EXEEXT): $(tests_test_parse_cif1_quoting_OBJECTS) $(tests_test_parse_cif1_quoting_DEPENDENCIES) $(EXTRA_tests_test_parse_cif1_quoting_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_cif1_quoting$(EXEEXT)
 	$(LINK) $(tests_test_parse_cif1_quoting_OBJECTS) $(tests_test_parse_cif1_quoting_LDADD) $(LIBS)
@@ -1387,6 +1396,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_items.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_remove_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_set_item.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_10.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_cif1_quoting.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_complex_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_core.Po@am__quote@
@@ -2011,6 +2021,20 @@ test_packet_set_item.obj: tests/test_packet_set_item.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_packet_set_item.c' object='test_packet_set_item.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_packet_set_item.obj `if test -f 'tests/test_packet_set_item.c'; then $(CYGPATH_W) 'tests/test_packet_set_item.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_packet_set_item.c'; fi`
+
+test_parse_10.o: tests/test_parse_10.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_10.o -MD -MP -MF $(DEPDIR)/test_parse_10.Tpo -c -o test_parse_10.o `test -f 'tests/test_parse_10.c' || echo '$(srcdir)/'`tests/test_parse_10.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_10.Tpo $(DEPDIR)/test_parse_10.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_10.c' object='test_parse_10.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_10.o `test -f 'tests/test_parse_10.c' || echo '$(srcdir)/'`tests/test_parse_10.c
+
+test_parse_10.obj: tests/test_parse_10.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_10.obj -MD -MP -MF $(DEPDIR)/test_parse_10.Tpo -c -o test_parse_10.obj `if test -f 'tests/test_parse_10.c'; then $(CYGPATH_W) 'tests/test_parse_10.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_10.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_10.Tpo $(DEPDIR)/test_parse_10.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_10.c' object='test_parse_10.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_10.obj `if test -f 'tests/test_parse_10.c'; then $(CYGPATH_W) 'tests/test_parse_10.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_10.c'; fi`
 
 test_parse_cif1_quoting.o: tests/test_parse_cif1_quoting.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_cif1_quoting.o -MD -MP -MF $(DEPDIR)/test_parse_cif1_quoting.Tpo -c -o test_parse_cif1_quoting.o `test -f 'tests/test_parse_cif1_quoting.c' || echo '$(srcdir)/'`tests/test_parse_cif1_quoting.c
@@ -2690,6 +2714,8 @@ tests/test_normalize.log: tests/test_normalize$(EXEEXT)
 	@p='tests/test_normalize$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_container_prune.log: tests/test_container_prune$(EXEEXT)
 	@p='tests/test_container_prune$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+tests/test_parse_10.log: tests/test_parse_10$(EXEEXT)
+	@p='tests/test_parse_10$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_parse_simple_data.log: tests/test_parse_simple_data$(EXEEXT)
 	@p='tests/test_parse_simple_data$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_parse_list_data.log: tests/test_parse_list_data$(EXEEXT)

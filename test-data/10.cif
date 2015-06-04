@@ -1,0 +1,7 @@
+
+data_10_sq_string       'sq'_dq_string       "dq"
+_text_string ;text
+;
+
+_translated_eol;line1 ;line2;_numb_plain1.25e+03
+

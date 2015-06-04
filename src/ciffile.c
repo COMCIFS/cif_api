@@ -266,7 +266,7 @@ static cif_handler_tp DEFAULT_CIF_HANDLER = { NULL, NULL, NULL, NULL, NULL, NULL
 
 /* The CIF parsing options used when none are provided by the caller */
 static struct cif_parse_opts_s DEFAULT_OPTIONS =
-        { 0, NULL, 0, 0, 0, 1, &DEFAULT_CIF_HANDLER, NULL, cif_parse_error_die, NULL };
+        { 0, NULL, 0, 0, 0, 1, NULL, NULL, NULL, &DEFAULT_CIF_HANDLER, NULL, cif_parse_error_die, NULL };
 
 /* The length of the basic magic code identifying many CIFs (including all well-formed CIF 2.0 CIFs): "#\#CIF_" */
 #define MAGIC_LENGTH 7
@@ -292,8 +292,15 @@ int cif_parse_options_create(struct cif_parse_opts_s **opts) {
     if (opts_temp == NULL) {
         return CIF_MEMORY_ERROR;
     } else {
-        /* explicitly initialize all pointer members */
+        /*
+         * explicitly initialize all pointer members. calloc()'s initialization of the memory it allocates will
+         * already have had this effect on many systems, but C does not guarantee that pointer representations
+         * having all bytes 0 are in fact the same as a NULL pointer.
+         */
         opts_temp->default_encoding_name = NULL;
+        opts_temp->extra_chars = NULL;
+        opts_temp->extra_ws_chars = NULL;
+        opts_temp->extra_eol_chars = NULL;
         opts_temp->handler = NULL;
         opts_temp->whitespace_callback = NULL;
         opts_temp->error_callback = NULL;
@@ -462,7 +469,8 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_tp **cifp) {
             scanner.user_data = options->user_data;  /* may be NULL */
 
             /* perform the actual parse */
-            result = cif_parse_internal(&scanner, not_utf8, cif);
+            result = cif_parse_internal(&scanner, not_utf8, options->extra_chars, options->extra_ws_chars,
+                    options->extra_eol_chars, cif);
         }
 
         ucnv_close(ustream.converter);

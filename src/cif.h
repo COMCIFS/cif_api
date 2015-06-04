@@ -924,6 +924,63 @@ struct cif_parse_opts_s {
     int max_frame_depth;
 
     /**
+     * @brief ASCII characters that should be allowed
+     *
+     * If not @c NULL, specifies additional characters from the 7-bit ASCII set and / or from among the C1 controls that
+     * should be accepted as valid CIF characters.  Ordinarily, the @c '\xff' character, the C1 controls, and most of
+     * the C0 controls are disallowed.  This option is mainly intended to allow successful parsing of pre-v1.1 CIFs,
+     * some of which may have contained such characters, but it is not inherently limited to that use.
+     *
+     * Specifying characters that are already allowed has no additional effect.  It is not necessary to use this option
+     * to allow characters that are specified among the @c extra_ws_chars or @c extra_eol_chars .
+     *
+     * The string is terminated by a null character ('\0'); no mechanism is provided for allowing that character.
+     */
+    const char *extra_chars;
+
+    /**
+     * @brief ASCII characters that should be interpreted as CIF inline whitespace
+     *
+     * If not @c NULL, specifies additional characters from the 7-bit ASCII set and / or from among the C1 controls that
+     * should be accepted as representing CIF inline whitespace.  Ordinarily, only the space character and the tab
+     * character have this function, and the C1 controls and most of the C0 controls are disallowed altogether.  This
+     * option is mainly intended to allow successful parsing of pre-v1.1 CIFs, some of which used the vertical tab
+     * character as inline whitespace, but it is not inherently limited to that use.
+     *
+     * The space or tab may be specified among these characters, but it has no additional effect.
+     *
+     * The carriage return and newline characters may be specified among these characters, but it does not change
+     * their role as end-of-line characters.
+     *
+     * The string is terminated by a null character ('\0'); no mechanism is provided for treating that character as
+     * whitespace.
+     */
+    const char *extra_ws_chars;
+
+    /**
+     * @brief ASCII characters that should be interpreted as CIF end-of-line [whitespace] characters
+     *
+     * If not @c NULL, specifies additional characters from the 7-bit ASCII set and / or from among the C1 controls that
+     * should be accepted as representing CIF end-of-line characters.  Ordinarily, only the carriage return and newline
+     * characters have this function, and the C1 controls and most of the C0 controls are disallowed altogether.  This
+     * option is mainly intended to allow successful parsing of pre-v1.1 CIFs, some of which used the form feed
+     * character as an end-of-line character, but it is not inherently limited to that use.
+     *
+     * Extra end-of-line characters appearing within data values are subject to the same conversion to newlines as
+     * carriage return characters and carriage return / line feed pairs.
+     *
+     * The space and tab characters cannot be given end-of-line significance via this option; if they appear in the
+     * provided string then they are ignored.
+     *
+     * The carriage return and newline characters may be specified among these characters, but it has no additional
+     * effect.
+     *
+     * The string is terminated by a null character ('\0'); no mechanism is provided for treating that character as
+     * end-of-line.
+     */
+    const char *extra_eol_chars;
+
+    /**
      * @brief A set of handler functions by which the application can be notified of details of the parse progress as
      *         they occur, and through which it can influence the data recorded; may be @c NULL.
      *

@@ -78,7 +78,7 @@
  * @section parsing-details The CIF API parsing interface
  * The main interface provided for CIF parsing is the @c cif_parse() function, which reads CIF text from a standard C
  * byte stream, checks and interprets the syntax, and optionally records the parsed results in an in-memory CIF object.
- * A variety of options and extension points are available via the @c options argument to the parse function, currently
+ * A variety of options and extension points are available via the @c options argument to the parse function,
  * falling into two broad categories:
  * @li options controlling the CIF dialect to be parsed, and
  * @li callback functions by which the caller can obtain dynamic information about the progress of the parse, and
@@ -372,9 +372,10 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
 /* function-like macros */
 
-#define INIT_V2_SCANNER(s) do { \
+#define INIT_V2_SCANNER(s, allowed, ws, eol) do { \
     struct scanner_s *_s = (s); \
     int _i; \
+    const char * _c; \
     _s->line = 1; \
     _s->column = 0; \
     _s->ttype = END; \
@@ -385,6 +386,24 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     for (_i =  32; _i < 127;            _i += 1) _s->char_class[_i] = GENERAL_CLASS; \
     for (_i = 128; _i < CHAR_TABLE_MAX; _i += 1) _s->char_class[_i] = NO_CLASS; \
     for (_i =   1; _i <= LAST_CLASS;    _i += 1) _s->meta_class[_i] = GENERAL_META; \
+    if (allowed) { \
+        for (_c = allowed; *_c; _c += 1) { \
+            unsigned char uc = *_c; \
+            if (uc < CHAR_TABLE_MAX) _s->char_class[uc] = GENERAL_CLASS; \
+        } \
+    } \
+    if (ws) { \
+        for (_c = ws; *_c; _c += 1) { \
+            unsigned char uc = *_c; \
+            if (uc < CHAR_TABLE_MAX) _s->char_class[uc] = WS_CLASS; \
+        } \
+    } \
+    if (eol) { \
+        for (_c = eol; *_c; _c += 1) { \
+            unsigned char uc = *_c; \
+            if (uc < CHAR_TABLE_MAX) _s->char_class[uc] = EOL_CLASS; \
+        } \
+    } \
     _s->char_class[UCHAR_TAB] =   WS_CLASS; \
     _s->char_class[UCHAR_NL] =    EOL_CLASS; \
     _s->char_class[UCHAR_CR] =    EOL_CLASS; \
@@ -673,7 +692,8 @@ int cif_parse_error_die(int code, size_t line UNUSED, size_t column UNUSED, cons
     return code;
 }
 
-int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_tp *dest) {
+int cif_parse_internal(struct scanner_s *scanner, int not_utf8, const char *extra_allowed, const char *extra_ws,
+        const char *extra_eol, cif_tp *dest) {
     FAILURE_HANDLING;
 
     scanner->buffer = (UChar *) malloc(BUF_SIZE_INITIAL * sizeof(UChar));
@@ -685,7 +705,7 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, cif_tp *dest) {
     } else {
         UChar c;
 
-        INIT_V2_SCANNER(scanner);
+        INIT_V2_SCANNER(scanner, extra_allowed, extra_ws, extra_eol);
         scanner->next_char = scanner->buffer;
         scanner->text_start = scanner->buffer;
         scanner->tvalue_start = scanner->buffer;
@@ -2107,8 +2127,14 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                             case UCHAR_NL:
                                 goto end_of_line;
                             default:
-                                if (CLASS_OF(c, scanner) != WS_CLASS) {
-                                    nonws = CIF_TRUE;
+                                switch(CLASS_OF(c, scanner)) {
+                                    case EOL_CLASS: /* a non-standard EOL character */
+                                        goto end_of_line;
+                                    case WS_CLASS:
+                                        break;
+                                    default:
+                                        nonws = CIF_TRUE;
+                                        break;
                                 }
                                 break;
                         }
@@ -2140,12 +2166,12 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                     while (in_pos < in_limit) {
                         UChar c = *in_pos;
 
-                        if (c == UCHAR_CR) {
+                        if ((CLASS_OF(c, scanner) == EOL_CLASS) && (c != UCHAR_NL)) {
                             length = in_pos++ - in_start;
                             u_strncpy(buf_pos, in_start, length);
                             buf_pos += length;
                             *(buf_pos++) = UCHAR_NL;
-                            if ((in_pos < in_limit) && (*in_pos == UCHAR_NL)) {
+                            if ((in_pos < in_limit) && (c == UCHAR_CR) && (*in_pos == UCHAR_NL)) {
                                 in_pos += 1;
                             }
                             in_start = in_pos;
@@ -2194,10 +2220,10 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                                 int klass = CLASS_OF(c, scanner);
 
                                 if (klass == EOL_CLASS) {
-                                    /* convert CR and CR LF to LF */
-                                    if (c == UCHAR_CR) {
+                                    /* convert line terminators other than LF to LF */
+                                    if (c != UCHAR_NL) {
                                         *(buf_pos - 1) = UCHAR_NL;
-                                        if ((in_pos < in_limit) && (*in_pos == UCHAR_NL)) {
+                                        if ((c == UCHAR_CR) && (in_pos < in_limit) && (*in_pos == UCHAR_NL)) {
                                             in_pos += 1;
                                         }
                                     }
@@ -2522,7 +2548,7 @@ static int scan_ws(struct scanner_s *scanner) {
                     }
 
                     /* the next character is at the start of a line; sol encodes data about the preceding terminators */
-                    sol = ((sol << 2) + ((c == UCHAR_CR) ? 2 : 1)) & 0xf;
+                    sol = ((sol << 2) + ((c == UCHAR_NL) ? 1 : ((c == UCHAR_CR) ? 2 : 0))) & 0xf;
                     /*
                      * sol code 0x9 == 1001b indicates that the last two characters were CR and LF.  In that case
                      * the line number was incremented for the CR, and should not be incremented again for the LF.
@@ -2842,7 +2868,7 @@ static int scan_text(struct scanner_s *scanner) {
                     }
 
                     /* the next character is at the start of a line */
-                    sol = ((sol << 2) + ((c == UCHAR_CR) ? 2 : 1)) & 0xf;
+                    sol = ((sol << 2) + ((c == UCHAR_NL) ? 1 : ((c == UCHAR_CR) ? 2 : 3))) & 0xf;
                     /*
                      * sol code 0x9 == 1001b indicates that the last two characters were CR and LF.  In that case
                      * the line number was incremented for the CR, and should not be incremented again for the LF.

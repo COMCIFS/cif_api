@@ -44,18 +44,7 @@ int main(void) {
     char local_file_name[] = "cif_core.dic";
     char file_name[BUFFER_SIZE];
     FILE * cif_file;
-    struct cif_parse_opts_s options = {
-        0,    /* do not default to CIF 2 */
-        NULL, /* no specified default encoding */
-        0,    /* do not force the default encoding */
-        0,    /* unmodified line-folding rules */
-        0,    /* unmodified text-prefixing rules */
-        -1,   /* Allow unlimited save frame nesting */
-        NULL, /* no CIF handler */
-        NULL, /* no whitespace handler */
-        error_callback, /* error callback function */
-        NULL  /* no user data */
-    };
+    struct cif_parse_opts_s *options;
     cif_tp *cif = NULL;
 
     /* Initialize data and prepare the test fixture */
@@ -68,8 +57,16 @@ int main(void) {
     cif_file = fopen(file_name, "rb");
     TEST(cif_file == NULL, 0, test_name, 2);
 
+    /* set parse options */
+    TEST(cif_parse_options_create(&options), CIF_OK, test_name, 3);
+
+    options->max_frame_depth = -1;
+    options->error_callback = error_callback;
+
     /* parse the file */
-    TEST(cif_parse(cif_file, &options, &cif), CIF_OK, test_name, 3);
+    TEST(cif_parse(cif_file, options, &cif), CIF_OK, test_name, 4);
+
+    free(options);
 
     /* check the parse result */
       /* TODO */

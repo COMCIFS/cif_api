@@ -71,6 +71,7 @@ compiled_tests = \
     tests/test_ustrdup \
     tests/test_normalize \
     tests/test_container_prune \
+    tests/test_parse_10 \
     tests/test_parse_simple_data \
     tests/test_parse_list_data \
     tests/test_parse_table_data \
@@ -88,7 +89,7 @@ compiled_tests = \
     tests/test_write_complex \
     tests/test_write_loops \
     tests/test_write_frames
-# TODO:
+# Future tests:
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
