@@ -36,6 +36,8 @@
 #include "internal/schema.h"
 #include "internal/utils.h"
 #include "internal/sql.h"
+#include "internal/version.h"
+
 #include "utlist.h"
 
 #define INIT_STMT(cif, stmt_name) cif->stmt_name##_stmt = NULL
@@ -89,6 +91,14 @@ static int cif_create_callback(void *context, int n_columns UNUSED, char **colum
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+int cif_get_api_version(char **version) {
+    if (version == NULL) return CIF_ARGUMENT_ERROR;
+
+    *version = strdup(CIF_API_VERSION);
+
+    return (*version) ? CIF_OK : CIF_MEMORY_ERROR;
+}
 
 int cif_create(cif_tp **cif) {
     FAILURE_HANDLING;

@@ -19,6 +19,7 @@
 Makefile
 stamp-h1
 /src/internal/schema.h
+/src/internal/version.h
 
 # Target files
 *.la

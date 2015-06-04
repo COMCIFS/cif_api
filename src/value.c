@@ -452,39 +452,6 @@ static int format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_
  */
 static int frac_bits(double d, int *exponent);
 
-#ifdef HAVE_STRDUP
-#ifndef HAVE_DECL_STRDUP
-#ifdef __cplusplus
-extern "C" {
-#endif
-char *strdup(const char *s)
-#ifdef __GNUC__
-     __THROW __attribute_malloc__ __nonnull ((1))
-#endif
-;
-#ifdef __cplusplus
-}
-#endif
-#endif
-#else
-/* function definition serves as a declaration */
-static char *strdup(const char *s) {
-    int length = strlen(s);
-    char *dup = (char *) malloc(length + 1);
-
-    if (dup) {
-        char *d = dup;
-
-        while (*s != '\0') {
-            *(d++) = *(s++);
-        }
-        dup[length] = '\0';
-    }
-
-    return dup;
-}
-#endif
-
 /* function implementations */
 
 static void cif_list_init(struct list_value_s *list_value) {
@@ -1708,6 +1675,24 @@ static int frac_bits(double d, int *exponent) {
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifndef HAVE_STRDUP
+char *strdup(const char *s) {
+    int length = strlen(s);
+    char *dup = (char *) malloc(length + 1);
+
+    if (dup) {
+        char *d = dup;
+
+        while (*s != '\0') {
+            *(d++) = *(s++);
+        }
+        *d = '\0';
+    }
+
+    return dup;
+}
 #endif
 
 int cif_value_create(cif_kind_tp kind, cif_value_tp **value) {

@@ -28,6 +28,10 @@
 #ifndef INTERNAL_UTILS_H
 #define INTERNAL_UTILS_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <string.h>
 #include <unicode/ustring.h>
 #include "cif.h"
@@ -523,8 +527,16 @@ extern int total_queries;
  * function headers for private, non-static functions
  */
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef HAVE_DECL_STRDUP
+#ifdef HAVE_STRDUP
+extern char *strdup(const char *s)
+#else
+extern char *strdup(const char *s) INTERNAL
+#endif
+#ifdef __GNUC__
+     __THROW __attribute_malloc__ __nonnull ((1))
+#endif
+;
 #endif
 
 /*

@@ -35,8 +35,10 @@ TO_REMOVE=
 	#include "cif.h"
 	
 	int main(int argc, char *argv[]) {
+            char *version;
   	    cif_tp *cif;
-  	    int result = cif_create(&cif);
+  	    int result = cif_get_api_version(&version);
+  	    result = cif_create(&cif);
   	    result = cif_destroy(cif);
   	    return 0;
 	}

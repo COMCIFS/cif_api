@@ -2821,6 +2821,23 @@ CIF_INTFUNC_DECL(cif_value_remove_item_by_key, (
  */
 
 /**
+ * @brief Provides a string representation of the CIF API's version number
+ *
+ * Creates a character array, fills it with a string representation of the CIF API's version number, and records a
+ * pointer to it where the argument points.  The caller is responsible for freeing the version string when it is no
+ * longer needed.
+ *
+ * @param[in,out] version a pointer to location where a pointer to the version string should be recorded; must
+ *         not be NULL
+ *
+ * @return @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if @p version is @c NULL, or @c CIF_MEMORY_ERROR if space cannot
+ *         be allocated for the version string
+ */
+CIF_INTFUNC_DECL(cif_get_api_version, (
+        char **version
+        ));
+
+/**
  * @brief Creates and returns a duplicate of a Unicode string.
  *
  * It is sometimes useful to duplicate a Unicode string, but ICU does not provide an analog of @c strdup() for that
