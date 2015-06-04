@@ -304,6 +304,7 @@ EXTRA_DIST = \
   misc/dox.css \
   misc/footer.html \
   misc/main.dox \
+  test-data/10.cif \
   test-data/README \
   test-data/bom.cif \
   test-data/bom_ver2.cif \

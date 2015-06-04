@@ -733,7 +733,6 @@ void cif_pktitr_free(
 int cif_parse_internal(
         struct scanner_s *scanner,
         int not_utf8,
-        const char *extra_allowed,
         const char *extra_ws,
         const char *extra_eol,
         cif_tp *dest

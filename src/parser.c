@@ -372,7 +372,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 
 /* function-like macros */
 
-#define INIT_V2_SCANNER(s, allowed, ws, eol) do { \
+#define INIT_V2_SCANNER(s, ws, eol) do { \
     struct scanner_s *_s = (s); \
     int _i; \
     const char * _c; \
@@ -386,12 +386,6 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     for (_i =  32; _i < 127;            _i += 1) _s->char_class[_i] = GENERAL_CLASS; \
     for (_i = 128; _i < CHAR_TABLE_MAX; _i += 1) _s->char_class[_i] = NO_CLASS; \
     for (_i =   1; _i <= LAST_CLASS;    _i += 1) _s->meta_class[_i] = GENERAL_META; \
-    if (allowed) { \
-        for (_c = allowed; *_c; _c += 1) { \
-            unsigned char uc = *_c; \
-            if (uc < CHAR_TABLE_MAX) _s->char_class[uc] = GENERAL_CLASS; \
-        } \
-    } \
     if (ws) { \
         for (_c = ws; *_c; _c += 1) { \
             unsigned char uc = *_c; \
@@ -692,8 +686,8 @@ int cif_parse_error_die(int code, size_t line UNUSED, size_t column UNUSED, cons
     return code;
 }
 
-int cif_parse_internal(struct scanner_s *scanner, int not_utf8, const char *extra_allowed, const char *extra_ws,
-        const char *extra_eol, cif_tp *dest) {
+int cif_parse_internal(struct scanner_s *scanner, int not_utf8, const char *extra_ws, const char *extra_eol,
+        cif_tp *dest) {
     FAILURE_HANDLING;
 
     scanner->buffer = (UChar *) malloc(BUF_SIZE_INITIAL * sizeof(UChar));
@@ -705,7 +699,7 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, const char *extr
     } else {
         UChar c;
 
-        INIT_V2_SCANNER(scanner, extra_allowed, extra_ws, extra_eol);
+        INIT_V2_SCANNER(scanner, extra_ws, extra_eol);
         scanner->next_char = scanner->buffer;
         scanner->text_start = scanner->buffer;
         scanner->tvalue_start = scanner->buffer;

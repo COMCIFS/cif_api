@@ -924,21 +924,6 @@ struct cif_parse_opts_s {
     int max_frame_depth;
 
     /**
-     * @brief ASCII characters that should be allowed
-     *
-     * If not @c NULL, specifies additional characters from the 7-bit ASCII set and / or from among the C1 controls that
-     * should be accepted as valid CIF characters.  Ordinarily, the @c '\xff' character, the C1 controls, and most of
-     * the C0 controls are disallowed.  This option is mainly intended to allow successful parsing of pre-v1.1 CIFs,
-     * some of which may have contained such characters, but it is not inherently limited to that use.
-     *
-     * Specifying characters that are already allowed has no additional effect.  It is not necessary to use this option
-     * to allow characters that are specified among the @c extra_ws_chars or @c extra_eol_chars .
-     *
-     * The string is terminated by a null character ('\0'); no mechanism is provided for allowing that character.
-     */
-    const char *extra_chars;
-
-    /**
      * @brief ASCII characters that should be interpreted as CIF inline whitespace
      *
      * If not @c NULL, specifies additional characters from the 7-bit ASCII set and / or from among the C1 controls that
