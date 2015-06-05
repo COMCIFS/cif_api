@@ -937,7 +937,7 @@ struct cif_parse_opts_s {
      * The carriage return and newline characters may be specified among these characters, but it does not change
      * their role as end-of-line characters.
      *
-     * The string is terminated by a null character ('\0'); no mechanism is provided for treating that character as
+     * The string is terminated by a null character (@c '\\0'); no mechanism is provided for treating that character as
      * whitespace.
      */
     const char *extra_ws_chars;
@@ -960,7 +960,7 @@ struct cif_parse_opts_s {
      * The carriage return and newline characters may be specified among these characters, but it has no additional
      * effect.
      *
-     * The string is terminated by a null character ('\0'); no mechanism is provided for treating that character as
+     * The string is terminated by a null character (@c '\\0'); no mechanism is provided for treating that character as
      * end-of-line.
      */
     const char *extra_eol_chars;
@@ -1147,10 +1147,10 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
  * @param[in,out] stream a @c FILE @c * to which to write the CIF format output; must be a non-NULL pointer to a
  *         writable stream.
  *
- * @param[in] options
- *
  * @param[in] options a pointer to a @c struct @c cif_write_opts_s object describing options to use for writing, or
  *         @c NULL to use default values for all options
+ *
+ * @param[in] cif a handle on the CIF object to serialize to the specified stream
  *
  * @return Returns @c CIF_OK if the data are fully written, or else an error code (typically @c CIF_ERROR ).
  *         The stream state is undefined after a failure.
@@ -2890,13 +2890,13 @@ CIF_INTFUNC_DECL(cif_normalize, (
  *
  * This function is most applicable to C strings obtained from external input, rather than to strings appearing in C
  * source code.  ICU will normally try to guess what converter is appropriate for default text, but the converter it
- * will use can be influenced via @c ucnv_setDefaultName() (warning: the default converter name is @i global).  On
+ * will use can be influenced via @c ucnv_setDefaultName() (warning: the default converter name is @em global).  On
  * successful conversion, the output Unicode string will be NUL terminated.
  *
  * @param[in] cstr the C string to convert; may be NULL, in which case the conversion result is likewise NULL; if
  *     not NULL and  @p srclen is -1, then must be terminated by a NUL byte, else termination is optional
  * @param[in] srclen the input string length, or -1 if the string consists of all bytes up to a NUL terminator
- * @param[inout] ustr a pointer to a location to record the result; must not be NULL.  If a non-NULL pointer is
+ * @param[in,out] ustr a pointer to a location to record the result; must not be NULL.  If a non-NULL pointer is
  *     written here by this function (which can happen only on success), then the caller assumes ownership of the
  *     memory it references.
  *

@@ -22,10 +22,8 @@
 
 /**
  * @page parsing CIF parsing
- * @tableofcontents
- * The CIF API provides a parser for CIF 2.0, flexible enough to parse CIF 1.1 documents as well.  Inasmuch
- * as most CIFs conforming to the less formal conventions predating the CIF 1.1 specification can be successfully parsed
- * as CIF 1.1, the parser will handle substantially all CIFs conforming to any current or historic version of CIF.
+ * The CIF API provides a parser for CIF 2.0, flexible enough to parse CIF 1.1 documents and those complying with
+ * earlier CIF conventions as well.
  *
  * @section versions CIF versions
  * To date there have been two formal specifications for the CIF file format, v1.1 and v2.0, and a body of less formal
@@ -92,9 +90,10 @@
  * @c cif_parse() function operates in this way when its third argument points to a location for a CIF
  * handle: @include basic_parsing.c
  *
- * By default, however, the parser stops at the first error it encounters.  Inasmuch as very many CIFs contain at least
- * minor errors, it may be desirable to instruct the parser to attempt to push past all or certain kinds of errors,
- * extracting @ref error_recovery "a best-guess interpretation of the remainder of the input".  Such behavior can be obtained by providing an
+ * By default, however, the parser stops at the first error it encounters.  Inasmuch as historically, many CIFs
+ * have contained at least minor errors, it may be desirable to instruct the parser to attempt to push past all or
+ * certain kinds of errors, extracting @ref error_recovery "a best-guess interpretation of the remainder of the input".
+ * Such behavior can be obtained by providing an
  * error-handling callback function of type matching @c cif_parse_error_callback_tp .  Such a function serves not only
  * to control which errors are bypassed, but also, if so written, to pass on details of each error to the caller.  For
  * example, this code counts the number of CIF syntax and semantic errors in the input CIF: @include parse_errors.c
@@ -113,14 +112,14 @@
  * for example, here is a naive approach to assigning loop categories based on loop data
  * names: @include parser_callbacks.c
  *
- * Note that the parser traverses its input and issues callbacks in document order from start to end, so unlike
+ * Note that the parser traverses its input and issues callbacks in document order, from start to end, so unlike
  * @c cif_walk(), it does not guarantee to traverse all of a data block's save frames before any of its data.
  *
  * @subsubsection validation CIF validation
- * The CIF API does not provide specific support for CIF validation because validation is is dependent on the DDL of
+ * The CIF API does not provide specific support for CIF validation because validation is dependent on the DDL of
  * the dictionary to which a CIF purports to comply, whereas the CIF API is generic, not specific to any particular
  * DDL or dictionary.  To the extent that some validations can be performed during parsing, however, callback functions
- * provide a suitable means to engage such validation.
+ * provide a suitable means for interested applications to engage such validation.
  *
  * @subsubsection comments Comments
  * For the most part, the parser ignores CIF comments other than for attempting to identify the CIF
@@ -133,9 +132,9 @@
  * in-memory representation.  The simplest such application performs only a syntax check of the input -- perhaps to
  * test compliance with a particular CIF version and/or parse options.  The parser function operates in just
  * that way when its third argument is NULL (that is, when the caller provides no CIF handle location).
- * All provided callbacks are invoked as normal in this mode, including any error callback, and in the absence of any
- * callbacks the parser's return code indicates whether any errors were detected.  This syntax-only parsing mode does
- * have a few limitations, however -- primarily that because it does not retain an in-memory representation of its
+ * All provided callbacks are invoked as normal in this mode, including any error callback, and regardless of any
+ * callbacks, the parser's return code indicates whether any errors were detected.  This syntax-only parsing mode does
+ * have a few limitations, however: primarily that because it does not retain an in-memory representation of its
  * input, it cannot check CIF semantic requirements for data name, frame code, and block code uniqueness within their
  * respective scopes.
  *
@@ -143,7 +142,7 @@
  * The availability and scope of callback functions make the syntax-only mode described above a CIF analog of the
  * event-driven "SAX" XML parsing interface.  To use the parser in that mode, the caller provides callback functions
  * by which to be informed of parse "events" of interest -- recognition of entities and entity boundaries -- so as to
- * extract the desired information during the parse instead of by afterward analyzing the parse result.  Callbacks can
+ * extract the desired information during the parse instead of by afterward analyzing the parsed result.  Callbacks can
  * communicate with themselves and each other, and can memorialize data for the caller, via the @c user_data object
  * provided among the parse options (and demonstrated in the error-counting example).  Callbacks can be omitted
  * for events that are not of interest.
@@ -152,7 +151,7 @@
 /**
  * @page error_recovery Parse error recovery
  * Since the built-in parser allows syntax and grammar errors to be ignored, it must provide a mechanism for recovering
- * from such errors to continue the parse.  In general, there is no clear, single approach for recovering from any
+ * from such errors to continue the parse.  In general, there is no single, clear approach for recovering from any
  * given error, so the following table documents the approach taken by the parser in each case.
  * <table>
  * <tr><th>Condition</th><th>Code</th><th>Recovery action</th></tr>
@@ -261,7 +260,7 @@
  *     not appear as unquoted complete words in CIFs.  If the parser encounters one, it can recover by dropping
  *     it.</td></tr>
  * <tr><td>Overlength line</td><td>@c CIF_OVERLENGTH_LINE</td><td>drop</td></tr>
- * <tr><td colspan='3'>If a CIF input line exceeds the allowed number of @i characters (2048 in CIF 1.1 and CIF 2.0)
+ * <tr><td colspan='3'>If a CIF input line exceeds the allowed number of @em characters (2048 in CIF 1.1 and CIF 2.0)
  *     then the parser can recover by ignoring the problem.  Note that the limit is expressed in Unicode characters --
  *     not bytes, nor even @c UChar code units -- and it does not include line terminators.</td></tr>
  * <tr><td>Missing endquote</td><td>@c CIF_MISSING_ENDQUOTE</td><td>assume the quote</td></tr>
@@ -277,7 +276,7 @@
  * <tr><td colspan='3'>There are slightly different rules for the first character of a CIF than for others, in that a Unicode
  *     byte-order mark (U+FEFF) is allowed there.  Moreover, an unexpected character at that position can be an
  *     indication of a mis-identified character encoding.  The parser can recover by accepting the character, but
- *     that @i will result in at least one subsequent error.</td></tr>
+ *     that @em will result in at least one subsequent error.</td></tr>
  * </table>
  */
 
