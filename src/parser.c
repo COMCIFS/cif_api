@@ -162,8 +162,8 @@
  * detected encoding, even though such input does not comply with the CIF 2.0 specifications.</td></tr>
  * <tr><td>Disallowed input character</td><td>@c CIF_DISALLOWED_CHAR</td><td>substitute a replacement character</td></tr>
  * <tr><td colspan='3'>This error indicates that an input character outside the allowed set was read.  The parser can
- * recover by substituting a replacement character.  Which characters are allowed and which is the replacement
- * character depends on which version of CIF is being parsed.</td></tr>
+ *     recover by accepting the character.  Which characters are allowed depends on which version of CIF is being
+ *     parsed.</td></tr>
  * <tr><td>Missing whitespace</td><td>@c CIF_MISSING_SPACE</td><td>assume the omitted whitespace</td></tr>
  * <tr><td colspan='3'>Whitespace separation is required between most CIF grammatic units.  In some cases, the omission
  *     of such whitespace can be recognized by the parser, resulting in this error.  In particular, this is the error
@@ -659,12 +659,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                 /* error: disallowed supplemental character */ \
                 ev = _s->error_callback(CIF_DISALLOWED_CHAR, _s->line, _s->column, _s->next_char - 1, 2, _s->user_data); \
                 if (ev != 0) break; \
-                /* recover by replacing with the replacement character and wiping out the lead surrogate */ \
-                memmove(_s->text_start + 1, _s->text_start, (_s->next_char - _s->text_start)); \
-                c = ((_s->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR); \
-                *(_s->next_char) = c; \
-                _s->text_start += 1; \
-                _s->tvalue_start += 1; \
+                /* recover by accepting the character */ \
             } \
             POSN_INCCOLUMN(_s, -1); \
             lead_fl = CIF_FALSE; \

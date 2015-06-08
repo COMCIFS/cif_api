@@ -405,7 +405,7 @@
  * @brief A result code indicating that a well-formed code sequence encountered during I/O decodes to a character that
  * is not allowed to appear in CIF.
  *
- * Recovery normally involves replacing the character with a substitution character.
+ * Recovery normally involves accepting the character.
  */
 #define CIF_DISALLOWED_CHAR   104
 
