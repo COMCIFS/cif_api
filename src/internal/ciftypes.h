@@ -55,7 +55,6 @@
 #define GENERAL_CLASS 1
 #define WS_CLASS      2
 #define EOL_CLASS     3
-#define EOF_CLASS     4
 #define HASH_CLASS    5
 #define UNDERSC_CLASS 6
 #define QUOTE_CLASS   7

@@ -306,7 +306,10 @@
 
 /* plain macros */
 
-#define SSIZE_T_MAX      (((size_t) -1) / 2)
+#define SSIZE_T_MAX   (((size_t) -1) / 2)
+
+/* a result code used internally to this file to signal that no more input characters are available */
+#define CIF_EOF       -1
 
 /*
  * It is now common for CIFs to have one or more multi-kilobyte values, so start with a largish buffer to minimize
@@ -438,7 +441,6 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     _s->meta_class[NO_CLASS] =    NO_META; \
     _s->meta_class[WS_CLASS] =    WS_META; \
     _s->meta_class[EOL_CLASS] =   WS_META; \
-    _s->meta_class[EOF_CLASS] =   WS_META; \
     _s->meta_class[OBRAK_CLASS] = OPEN_META; \
     _s->meta_class[OCURL_CLASS] = OPEN_META; \
     _s->meta_class[CBRAK_CLASS] = CLOSE_META; \
@@ -473,7 +475,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
  * cannot do so at all in the case of unpaired surrogates.
  */
 #define CLASS_OF(c, s)  (((c) < CHAR_TABLE_MAX) ? (s)->char_class[c] : \
-        (((c) == EOF_CHAR) ? EOF_CLASS : (((s)->cif_version >= 2) ? GENERAL_CLASS : NO_CLASS)))
+        (((s)->cif_version >= 2) ? GENERAL_CLASS : NO_CLASS))
 
 /* Evaluates the metaclass to which the class of the specified character belongs, with respect to the given scanner */
 #define METACLASS_OF(c, s) ((s)->meta_class[CLASS_OF((c), (s))])
@@ -509,39 +511,48 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 #define POSN_INCCOLUMN(s, n) do { (s)->column += (n); } while (CIF_FALSE)
 
 /*
- * Ensures that the buffer of the specified scanner has at least one character available to read; the available
- * character can be an EOF marker
+ * Ensures that the buffer of the specified scanner has at least one character available to read, or that the scanner's
+ * end-of-file flag has been raised.  Sets 'ev' to 'CIF_OK' if there is already at least one character to read or if
+ * additional characters are successfully buffered; to 'CIF_EOF' if the scanner has reached the end of the file; or
+ * else to a CIF error code.
  */
 #define ENSURE_CHARS(s, ev) do { \
     struct scanner_s *_s_ec = (s); \
     if (_s_ec->next_char >= _s_ec->buffer + _s_ec->buffer_limit) { \
-        ev = get_more_chars(_s_ec); \
-        if (ev != CIF_OK) break; \
+        ev = ((_s_ec->at_eof == 0) ? get_more_chars(_s_ec) : CIF_EOF); \
     } else { \
         ev = CIF_OK; \
     } \
 } while (CIF_FALSE)
 
 /*
- * Inputs the next available character from the scanner source into the given character without changing the relative
- * token start position or recorded token length.  The absolute token start position may change, however, and column
- * (but not line) accounting is performed.
- */
-#define NEXT_CHAR(s, c, ev) do { \
-    struct scanner_s *_s_nc = (s); \
-    ENSURE_CHARS(_s_nc, ev); \
-    c = *(_s_nc->next_char++); \
-    POSN_INCCOLUMN(_s_nc, 1); \
-} while (CIF_FALSE)
-
-/*
- * Returns the character that will be returned (again) by the next invocation of NEXT_CHAR().  May cause additional
- * characters to be read into the buffer, but does not otherwise alter the scan state.
+ * Provides the character that will be returned (again) by the next invocation of NEXT_CHAR().  May cause additional
+ * characters to be read into the buffer and / or the cause the scanner's end-of-file flag to be set, but does not
+ * otherwise alter the scan state.  Sets 'ev' to 'CIF_OK' if a valid character is provided, to 'CIF_EOF' if the
+ * scanner has already reached the end of the input, or to a CIF error code.
  */
 #define PEEK_CHAR(s, c, ev) do { \
     struct scanner_s *_s_pc = (s); \
     ENSURE_CHARS(_s_pc, ev); \
-    c = *(_s_pc->next_char); \
+    if (ev == CIF_OK) { \
+        c = *(_s_pc->next_char); \
+        break; \
+    } \
+} while (CIF_FALSE)
+
+/*
+ * Inputs the next available character from the scanner source into the given character without changing the relative
+ * token start position or recorded token length.  The absolute token start position may change, however, and column
+ * (but not line) accounting is performed. Sets 'ev' to 'CIF_OK' if a valid character is provided, to 'CIF_EOF' if the
+ * scanner has already reached the end of the input, or to a CIF error code.
+ */
+#define NEXT_CHAR(s, c, ev) do { \
+    struct scanner_s *_s_nc = (s); \
+    PEEK_CHAR(_s_nc, c, ev); \
+    if (ev == CIF_OK) { \
+        _s_nc->next_char += 1; \
+        POSN_INCCOLUMN(_s_nc, 1); \
+    } \
 } while (CIF_FALSE)
 
 /*
@@ -553,7 +564,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
     assert(_s_bu->next_char > _s_bu->buffer); \
     _s_bu->next_char -= 1; \
     POSN_INCCOLUMN(_s_bu, -1); \
-} while (0)
+} while (CIF_FALSE)
 
 /*
  * Consumes the current token, if any, from the scanner.  When next asked for a token, the scanner will provide
@@ -596,11 +607,40 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 } while (CIF_FALSE)
 
 /*
+ * Tests whether the specified flag indicates that a lead surrogate was scanned; if so, raises an invalid character
+ * error.  If the error is suppressed, then recovery is to replace the character preceding the current scan position
+ * with a replacement character appropriate to the version of CIF being scanned
+ * s: the scanner to manipulate; must have at least one code unit available in its buffer
+ * lead_fl: an lvalue of integral type wherein this macro can store state between runs; should be set to false
+ *     before this macro's first run and whenever a character other than a lead surrogate is scanned
+ * ev: an lvalue in which an error code can be recorded
+ */
+#define HANDLE_UNPAIRED_LEAD(s, lead_fl, ev) do { \
+    if (lead_fl) { \
+        struct scanner_s *_s_hls = (s); \
+        /* error: unpaired lead surrogate preceding the current character */ \
+        ev = _s_hls->error_callback(CIF_INVALID_CHAR, _s_hls->line, _s_hls->column, _s_hls->next_char - 1, 1, \
+                _s_hls->user_data); \
+        if (ev != 0) break; \
+        /* recover by replacing the surrogate with the replacement character */ \
+        *(_s_hls->next_char - 1) = ((_s_hls->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR); \
+    } \
+} while (CIF_FALSE)
+
+/*
+ * A wrapper around HANDLE_UNPAIRED_LEAD() that returns an appropriate error code in the event that an unpaired lead
+ * surrogate is detected, and the error is not suppressed.
+ */
+#define HANDLE_UNPAIRED_LEAD_OR_FAIL(s, lead_fl, ev) do { \
+    ev = CIF_OK; HANDLE_UNPAIRED_LEAD(s, lead_fl, ev); if (ev != CIF_OK) return ev; \
+} while (CIF_FALSE)
+
+/*
  * Advances the scanner by one code unit, tracking the current column number and watching for input malformations
  * associated with surrogate pairs: unpaired surrogates and pairs encoding Unicode code values not permitted in
  * CIF.  Surrogates have to be handled separately from character buffering in order to correctly handle surrogate
  * pairs that are split across buffer fills.
- * s: the scanner to manipulate
+ * s: the scanner to manipulate; must have at least one code unit available in its buffer
  * c: an lvalue in which the next code unit scanned will be returned
  * lead_fl: an lvalue of integral type wherein this macro can store state between runs; should evaluate to false
  *     before this macro's first run
@@ -617,7 +657,7 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
         if (lead_fl) { \
             if (((c & 0xfffe) == 0xdffe) && ((*(_s->next_char - 1) & 0xfc3f) == 0xd83f)) { \
                 /* error: disallowed supplemental character */ \
-                ev = _s->error_callback(CIF_DISALLOWED_CHAR, _s->line, _s->column, _s->next_char - 1, 1, _s->user_data); \
+                ev = _s->error_callback(CIF_DISALLOWED_CHAR, _s->line, _s->column, _s->next_char - 1, 2, _s->user_data); \
                 if (ev != 0) break; \
                 /* recover by replacing with the replacement character and wiping out the lead surrogate */ \
                 memmove(_s->text_start + 1, _s->text_start, (_s->next_char - _s->text_start)); \
@@ -638,12 +678,11 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
         } \
     } else { \
         if ((c < CHAR_TABLE_MAX) ? (scanner->char_class[c] == NO_CLASS) \
-                : ((c == 0xFFFE) || (c == UCHAR_BOM) || ((c >= 0xFDD0) && (c <= 0xFDEF)))) { \
+                : (((c & 0xFFFEu) == 0xFFFEu) || (c == UCHAR_BOM) || ((c >= 0xFDD0u) && (c <= 0xFDEFu)))) { \
             /* error: disallowed BMP character */ \
             ev = _s->error_callback(CIF_DISALLOWED_CHAR, _s->line, _s->column, _s->next_char, 1, _s->user_data); \
             if (ev != CIF_OK) break; \
-            /* recover by replacing with a replacement char */ \
-            *(_s->next_char) = ((_s->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR); \
+            /* recover by accepting the character */ \
         } \
         if ((_s->cif_version < 2) && (c > CIF1_MAX_CHAR)) { \
             /* error: disallowed CIF 1 character */ \
@@ -651,16 +690,37 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
             if (ev != CIF_OK) break; \
             /* recover by accepting the character */ \
         } \
-        if (lead_fl) { \
-            /* error: unpaired lead surrogate preceding the current character */ \
-            ev = _s->error_callback(CIF_INVALID_CHAR, _s->line, _s->column, _s->next_char - 1, 1, _s->user_data); \
-            if (ev != 0) break; \
-            /* recover by replacing the surrogate with the replacement character */ \
-            *(_s->next_char - 1) = ((_s->cif_version >= 2) ? REPL_CHAR : REPL1_CHAR); \
-        } \
+        HANDLE_UNPAIRED_LEAD(s, lead_fl, ev); \
         lead_fl = (_surrogate_mask == 0xd800); \
     } \
     _s->next_char += 1; \
+} while (CIF_FALSE)
+
+/*
+ * Handles line number accounting when an EOL character is scanned, incrementing the line number unless the EOL
+ * character is a line feed, and it was immediately preceded by a carriage return.  Raises a line length error
+ * if the line is overlong, *and returns from the host function if it is not suppressed*.  Arguments are
+ *   s: the scanner from which the EOL character was read
+ *   ch: the EOL character that was read
+ *   state: a modifiable lvalue in which this macro can store state between invocations; should be externally set to
+ *     zero when a non-EOL character is scanned
+ */
+#define HANDLE_EOL(s, ch, state) do { \
+    struct scanner_s *_s_eol = (s); \
+    UChar _c = (ch); \
+    if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) { \
+        /* error: long line */ \
+        int _ev = _s_eol->error_callback(CIF_OVERLENGTH_LINE, _s_eol->line, \
+                scanner->column, _s_eol->next_char - 1, 0, _s_eol->user_data); \
+        if (_ev != CIF_OK) return _ev; \
+        /* recover by accepting it as-is */ \
+    } \
+    /* the next character is at the start of a line */ \
+    state = (((state) << 2) + ((_c == UCHAR_NL) ? 1 : ((_c == UCHAR_CR) ? 2 : 3))) & 0xf; \
+    /* sol code 0x9 == 1001b indicates that the last two characters were CR and LF.  In that case
+     * the line number was incremented for the CR, and should not be incremented again for the LF.
+     */ \
+    POSN_INCLINE(_s_eol, (((state) == 0x9) ? 0 : 1)); \
 } while (CIF_FALSE)
 
 /* function implementations */
@@ -710,7 +770,10 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, const char *extr
          */
         FAILURE_VARIABLE = get_first_char(scanner);
 
-        if (FAILURE_VARIABLE == CIF_OK) {
+        if (FAILURE_VARIABLE == CIF_EOF) {
+            /* empty CIF */
+            FAILURE_VARIABLE = CIF_OK;
+        } else if (FAILURE_VARIABLE == CIF_OK) {
             int scanned_bom;
 
             c = *(scanner->next_char++);
@@ -722,7 +785,10 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, const char *extr
                 NEXT_CHAR(scanner, c, FAILURE_VARIABLE);
             }
 
-            if (FAILURE_VARIABLE == CIF_OK) {
+            if (FAILURE_VARIABLE == CIF_EOF) {
+                /* BOM-only CIF; nothing else to do */
+                FAILURE_VARIABLE = CIF_OK;
+            } else if (FAILURE_VARIABLE == CIF_OK) {
                 /* If the CIF version is uncertain then use the CIF magic code, if any, to choose */
                 if (scanner->cif_version <= 0) {
                     scanner->cif_version = (scanner->cif_version < 0) ? -scanner->cif_version : 1;
@@ -1109,7 +1175,7 @@ static int parse_container(struct scanner_s *scanner, cif_container_tp *containe
                 alt_ttype = TVALUE;
                 /* fall through */
             case KEY:
-                /* error: missing whitespace */
+                /* error: missing whitespace (between a quoted value and a subsequent colon)*/
                 result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line, scanner->column - 1,
                         scanner->next_char - 1, 0, scanner->user_data);
                 if (result != CIF_OK) {
@@ -2285,7 +2351,12 @@ static int next_token(struct scanner_s *scanner) {
         TVALUE_SETSTART(scanner, scanner->text_start);
         TVALUE_SETLENGTH(scanner, 0);
         NEXT_CHAR(scanner, c, result);
+
         if (result != CIF_OK) {
+            if (result == CIF_EOF) {
+                ttype = END;
+                result = CIF_OK;
+            }
             break;
         }
 
@@ -2341,10 +2412,6 @@ static int next_token(struct scanner_s *scanner) {
                 } else {
                     break;     /* break from the SWITCH */
                 }
-            case EOF_CLASS:
-                ttype = END;
-                result = CIF_OK;
-                break;
             case UNDERSC_CLASS:
                 ttype = NAME;
                 result = scan_to_ws(scanner);
@@ -2374,17 +2441,22 @@ static int next_token(struct scanner_s *scanner) {
                     /* peek ahead at the next character to see whether this looks like a table key */
                     PEEK_CHAR(scanner, c, result);
 
-                    if (result == CIF_OK) {
-                        if (c == UCHAR_COLON) {
-                            /*
-                             * can only happen in CIF 2 mode, for in CIF 1 mode the character after a closing quote is
-                             * always whitespace 
-                             */
-                            scanner->next_char += 1;
-                            ttype = KEY;
-                        } else {
+                    switch (result) {
+                        case CIF_OK:
+                            if (c == UCHAR_COLON) {
+                                /*
+                                 * can only happen in CIF 2 mode, for in CIF 1 mode the character after a closing quote is
+                                 * always whitespace
+                                 */
+                                scanner->next_char += 1;
+                                ttype = KEY;
+                                break;
+                            }
+                            /* fall through */
+                        case CIF_EOF:
+                            result = CIF_OK;
                             ttype = QVALUE;
-                        }
+                            break;
                     }
                 }
                 break;
@@ -2403,11 +2475,13 @@ static int next_token(struct scanner_s *scanner) {
                                     scanner->next_char += 1;
                                     ttype = TKEY;
                                 }
+                            } else if (result == CIF_EOF) {
+                                result = CIF_OK;
                             }
                         }
                     }
                 } else {
-                    /* exactly as the default case, but we can't fall through */
+                    /* as the default case, but we can't fall through */
                     result = scan_unquoted(scanner);
                     ttype = VALUE;
                 }
@@ -2530,23 +2604,7 @@ static int scan_ws(struct scanner_s *scanner) {
                     sol = 0;
                     break;
                 case EOL_CLASS:
-                    if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) {
-                        /* error: long line */
-                        result = scanner->error_callback(CIF_OVERLENGTH_LINE, scanner->line,
-                                scanner->column, scanner->next_char, 0, scanner->user_data);
-                        if (result != CIF_OK) {
-                            return result;
-                        }
-                        /* recover by accepting it as-is */
-                    }
-
-                    /* the next character is at the start of a line; sol encodes data about the preceding terminators */
-                    sol = ((sol << 2) + ((c == UCHAR_NL) ? 1 : ((c == UCHAR_CR) ? 2 : 0))) & 0xf;
-                    /*
-                     * sol code 0x9 == 1001b indicates that the last two characters were CR and LF.  In that case
-                     * the line number was incremented for the CR, and should not be incremented again for the LF.
-                     */
-                    POSN_INCLINE(scanner, ((sol == 0x9) ? 0 : 1));
+                    HANDLE_EOL(scanner, c, sol);
                     break;
                 default:
                     goto end_of_token;
@@ -2554,7 +2612,9 @@ static int scan_ws(struct scanner_s *scanner) {
         }
 
         result = get_more_chars(scanner);
-        if (result != CIF_OK) {
+        if (result == CIF_EOF) {
+            goto end_of_token;
+        } else if (result != CIF_OK) {
             return result;
         }
     }
@@ -2579,19 +2639,22 @@ static int scan_to_ws(struct scanner_s *scanner) {
             if (result != CIF_OK) {
                 return result;
             } else if (METACLASS_OF(c, scanner) == WS_META) {
+                /* We've scanned one code unit too far; back off */
+                BACK_UP(scanner);
                 goto end_of_token;
             }
         }
 
         result = get_more_chars(scanner);
-        if (result != CIF_OK) {
+        if (result == CIF_EOF) {
+            HANDLE_UNPAIRED_LEAD_OR_FAIL(scanner, lead_surrogate, result);
+            goto end_of_token;
+        } if (result != CIF_OK) {
             return result;
         }
     }
 
     end_of_token:
-    /* We've scanned one code unit too far; back off */
-    BACK_UP(scanner);
     TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
@@ -2611,23 +2674,23 @@ static int scan_to_eol(struct scanner_s *scanner) {
             if (result != CIF_OK) {
                 return result;
             }
-            switch (CLASS_OF(c, scanner)) {
-                case EOL_CLASS:
-                case EOF_CLASS:
-                    goto end_of_token;
-                /* default: do nothing */
+            if (CLASS_OF(c, scanner) == EOL_CLASS) {
+                /* We've scanned one code unit too far; back off */
+                BACK_UP(scanner);
+                goto end_of_token;
             }
         }
 
         result = get_more_chars(scanner);
-        if (result != CIF_OK) {
+        if (result == CIF_EOF) {
+            HANDLE_UNPAIRED_LEAD_OR_FAIL(scanner, lead_surrogate, result);
+            goto end_of_token;
+        } else if (result != CIF_OK) {
             return result;
         }
     }
 
     end_of_token:
-    /* We've scanned one code unit too far; back off */
-    BACK_UP(scanner);
     TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
@@ -2659,20 +2722,25 @@ static int scan_unquoted(struct scanner_s *scanner) {
                     /* fall through */
                 case CLOSE_META:
                 case WS_META:
+                    if (c != EOF_CHAR) {
+                        /* We've scanned one code unit too far; back off */
+                        BACK_UP(scanner);
+                    }
                     goto end_of_token;
                 /* default: do nothing */
             }
         }
 
         result = get_more_chars(scanner);
-        if (result != CIF_OK) {
+        if (result == CIF_EOF) {
+            HANDLE_UNPAIRED_LEAD_OR_FAIL(scanner, lead_surrogate, result);
+            goto end_of_token;
+        } else if (result != CIF_OK) {
             return result;
         }
     }
 
     end_of_token:
-    /* We've scanned one code unit too far; back off */
-    BACK_UP(scanner);
     TVALUE_SETLENGTH(scanner, (scanner->next_char - TVALUE_START(scanner)));
     return CIF_OK;
 }
@@ -2687,10 +2755,10 @@ static int scan_delim_string(struct scanner_s *scanner) {
     UChar delim = *(scanner->text_start);
     int lead_surrogate = CIF_FALSE;
     int delim_size;
+    int result;
 
     for (;;) {
         UChar *top = scanner->buffer + scanner->buffer_limit;
-        int result;
 
         while (scanner->next_char < top) {
             UChar c;
@@ -2704,47 +2772,49 @@ static int scan_delim_string(struct scanner_s *scanner) {
             if (c == delim) {
                 PEEK_CHAR(scanner, c, result);
 
-                if (result != CIF_OK) {
-                    return result;
-                } else if (scanner->cif_version < 2) {
-                    /* look ahead for whitespace */
-                    if (METACLASS_OF(c, scanner) != WS_META) {
-                        /* the current character is part of the value */
-                        continue;
-                    }
-                } else if (scanner->next_char - scanner->text_start == 2) {
-                    /* test for a third delimiter character */
-                    if (c == delim) {
-                        scanner->next_char += 1;
-                        return scan_triple_delim_string(scanner);
+                if (result != CIF_EOF) {
+                    if (result != CIF_OK) {
+                        return result;
+                    } else if (scanner->cif_version < 2) {
+                        /* look ahead for whitespace */
+                        if (METACLASS_OF(c, scanner) != WS_META) {
+                            /* the current character is part of the value */
+                            continue;
+                        }
+                    } else if (scanner->next_char - scanner->text_start == 2) {
+                        /* test for a third delimiter character */
+                        if (c == delim) {
+                            scanner->next_char += 1;
+                            return scan_triple_delim_string(scanner);
+                        }
                     }
                 }
                 delim_size = 1;
                 goto end_of_token;
-            } else {
-                switch (CLASS_OF(c, scanner)) {
-                    case EOL_CLASS:
-                    case EOF_CLASS:
-                        /* error: unterminated quoted string */
-                        result = scanner->error_callback(CIF_MISSING_ENDQUOTE, scanner->line,
-                                scanner->column, scanner->next_char - 1, 0, scanner->user_data);
-                        if (result != CIF_OK) {
-                            return result;
-                        }
-                        /* recover by backing up the scanner by one position and assuming a trailing close-quote */
-                        BACK_UP(scanner);
-                        delim_size = 0;
-                        goto end_of_token;
-                    /* default: do nothing */
-                }
+            } else if (CLASS_OF(c, scanner) == EOL_CLASS) {
+                /* back up the scanner by one position in preparation for recovery */
+                BACK_UP(scanner);
+                goto end_of_line;
             }
         }
 
         result = get_more_chars(scanner);
-        if (result != CIF_OK) {
+        if (result == CIF_EOF) {
+            HANDLE_UNPAIRED_LEAD_OR_FAIL(scanner, lead_surrogate, result);
+            goto end_of_line;
+        } else if (result != CIF_OK) {
             return result;
         }
     }
+
+    end_of_line:
+    /* error: unterminated quoted string */
+    result = scanner->error_callback(CIF_MISSING_ENDQUOTE, scanner->line,
+            scanner->column, scanner->next_char, 0, scanner->user_data);
+    if (result != CIF_OK) {
+        return result;
+    }
+    delim_size = 0;
 
     end_of_token:
     /* The token value starts after the opening delimiter */
@@ -2769,10 +2839,11 @@ static int scan_triple_delim_string(struct scanner_s *scanner) {
     int delim_count = 0;
     int lead_surrogate = CIF_FALSE;
     int delim_size;
+    int result;
+    int sol = 0;
 
     for (;;) {
         UChar *top = scanner->buffer + scanner->buffer_limit;
-        int result;
 
         while (scanner->next_char < top) {
             UChar c;
@@ -2790,25 +2861,32 @@ static int scan_triple_delim_string(struct scanner_s *scanner) {
                 }
             } else {
                 delim_count = 0;
-                if ((CLASS_OF(c, scanner)) == EOF_CLASS) {
-                    /* error: unterminated quoted string */
-                    result = scanner->error_callback(CIF_UNCLOSED_TEXT, scanner->line,
-                            scanner->column, scanner->next_char - 1, 0, scanner->user_data);
-                    if (result != CIF_OK) {
-                        return result;
-                    }
-                    /* recover by assuming a trailing close-quote */
-                    delim_size = 0;
-                    goto end_of_token;
+                if (CLASS_OF(c, scanner) == EOL_CLASS) {
+                    HANDLE_EOL(scanner, c, sol);
+                } else {
+                    sol = 0;
                 }
             }
         }
 
         result = get_more_chars(scanner);
-        if (result != CIF_OK) {
+        if (result == CIF_EOF) {
+            HANDLE_UNPAIRED_LEAD_OR_FAIL(scanner, lead_surrogate, result);
+            goto end_of_file;
+        } else if (result != CIF_OK) {
             return result;
         }
     }
+
+    end_of_file:
+    /* error: unterminated quoted string */
+    result = scanner->error_callback(CIF_UNCLOSED_TEXT, scanner->line,
+            scanner->column, scanner->next_char - 1, 0, scanner->user_data);
+    if (result != CIF_OK) {
+        return result;
+    }
+    /* recover by assuming a trailing close-quote */
+    delim_size = 0;
 
     end_of_token:
     /* The token value starts after the opening delimiter */
@@ -2850,33 +2928,20 @@ static int scan_text(struct scanner_s *scanner) {
                     }
                     break;
                 case EOL_CLASS:
-                    if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) {
-                        /* error: long line */
-                        result = scanner->error_callback(CIF_OVERLENGTH_LINE, scanner->line,
-                                scanner->column, scanner->next_char - 1, 0, scanner->user_data);
-                        if (result != CIF_OK) {
-                            return result;
-                        }
-                        /* recover by accepting it as-is */
-                    }
+                    /* HANDLE_EOL(scanner, c, sol); */
+do {
+    struct scanner_s *_s_eol = (scanner);
+    UChar _c = (c);
 
-                    /* the next character is at the start of a line */
-                    sol = ((sol << 2) + ((c == UCHAR_NL) ? 1 : ((c == UCHAR_CR) ? 2 : 3))) & 0xf;
-                    /*
-                     * sol code 0x9 == 1001b indicates that the last two characters were CR and LF.  In that case
-                     * the line number was incremented for the CR, and should not be incremented again for the LF.
-                     */
-                    POSN_INCLINE(scanner, ((sol == 0x9) ? 0 : 1));
+    if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) {
+        int _ev = _s_eol->error_callback(CIF_OVERLENGTH_LINE, _s_eol->line,
+                scanner->column, _s_eol->next_char - 1, 0, _s_eol->user_data);
+        if (_ev != CIF_OK) return _ev;
+    }
+    sol = (((sol) << 2) + ((_c == UCHAR_NL) ? 1 : ((_c == UCHAR_CR) ? 2 : 3))) & 0xf;
+    POSN_INCLINE(_s_eol, (((sol) == 0x9) ? 0 : 1));
+} while (CIF_FALSE);
                     break;
-                case EOF_CLASS:
-                    /* error: unterminated text block */
-                    result = scanner->error_callback(CIF_UNCLOSED_TEXT, scanner->line,
-                            scanner->column, scanner->next_char - 1, 0, scanner->user_data);
-                    if (result != CIF_OK) {
-                        return result;
-                    }
-                    /* recover by reporting out the whole tail as the token */
-                    goto end_of_token;
                 default:
                     sol = 0;
                     break;
@@ -2884,7 +2949,17 @@ static int scan_text(struct scanner_s *scanner) {
         }
 
         result = get_more_chars(scanner);
-        if (result != CIF_OK) {
+        if (result == CIF_EOF) {
+            HANDLE_UNPAIRED_LEAD_OR_FAIL(scanner, lead_surrogate, result);
+            /* error: unterminated text block */
+            result = scanner->error_callback(CIF_UNCLOSED_TEXT, scanner->line,
+                    scanner->column, scanner->next_char - 1, 0, scanner->user_data);
+            if (result != CIF_OK) {
+                return result;
+            }
+            /* recover by reporting out the whole tail as the token */
+            goto end_of_token;
+        } else if (result != CIF_OK) {
             return result;
         }
     }
@@ -2918,10 +2993,8 @@ static int get_first_char(struct scanner_s *scanner) {
     if (nread < 0) {
         return read_error;
     } else if (nread == 0) {
-        *scanner->buffer = EOF_CHAR;
-        scanner->buffer_limit += 1;
         scanner->at_eof = CIF_TRUE;
-        return CIF_OK;
+        return CIF_EOF;
     } else {
         UChar ch = *scanner->buffer;
         int result;
@@ -3002,7 +3075,7 @@ static int get_more_chars(struct scanner_s *scanner) {
         TVALUE_SETSTART(scanner, scanner->buffer + tvalue_diff);
         scanner->next_char = scanner->buffer + current_chars;
         scanner->buffer_limit = current_chars;
-    }
+    } /* else just append to the currently buffered data */
 
     /* once EOF has been detected, don't attempt to read from the character source any more */
     nread = scanner->at_eof ? 0 : scanner->read_func(scanner->char_source, scanner->buffer + scanner->buffer_limit,
@@ -3011,27 +3084,10 @@ static int get_more_chars(struct scanner_s *scanner) {
     if (nread < 0) {
         return read_error;
     } else if (nread == 0) {
-        scanner->buffer[scanner->buffer_limit] = EOF_CHAR;
-        scanner->buffer_limit += 1;
         scanner->at_eof = CIF_TRUE;
-        return CIF_OK;
+        return CIF_EOF;
     } else {
-        /*
-         * convert literal character U+FFFF (used internally as an EOF mark) to U+FFFE for later detection as an
-         * invalid character.  Encoding and character set errors are deferred for later detection so that they can
-         * be reported in their correct context and at their correct location.
-         */
-        UChar *start = scanner->buffer + scanner->buffer_limit;
-        UChar *limit = start + nread;
-
-        do {
-            if (*start == EOF_CHAR) {
-                *start = 0xFFFE;
-            }
-            start += 1;
-        } while (start < limit);
         scanner->buffer_limit += nread;
-
         return CIF_OK;
     }
 }
