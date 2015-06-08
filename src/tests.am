@@ -24,6 +24,7 @@ VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=exec
 # --error-exitcode=<number>
 
 compiled_tests = \
+    tests/test_get_api_version \
     tests/test_create \
     tests/test_create_block1 \
     tests/test_create_block2 \
@@ -111,14 +112,15 @@ XFAIL_TESTS =
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports that.   v1.11 doesn't.
 TESTS_ENVIRONMENT = \
-  export CIFAPI_SRC="$(top_srcdir)" \
-  export CIF_HEADER_DIR="$(top_srcdir)/src" \
+  export CIFAPI_SRC='$(top_srcdir)' \
+  export CIF_HEADER_DIR='$(top_srcdir)/src' \
   export CIF_LA=libcif.la \
-  export testdir="tests" \
-  export CC="$(CC)" \
-  export CCLD="$(CCLD)" \
-  export LIBTOOL="$(LIBTOOL)" \
-  export ICU_CPPFLAGS="$(ICU_CPPFLAGS)";
+  export testdir=tests \
+  export CC='$(CC)' \
+  export CCLD='$(CCLD)' \
+  export LIBTOOL='$(LIBTOOL)' \
+  export ICU_CPPFLAGS='$(ICU_CPPFLAGS)'\
+  export API_VERSION='$(PACKAGE_VERSION)';
 
 EXTRA_DIST += tests/link.test
 

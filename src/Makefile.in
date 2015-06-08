@@ -141,8 +141,8 @@ libcif_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 @build_examples_TRUE@am__EXEEXT_1 = cif2_syncheck$(EXEEXT) \
 @build_examples_TRUE@	cif2_table1$(EXEEXT) cif2_table3$(EXEEXT) \
 @build_examples_TRUE@	cif2_addauthor$(EXEEXT)
-am__EXEEXT_2 = tests/test_create$(EXEEXT) \
-	tests/test_create_block1$(EXEEXT) \
+am__EXEEXT_2 = tests/test_get_api_version$(EXEEXT) \
+	tests/test_create$(EXEEXT) tests/test_create_block1$(EXEEXT) \
 	tests/test_create_block2$(EXEEXT) \
 	tests/test_get_block$(EXEEXT) \
 	tests/test_get_all_blocks$(EXEEXT) \
@@ -330,6 +330,10 @@ tests_test_get_all_blocks_SOURCES = tests/test_get_all_blocks.c
 tests_test_get_all_blocks_OBJECTS = test_get_all_blocks.$(OBJEXT)
 tests_test_get_all_blocks_LDADD = $(LDADD)
 tests_test_get_all_blocks_DEPENDENCIES = libcif.la
+tests_test_get_api_version_SOURCES = tests/test_get_api_version.c
+tests_test_get_api_version_OBJECTS = test_get_api_version.$(OBJEXT)
+tests_test_get_api_version_LDADD = $(LDADD)
+tests_test_get_api_version_DEPENDENCIES = libcif.la
 tests_test_get_block_SOURCES = tests/test_get_block.c
 tests_test_get_block_OBJECTS = test_get_block.$(OBJEXT)
 tests_test_get_block_LDADD = $(LDADD)
@@ -557,16 +561,17 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_container_set_value1.c \
 	tests/test_container_set_value2.c tests/test_create.c \
 	tests/test_create_block1.c tests/test_create_block2.c \
-	tests/test_get_all_blocks.c tests/test_get_block.c \
-	tests/test_list_elements.c tests/test_loop_add_item.c \
-	tests/test_loop_destroy.c tests/test_loop_get_names.c \
-	tests/test_loop_misc.c tests/test_loop_modification.c \
-	tests/test_loop_packets.c tests/test_loop_set_category.c \
-	tests/test_multiple_cifs.c tests/test_nested_frames.c \
-	tests/test_nesting.c tests/test_normalize.c \
-	tests/test_packet_create.c tests/test_packet_items.c \
-	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_parse_10.c tests/test_parse_cif1_quoting.c \
+	tests/test_get_all_blocks.c tests/test_get_api_version.c \
+	tests/test_get_block.c tests/test_list_elements.c \
+	tests/test_loop_add_item.c tests/test_loop_destroy.c \
+	tests/test_loop_get_names.c tests/test_loop_misc.c \
+	tests/test_loop_modification.c tests/test_loop_packets.c \
+	tests/test_loop_set_category.c tests/test_multiple_cifs.c \
+	tests/test_nested_frames.c tests/test_nesting.c \
+	tests/test_normalize.c tests/test_packet_create.c \
+	tests/test_packet_items.c tests/test_packet_remove_item.c \
+	tests/test_packet_set_item.c tests/test_parse_10.c \
+	tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
 	tests/test_parse_nested.c tests/test_parse_simple_containers.c \
@@ -597,16 +602,17 @@ DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	tests/test_container_set_value1.c \
 	tests/test_container_set_value2.c tests/test_create.c \
 	tests/test_create_block1.c tests/test_create_block2.c \
-	tests/test_get_all_blocks.c tests/test_get_block.c \
-	tests/test_list_elements.c tests/test_loop_add_item.c \
-	tests/test_loop_destroy.c tests/test_loop_get_names.c \
-	tests/test_loop_misc.c tests/test_loop_modification.c \
-	tests/test_loop_packets.c tests/test_loop_set_category.c \
-	tests/test_multiple_cifs.c tests/test_nested_frames.c \
-	tests/test_nesting.c tests/test_normalize.c \
-	tests/test_packet_create.c tests/test_packet_items.c \
-	tests/test_packet_remove_item.c tests/test_packet_set_item.c \
-	tests/test_parse_10.c tests/test_parse_cif1_quoting.c \
+	tests/test_get_all_blocks.c tests/test_get_api_version.c \
+	tests/test_get_block.c tests/test_list_elements.c \
+	tests/test_loop_add_item.c tests/test_loop_destroy.c \
+	tests/test_loop_get_names.c tests/test_loop_misc.c \
+	tests/test_loop_modification.c tests/test_loop_packets.c \
+	tests/test_loop_set_category.c tests/test_multiple_cifs.c \
+	tests/test_nested_frames.c tests/test_nesting.c \
+	tests/test_normalize.c tests/test_packet_create.c \
+	tests/test_packet_items.c tests/test_packet_remove_item.c \
+	tests/test_packet_set_item.c tests/test_parse_10.c \
+	tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
 	tests/test_parse_nested.c tests/test_parse_simple_containers.c \
@@ -887,6 +893,7 @@ cif2_addauthor_SOURCES = \
 VALGRIND_COMMAND = G_SLICE=always-malloc G_DEBUG=gc-friendly libtool --mode=execute valgrind --tool=memcheck --leak-check=full --leak-resolution=high --read-var-info=yes --track-origins=yes
 # --error-exitcode=<number>
 compiled_tests = \
+    tests/test_get_api_version \
     tests/test_create \
     tests/test_create_block1 \
     tests/test_create_block2 \
@@ -956,14 +963,15 @@ compiled_tests = \
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports that.   v1.11 doesn't.
 TESTS_ENVIRONMENT = \
-  export CIFAPI_SRC="$(top_srcdir)" \
-  export CIF_HEADER_DIR="$(top_srcdir)/src" \
+  export CIFAPI_SRC='$(top_srcdir)' \
+  export CIF_HEADER_DIR='$(top_srcdir)/src' \
   export CIF_LA=libcif.la \
-  export testdir="tests" \
-  export CC="$(CC)" \
-  export CCLD="$(CCLD)" \
-  export LIBTOOL="$(LIBTOOL)" \
-  export ICU_CPPFLAGS="$(ICU_CPPFLAGS)";
+  export testdir=tests \
+  export CC='$(CC)' \
+  export CCLD='$(CCLD)' \
+  export LIBTOOL='$(LIBTOOL)' \
+  export ICU_CPPFLAGS='$(ICU_CPPFLAGS)'\
+  export API_VERSION='$(PACKAGE_VERSION)';
 
 libcif_la_SOURCES = \
   cif.c \
@@ -1208,6 +1216,9 @@ tests/test_create_block2$(EXEEXT): $(tests_test_create_block2_OBJECTS) $(tests_t
 tests/test_get_all_blocks$(EXEEXT): $(tests_test_get_all_blocks_OBJECTS) $(tests_test_get_all_blocks_DEPENDENCIES) $(EXTRA_tests_test_get_all_blocks_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_get_all_blocks$(EXEEXT)
 	$(LINK) $(tests_test_get_all_blocks_OBJECTS) $(tests_test_get_all_blocks_LDADD) $(LIBS)
+tests/test_get_api_version$(EXEEXT): $(tests_test_get_api_version_OBJECTS) $(tests_test_get_api_version_DEPENDENCIES) $(EXTRA_tests_test_get_api_version_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_get_api_version$(EXEEXT)
+	$(LINK) $(tests_test_get_api_version_OBJECTS) $(tests_test_get_api_version_LDADD) $(LIBS)
 tests/test_get_block$(EXEEXT): $(tests_test_get_block_OBJECTS) $(tests_test_get_block_DEPENDENCIES) $(EXTRA_tests_test_get_block_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_get_block$(EXEEXT)
 	$(LINK) $(tests_test_get_block_OBJECTS) $(tests_test_get_block_LDADD) $(LIBS)
@@ -1382,6 +1393,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create_block1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_create_block2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_get_all_blocks.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_get_api_version.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_get_block.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_list_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_loop_add_item.Po@am__quote@
@@ -1786,6 +1798,20 @@ test_get_all_blocks.obj: tests/test_get_all_blocks.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_get_all_blocks.c' object='test_get_all_blocks.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_get_all_blocks.obj `if test -f 'tests/test_get_all_blocks.c'; then $(CYGPATH_W) 'tests/test_get_all_blocks.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_get_all_blocks.c'; fi`
+
+test_get_api_version.o: tests/test_get_api_version.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_get_api_version.o -MD -MP -MF $(DEPDIR)/test_get_api_version.Tpo -c -o test_get_api_version.o `test -f 'tests/test_get_api_version.c' || echo '$(srcdir)/'`tests/test_get_api_version.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_get_api_version.Tpo $(DEPDIR)/test_get_api_version.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_get_api_version.c' object='test_get_api_version.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_get_api_version.o `test -f 'tests/test_get_api_version.c' || echo '$(srcdir)/'`tests/test_get_api_version.c
+
+test_get_api_version.obj: tests/test_get_api_version.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_get_api_version.obj -MD -MP -MF $(DEPDIR)/test_get_api_version.Tpo -c -o test_get_api_version.obj `if test -f 'tests/test_get_api_version.c'; then $(CYGPATH_W) 'tests/test_get_api_version.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_get_api_version.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_get_api_version.Tpo $(DEPDIR)/test_get_api_version.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_get_api_version.c' object='test_get_api_version.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_get_api_version.obj `if test -f 'tests/test_get_api_version.c'; then $(CYGPATH_W) 'tests/test_get_api_version.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_get_api_version.c'; fi`
 
 test_get_block.o: tests/test_get_block.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_get_block.o -MD -MP -MF $(DEPDIR)/test_get_block.Tpo -c -o test_get_block.o `test -f 'tests/test_get_block.c' || echo '$(srcdir)/'`tests/test_get_block.c
@@ -2623,6 +2649,8 @@ check-html recheck-html:
 	rv=0; $(MAKE) $(AM_MAKEFLAGS) $$target || rv=$$?; \
 	$(MAKE) $(AM_MAKEFLAGS) $(TEST_SUITE_HTML) TEST_LOGS= || exit 4; \
 	exit $$rv
+tests/test_get_api_version.log: tests/test_get_api_version$(EXEEXT)
+	@p='tests/test_get_api_version$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_create.log: tests/test_create$(EXEEXT)
 	@p='tests/test_create$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_create_block1.log: tests/test_create_block1$(EXEEXT)

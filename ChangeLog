@@ -25,6 +25,9 @@ Version 0.3.0
   end-of-line.  Aimed mainly at early CIFs that use vertical tabs and / or
   form feeds for whitespace and end-of-line purposes, respectively, this
   feature is in fact a bit more general than that.
+* Added function cif_get_api_version()
+  Added an API function cif_get_api_version() to enable client applications
+  to determine which version of the API they are accessing.
 
 Version 0.2.0.3
 * Bug in cif_loop_add_item()
