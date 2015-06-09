@@ -1,5 +1,5 @@
-CIF API 0.3.0 (release)
-=======================
+CIF API 0.3.0 (public release)
+==============================
 
 The CIF API provides a standard C interface for reading, writing, and
 manipulating Crystallographic Information Files (CIFs).  It is targeted
@@ -26,7 +26,8 @@ specific to this package follow:
   to build programs that use the CIF API library.  The CIF API was developed
   and tested against ICU 4.2, and it is expected to be compatible also with
   subsequent versions and some earlier versions (at least back to v3.6, which
-  was used in early development).
+  was used in early development).  In particular, it has been successfully
+  built and tested against version 55-1.
 
 * The package depends on SQLite for its CIF storage engine.  It was developed
   and tested against SQLite 3.6.20, and is expected to work with many later
@@ -49,7 +50,7 @@ specific to this package follow:
 * There are a few other project-specific configuration options, but
   they are adequately explained in configure's help text.
 
-The package has been built and tested successfully on Linux (CentOS 6, Debian;
+The package has been built and tested successfully on Linux (CentOS 6, Debian);
 this is the primary development platform), on OS X 10.8, and on Windows 7.
 For OS X builds, the needed dependencies are readily available via the "Fink"
 package management system and its public repositories, among other means.
@@ -66,13 +67,4 @@ The principal author of the CIF API software, documentation, and build system
 is John C. Bollinger, Ph.D, of Memphis, Tennessee, U.S.A..  E-mail
 correspondance intended for him may be directed to
     John <DOT> Bollinger <AT> StJude <DOT> org.
-
-----
-Copyright 2014, 2015 John C. Bollinger
-
-Copying and distribution of this file, with or without modification,
-are permitted in any medium without royalty provided the copyright
-notice and this notice are preserved.  This file is offered as-is,
-without any warranty.
-----
 

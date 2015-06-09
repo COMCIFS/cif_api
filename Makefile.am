@@ -41,7 +41,6 @@ EXTRA_DIST = \
   README_Windows \
   ReleaseNotes \
   extras/README \
-  extras/cif2.ebnf \
   extras/cif_parser.y \
   extras/cif_scanner.l \
   misc/cif_schema.sql \
