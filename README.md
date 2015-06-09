@@ -31,7 +31,7 @@ specific to this package follow:
   versions.  It depends on foreign key support, which was introduced in
   version 3.6.19, so versions earlier than that are not supported.
 
- * Configuring the project for building requires the pkg-config program and
+ * Configuring the project for building requires the `pkg-config` program and
   pkg-config data for ICU.
 
  * The reference C compiler employed for package development was GNU gcc 4.4.7.
@@ -41,11 +41,11 @@ specific to this package follow:
   caveats, any compiler that is compliant with any one of C90, C99, C2011,
   C++98, or C++2011 should be able to build the project.
 
- * At present, the --enable-extra-warnings configuration option is effective
+ * At present, the `--enable-extra-warnings` configuration option is effective
   only for gcc.
 
  * There are a few other project-specific configuration options, but
-  they are adequately explained in configure's help text.
+  they are adequately explained in `configure`'s help text.
 
 The package has been built and tested successfully on Linux (CentOS 6, Debian);
 this is the primary development platform), on OS X 10.8, and on Windows 7.
@@ -93,7 +93,7 @@ The CIF API author holds no other rights to practice the patent, but to the
 best of his knowledge, the CIF API implementation satisfies the IUCr's
 terms for licensure.
 
-The CIF API is free software: you can redistribute it and/or modify
+**The CIF API is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -104,5 +104,5 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with the CIF API.  If not, see http://www.gnu.org/licenses/ .
+along with the CIF API.  If not, see http://www.gnu.org/licenses/.**
 
