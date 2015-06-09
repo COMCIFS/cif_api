@@ -8,9 +8,9 @@ as well.
 HTML documentation is available online at http://comcifs.github.io/cif_api/
 
 The package includes several example programs to demonstrate the API's usage;
-see src/examples.  These may optionally be built (and installed) with the
+see `src/examples/`.  These may optionally be built (and installed) with the
 API library.  One of them is a text-mode CIF 2.0 file syntax checker, which
-might be of some interest.  Also, the tests (src/tests) collectively provide
+might be of some interest.  Also, the tests (`src/tests/`) collectively provide
 a fairly comprehensive demonstration of the API's features, though their
 primary purpose is to verify that the library works as intended.
 
@@ -96,13 +96,13 @@ terms for licensure.
 **The CIF API is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+(at your option) any later version.**
 
-The CIF API is distributed in the hope that it will be useful,
+**The CIF API is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
+GNU Lesser General Public License for more details.**
 
-You should have received a copy of the GNU Lesser General Public License
+**You should have received a copy of the GNU Lesser General Public License
 along with the CIF API.  If not, see http://www.gnu.org/licenses/.**
 
