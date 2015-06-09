@@ -63,7 +63,7 @@ such build strategies.
 The principal author of the CIF API software, documentation, and build system
 is John C. Bollinger, Ph.D, of Memphis, Tennessee, U.S.A..  E-mail
 correspondance intended for him may be directed to
-    John <DOT> Bollinger <AT> StJude <DOT> org.
+    John &lt;DOT> Bollinger &lt;AT> StJude &lt;DOT> org.
 
 
 ## Intellectual Property Notes
