@@ -1,4 +1,5 @@
-The contents of this directory (test-data), including this file, are
+The contents of this directory (test-data), including this file, except for
+file cif_core.dic, are
 
 Copyright 2014, 2015 John C. Bollinger.
 
@@ -19,4 +20,9 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with the CIF API.  If not, see <http://www.gnu.org/licenses/>.
+
+----
+
+File cif_core.dic is the property of the International Union of
+Crystallography.
 
