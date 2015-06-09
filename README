@@ -6,9 +6,7 @@ manipulating Crystallographic Information Files (CIFs).  It is targeted
 in particular at CIF 2.0, but it provides support for CIF 1.1 and earlier
 as well.
 
-Pre-built, doxygen-generated programmer's documentation is available in
-dox-html/, and pre-built, doxygen-generated man pages are available in
-dox-man/.
+Doxygen-generated programmer's documentation is available in dox-html/.
 
 The package includes several example programs to demonstrate the API's usage;
 see src/examples.  These may optionally be built (and installed) with the

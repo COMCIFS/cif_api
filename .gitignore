@@ -24,7 +24,6 @@ stamp-h1
 # Target files
 *.la
 /*.gz
-/dox-html/
 /dox-man/
 /src/cif2_syncheck
 /src/cif2_table1
