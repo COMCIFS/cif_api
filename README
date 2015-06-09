@@ -68,3 +68,45 @@ is John C. Bollinger, Ph.D, of Memphis, Tennessee, U.S.A..  E-mail
 correspondance intended for him may be directed to
     John <DOT> Bollinger <AT> StJude <DOT> org.
 
+
+Intellectual Property Notes
+---------------------------
+
+The CIF API comprises copyrighted property of several people and
+organizations, as marked on the files themselves or otherwise recorded
+among the CIF API files, including this one.  Where not otherwise
+specified, CIF API files belong to John C. Bollinger, Ph.D. of Memphis,
+Tennessee, U.S.A..  Specific exceptions include, but are not necessarily
+limited to, the contents of the 'uthash' directory; those files are
+subject to the copyright statement and license in the file 'LICENSE' in
+that directory, and it is subject to those terms that they are distributed
+to you.  Additionally, many components of the build system are
+parts of, or were generated via, the GNU AutoTools suite.  These contain
+code belonging to the Free Software Foundation (FSF), and each is marked
+with an FSF ownership notice and statements of rights.  The FSF components
+are distributed to you under the terms of version 3 of the GNU Public
+License (GPL).  A copy of of GPL version 3 is provided in file 'COPYING'.
+
+The International Union of Crystallography holds a patent on the STAR
+file format, which is parent to CIF, and it is likely that the CIF API
+implementation provided herein practices that patent.  No license 
+to do so accompanies or is associated with this package itself, but the
+IUCr extends broad and liberal permission, as described in its policy on
+its CIF and STAR intellectual property: http://www.iucr.org/iucr-top/ipr.html.
+The CIF API author holds no other rights to practice the patent, but to the
+best of his knowledge, the CIF API implementation satisfies the IUCr's
+terms for licensure.
+
+The CIF API is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The CIF API is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the CIF API.  If not, see <http://www.gnu.org/licenses/>.
+
