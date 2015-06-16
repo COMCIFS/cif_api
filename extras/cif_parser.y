@@ -1,7 +1,8 @@
 /*
  * Bison definitions for a CIF 2.0 parser skeleton
  *
- * This is free and unencumbered software released into the public domain.
+ * This file is free and unencumbered software released into the public
+ * domain.
  * 
  * Anyone is free to copy, modify, publish, use, compile, sell, or
  * distribute this software, either in source code form or as a compiled
@@ -127,7 +128,7 @@ save_frame:  frame_body FRAME_TERMINATOR
   ;
 
 frame_body: FRAME_HEADER whitespace
-    | frame_body save_frame whitespace
+    /* | frame_body save_frame whitespace */  /* nested save frames were dropped from CIF 2 */
     | frame_body item whitespace
     | frame_body loop                  /* loops already provide trailing whitespace */
   ;

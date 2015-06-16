@@ -33,12 +33,13 @@ Step 1: Set up an MSYS2 environment
   Configuring so (and afterward launching a new instance of the environment)
   is useful for ensuring that the contents of user home directories are
   preserved in the event that MSYS2 is removed or updated (as the users'
-  Windows "home" directories will be used).
+  Windows "home" directories will be used as their MSYS home directories, too).
 
 - Install the needed toolchain and dependencies via the MSYS2 package
   manager, 'pacman':
 
   pacman --sync mingw-w64-x86_64-toolchain
+  pacman --sync mingw-w64-x86_64-pkg-config
   pacman --sync mingw-w64-x86_64-icu
   pacman --sync mingw-w64-x86_64-sqlite3
 
@@ -60,7 +61,7 @@ Step 2: Building the CIF API
   cd cif-api-0.3.0
 
 - Configure for building.  This is where the main difference comes
-  in, as building native Win32 binaries with MinGW-w64 is an act of
+  in, as building native Windows binaries with MinGW-w64 is an act of
   cross compilation.  You must therefore pass an appropriate --host
   option to the 'configure' program.  For example, use
 
@@ -115,18 +116,9 @@ straightforward.  With that said, there are a few things to be aware of:
   ensure that DLL_EXPORT is not defined, AND define preprocessor macro
   LIBCIF_STATIC.
 
-- When building Windows programs that use the CIF API cif.h header file,
+- When building Windows programs that use the CIF API 'cif.h' header file,
   the DLL_EXPORT macro must NOT be defined.  No macro or other special
   provision is needed for linking against a DLL version of the API library,
   but to link against a static version of the library, the macro
   LIBCIF_STATIC should be defined prior to including the cif.h header.
-
-----
-Copyright 2015 John C. Bollinger
-
-Copying and distribution of this file, with or without modification,
-are permitted in any medium without royalty provided the copyright
-notice and this notice are preserved.  This file is offered as-is,
-without any warranty.
-----
 

@@ -10,13 +10,9 @@ relative to the previous release (0.2.0) include:
    were changed by appending a 'p', so that the suffix is now '_tp'.  This
    does not affect binary compatibility, but it does affect source
    compatibility.
+ - Parse options were added to enable parsing ancient CIFs that use vertical
+   tabs as inline whitespace and/or form feeds as line terminators.
+ - Added function cif_get_api_version(), which does what its name suggests.
+ - Fixed several minor bugs and portability issues observed in the beta-only
+   release 0.2.0.
 
-
-----
-Copyright 2015 John C. Bollinger
-
-Copying and distribution of this file, with or without modification,
-are permitted in any medium without royalty provided the copyright
-notice and this notice are preserved.  This file is offered as-is,
-without any warranty.
-----

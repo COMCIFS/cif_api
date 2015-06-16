@@ -1,12 +1,4 @@
-----
 Programming Style and Conventions for the CIF API Library
-
-Copyright 2014, 2015 John C. Bollinger
-
-Copying and distribution of this file, with or without modification,
-are permitted in any medium without royalty provided the copyright
-notice and this notice are preserved.  This file is offered as-is,
-without any warranty.
 ----
 
 
@@ -78,20 +70,18 @@ The "uthash" hash table package is a very convenient header-only system, but
 it has a serious shortcoming: by default, memory allocation failure results in
 a fatal error (program exit).  This undesirable behavior is overridden by
 redefining uthash's macro "uthash_fatal(msg)" to something appropriate to the
-context before using any of the HASH_ADD* macros.  It remains to be seen
-whether anything else needs to be done (for example, whether cleanup after
-recovery risks undefined behavior, such as freeing a wild pointer).
+context before using any of the HASH_ADD* macros.  The UTHash author asserts
+that this is sufficient to replace the error-handling behavior.
 
 Appropriate management of database and memory resources requires careful
 attention to error detection and cleanup throughout the code.  The normal
 idiom by which this is managed is to open a conditional block immediately
-after successfully obtaining a resource, and putting appropriate cleanup code
+after successfully obtaining a resource, and to put appropriate cleanup code
 at the end of the block.  In the event that the resource should not be cleaned
 up (e.g. if responsibility for doing so is being passed to the caller) then
 the block will be exited in the middle, most often by a 'return'.  This
-results in code that is sometimes deeply nested, but there is never any
-question at any point in the code whether a given resource needs to be cleaned
-up.
+results in code that is sometimes deeply nested, but is little uncertainty
+anywhere in the code whether a given resource needs to be cleaned up.
 
 The error recovery idioms make extensive use of 'goto', albeit usually disguised
 by macros.  Sometimes it is spelled "break" or "continue".  This allows
