@@ -89,7 +89,8 @@ compiled_tests = \
     tests/test_write_simple \
     tests/test_write_complex \
     tests/test_write_loops \
-    tests/test_write_frames
+    tests/test_write_frames \
+    tests/test_write_11
 # Future tests:
 # cif_parse
 # - parse into existing CIF

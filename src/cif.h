@@ -1019,10 +1019,15 @@ struct cif_parse_opts_s {
 struct cif_write_opts_s {
 
     /**
-     * @brief serves solely to prevent the structure from being empty, lest that present an issue for certain
-     *        compilers or runtime libraries.
+     * @brief Indicates the CIF major version with which the output must comply.
+     *
+     * Valid values include @c 1 for CIF 1.1 and @c 2 for CIF 2.0; value `0` means the default for the version of
+     * the CIF API in use; for the present version, the default is CIF 2.0.
+     *
+     * Note that the text-prefix protocol will be applied in CIF 1.1 mode for values that otherwise could not be
+     * represented.
      */
-    int unused;
+    int cif_version;
 };
 
 #ifdef __cplusplus
@@ -1145,7 +1150,8 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
  * Ownership of the arguments does not transfer to the function.
  *
  * @param[in,out] stream a @c FILE @c * to which to write the CIF format output; must be a non-NULL pointer to a
- *         writable stream.
+ *         writable stream.  In the event that the write options request CIF 1.1 output, this file should be open in
+ *         @em text mode (on those systems that have distinct text and binary modes)
  *
  * @param[in] options a pointer to a @c struct @c cif_write_opts_s object describing options to use for writing, or
  *         @c NULL to use default values for all options

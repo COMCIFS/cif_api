@@ -87,6 +87,7 @@ typedef struct {
     int separate_values;
     int last_column;
     int depth;
+    int version;
 } write_context_t;
 
 /* Unicode strings important for determining possible output formats for char values */
@@ -98,7 +99,7 @@ static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
 #define CONTEXT_S write_context_t
 #define CONTEXT_T CONTEXT_S *
 #define CONTEXT_INITIALIZE(c, f) do { \
-    c.file = f; c.write_item_names = CIF_FALSE; c.separate_values = 1; c.last_column = 0; c.depth = 0; \
+    c.file = f; c.write_item_names = CIF_FALSE; c.separate_values = 1; c.last_column = 0; c.depth = 0; c.version = 0; \
 } while (CIF_FALSE)
 #define CONTEXT_UFILE(c) (((CONTEXT_T)(c))->file)
 #define SET_WRITE_ITEM_NAMES(c,v) do { ((CONTEXT_T)(c))->write_item_names = (v); } while (CIF_FALSE)
@@ -110,6 +111,7 @@ static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
 #define LINE_LENGTH(c) (CIF_LINE_LENGTH)
 #define CONTEXT_DEPTH(c) (((CONTEXT_T)(c))->depth)
 #define CONTEXT_INC_DEPTH(c, inc) do { ((CONTEXT_T)(c))->depth += (inc); } while (CIF_FALSE)
+#define IS_CIF1(c) (((CONTEXT_T)(c))->version == 1)
 
 /*
  * A value-returning macro that ensures the current output position is preceded by whitespace, outputting appropriate
@@ -319,6 +321,7 @@ int cif_write_options_create(struct cif_write_opts_s **opts) {
         return CIF_MEMORY_ERROR;
     } else {
         /* explicitly initialize all pointer members */
+        /* no pointer members in this version */
 
         /* members having integral types are pre-initialized to zero because calloc() clears the memory it allocates */
 
@@ -395,14 +398,14 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_tp **cifp) {
             /* Look for a Unicode signature (a BOM encoded at the beginning of the stream) */
             encoding_name = ucnv_detectUnicodeSignature(char_buffer, count, &sig_length, &error_code);
             if (U_FAILURE(error_code)) {
-                /* FIXME: verify that ICU's idea of failure is what we really want here */
+                /* TODO: verify that ICU's idea of failure is what we really want here */
                 DEFAULT_FAIL(early);
             } else if (encoding_name != NULL) {
                 /* a Unicode encoding signature is successfully detected */
                 /* no further action here */
             } else if ((count >= MAGIC_LENGTH + MAGIC_EXTRA)
                     && (memcmp(char_buffer, CIF2_UTF8_MAGIC, MAGIC_LENGTH + MAGIC_EXTRA) == 0)) {
-                /* FIXME: should really test whether the magic number is followed by whitespace (which is required) */
+                /* XXX: should really test whether the magic number is followed by whitespace (which is required) */
                 /* the input carries a CIF2 binary magic number, so choose UTF8 */
                 encoding_name = UTF8;
                 cif_version = 2;
@@ -429,7 +432,7 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_tp **cifp) {
 
     /* encoding identified, or knowingly defaulted */
 
-    ustream.converter = ucnv_open(encoding_name, &error_code); /* FIXME: is any other customization needed? */
+    ustream.converter = ucnv_open(encoding_name, &error_code); /* XXX: is any other customization needed? */
     if (U_SUCCESS(error_code)) {
         const char *converter_name = ucnv_getName(ustream.converter, &error_code);  /* belongs to ustream.converter */
 
@@ -438,7 +441,7 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_tp **cifp) {
         if (U_FAILURE(error_code)) {
             result = CIF_ERROR;
         } else {
-            /* FIXME: this test is probably too simplistic: */
+            /* XXX: this test is probably too simplistic: */
             int not_utf8 = strcmp("UTF-8", converter_name);
 
             /* set up those properties of the scanner that derive from caller input */
@@ -485,7 +488,7 @@ int cif_parse(FILE *stream, struct cif_parse_opts_s *options, cif_tp **cifp) {
  * Formats the CIF data represented by the 'cif' handle to the specified
  * output.
  */
-int cif_write(FILE *stream, struct cif_write_opts_s *options UNUSED, cif_tp *cif) {
+int cif_write(FILE *stream, struct cif_write_opts_s *options, cif_tp *cif) {
     cif_handler_tp handler = {
         write_cif_start,
         write_cif_end,
@@ -499,13 +502,22 @@ int cif_write(FILE *stream, struct cif_write_opts_s *options UNUSED, cif_tp *cif
         write_packet_end,
         write_item
     };
-    UFILE *u_stream = u_finit(stream, "C", "UTF_8");
+    UFILE *u_stream;
     int result;
+
+    if (options && (options->cif_version == 1)) {
+        u_stream = u_finit(stream, NULL, NULL);
+    } else {
+        u_stream = u_finit(stream, "C", "UTF_8");
+    }
 
     if (u_stream != NULL) {
         CONTEXT_S context;
 
         CONTEXT_INITIALIZE(context, u_stream);
+        if (options && (options->cif_version == 1)) {
+            context.version = 1;
+        }
         result = cif_walk(cif, &handler, &context);
 
         /* TODO: handle errors */
@@ -536,7 +548,7 @@ static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count,
             if ((ustream->buffer_position >= ustream->buffer_limit) && (ustream->eof_status == 0)) {
                 /* fill the byte buffer; assumes the buffer size is nonzero */
 
-                /* FIXME: replace FILE/fread() with descriptor/read() when the latter is available */
+                /* XXX: replace FILE/fread() with descriptor/read() when the latter is available */
                 size_t bytes_read = fread(ustream->byte_buffer, 1, ustream->buffer_size, ustream->byte_stream);
 
                 if (bytes_read < ustream->buffer_size) {
@@ -603,7 +615,8 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
 
 
 static int write_cif_start(cif_tp *cif UNUSED, void *context) {
-    int num_written = u_fprintf(CONTEXT_UFILE(context), "#\\#CIF_2.0\n");
+    int num_written = IS_CIF1(context) ? u_fprintf(CONTEXT_UFILE(context), "#\\#CIF_1.1\n")
+            : u_fprintf(CONTEXT_UFILE(context), "#\\#CIF_2.0\n");
 
     SET_LAST_COLUMN(context, 0);
     return ((num_written > 0) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
@@ -735,9 +748,15 @@ static int write_item(UChar *name, cif_value_tp *value, void *context) {
             SET_RESULT(write_numb(context, value));
             break;
         case CIF_LIST_KIND:
+            if (IS_CIF1(context)) {
+                FAIL(soft, CIF_DISALLOWED_VALUE);
+            }
             SET_RESULT(write_list(context, value));
             break;
         case CIF_TABLE_KIND:
+            if (IS_CIF1(context)) {
+                FAIL(soft, CIF_DISALLOWED_VALUE);
+            }
             SET_RESULT(write_table(context, value));
             break;
         case CIF_NA_KIND:
@@ -872,7 +891,7 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
     UChar *text;
 
     if (cif_value_get_text(char_value, &text) == CIF_OK) {
-        /* uses signed 32-bit integer character counters -- could overflow for very (very!) long text blocks */
+        /* uses signed 32-bit integer character counters -- sufficient for very (very!) long text blocks */
         int32_t char_counts[129];
         int32_t first_line = 0;
         int32_t this_line = 0;
@@ -940,7 +959,7 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
                 }
 
                 /* maybe triple-delimited */
-                if (max_line <= (LINE_LENGTH(context) - (6 + extra_space))) {
+                if (!IS_CIF1(context) && (max_line <= (LINE_LENGTH(context) - (6 + extra_space)))) {
                     /* 
                      * line 1 lengths expressed to write_triple_quoted() here include the closing delimiter, because it
                      * will appear on the first line.  Line 1 lengths NEVER include the opening delimiter.
@@ -957,10 +976,10 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
             } else 
             /*
              * We can use triple quotes if neither the first line nor the last is too long, and if the text does not
-             * contain both triple delimiters.
+             * contain both triple delimiters, provided that triple-quoting is permitted at all.
              */
-            if ((this_line < (LINE_LENGTH(context) - 3))
-                            && (first_line < (LINE_LENGTH(context) - (3 + extra_space)))) {
+            if (!IS_CIF1(context) && ((this_line < (LINE_LENGTH(context) - 3))
+                            && (first_line < (LINE_LENGTH(context) - (3 + extra_space))))) {
                 if (u_strstr(text, sq3) == NULL) {
                     result = write_triple_quoted(context, text, first_line, this_line, UCHAR_SQ);
                     goto done;
@@ -969,11 +988,11 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
                     goto done;
                 }
             }
-
         }
 
         /* if control reaches this point then all alternatives other than a text block have been ruled out */
-        if (allow_text) {
+        /* XXX: should really flag more specifically for whether prefixing is enabled */
+        if (allow_text && !(has_nl_semi && IS_CIF1(context))) {
             /* write as a text block, possibly with line-folding and/or prefixing  */
             int fold = ((max_line > LINE_LENGTH(context))
                     || (most_semis >= (LINE_LENGTH(context) - 1))

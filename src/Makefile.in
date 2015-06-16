@@ -203,7 +203,7 @@ am__EXEEXT_2 = tests/test_get_api_version$(EXEEXT) \
 	tests/test_write_simple$(EXEEXT) \
 	tests/test_write_complex$(EXEEXT) \
 	tests/test_write_loops$(EXEEXT) \
-	tests/test_write_frames$(EXEEXT)
+	tests/test_write_frames$(EXEEXT) tests/test_write_11$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 am_cif2_addauthor_OBJECTS = addauthor.$(OBJEXT)
 cif2_addauthor_OBJECTS = $(am_cif2_addauthor_OBJECTS)
@@ -514,6 +514,10 @@ tests_test_value_parse_numb_SOURCES = tests/test_value_parse_numb.c
 tests_test_value_parse_numb_OBJECTS = test_value_parse_numb.$(OBJEXT)
 tests_test_value_parse_numb_LDADD = $(LDADD)
 tests_test_value_parse_numb_DEPENDENCIES = libcif.la
+tests_test_write_11_SOURCES = tests/test_write_11.c
+tests_test_write_11_OBJECTS = test_write_11.$(OBJEXT)
+tests_test_write_11_LDADD = $(LDADD)
+tests_test_write_11_DEPENDENCIES = libcif.la
 tests_test_write_complex_SOURCES = tests/test_write_complex.c
 tests_test_write_complex_OBJECTS = test_write_complex.$(OBJEXT)
 tests_test_write_complex_LDADD = $(LDADD)
@@ -583,8 +587,9 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_value_copy_char.c tests/test_value_create.c \
 	tests/test_value_get_number.c tests/test_value_init_char.c \
 	tests/test_value_init_numb.c tests/test_value_parse_numb.c \
-	tests/test_write_complex.c tests/test_write_frames.c \
-	tests/test_write_loops.c tests/test_write_simple.c
+	tests/test_write_11.c tests/test_write_complex.c \
+	tests/test_write_frames.c tests/test_write_loops.c \
+	tests/test_write_simple.c
 DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	$(cif2_syncheck_SOURCES) $(cif2_table1_SOURCES) \
 	$(cif2_table3_SOURCES) tests/test_block_create_frame1.c \
@@ -624,8 +629,9 @@ DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	tests/test_value_copy_char.c tests/test_value_create.c \
 	tests/test_value_get_number.c tests/test_value_init_char.c \
 	tests/test_value_init_numb.c tests/test_value_parse_numb.c \
-	tests/test_write_complex.c tests/test_write_frames.c \
-	tests/test_write_loops.c tests/test_write_simple.c
+	tests/test_write_11.c tests/test_write_complex.c \
+	tests/test_write_frames.c tests/test_write_loops.c \
+	tests/test_write_simple.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -848,9 +854,9 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libcif.la
 include_HEADERS = cif.h
-LIB_CURRENT = 1
+LIB_CURRENT = 2
 LIB_REVISION = 0
-LIB_AGE = 0
+LIB_AGE = 1
 @win32_FALSE@LIB_VERSION_FLAGS = -version-info $(LIB_CURRENT):$(LIB_REVISION):$(LIB_AGE)
 @win32_TRUE@LIB_VERSION_FLAGS = -avoid-version
 @win32_FALSE@INSTALL_HOOKS = 
@@ -958,7 +964,8 @@ compiled_tests = \
     tests/test_write_simple \
     tests/test_write_complex \
     tests/test_write_loops \
-    tests/test_write_frames
+    tests/test_write_frames \
+    tests/test_write_11
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports that.   v1.11 doesn't.
@@ -1342,6 +1349,9 @@ tests/test_value_init_numb$(EXEEXT): $(tests_test_value_init_numb_OBJECTS) $(tes
 tests/test_value_parse_numb$(EXEEXT): $(tests_test_value_parse_numb_OBJECTS) $(tests_test_value_parse_numb_DEPENDENCIES) $(EXTRA_tests_test_value_parse_numb_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_value_parse_numb$(EXEEXT)
 	$(LINK) $(tests_test_value_parse_numb_OBJECTS) $(tests_test_value_parse_numb_LDADD) $(LIBS)
+tests/test_write_11$(EXEEXT): $(tests_test_write_11_OBJECTS) $(tests_test_write_11_DEPENDENCIES) $(EXTRA_tests_test_write_11_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_write_11$(EXEEXT)
+	$(LINK) $(tests_test_write_11_OBJECTS) $(tests_test_write_11_LDADD) $(LIBS)
 tests/test_write_complex$(EXEEXT): $(tests_test_write_complex_OBJECTS) $(tests_test_write_complex_DEPENDENCIES) $(EXTRA_tests_test_write_complex_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_write_complex$(EXEEXT)
 	$(LINK) $(tests_test_write_complex_OBJECTS) $(tests_test_write_complex_LDADD) $(LIBS)
@@ -1435,6 +1445,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_init_char.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_init_numb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_value_parse_numb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_write_11.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_write_complex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_write_frames.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_write_loops.Po@am__quote@
@@ -2387,6 +2398,20 @@ test_value_parse_numb.obj: tests/test_value_parse_numb.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_value_parse_numb.obj `if test -f 'tests/test_value_parse_numb.c'; then $(CYGPATH_W) 'tests/test_value_parse_numb.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_value_parse_numb.c'; fi`
 
+test_write_11.o: tests/test_write_11.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_write_11.o -MD -MP -MF $(DEPDIR)/test_write_11.Tpo -c -o test_write_11.o `test -f 'tests/test_write_11.c' || echo '$(srcdir)/'`tests/test_write_11.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_write_11.Tpo $(DEPDIR)/test_write_11.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_write_11.c' object='test_write_11.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_write_11.o `test -f 'tests/test_write_11.c' || echo '$(srcdir)/'`tests/test_write_11.c
+
+test_write_11.obj: tests/test_write_11.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_write_11.obj -MD -MP -MF $(DEPDIR)/test_write_11.Tpo -c -o test_write_11.obj `if test -f 'tests/test_write_11.c'; then $(CYGPATH_W) 'tests/test_write_11.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_write_11.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_write_11.Tpo $(DEPDIR)/test_write_11.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_write_11.c' object='test_write_11.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_write_11.obj `if test -f 'tests/test_write_11.c'; then $(CYGPATH_W) 'tests/test_write_11.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_write_11.c'; fi`
+
 test_write_complex.o: tests/test_write_complex.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_write_complex.o -MD -MP -MF $(DEPDIR)/test_write_complex.Tpo -c -o test_write_complex.o `test -f 'tests/test_write_complex.c' || echo '$(srcdir)/'`tests/test_write_complex.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_write_complex.Tpo $(DEPDIR)/test_write_complex.Po
@@ -2781,6 +2806,8 @@ tests/test_write_loops.log: tests/test_write_loops$(EXEEXT)
 	@p='tests/test_write_loops$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_write_frames.log: tests/test_write_frames$(EXEEXT)
 	@p='tests/test_write_frames$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+tests/test_write_11.log: tests/test_write_11$(EXEEXT)
+	@p='tests/test_write_11$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 .test.log:
 	@p='$<'; $(am__check_pre) $(TEST_LOG_COMPILE) "$$tst" $(am__check_post)
 @am__EXEEXT_TRUE@.test$(EXEEXT).log:

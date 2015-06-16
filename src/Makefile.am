@@ -48,9 +48,9 @@ bin_PROGRAMS =
 ##
 ## These decisions should be made once per software release, based on changes from
 ## one release to the next (not, for example, every time the library is built).
-LIB_CURRENT = 1
+LIB_CURRENT = 2
 LIB_REVISION = 0
-LIB_AGE = 0
+LIB_AGE = 1
 
 if win32
   LIB_VERSION_FLAGS = -avoid-version
