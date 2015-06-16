@@ -56,6 +56,7 @@ int main(void) {
     U_STRING_DECL(name_text_string,     "_text_string", 13);
     U_STRING_DECL(name_numb_plain,      "_numb_plain", 12);
     U_STRING_DECL(name_numb_su,         "_numb_su", 9);
+    U_STRING_DECL(name_disallowed,      "_disallowed", 12);
 
     U_STRING_INIT(block_code,           "simple_data", 12);
     U_STRING_INIT(name_unknown_value,   "_unknown_value", 15);
@@ -65,6 +66,7 @@ int main(void) {
     U_STRING_INIT(name_text_string,     "_text_string", 13);
     U_STRING_INIT(name_numb_plain,      "_numb_plain", 12);
     U_STRING_INIT(name_numb_su,         "_numb_su", 9);
+    U_STRING_INIT(name_disallowed,      "_disallowed", 12);
 
     /* Initialize data and prepare the test fixture */
     TESTHEADER(test_name);
@@ -119,19 +121,29 @@ int main(void) {
     TEST(((c == '\r') && (c != '\n') && (c != ' ') && (c != '\t')), 0, test_name, 24);
     TEST(strcmp(buffer, "#\\#CIF_1.1"), 0, test_name, 25);
 
-    /* test writing an unsupported value */
+    /* test writing an unsupported text-field value */
     rewind(cif_file);
     TEST(cif_value_copy_char(value, value_disallowed), CIF_OK, test_name, 26);
     TEST(cif_container_set_value(block, name_text_string, value), CIF_OK, test_name, 27);
-
     TEST(cif_write(cif_file, options, cif), CIF_DISALLOWED_VALUE, test_name, 28);
+
+    /* test writing an (unsupported) List value */
+    TEST(cif_container_remove_item(block, name_text_string), CIF_OK, test_name, 29);
+    TEST(cif_value_init(value, CIF_LIST_KIND), CIF_OK, test_name, 30);
+    TEST(cif_container_set_value(block, name_disallowed, value), CIF_OK, test_name, 31);
+    TEST(cif_write(cif_file, options, cif), CIF_DISALLOWED_VALUE, test_name, 32);
+
+    /* test writing an (unsupported) Table value */
+    TEST(cif_value_init(value, CIF_TABLE_KIND), CIF_OK, test_name, 33);
+    TEST(cif_container_set_value(block, name_disallowed, value), CIF_OK, test_name, 34);
+    TEST(cif_write(cif_file, options, cif), CIF_DISALLOWED_VALUE, test_name, 35);
 
     /* clean up */
     cif_value_free(value);
     cif_container_free(block);
 
-    TEST(cif_destroy(cif_readback), CIF_OK, test_name, 29);
-    TEST(cif_destroy(cif), CIF_OK, test_name, 30);
+    TEST(cif_destroy(cif_readback), CIF_OK, test_name, 36);
+    TEST(cif_destroy(cif), CIF_OK, test_name, 37);
     fclose(cif_file); /* ignore any error here */
 
     return 0;
