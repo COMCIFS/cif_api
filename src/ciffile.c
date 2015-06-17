@@ -902,7 +902,6 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
         /* extra_space accounts for space consumed by preceding output that must not be separated from the current */
         int32_t extra_space = (IS_SEPARATE_VALUES(context) ? 0 : LAST_COLUMN(context));
         int has_nl_semi = CIF_FALSE;
-        int emulates_prefix = CIF_FALSE;
         UChar ch;
 
         /* Analyze the text to inform the choice of delimiters */
@@ -999,8 +998,8 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
                     || (most_semis >= (LINE_LENGTH(context) - 1))
                     || ((!has_nl_semi) && ((first_line + 1) > LINE_LENGTH(context))));
 
-            if (!has_nl_semi) { /* otherwise it's redundant to perform the following test */
-                /* scan backward through the first line to check whether it mimics a prefix marker */
+            if (!(fold || has_nl_semi)) { /* otherwise it's redundant to perform the following test */
+                /* scan backward through the first line to check whether it mimics a prefix or folding marker */
                 int32_t index;
 
                 for (index = first_line - 1; index >= 0; index -= 1) {
@@ -1010,18 +1009,21 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
                             /* trailing spaces and tabs do not affect the determination */
                             break;
                         case UCHAR_BSL:
-                            /* the last non-space character is a backslash -- looks like a prefix/folding marker */
-                            emulates_prefix = CIF_TRUE;
+                            /*
+                             * The last non-whitespace character is a backslash, so the beginning of the text
+                             * looks like a prefixing and/or line-folding marker.  It can be handled via line folding.
+                             */
+                            fold = CIF_TRUE;
+
                             /* fall through */
                         default:
-                            /* the last non-space character is not a backslash -- not a prefix-mark mimic */
                             goto end_scan;
                     }
                 }
             }
 
             end_scan:
-            result = write_text(context, text, length, fold, (has_nl_semi || emulates_prefix));
+            result = write_text(context, text, length, fold, has_nl_semi);
         } else {
             result = CIF_DISALLOWED_VALUE;
         }
@@ -1043,8 +1045,8 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
  * line-folding or prefixing should be applied.
  *
  * @param[in,out] context the handler context describing the output sink and details
- * @param[in,out] text a pointer to the content of the text block; the text is destroyed by this function, but the
- *         caller retains responsibility for managing the space
+ * @param[in,out] text a pointer to the content of the text block; though the contents are destroyed by this function,
+ *         the caller retains responsibility for managing the space
  * @param[in] length the length of the text, in @c UChar units; must be consistent with the content of @c text
  * @param[in] fold if true, the line-folding protocol should be applied to the block contents
  * @param[in] prefix if true, the prefix protocol should be applied to the block contents
@@ -1089,15 +1091,47 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
         }
 
         /* each logical line, delimited from the previous one by a newline */
-        for (tok = text; tok != NULL; tok = next_tok) {
+        for (tok = text, next_tok = tok; tok != NULL; tok = next_tok) {
+            int protect = CIF_FALSE;
 
-            next_tok = u_strchr(tok, '\n');
-            if (next_tok != NULL) {
-                *next_tok = 0;
-                next_tok += 1;
+            /* special handling is required for empty lines */
+            if (*next_tok == UCHAR_NL) {
+                if (u_fputc(UCHAR_NL, CONTEXT_UFILE(context)) != UCHAR_NL) {
+                    return CIF_ERROR;
+                } else {
+                    next_tok += 1;
+                    continue;
+                }
+            }
+
+            /* find the end of this line, and determine whether it needs to be protected */
+            for (; ; next_tok += 1) {
+                switch (*next_tok) {
+                    case 0:
+                        /* end of the value */
+                        next_tok = NULL;
+                        goto write_lines;
+                    case UCHAR_NL:
+                        /* end of the current logical line, but not of the overall value */
+                        *(next_tok++) = 0;
+                        goto write_lines;
+                    case UCHAR_TAB:
+                    case UCHAR_SP:
+                        /* no action -- whitespace doesn't count in the end-of-line analysis */
+                        break;
+                    case UCHAR_BSL:
+                        /* backslash at the end of the line needs to be protected during folding */
+                        protect = fold;
+                        break;
+                    default:
+                        /* any previous backslash is not at the end of the line */
+                        protect = CIF_FALSE;
+                        break;
+                }
             }
 
             /* each folded segment, until the line is consumed */
+            write_lines:
             while (*tok != 0) {
                 int len = fold_line(tok, fold, target_length, FOLDING_WINDOW, prefix);
 
@@ -1108,12 +1142,19 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
 
                 expected = 1 + prefix_chars + len;
                 nchars = u_fprintf(CONTEXT_UFILE(context), "\n%s%*.*S%s", prefix_text, len, len, tok,
-                        ((tok[len] == 0) ? "" : (expected += 1, "\\")));
+                        ((tok[len] || protect) ? (expected += 1, "\\") : ""));
                 if (nchars != expected) {
                     return CIF_ERROR;
                 }
+                if (!tok[len]) {
+                    /* need to protect a trailing backslash if one is present */
+                }
 
                 tok += len;
+            }
+
+            if (protect && (u_fputc(UCHAR_NL, CONTEXT_UFILE(context)) != UCHAR_NL)) {
+                return CIF_ERROR;
             }
         }
     }

@@ -1,5 +1,27 @@
 CIF API Change Log
 
+Version 0.4.0
+* Added CIF 1.1-format output
+  Previously, the CIF API could read either CIF 1.1 format or CIF 2.0 format,
+  but on the output side, it could write only CIF 2.0 format.  A write option
+  has been defined (the first one, though the framework for it already
+  existed) to enable users to select CIF 1.1 output.
+* Switched to preferring line folding for text-field escaping
+  When the trimmed first line of a text field ends with a backslash in
+  CIF 2.0 output mode, or when the trimmed first line consists of a single
+  backslash in CIF 1.1 mode, the text-field value must somehow be escaped to
+  prevent readers from interpreting the field from being prefixed and / or
+  folded.  Prefixing was previously used for that purpose, but to better
+  support CIF 1.1, line folding is now used instead.  (Prefixing is performed
+  only if the field value contains a newline / semicolon digraph.)
+* Text-field output fixes
+  Fixed at least two bugs in the text-field output routine, which now has more
+  prominence.  (1) Previously, completely empty lines were filtered out of
+  text-field values when line-folding or text prefixing was in effect; they
+  are now preserved.  (2) Line-folding was not performed correctly for lines
+  that (after trimming) ended with a backslash; correct folding is now
+  implemented.
+
 Version 0.3.0
 * Changed type names
   Because POSIX reserves type names ending in _t, the names of all types
