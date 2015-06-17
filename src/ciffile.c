@@ -892,7 +892,7 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
 
     if (cif_value_get_text(char_value, &text) == CIF_OK) {
         /* uses signed 32-bit integer character counters -- sufficient for very (very!) long text blocks */
-        int32_t char_counts[129];
+        int32_t char_counts[128];
         int32_t first_line = 0;
         int32_t this_line = 0;
         int32_t max_line = 0;
@@ -908,7 +908,7 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
         /* Analyze the text to inform the choice of delimiters */
         memset(char_counts, 0, sizeof(char_counts));
         for (ch = text[length]; ch; ch = text[++length]) {
-            char_counts[(ch < 128) ? ch : 128] += 1;
+            char_counts[(ch < 127) ? ch : 127] += 1;
             if (ch == UCHAR_NL) {
                 has_nl_semi = (has_nl_semi || (text[length + 1] == UCHAR_SEMI));
                 if (char_counts[UCHAR_NL] == 1) {
@@ -962,7 +962,7 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
                 if (!IS_CIF1(context) && (max_line <= (LINE_LENGTH(context) - (6 + extra_space)))) {
                     /* 
                      * line 1 lengths expressed to write_triple_quoted() here include the closing delimiter, because it
-                     * will appear on the first line.  Line 1 lengths NEVER include the opening delimiter.
+                     * will appear on the first line in this case.  Line 1 lengths NEVER include the opening delimiter.
                      */
                     if (u_strstr(text, sq3) == NULL) {
                         result = write_triple_quoted(context, text, length + 3, this_line, UCHAR_SQ);
@@ -976,7 +976,8 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
             } else 
             /*
              * We can use triple quotes if neither the first line nor the last is too long, and if the text does not
-             * contain both triple delimiters, provided that triple-quoting is permitted at all.
+             * contain both triple delimiters, provided that triple-quoting is permitted at all in the dialect we are
+             * writing.
              */
             if (!IS_CIF1(context) && ((this_line < (LINE_LENGTH(context) - 3))
                             && (first_line < (LINE_LENGTH(context) - (3 + extra_space))))) {

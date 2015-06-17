@@ -1148,8 +1148,8 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
  * @brief Formats the CIF data represented by the @c cif handle to the specified output stream.
  *
  * Ownership of the arguments does not transfer to the function.  By default, the output is in CIF 2.0 format.  The
- * write options can be used to request CIF 1.1 format instead, in which case some values in the provided CIF may be
- * rejected.
+ * write options can be used to request CIF 1.1 format instead, in which case any values in the provided CIF that cannot
+ * be expressed in CIF 1.1 will be be rejected, causing this function to fail.
  *
  * @param[in,out] stream a @c FILE @c * to which to write the CIF format output; must be a non-NULL pointer to a
  *         writable stream.  In the event that the write options request CIF 1.1 output, this file should be open in
