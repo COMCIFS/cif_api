@@ -351,6 +351,11 @@ static void cif_list_value_clean(struct list_value_s *list_value);
 static void cif_table_value_clean(struct table_value_s *table_value);
 
 /*
+ * Value-coercion functions
+ */
+static int cif_value_convert_to_numb(cif_value_tp *n);
+
+/*
  * Clones a list value, assuming all fields of the target object contain garbage
  */
 static int cif_value_clone_list(struct list_value_s *value, struct list_value_s *clone);
@@ -2263,30 +2268,62 @@ cif_kind_tp cif_value_kind(cif_value_tp *value) {
     return value->kind;
 }
 
-int cif_value_get_number(cif_value_tp *n, double *val) {
-    if (n->kind != CIF_NUMB_KIND) {
-        return CIF_ARGUMENT_ERROR;
-    } else {
-        struct numb_value_s *numb = &(n->as_numb);
-        double d = to_double(numb->digits, numb->scale);
+static int cif_value_convert_to_numb(cif_value_tp *n) {
+    UChar *text;
+    int result = cif_value_get_text(n, &text);
 
-        *val = ((numb->sign < 0) ? -d : d);
-        return CIF_OK;
+    if (result == CIF_OK) {
+        result = cif_value_parse_numb(n, text);
+        if (result != CIF_OK) {
+            free(text);
+        }
     }
+
+    return result;
+}
+
+int cif_value_get_number(cif_value_tp *n, double *val) {
+    struct numb_value_s *numb;
+    double d;
+
+    if (n->kind == CIF_CHAR_KIND) {
+        /* attempt to convert to a number */
+        int result = cif_value_convert_to_numb(n);
+
+        if (result != CIF_OK) {
+            return result;
+        }
+    } else if (n->kind != CIF_NUMB_KIND) {
+        return CIF_ARGUMENT_ERROR;
+    }
+
+    numb = &(n->as_numb);
+    d = to_double(numb->digits, numb->scale);
+    *val = ((numb->sign < 0) ? -d : d);
+
+    return CIF_OK;
 }
 
 int cif_value_get_su(cif_value_tp *n, double *su) {
-    if (n->kind != CIF_NUMB_KIND) {
+    struct numb_value_s *numb;
+
+    if (n->kind == CIF_CHAR_KIND) {
+        /* attempt to convert to a number */
+        int result = cif_value_convert_to_numb(n);
+
+        if (result != CIF_OK) {
+            return result;
+        }
+    } else if (n->kind != CIF_NUMB_KIND) {
         return CIF_ARGUMENT_ERROR;
-    } else {
-        struct numb_value_s *numb = &(n->as_numb);
-
-        *su = (numb->su_digits == NULL)
-                ? 0.0
-                : to_double(numb->su_digits, numb->scale);
-
-        return CIF_OK;
     }
+
+    numb = &(n->as_numb);
+    *su = (numb->su_digits == NULL)
+            ? 0.0
+            : to_double(numb->su_digits, numb->scale);
+
+    return CIF_OK;
 }
 
 int cif_value_get_text(cif_value_tp *value, UChar **text) {

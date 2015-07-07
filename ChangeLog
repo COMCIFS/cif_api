@@ -21,6 +21,10 @@ Version 0.4.0
   are now preserved.  (2) Line-folding was not performed correctly for lines
   that (after trimming) ended with a backslash; correct folding is now
   implemented.
+* Added automatic char-to-numb coercion
+  Updated cif_value_get_number() and cif_value_get_su() to automatically
+  convert the provided value object to numeric kind if it is initially of
+  character kind and such a coercion is possible.
 
 Version 0.3.0
 * Changed type names

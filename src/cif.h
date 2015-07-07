@@ -2531,6 +2531,10 @@ CIF_FUNC_DECL(cif_kind_tp, cif_value_kind, (
 /**
  * @brief Returns the value represented by the given number value object.
  *
+ * If the provided value is of character kind then first an attempt is made to convert it to numeric kind, as if by
+ * parsing its text value via @c cif_value_parse_numb().  If the value is not initially of numeric kind, then this
+ * function's success depends on such a conversion.
+ *
  * Behavior is implementation-defined if the represented numeric value is outside the representable range of type
  * @c double .  Some of the possible behaviors include raising a floating-point trap and returning a special value,
  * such as an IEEE infinity.
@@ -2539,8 +2543,9 @@ CIF_FUNC_DECL(cif_kind_tp, cif_value_kind, (
  * @param[in,out] val a pointer to the location where the numeric value should be recorded; must be a valid pointer
  *         to suitably-aligned storage large enough to accommodate a @c double.
  *
- * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
- *         another code, typically @c CIF_ERROR, if an error occurs.
+ * @return Returns @c CIF_OK on success, @c CIF_INVALID_NUMBER if the provided object is of character kind and
+ *         cannot be parsed as a number, @c CIF_ARGUMENT_ERROR if the provided object is othewise not of numeric kind,
+ *         or another code, typically @c CIF_ERROR, if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_value_get_number, (
         cif_value_tp *numb,
@@ -2550,6 +2555,10 @@ CIF_INTFUNC_DECL(cif_value_get_number, (
 /**
  * @brief Returns the uncertainty of the value represented by the given number value object.
  *
+ * If the provided value is of character kind then first an attempt is made to convert it to numeric kind, as if by
+ * parsing its text value via @c cif_value_parse_numb().  If the value is not initially of numeric kind, then this
+ * function's success depends on such a conversion.
+ *
  * The uncertainty is zero for an exact number.  Behavior is implementation-defined if the uncertainty is outside the
  * representable range of type @c double .
  *
@@ -2557,8 +2566,9 @@ CIF_INTFUNC_DECL(cif_value_get_number, (
  * @param[in,out] su a pointer to the location where the uncertainty should be recorded; must be a valid pointer
  *         to suitably aligned storage large enough to accommodate a @c double.
  *
- * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
- *         another code, typically @c CIF_ERROR, if an error occurs.
+ * @return Returns @c CIF_OK on success, @c CIF_INVALID_NUMBER if the provided object is of character kind and
+ *         cannot be parsed as a number, @c CIF_ARGUMENT_ERROR if the provided object is othewise not of numeric kind,
+ *         or another code, typically @c CIF_ERROR, if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_value_get_su, (
         cif_value_tp *numb,
