@@ -2222,7 +2222,7 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * @{
  * CIF data values are represented by and to CIF API functions via the opaque data type @c cif_value_tp .  Because this
  * type is truly opaque, @c cif_value_tp objects cannot directly be declared.  Independent value objects must instead
- * be created via function @c cif_value_create() , and @em independent ones should be released via @c cif_value_free()
+ * be created via function @c cif_value_create(), and @em independent ones should be released via @c cif_value_free()
  * when they are no longer needed.  Unlike the "handles" on CIF structural components that are used in several other
  * parts of the API, @c cif_value_tp objects are complete data objects, independent from the backing CIF storage
  * mechanism, albeit sometimes parts of larger aggregate value objects.
@@ -2232,9 +2232,10 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * These alternatives are represented by the enumeration @c cif_kind_tp.  Value kinds are assigned when values are
  * created, but may be changed by re-initialization.  Several functions serve this purpose: @c cif_value_init(), of
  * course, but also @c cif_value_init_char(), @c cif_value_copy_char(), @c cif_value_parse_numb(),
- * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  If it is unknown, the kind of a value object can be
- * determined via @c cif_value_kind(); this is important, because many of the value manipulation functions are
- * useful only for values of certain kinds.
+ * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  Additionally, values of character kind and suitable
+ * content will be automatically coerced to numeric kind by functions @c cif_value_get_number() and
+ * @c cif_value_get_su().  If it is unknown, the kind of a value object can be determined via @c cif_value_kind(); this
+ * is important, because many of the value manipulation functions are useful only for values of certain kinds.
  *
  * Values of list and table kind aggregate other value objects.  The aggregates do not accept independent value objects
  * directly into themselves; instead they make copies of values entered into them so as to reduce confusion
