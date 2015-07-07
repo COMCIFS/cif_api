@@ -641,8 +641,9 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
 static int validate_cif11_characters(UChar *s) {
     static int is_allowed[128];
 
+    /* initialize is_allowed on first use */
     if (!is_allowed[UCHAR_SP]) {
-        int i;
+        unsigned int i;
         for (i = 0; i < cif11_chars_elements; i += 1) {
             assert((0 <= cif11_chars[i]) && (cif11_chars[i] < sizeof(is_allowed)));
             is_allowed[cif11_chars[i]] = 1;

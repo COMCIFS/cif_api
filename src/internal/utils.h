@@ -45,14 +45,17 @@
 /* The __visibility__ attribute is not supported on win32 */
 #define INTERNAL __attribute__ ((__warn_unused_result__))
 #define INTERNAL_VOID
+#define INTERNAL_VAR
 #else
 #define INTERNAL __attribute__ ((__visibility__ ("hidden"), __warn_unused_result__))
 #define INTERNAL_VOID __attribute__ ((__visibility__ ("hidden")))
+#define INTERNAL_VAR __attribute__ ((__visibility__ ("hidden")))
 #endif
 #else
 #define UNUSED
 #define INTERNAL
 #define INTERNAL_VOID
+#define INTERNAL_VAR
 #endif
 
 /* simple macros */
@@ -542,8 +545,8 @@ extern char *strdup(const char *s) INTERNAL
 /* Global data */
 
 /* A Unicode string containing all the characters that are allowed anywhere in CIF 1.1 documents */
-extern const UChar cif11_chars[] INTERNAL;
-extern const size_t cif11_chars_elements INTERNAL;
+extern const UChar cif11_chars[] INTERNAL_VAR;
+extern const size_t cif11_chars_elements INTERNAL_VAR;
 
 /*
  * An internal version of cif_create_block() that allows block code validation to be suppressed (when 'lenient' is
