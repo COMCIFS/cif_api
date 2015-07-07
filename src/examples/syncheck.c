@@ -33,7 +33,7 @@
 #include <string.h>
 #include <unicode/ustdio.h>
 #include "cif.h"
-#include "messages.h"
+#include "cif_error.h"
 
 /*
  * Pointers to a struct of this type will be passed to the error callback
@@ -74,7 +74,7 @@ static int print_error(int code, size_t line, size_t column, const UChar *text, 
     struct syntax_report_s *report_p = (struct syntax_report_s *) data;
 
     u_fprintf(report_p->ustderr, "  Error code %d at line %lu, column %lu, near \"%.*S\":\n    %s\n",
-            code, (unsigned long) line, (unsigned long) column, (int32_t) length, text, messages[code]);
+            code, (unsigned long) line, (unsigned long) column, (int32_t) length, text, cif_errlist[code]);
     report_p->error_count += 1;
 
     return 0;

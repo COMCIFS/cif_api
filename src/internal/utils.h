@@ -539,6 +539,12 @@ extern char *strdup(const char *s) INTERNAL
 ;
 #endif
 
+/* Global data */
+
+/* A Unicode string containing all the characters that are allowed anywhere in CIF 1.1 documents */
+extern const UChar cif11_chars[] INTERNAL;
+extern const size_t cif11_chars_elements INTERNAL;
+
 /*
  * An internal version of cif_create_block() that allows block code validation to be suppressed (when 'lenient' is
  * nonzero)

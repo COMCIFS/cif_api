@@ -544,11 +544,13 @@
  */
 #define CIF_NULL_KEY          140
 
-/**
+/*
  * @brief A result code indicating that during parsing, a text field putatively employing the text prefix protocol
  *         contained a line that did not begin with the prefix
  */
+/*
 #define CIF_MISSING_PREFIX    141
+*/
 
 /**
  * @brief A return code for CIF-handler functions (see @c cif_handler_tp) that indicates CIF traversal should continue
@@ -773,31 +775,27 @@ typedef struct {
 typedef int (*cif_parse_error_callback_tp)(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
- * @brief The type of a callback function by which a client application can be notified of whitespace encountered
- *     during CIF parsing.
+ * @brief The type of a callback function by which a client application can be notified of a syntactic element
  *
- * CIF whitespace appearing outside any data value is not semantically significant from a CIF perspective, but it may
- * be useful to the calling application.  An application interested in being notified about whitespace as it is parsed
- * can register a callback function of this type with the parser.  Unlike a CIF handler or an error callback, whitespace
- * callbacks cannot directly influence CIF traversal or interrupt parsing, but they have access to the same user data
- * object that all other callbacks receive.
+ * Callbacks of this type are provided for some syntax elements that are not otherwise directly signaled, such as
+ * whitespace runs, certain keywords, and data names.  These support a physical / lexical view of a parse process, as
+ * opposed to the logical / structural view provided by the callbacks belonging to a @c cif_handler_tp .
+ * Unlike a CIF handler those or or an error callback, syntax callbacks cannot directly influence CIF traversal or
+ * interrupt parsing, but they have access to the same user data object that all other callbacks receive.
  *
- * The pointer @p ws and all subsequent values through @p ws @c + @p length are guaranteed to be valid pointer values
- * for comparison and arithmetic.  The result of dereferencing @p ws @c + @p length is undefined.
+ * The pointer @p token and all subsequent values through @p token @c + @p length are guaranteed to be valid pointer
+ * values for comparison and arithmetic.  The result of dereferencing @p token @c + @p length is not defined.
  *
- * Whitespace is generally reported in multi-character blocks, which may span lines, but the reported whitespace
- * sequences are not guaranteed to be maximal.  Physical runs of whitespace in the input CIF may be split across more
- * than one callback call.
- * 
- * @param[in] line the one-based line number of the start of the whitespace
- * @param[in] column the one-based column number of the first character of the whitespace run
- * @param[in] ws a pointer to the start of the whitespace sequence, which is @em not necessarily NUL-terminated
- * @param[in] length the number of characters in the whitespace sequence.  ( @p ws + @p length ) is guaranteed to be a
+ * @param[in] line the one-based line number of the start of the syntax element
+ * @param[in] column the one-based column number of the first character of the syntax element
+ * @param[in] token a pointer to the start of the character sequence of the element, which is @em not necessarily
+ *         NUL-terminated
+ * @param[in] length the number of characters in the sequence.  ( @p token + @p length ) is guaranteed to be a
  *         valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether
  *         incrementing it results in a valid pointer value is undefined.
  * @param[in,out] data a pointer to the user data object provided by the parser caller
  */
-typedef void (*cif_whitespace_callback_tp)(size_t line, size_t column, const UChar *ws, size_t length, void *data);
+typedef void (*cif_syntax_callback_tp)(size_t line, size_t column, const UChar *token, size_t length, void *data);
 
 /**
  * @brief Represents a collection of CIF parsing options.
@@ -811,18 +809,21 @@ typedef void (*cif_whitespace_callback_tp)(size_t line, size_t column, const UCh
 struct cif_parse_opts_s {
 
     /**
-     * @brief If non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead
-     *         of as CIF 1.
+     * @brief Influences the parser's selection of CIF 1 or CIF 2 format to handle a CIF stream
      *
      * Because the CIF-version code is @em required in CIF 2 but optional in CIF 1, it is most correct to assume CIF 1
      * when there is no version code.  Nevertheless, if a CIF is known or assumed to otherwise comply with CIF2, then
      * it is desirable to parse it that way regardless of the absence of a version code.
      *
-     * CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled (albeit
-     * with an error on account of the missing version code).  On the other hand, CIF 1 streams that (allowably)
-     * omit the version code may be parsed incorrectly if this option is enabled.
+     * CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option has value greater
+     * than zero (albeit with an error on account of the missing version code).  On the other hand, CIF 1 streams that
+     * (allowably) omit the version code may be parsed incorrectly if this option is enabled.
+     *
+     * Moreover, CIF streams will be parsed as CIF 2 regardless of an explicit version code to the contrary if this
+     * option has a value of 20 or greater, and they will be parsed as CIF 1.1 regardless of an explicit version code
+     * to the contrary if this option has a value less than zero.
      */
-    int default_to_cif2;
+    int prefer_cif2;
 
     /**
      * @brief If not @c NULL , names the coded character set with which the parser will attempt to interpret plain
@@ -988,7 +989,26 @@ struct cif_parse_opts_s {
      * other elements appearing in the CIF.  The parser does not guarantee to collect @em maximal whitespace runs;
      * it may at times split consecutive whitespace into multiple runs, performing a callback for each one.
      */
-    cif_whitespace_callback_tp whitespace_callback;
+    cif_syntax_callback_tp whitespace_callback;
+
+    /**
+     * @brief A callback function by which the client application can be notified about CIF keywords
+     *
+     * If not @c NULL, this function will be called by the parser whenever it encounters a CIF keyword that does not
+     * directly correspond to or trigger a CIF Handler callback.  At this version, that is only the 'loop_' keyword,
+     * but a future version may also signal other keywords, so callback functions attached to this hook should check
+     * which keyword they receive if in fact they care.
+     */
+    cif_syntax_callback_tp keyword_callback;
+
+    /**
+     * @brief A callback function by which the client application can be notified about CIF data names as they are
+     * encountered
+     *
+     * If not @c NULL, this function will be called by the parser whenever it encounters a data name in the input CIF.
+     * before it is reported as part of a loop or individual data item.
+     */
+    cif_syntax_callback_tp dataname_callback;
 
     /**
      * @brief A callback function by which the client application can be notified about parse errors, affording it the
@@ -1147,9 +1167,19 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
 /**
  * @brief Formats the CIF data represented by the @c cif handle to the specified output stream.
  *
- * Ownership of the arguments does not transfer to the function.  By default, the output is in CIF 2.0 format.  The
- * write options can be used to request CIF 1.1 format instead, in which case any values in the provided CIF that cannot
- * be expressed in CIF 1.1 will be be rejected, causing this function to fail.
+ * By default, the output is in CIF 2.0 format, but the write options can be used to request CIF 1.1 format instead.
+ * These extra considerations apply to CIF 1.1 output mode:
+ * @li In CIF 1.1 mode, any data names, values, block codes, or frame codes in the provided CIF that cannot be
+ * expressed in CIF 1.1 will be be rejected, causing this function to fail.
+ * @li The CIF 1.1 dialect written by this function is also well-formed CIF 2.0, except for the CIF-version header and
+ * possibly the encoding.  In particular, it employs the line-folding protocol both to represent data values with
+ * extremely long lines, and to escape multi-line values that otherwise would be misinterpreted as employing the
+ * line-folding protocol and / or the text prefix protocol by a parser that recognizes those protocols (including
+ * function @c cif_parse()).  As a result, however, parsers that @em do @em not recognize the line folding protocol may
+ * interpret some of the resulting values differently than was intended.
+ *
+ *
+ * Ownership of the arguments does not transfer to the function.
  *
  * @param[in,out] stream a @c FILE @c * to which to write the CIF format output; must be a non-NULL pointer to a
  *         writable stream.  In the event that the write options request CIF 1.1 output, this file should be open in
@@ -1161,7 +1191,8 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
  * @param[in] cif a handle on the CIF object to serialize to the specified stream
  *
  * @return Returns @c CIF_OK if the data are fully written, or else an error code (typically @c CIF_ERROR,
- *         or @c CIF_DISALLOWED_VALUE in CIF 1.1 mode).  The stream state is undefined after a failure.
+ *         or @c CIF_DISALLOWED_CHAR or @c CIF_DISALLOWED_VALUE in CIF 1.1 mode).  The stream state is undefined after
+ *         a failure.
  */
 CIF_INTFUNC_DECL(cif_write, (
         FILE *stream,

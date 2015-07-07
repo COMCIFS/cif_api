@@ -760,7 +760,7 @@ int cif_parse_internal(struct scanner_s *scanner, int not_utf8, const char *extr
         scanner->tvalue_length = 0;
 
         /*
-         * We must avoid get_more_chars() here (and also NEXT_CHAR, which uses it, because we want -- here only -- to
+         * We must avoid get_more_chars() here (and also NEXT_CHAR, which uses it) because we want -- here only -- to
          * accept a byte-order mark.
          */
         FAILURE_VARIABLE = get_first_char(scanner);
@@ -1126,6 +1126,10 @@ static int parse_container(struct scanner_s *scanner, cif_container_tp *containe
                 }
                 break;
             case LOOPKW:
+                if (scanner->skip_depth <= 0) {
+                    OPTIONAL_VOIDCALL( scanner->keyword_callback, (scanner->line, scanner->column,
+                            TVALUE_START(scanner), TVALUE_LENGTH(scanner), scanner->user_data) );
+                }
                 CONSUME_TOKEN(scanner);
                 result = parse_loop(scanner, container);
                 break;
@@ -1134,6 +1138,8 @@ static int parse_container(struct scanner_s *scanner, cif_container_tp *containe
                     CONSUME_TOKEN(scanner);
                     result = parse_item(scanner, container, NULL);
                 } else {
+                    OPTIONAL_VOIDCALL( scanner->dataname_callback, (scanner->line, scanner->column, token_value,
+                            token_length, scanner->user_data) );
                     name = (UChar *) malloc((token_length + 1) * sizeof(UChar));
                     if (name == NULL) {
                         result = CIF_MEMORY_ERROR;
@@ -1473,6 +1479,11 @@ static int parse_loop_header(struct scanner_s *scanner, cif_container_tp *contai
     while (((result = next_token(scanner)) == CIF_OK) && (scanner->ttype == NAME)) {
         int32_t token_length = TVALUE_LENGTH(scanner);
         UChar *token_value = TVALUE_START(scanner);
+
+        if (scanner->skip_depth <= 0) {
+            OPTIONAL_VOIDCALL( scanner->dataname_callback, (scanner->line, scanner->column,
+                    token_value, token_length, scanner->user_data) );
+        }
 
         *next_namep = (string_element_tp *) malloc(sizeof(string_element_tp));
         if (*next_namep == NULL) {
@@ -2079,7 +2090,7 @@ static int parse_value(struct scanner_s *scanner, cif_value_tp **valuep) {
                         *string = 0;
                         u_strncat(string, token_value, token_length);  /* ensures NUL termination */
 
-                        /* Record the value as a number then it parses that way; otherwise as a string */
+                        /* Record the value as a number when it parses that way; otherwise as a string */
                         /* In either case, the value object takes ownership of the string */
                         if (((result = cif_value_parse_numb(value, string)) == CIF_INVALID_NUMBER) &&
                                 ((result = cif_value_init_char(value, string)) != CIF_OK)) {
@@ -2250,11 +2261,14 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                                 in_pos += prefix_length;
                             } else {
                                 /* error: missing prefix */
+                                /* FIXME: this is not an error! */
+                                /*
                                 result = scanner->error_callback(CIF_MISSING_PREFIX, scanner->line,
                                         1, TVALUE_START(scanner), 0, scanner->user_data);
                                 if (result != CIF_OK) {
                                     FAIL(late, result);
                                 }
+                                */
                                 /* recover by copying the un-prefixed text (no special action required for that) */
                             }
                         }
@@ -2383,9 +2397,11 @@ static int next_token(struct scanner_s *scanner) {
             case WS_CLASS:
                 result = scan_ws(scanner);
                 if (result == CIF_OK) {
-                    /* notify the configured whitespace callback, if any */
-                    OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
-                            TVALUE_START(scanner), TVALUE_LENGTH(scanner), scanner->user_data));
+                    if (scanner->skip_depth <= 0) {
+                        /* notify the configured whitespace callback, if any */
+                        OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                                TVALUE_START(scanner), TVALUE_LENGTH(scanner), scanner->user_data));
+                    }
 
                     /* move on */
                     CONSUME_TOKEN(scanner);
@@ -2966,10 +2982,13 @@ do {
 }
 
 /*
- * Transfers one character from the provided scanner's character source into its working character buffer, provided
- * that any are available.  Assumes that no characters have yet been transferred, and that the CIF version being parsed
- * may not yet be known.  Will insert an EOF_CHAR into the buffer if called when there are no characters are available.
- * Returns CIF_OK if any characters are transferred (including an EOF marker), otherwise CIF_ERROR.
+ * Transfers one or possibly two character from the provided scanner's character source into its working character
+ * buffer, provided that any are available.  Assumes that no characters have yet been transferred, and that the CIF
+ * version being parsed may not yet be known.  Will raise the end-of-file flag if called when there are no characters
+ * are available.  Returns CIF_OK if any characters are transferred, CIF_EOF if the EOF flag is raised without
+ * transferring any characters, or CIF_ERROR otherwise.
+ *
+ * Two characters are transferred
  *
  * Unlike get_more_chars(), this function accepts a Unicode byte-order mark, U+FEFF.
  */
@@ -2994,7 +3013,6 @@ static int get_first_char(struct scanner_s *scanner) {
         UChar ch = *scanner->buffer;
         int result;
 
-        assert (nread == 1);
         if ((ch > CIF1_MAX_CHAR) ? (ch != UCHAR_BOM) : (scanner->char_class[ch] == NO_CLASS)) {
             /* error: disallowed character */
             result = scanner->error_callback(CIF_DISALLOWED_INITIAL_CHAR, 1, 0,
@@ -3003,6 +3021,20 @@ static int get_first_char(struct scanner_s *scanner) {
                 return result;
             }
             /* recover by accepting the character (for the moment) */
+        } else if (ch == UCHAR_CR) { /* convert CR and CRLF to LF */
+            *scanner->buffer = UCHAR_NL;
+
+            /* try to convert one more character, to check for CRLF */
+            nread = scanner->read_func(scanner->char_source, scanner->buffer + 1, scanner->buffer_size - 1,
+                    &read_error);
+            if (nread < 0) {
+                return read_error;
+            } else if (nread == 0) {
+                scanner->at_eof = CIF_TRUE;  /* but don't return CIF_EOF, because we do provide one character */
+            } else if (*(scanner->buffer + 1) != UCHAR_NL) {
+                scanner->buffer_limit += 1;
+            } /* else the buffer limit will overall be increased by 1 only, effectively consuming the NL */
+
         }
 
         scanner->buffer_limit += 1;
@@ -3013,9 +3045,10 @@ static int get_first_char(struct scanner_s *scanner) {
 /*
  * Transfers characters from the provided scanner's character source into its working character buffer, provided that
  * any are available.  May move unconsumed data within the buffer (adjusting the rest of the scanner's internal state
- * appropriately) and/or may increase the size of the buffer.  Will insert an EOF_CHAR into the buffer if called when
- * there are no more characters are available.  Returns CIF_OK if any characters are transferred (including an EOF
- * marker), otherwise CIF_ERROR.
+ * appropriately) and/or may increase the size of the buffer.  Will raise the end-of-file flag if called when there are
+ * no characters are available.
+ *
+ * Returns CIF_OK if any characters are transferred, CIF_EOF if the EOF flag is raised, or CIF_ERROR otherwise.
  */
 static int get_more_chars(struct scanner_s *scanner) {
     size_t chars_read = scanner->next_char - scanner->buffer;
@@ -3082,7 +3115,52 @@ static int get_more_chars(struct scanner_s *scanner) {
         scanner->at_eof = CIF_TRUE;
         return CIF_EOF;
     } else {
+        /* convert line terminators */
+        UChar *lead = scanner->buffer + scanner->buffer_limit; /* a pointer to the character being probed */
+        UChar *bound = lead + nread;
+        UChar *trail;
+        UChar *dest;
+
+        do {
+            lead = u_memchr(lead, UCHAR_CR, bound - lead);
+            if ((!lead) || ((lead + 1 < bound) && (*(lead + 1) == UCHAR_NL))) {
+                break;
+            } else {
+                *lead = UCHAR_NL;
+            }
+        } while (CIF_TRUE);
+
+        dest = lead;
+        while (lead) {
+            ptrdiff_t length;
+
+            trail = ++lead;  /* trail points to the LF of the latest-read CRLF terminator */
+            do {
+                assert(lead <= bound);
+                lead = u_memchr(lead, UCHAR_CR, bound - lead);  /* look for the next CR */
+                if (!lead) {
+                    /* end of input */
+                    length = bound - trail;
+                    break;
+                } else if ((lead + 1 < bound) && (*(lead + 1) == UCHAR_NL)) {
+                    /* end of CRLF-terminated line */
+                    nread -= 1; /* CRLF will be converted to just LF */
+                    length = lead - trail;
+                    break;
+                } else {
+                    /* bare CR is translated to LF without any need to move other data */
+                    *lead = UCHAR_NL;
+                }
+            } while (CIF_TRUE);
+
+            /* convert one line terminator */
+            u_memmove(dest, trail, length);
+            dest += length;
+        }
+
+        /* bookkeeping */
         scanner->buffer_limit += nread;
+
         return CIF_OK;
     }
 }

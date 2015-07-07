@@ -35,7 +35,7 @@
 #include <string.h>
 #include <unicode/ustdio.h>
 #include "cif.h"
-#include "messages.h"
+#include "cif_error.h"
 
 /*
  * A macro to check a value (generally a function return value), exiting
