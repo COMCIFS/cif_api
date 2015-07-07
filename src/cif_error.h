@@ -24,14 +24,25 @@
 #define MESSAGES_H
 
 /**
- * @brief a table of short descriptions of the errors indicated by the various
+ * @file
+ *
+ * @addtogroup return_codes
+ * @{
+ */
+
+/**
+ * @brief A table of short descriptions of the errors indicated by the various
  *        CIF API error codes
  */
 extern const char cif_errlist[][80];
 
 /**
- * @brief the number of entries in @c cif_errlist
+ * @brief The number of entries in @c cif_errlist
  */
 extern const int cif_nerr;
+
+/**
+ * @}
+ */
 
 #endif

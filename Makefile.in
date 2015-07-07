@@ -336,7 +336,7 @@ DISTCLEANFILES = Doxyfile
 @make_docs_FALSE@doxygen_man_targets = 
 @make_docs_TRUE@doxygen_man_targets = dox-man
 @make_docs_FALSE@dox_deps = 
-@make_docs_TRUE@dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
+@make_docs_TRUE@dox_deps = Doxyfile src/cif.h src/cif_error.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
 @install_docs_FALSE@html_install = :
 
 # The chmod in the below command must ensure the target files writable
