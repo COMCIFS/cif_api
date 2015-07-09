@@ -142,12 +142,6 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
 static ssize_t ustream_read_chars(void *char_source, UChar *dest, ssize_t count, int *error_code);
 
 /*
- * Tests whether a Unicode string consists entirely of characters from the ASCII subset allowed to appear in CIF 1.1
- * documents.  Returns CIF_OK if so, and CIF_DISALLOWED_CHAR if not.
- */
-static int validate_cif11_characters(UChar *s);
-
-/*
  * CIF handler functions used by write_cif()
  */
 
@@ -638,7 +632,7 @@ static void ustream_to_unicode_callback(const void *context, UConverterToUnicode
     } /* else it's a lifecycle signal, which we can safely ignore */
 }
 
-static int validate_cif11_characters(UChar *s) {
+int cif_validate_cif11_characters(UChar *s, UChar **disallowed) {
     static int is_allowed[128];
 
     /* initialize is_allowed on first use */
@@ -653,11 +647,17 @@ static int validate_cif11_characters(UChar *s) {
 
     while (*s) {
         if ((*s >= sizeof(is_allowed)) || !is_allowed[*s]) {
+            if (disallowed) {
+                *disallowed = s;
+            }
             return CIF_DISALLOWED_CHAR;
         }
         s += 1;
     }
 
+    if (disallowed) {
+        *disallowed = NULL;
+    }
     return CIF_OK;
 }
 
@@ -679,7 +679,7 @@ static int write_container_start(cif_container_tp *block, void *context) {
     const char *this_header_type = header_type[(CONTEXT_DEPTH(context) == 0) ? 0 : 1];
 
     if ((result == CIF_OK) && IS_CIF1(context)) {
-        result = validate_cif11_characters(code);
+        result = cif_validate_cif11_characters(code, NULL);
     }
     if (result == CIF_OK) {
         result = ((u_fprintf(CONTEXT_UFILE(context), this_header_type, code) > 7) ? CIF_TRAVERSE_CONTINUE : CIF_ERROR);
@@ -732,7 +732,7 @@ static int write_loop_start(cif_loop_tp *loop, void *context) {
                     assert(CIF_TRAVERSE_CONTINUE == CIF_OK);
                     for (next_name = item_names; *next_name != NULL; next_name += 1) {
                         if ((result == CIF_TRAVERSE_CONTINUE) && IS_CIF1(context)) {
-                            result = validate_cif11_characters(*next_name);
+                            result = cif_validate_cif11_characters(*next_name, NULL);
                         }
                         if (result == CIF_TRAVERSE_CONTINUE) {
                             if (u_fprintf(CONTEXT_UFILE(context), " %S\n", *next_name) < 4) {
@@ -778,7 +778,7 @@ static int write_item(UChar *name, cif_value_tp *value, void *context) {
     /* output the data name if the context so indicates */
     if (IS_WRITE_ITEM_NAMES(context)) {
         if (IS_CIF1(context)) {
-            int result = validate_cif11_characters(name);
+            int result = cif_validate_cif11_characters(name, NULL);
 
             if (result != CIF_OK) {
                 FAIL(soft, result);
@@ -964,7 +964,7 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
         int has_nl_semi = CIF_FALSE;
         UChar ch;
 
-        if (!IS_CIF1(context) || ((result = validate_cif11_characters(text)) == CIF_OK)) {
+        if (!IS_CIF1(context) || ((result = cif_validate_cif11_characters(text, NULL)) == CIF_OK)) {
 
             /* Analyze the text to inform the choice of delimiters */
             memset(char_counts, 0, sizeof(char_counts));

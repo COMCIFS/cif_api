@@ -526,6 +526,9 @@ extern int total_queries;
 /* The number of _bytes_ in the given null(-character)-terminated Unicode string */
 #define U_BYTES(s) (u_strlen(s) * sizeof(UChar))
 
+/* the number of elements in fixed-length array a */
+#define ARRAY_LENGTH(a) (sizeof(a) / sizeof(a[0]))
+
 /*
  * function headers for private, non-static functions
  */
@@ -757,6 +760,19 @@ int cif_parse_internal(
         const char *extra_ws,
         const char *extra_eol,
         cif_tp *dest
+        ) INTERNAL;
+
+/*
+ * Validates that the specified Unicode string contains only characters that are in the CIF 1.1 character set.  Returns
+ * CIF_OK if all characters are allowed, or CIF_DISALLOWED_CHAR if not.
+ *
+ * @param[in] s a pointer to the NUL-terminated Unicode string to test
+ * @param[in,out] disallowed if not NULL, points to the location where a pointer to the first disallowed character
+ *         appears in @c s should be recorded.  NULL is recorded there if all characters are allowed
+ */
+int cif_validate_cif11_characters(
+        UChar *s,
+        UChar **disallowed
         ) INTERNAL;
 
 #ifdef __cplusplus

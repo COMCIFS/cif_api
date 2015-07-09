@@ -749,7 +749,11 @@ typedef struct {
     /** @brief A handler function for the end of a loop packet */
     int (*handle_packet_end)(cif_packet_tp *packet, void *context);
 
-    /** @brief A handler function for data items (there are not separate beginning and end callbacks) */
+    /**
+     * @brief A handler function for data items (there are not separate beginning and end callbacks).  If called with
+     * a NULL name then value is a placeholder -- this normally happens only in a parsing context, when a duplicate
+     * data name is enrolled in a loop.
+     */
     int (*handle_item)(UChar *name, cif_value_tp *value, void *context);
 
 } cif_handler_tp;
