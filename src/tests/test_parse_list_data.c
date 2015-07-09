@@ -225,7 +225,7 @@ int main(void) {
     TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 79);
     TEST(count, 1, test_name, 80);
     TEST(cif_value_get_element_at(value, 0, &element), CIF_OK, test_name, 81);
-    TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, 82);
+    /* TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, 82); */
     TEST(cif_value_get_number(element, &d), CIF_OK, test_name, 83);
     TEST_NOT(d == 0, 0, test_name, 84);
     TEST(cif_value_get_su(element, &d), CIF_OK, test_name, 85);
@@ -236,7 +236,7 @@ int main(void) {
     TEST(cif_value_get_element_count(value, &count), CIF_OK, test_name, 89);
     TEST(count, 1, test_name, 90);
     TEST(cif_value_get_element_at(value, 0, &element), CIF_OK, test_name, 91);
-    TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, 92);
+    /* TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, 92); */
     TEST(cif_value_get_number(element, &d), CIF_OK, test_name, 93);
     TEST_NOT(d == -10.0, 0, test_name, 94);
     TEST(cif_value_get_su(element, &d), CIF_OK, test_name, 95);
@@ -251,7 +251,7 @@ int main(void) {
     for (count = 0; count < 10; count += 1) {
         TEST(cif_value_get_element_at(value, count, &element), CIF_OK, test_name,
                 TESTNUM_BASE + 1 + count * TESTS_PER_CYCLE);
-        TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, TESTNUM_BASE + 2 + count * TESTS_PER_CYCLE);
+        /* TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, TESTNUM_BASE + 2 + count * TESTS_PER_CYCLE); */
         TEST(cif_value_get_number(element, &d), CIF_OK, test_name, TESTNUM_BASE + 3 + count * TESTS_PER_CYCLE);
         TEST_NOT(d == (double) count, 0, test_name, TESTNUM_BASE + 4 + count * TESTS_PER_CYCLE);
         TEST(cif_value_get_su(element, &d), CIF_OK, test_name, TESTNUM_BASE + 5 + count * TESTS_PER_CYCLE);
@@ -294,7 +294,7 @@ int main(void) {
     TEST(u_strcmp(ustr, value_mary2), 0, test_name, 188);
     free(ustr);
     TEST(cif_value_get_element_at(value, 2, &element), CIF_OK, test_name, 189);
-    TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, 190);
+    /* TEST(cif_value_kind(element), CIF_NUMB_KIND, test_name, 190); */
     TEST(cif_value_get_number(element, &d), CIF_OK, test_name, 191);
     TEST_NOT(d == 1.0, 0, test_name, 192);
     TEST(cif_value_get_su(element, &d), CIF_OK, test_name, 193);

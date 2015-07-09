@@ -24,7 +24,9 @@ Version 0.4.0
 * Added automatic char-to-numb coercion
   Updated cif_value_get_number() and cif_value_get_su() to automatically
   convert the provided value object to numeric kind if it is initially of
-  character kind and such a coercion is possible.
+  character kind and such a coercion is possible.  Changed the parser to
+  avoid distinguishing NUMB values from CHAR values at parse time, relying
+  instead on coercing values as needed, later.
 
 Version 0.3.0
 * Changed type names

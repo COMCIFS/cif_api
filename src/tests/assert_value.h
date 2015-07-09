@@ -44,6 +44,19 @@ static int assert_values_equal(cif_value_tp *value1, cif_value_tp *value2) {
     cif_kind_tp kind1 = cif_value_kind(value1);
     cif_kind_tp kind2 = cif_value_kind(value2);
 
+    /*
+     * compare all numeric values as if they were char values, as the distinction is largely immaterial, and the
+     * actual test compares text values in both cases.  This allows a round-trip that ends up converting a numb value
+     * to char to be accounted correct.
+     */
+
+    if (kind1 == CIF_NUMB_KIND) {
+        kind1 = CIF_CHAR_KIND;
+    }
+    if (kind2 == CIF_NUMB_KIND) {
+        kind2 = CIF_CHAR_KIND;
+    }
+
     INIT_USTDERR;
     assert(value1 != NULL);
     assert(value2 != NULL);

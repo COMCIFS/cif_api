@@ -2090,11 +2090,12 @@ static int parse_value(struct scanner_s *scanner, cif_value_tp **valuep) {
                         *string = 0;
                         u_strncat(string, token_value, token_length);  /* ensures NUL termination */
 
-                        /* Record the value as a number when it parses that way; otherwise as a string */
-                        /* In either case, the value object takes ownership of the string */
-                        if (((result = cif_value_parse_numb(value, string)) == CIF_INVALID_NUMBER) &&
-                                ((result = cif_value_init_char(value, string)) != CIF_OK)) {
-                            /* assignment failed; free the string */
+                        /*
+                         * Record the value as a string; it will later be coerced to a number automatically
+                         * if requested as a number and if possible.  The value object takes ownership of the string.
+                         */
+                        if ((result = cif_value_init_char(value, string)) != CIF_OK) {
+                            /* initialization failed; free the string */
                             free(string);
                         }
                     }

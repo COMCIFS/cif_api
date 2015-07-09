@@ -88,8 +88,8 @@ int main(void) {
     TEST(cif_value_create(CIF_UNK_KIND, &value2), CIF_OK, test_name, 19);
     TEST(cif_value_parse_numb(value2, tmp), CIF_OK, test_name, 20); /* responsibility for tmp passes to value2*/
     TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 21);
-    TEST(assert_values_equal(value, value2), 0, test_name, 22);
-    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 23);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 22);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 23);
     TEST(!assert_values_equal(value, value2), 0, test_name, 24);
     cif_value_free(value);
     cif_value_free(value2);
@@ -101,8 +101,8 @@ int main(void) {
     TEST(cif_value_create(CIF_UNK_KIND, &value2), CIF_OK, test_name, 28);
     TEST(cif_value_parse_numb(value2, tmp), CIF_OK, test_name, 29); /* responsibility for tmp passes to value2*/
     TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 30);
-    TEST(assert_values_equal(value, value2), 0, test_name, 31);
-    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 32);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 31);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 32);
     TEST(!assert_values_equal(value, value2), 0, test_name, 33);
     cif_value_free(value);
     cif_value_free(value2);
