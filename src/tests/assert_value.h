@@ -83,6 +83,16 @@ static int assert_values_equal(cif_value_tp *value1, cif_value_tp *value2) {
                             u_fprintf(ustderr, "Text values match (%S)\n", text1);
                         }
 #endif
+                        if (rval) {
+                            rval = (cif_value_is_quoted(value1) == cif_value_is_quoted(value2));
+#ifdef DEBUG
+                            if (rval == 0) {
+                                u_fprintf(ustderr, "Text value quoting mismatch\n");
+                            } else {
+                                u_fprintf(ustderr, "Text value quoting match\n");
+                            }
+#endif
+                        }
                         free(text2);
                     }
                     free(text1);

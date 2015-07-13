@@ -39,6 +39,7 @@ int main(void) {
     cif_tp *cif_readback = NULL;
     cif_block_tp *block = NULL;
     cif_value_tp *value = NULL;
+    cif_value_tp *value2 = NULL;
     UChar value_sq_string[] = { 'S', 'a', 'y', ' ', '"', 'B', 'o', 'o', '"', 0 };
     UChar value_dq_string[] = { 'D', 'r', '.', ' ', 'O', '\'', 'M', 'a', 'l', 'l', 'e', 'y', 0 };
     UChar value_text_string[] = { 'D', 'e', 'l', 'i', 'm', 's', ' ', 'a', 'r', 'e', ':', 0x0a, '\'', '\'', '\'', ' ',
@@ -58,6 +59,8 @@ int main(void) {
             'f', 'o', 'r', ' ', 'm', 'u', 'l', 't', 'i', 'l', 'i', 'n', 'e', 's', 0 };
     UChar value_dq3_string[] = { 'T', 'r', 'y', ' ', 't', 'h', 'i', 's', ':', ' ', '\'', '\'', '\'', ' ',
             '_', 'n', 'a', 'm', 'e', 0x0a, ';', 0x0a, ';', ' ', '\'', '\'', '\'', 0 };
+    UChar value_numb_quoted[] = { '1', '.', '2', '5', 0 };
+    UChar value_text_unquoted[] = { 't', 'e', 'x', 't', 0 };
     U_STRING_DECL(block_code,           "simple_data", 12);
     U_STRING_DECL(name_unknown_value,   "_unknown_value", 15);
     U_STRING_DECL(name_na_value,        "_na_value", 10);
@@ -73,6 +76,8 @@ int main(void) {
     U_STRING_DECL(name_dq3_string,      "_dq3_string", 12);
     U_STRING_DECL(name_numb_plain,      "_numb_plain", 12);
     U_STRING_DECL(name_numb_su,         "_numb_su", 9);
+    U_STRING_DECL(name_numb_quoted,     "_numb_quoted", 13);
+    U_STRING_DECL(name_text_unquoted,   "_text_unquoted", 15);
 
     U_STRING_INIT(block_code,           "simple_data", 12);
     U_STRING_INIT(name_unknown_value,   "_unknown_value", 15);
@@ -89,6 +94,8 @@ int main(void) {
     U_STRING_INIT(name_text_string6,    "_text_string6", 14);
     U_STRING_INIT(name_numb_plain,      "_numb_plain", 12);
     U_STRING_INIT(name_numb_su,         "_numb_su", 9);
+    U_STRING_INIT(name_numb_quoted,     "_numb_quoted", 13);
+    U_STRING_INIT(name_text_unquoted,   "_text_unquoted", 15);
 
     /* Initialize data and prepare the test fixture */
     TESTHEADER(test_name);
@@ -126,6 +133,11 @@ int main(void) {
     TEST(cif_value_init_numb(value, 17.125, 0, 4, 5), CIF_OK, test_name, 18);
     TEST(cif_container_set_value(block, name_numb_plain, value), CIF_OK, test_name, 19);
 
+/*
+    cif_value_free(value);
+    value = NULL;
+    TEST(cif_container_get_value(block, name_numb_plain, &value), CIF_OK, test_name, 19);
+*/
     TEST(cif_value_autoinit_numb(value, 43.53e06, 0.17e05, 19), CIF_OK, test_name, 20);
     TEST(cif_container_set_value(block, name_numb_su, value), CIF_OK, test_name, 21);
 
@@ -144,23 +156,31 @@ int main(void) {
     TEST(cif_value_copy_char(value, value_text_string6), CIF_OK, test_name, 29);
     TEST(cif_container_set_value(block, name_text_string6, value), CIF_OK, test_name, 30);
 
+    TEST(cif_value_copy_char(value, value_text_unquoted), CIF_OK, test_name, 31);
+    TEST(cif_value_set_quoted(value, CIF_NOT_QUOTED), CIF_OK, test_name, 32);
+    TEST(cif_container_set_value(block, name_text_unquoted, value), CIF_OK, test_name, 33);
+
+    TEST(cif_value_init_numb(value, 1.0, 0.0, 1, 2), CIF_OK, test_name, 34);
+    TEST(cif_value_set_quoted(value, CIF_QUOTED), CIF_OK, test_name, 35);
+    TEST(cif_container_set_value(block, name_numb_quoted, value), CIF_OK, test_name, 36);
+
     cif_value_free(value);
     cif_container_free(block);
 
     /* write to the temp file */
-    TEST(cif_write(cif_file, NULL, cif), CIF_OK, test_name, 31);
+    TEST(cif_write(cif_file, NULL, cif), CIF_OK, test_name, 37);
     fflush(cif_file);
 
     /* parse the file */
     rewind(cif_file);
-    TEST(cif_parse(cif_file, NULL, &cif_readback), CIF_OK, test_name, 32);
+    TEST(cif_parse(cif_file, NULL, &cif_readback), CIF_OK, test_name, 38);
 
     /* make sure everything matches */
-    TEST_NOT(assert_cifs_equal(cif, cif_readback), 0, test_name, 33);
+    TEST_NOT(assert_cifs_equal(cif, cif_readback), 0, test_name, 39);
 
     /* clean up */
-    TEST(cif_destroy(cif_readback), CIF_OK, test_name, 34);
-    TEST(cif_destroy(cif), CIF_OK, test_name, 35);
+    TEST(cif_destroy(cif_readback), CIF_OK, test_name, 40);
+    TEST(cif_destroy(cif), CIF_OK, test_name, 41);
     fclose(cif_file); /* ignore any error here */
 
     return 0;

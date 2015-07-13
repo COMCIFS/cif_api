@@ -2094,7 +2094,8 @@ static int parse_value(struct scanner_s *scanner, cif_value_tp **valuep) {
                          * Record the value as a string; it will later be coerced to a number automatically
                          * if requested as a number and if possible.  The value object takes ownership of the string.
                          */
-                        if ((result = cif_value_init_char(value, string)) != CIF_OK) {
+                        if (((result = cif_value_init_char(value, string)) != CIF_OK)
+                                || ((result = cif_value_set_quoted(value, CIF_NOT_QUOTED)) != CIF_OK)) {
                             /* initialization failed; free the string */
                             free(string);
                         }
@@ -2260,17 +2261,6 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                             if (((in_limit - in_pos) >= prefix_length)
                                     && (u_strncmp(text, in_pos, prefix_length) == 0)) {
                                 in_pos += prefix_length;
-                            } else {
-                                /* error: missing prefix */
-                                /* FIXME: this is not an error! */
-                                /*
-                                result = scanner->error_callback(CIF_MISSING_PREFIX, scanner->line,
-                                        1, TVALUE_START(scanner), 0, scanner->user_data);
-                                if (result != CIF_OK) {
-                                    FAIL(late, result);
-                                }
-                                */
-                                /* recover by copying the un-prefixed text (no special action required for that) */
                             }
                         }
 

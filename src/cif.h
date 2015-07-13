@@ -701,6 +701,23 @@ typedef enum {
 } cif_kind_tp;
 
 /**
+ * The type used for representing values' quoting status, to allow applications to distinguish between the same value
+ * when presented quoted and when presented unquoted.
+ */
+typedef enum {
+
+    /**
+     * @brief the value should be interpreted as if it is not quoted; evaluates to false in boolean context
+     */
+    CIF_NOT_QUOTED = 0,
+
+    /**
+     * @brief the value should be interpreted as if it is quoted; evaluates to true in boolean context
+     */
+    CIF_QUOTED = 1
+} cif_quoted_tp;
+
+/**
  * @brief A set of functions defining a handler interface for directing and taking appropriate action in response
  *     to a traversal of a CIF.
  *
@@ -2227,6 +2244,12 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * parts of the API, @c cif_value_tp objects are complete data objects, independent from the backing CIF storage
  * mechanism, albeit sometimes parts of larger aggregate value objects.
  *
+ * CIF permits values' interpretations to be sensitive to whether they are presented whitespace-delimited string form
+ * as opposed to being presented in one of the quoted string forms.  The CIF API in fact builds in one such distinction
+ * in its provision for value kinds @c CIF_UNK_KIND and @c CIF_NA_KIND (see below).  Technically, that is a matter of
+ * convention rather than one of the underlying CIF format or data model, but recognition of the special significance
+ * of the values attributed to these kinds is essentially universal.
+ *
  * The API classifies values into several distinct "kinds": character (Unicode string) values, apparently-numeric
  * values, list values, table values, unknown-value place holders, and not-applicable/default-value place holders.
  * These alternatives are represented by the enumeration @c cif_kind_tp.  Value kinds are assigned when values are
@@ -2234,8 +2257,10 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * course, but also @c cif_value_init_char(), @c cif_value_copy_char(), @c cif_value_parse_numb(),
  * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  Additionally, values of character kind and suitable
  * content will be automatically coerced to numeric kind by functions @c cif_value_get_number() and
- * @c cif_value_get_su().  If it is unknown, the kind of a value object can be determined via @c cif_value_kind(); this
- * is important, because many of the value manipulation functions are useful only for values of certain kinds.
+ * @c cif_value_get_su(), and under some circumstances, values will be coerced between character and n/a or
+ * unknown-value kind via function @cif_value_set_quoted().  If it is not known, the kind of a value object can be
+ * determined via @c cif_value_kind(); this is important, because many of the value manipulation functions are useful
+ * only for values of certain kinds.
  *
  * Values of list and table kind aggregate other value objects.  The aggregates do not accept independent value objects
  * directly into themselves; instead they make copies of values entered into them so as to reduce confusion
@@ -2335,8 +2360,8 @@ CIF_INTFUNC_DECL(cif_value_clone, (
  *
  * This function is equivalent to @c cif_value_clean() when the specified kind is @c CIF_UNK_KIND, and it is less useful
  * than the character- and number-specific (re)initialization functions.  It is the only means available to change an
- * existing value in-place to a list, table, or N/A value, however, and it can be used to efficently empty a list or
- * table value.
+ * existing general value in-place to a list, table, or N/A value, however, and it can be used to efficently empty a
+ * list or table value.
  *
  * On failure, the value is left in a valid but otherwise unspecified state.
  *
@@ -2359,6 +2384,9 @@ CIF_INTFUNC_DECL(cif_value_init, (
  * value object will become sensitive to text changes performed afterward via the @c text pointer.  This behavior
  * could be described as wrapping an existing Unicode string in a CIF value object.
  *
+ * The value is marked as quoted; provided it has suitable form, it can subsequently be marked unquoted via
+ * @c cif_value_set_quoted().
+ *
  * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
  *
  * @param[in] text the new text content for the specified value object; must not be NULL
@@ -2379,6 +2407,9 @@ CIF_INTFUNC_DECL(cif_value_init_char, (
  * <strong><em>Responsibility for the @c text argument does not change</em></strong>, and the value object does not
  * become sensitive to change via the @c text pointer.  Unlike @c cif_value_init_char(), this function is thus suitable
  * for use with initialization text that resides on the stack (e.g. in a local array variable) or in read-only memory.
+ *
+ * The value is marked as quoted; provided it has suitable form, it can subsequently be marked unquoted via
+ * @c cif_value_set_quoted().
  *
  * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
  *
@@ -2405,6 +2436,9 @@ CIF_INTFUNC_DECL(cif_value_copy_char, (
  * floating-point format.
  *
  * This behavior could be described as wrapping an existing Unicode string in a (numeric) CIF value object.
+ *
+ * The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via
+ * @c cif_value_set_quoted().
  *
  * @param[in,out] numb the value object into which to parse the text
  *
@@ -2438,13 +2472,16 @@ CIF_INTFUNC_DECL(cif_value_parse_numb, (
  * to exactly zero at the specified scale, then the resulting number object represents an exact number, whether the su
  * given was itself exactly zero or not.
  *
- * If the scale is greater than zero or if pure decimal notation would require more than @p max_leading_zeroes
+ * If the scale is less than zero or if pure decimal notation would require more than @p max_leading_zeroes
  * leading zeroes after the decimal point, then the number's text representation is formatted in scientific notation
  * (d.ddde+-dd; the number of digits of mantissa and exponent may vary).  Otherwise, it is formatted in decimal
  * notation.
  *
  * It is an error if a text representation consistent with the arguments would require more characters than the
  * CIF 2.0 maximum line length (2048 characters).
+ *
+ * The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via
+ * @c cif_value_set_quoted().
  *
  * The behavior of this function is constrained by the characteristics of the data type (@c double ) of the 
  * @p value and @p su parameters.  Behavior is undefined if a scale is specified that exceeds the maximum possible
@@ -2494,6 +2531,9 @@ CIF_INTFUNC_DECL(cif_value_init_numb, (
  * The value's text representation is expressed in scientific notation if it would otherwise have more than five
  * leading zeroes or any trailing insignificant zeroes.  Otherwise, it is expressed in plain decimal notation.
  *
+ * The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via
+ * @c cif_value_set_quoted().
+ *
  * Behavior is undefined if @p val or @p su has a value that does not correspond to a finite real number (i.e.
  * if one of those values represents an infinite value or does not represent any number at all).
  *
@@ -2527,6 +2567,39 @@ CIF_INTFUNC_DECL(cif_value_autoinit_numb, (
  */
 CIF_FUNC_DECL(cif_kind_tp, cif_value_kind, (
         cif_value_tp *value
+        ));
+
+/**
+ * @brief Returns whether the value should be interpreted as if it were presented quoted
+ *
+ * Unlike most CIF functions, the return value is not an error code, as no error conditions are defined for or
+ * detectable by this function.
+ *
+ * @param[in] value a pointer to the value object whose quoting status is requested; must point at an initialized value
+ *
+ * @return Returns the quoting code of the specified value
+ */
+CIF_FUNC_DECL(cif_quoted_tp, cif_value_is_quoted, (
+        cif_value_tp *value
+        ));
+
+/**
+ * @brief Sets whether the value should be interpreted as if it were presented quoted
+ *
+ * This function may coerce values in-place between kind @c CIF_CHAR_KIND and either @c CIF_UNK_KIND or @c
+ * CIF_NA_KIND.  It must must not be called with @c QUOTED as its second argument when the first has kind
+ * @c CIF_LIST_KIND or @c CIF_TABLE_KIND.
+ *
+ * @param[in, out] value a pointer to the value object whose quoting status is requested; must point at an initialized
+ *      value
+ *
+ * @param[in] quoted the quoting status to set
+ *
+ * @return Returns CIF_OK on success, or an error code (typically @c CIF_ARGUMENT_ERROR or @c CIF_ERROR ) on failure.
+ */
+CIF_INTFUNC_DECL(cif_value_set_quoted, (
+        cif_value_tp *value,
+        cif_quoted_tp quoted
         ));
 
 /**

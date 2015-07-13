@@ -302,6 +302,7 @@ create table item_value (
   name varchar(80) not null,
   row_num integer not null,
   kind integer(1),
+  quoted integer(1),
   -- specific to kinds 0 - 3:
   val numeric,
   -- specific to kinds 0 and 1:
