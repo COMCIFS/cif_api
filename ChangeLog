@@ -27,6 +27,15 @@ Version 0.4.0
   character kind and such a coercion is possible.  Changed the parser to
   avoid distinguishing NUMB values from CHAR values at parse time, relying
   instead on coercing values as needed, later.
+* Added a value property tracking quoted status
+  The longstanding CIF conventions establish that the interpretation of a data
+  value can depend on whether it is presented whitespace-delimited or in one
+  of the other forms.  They contain some specific examples of how that
+  distinction is conventionally used, but nothing restricts the distinction to
+  those cases.  The CIF API now provides a modifiable value property that
+  designates whether a value is consider 'quoted' or not, provides additional
+  coercions around some changes to that attribute's value, and where possible,
+  honors that attribute on output.
 
 Version 0.3.0
 * Changed type names
