@@ -256,12 +256,13 @@ int main(void) {
     TEST(((text = cif_u_strdup(vm_00456e20s7)) == NULL), 0, test_name, 130);
     TEST(cif_value_parse_numb(value, text), CIF_OK, test_name, 131);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 132);
-    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 133);
-    TEST((d != -4.56e+17), 0, test_name, 134);
-    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 135);
-    TEST((d != 7e+15), 0, test_name, 136);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 137);
-    TEST(u_strcmp(vm_00456e20s7, text), 0, test_name, 138);
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 133);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 134);
+    TEST((d != -4.56e+17), 0, test_name, 135);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 136);
+    TEST((d != 7e+15), 0, test_name, 137);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 138);
+    TEST(u_strcmp(vm_00456e20s7, text), 0, test_name, 139);
     free(text);
 
     cif_value_free(value);

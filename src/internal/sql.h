@@ -74,14 +74,14 @@
  * specified name in the specified container:
  */
 #define SET_ALL_VALUES_SQL "insert or replace into item_value " \
-  "(kind, val_text, val, val_digits, su_digits, scale, container_id, name, row_num) " \
-  "select ?, ?, ?, ?, ?, ?, ?, ?, loop_row.row_num " \
+  "(kind, quoted, val_text, val, val_digits, su_digits, scale, container_id, name, row_num) " \
+  "select ?, ?, ?, ?, ?, ?, ?, ?, ?, loop_row.row_num " \
      "from (" \
        "select distinct iv.row_num as row_num " \
        "from loop_item li1 " \
          "join loop_item li2 on li1.container_id = li2.container_id and li1.loop_num = li2.loop_num " \
          "join item_value iv on li2.container_id = iv.container_id and li2.name = iv.name " \
-       "where li1.container_id = ?7 and li1.name = ?8" \
+       "where li1.container_id = ?8 and li1.name = ?9" \
      ") loop_row"
 
 /* Loop "size" is the number of data names in a loop.  See also COUNT_LOOP_PACKETS_SQL. */
@@ -124,12 +124,12 @@
 #define ADD_LOOP_ITEM_SQL "insert into loop_item (container_id, name, name_orig, loop_num) values (?, ?, ?, ?)"
 
 #define INSERT_VALUE_SQL "insert into item_value (container_id, name, row_num, " \
-    "kind, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "kind, quoted, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 #define UPDATE_VALUE_SQL "insert or replace into item_value (container_id, name, row_num, " \
-    "kind, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "kind, quoted, val_text, val, val_digits, su_digits, scale) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
-#define GET_VALUE_SQL "select kind, val, val_text, val_digits, su_digits, scale " \
+#define GET_VALUE_SQL "select kind, quoted, val, val_text, val_digits, su_digits, scale " \
         "from item_value where container_id = ? and name = ?"
 
 /*
@@ -137,7 +137,7 @@
  * loop iterated to allow multiple iterations to proceed simultaneously (as if doing that were a good idea ...)
  */
 #define GET_LOOP_VALUES_SQL \
-    "select iv.row_num, name, iv.kind, iv.val, iv.val_text, iv.val_digits, iv.su_digits, iv.scale " \
+    "select iv.row_num, name, iv.kind, iv.quoted, iv.val, iv.val_text, iv.val_digits, iv.su_digits, iv.scale " \
     "from loop_item li join item_value iv using (container_id, name) " \
     "where li.container_id=? and li.loop_num=? " \
     "order by iv.row_num"

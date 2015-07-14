@@ -223,11 +223,12 @@ int main(void) {
 
     TEST(cif_value_autoinit_numb(value, 0.00000012, 0.0000001, 19), CIF_OK, test_name, 108);
     TEST(cif_value_get_number(value, &d1), CIF_OK, test_name, 109);
-    TEST(!assert_doubles_equal(d1, 0.00000012, DBL_TEST_ULPS), 0, test_name, 110);
-    TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 111);
-    TEST(!assert_doubles_equal(d1, 0.0000001, DBL_TEST_ULPS), 0, test_name, 112);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 113);
-    TEST(u_strcmp(v1_2em7s10, text), 0, test_name, 114);
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 110);
+    TEST(!assert_doubles_equal(d1, 0.00000012, DBL_TEST_ULPS), 0, test_name, 111);
+    TEST(cif_value_get_su(value, &d1), CIF_OK, test_name, 112);
+    TEST(!assert_doubles_equal(d1, 0.0000001, DBL_TEST_ULPS), 0, test_name, 113);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 114);
+    TEST(u_strcmp(v1_2em7s10, text), 0, test_name, 115);
     free(text);
 
     cif_value_free(value);

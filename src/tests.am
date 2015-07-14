@@ -90,7 +90,8 @@ compiled_tests = \
     tests/test_write_complex \
     tests/test_write_loops \
     tests/test_write_frames \
-    tests/test_write_11
+    tests/test_write_11 \
+    tests/test_value_set_quoted
 # Future tests:
 # cif_parse
 # - parse into existing CIF

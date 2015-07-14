@@ -49,12 +49,13 @@ int main(void) {
     /* reinitialize the value as kind CHAR */
     TEST(cif_value_copy_char(value, buffer), CIF_OK, test_name, 3);
     TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 4);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 5);
 
-    /* check that the value carries a dependent reference to the initialization text */
+    /* check that the value carries an independent reference to the initialization text */
     buffer[0] = (UChar) 'X';
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 6);
     TEST((text == NULL), 0, test_name, 7);
-    TEST(u_strcmp(text, copy_text), 0, test_name, 8);
+    TEST(u_strcmp(text, copy_text), 0, test_name, 8); /* should match 'copy_text' rather than 'buffer' */
 
     cif_value_free(value);
     free(copy_text);

@@ -198,11 +198,13 @@ struct cif_pktitr_s {
 
 typedef struct char_value_s {
     cif_kind_tp kind;  /* expected: CIF_CHAR_KIND */
+    cif_quoted_tp quoted;
     UChar *text;
 } cif_char_tp;
 
 typedef struct numb_value_s {
     cif_kind_tp kind;  /* expected: CIF_NUMB_KIND */
+    cif_quoted_tp quoted;
     UChar *text;
     int sign;         /* expected: +-1 */
     /*

@@ -87,32 +87,36 @@ int main(void) {
     TEST(cif_value_copy_char(value, val_str1), CIF_OK, test_name, 18);
     TEST(cif_value_create(CIF_UNK_KIND, &value2), CIF_OK, test_name, 19);
     TEST(cif_value_parse_numb(value2, tmp), CIF_OK, test_name, 20); /* responsibility for tmp passes to value2*/
-    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 21);
-    TEST(assert_values_equal(value, value2), 0, test_name, 22);
-    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 23);
-    TEST(!assert_values_equal(value, value2), 0, test_name, 24);
+    TEST(cif_value_set_quoted(value2, CIF_QUOTED), CIF_OK, test_name, 21);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 22);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 23);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 24);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 25);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 26);    /* coercion doesn't change quoting status */
+    TEST(!assert_values_equal(value, value2), 0, test_name, 27);
     cif_value_free(value);
     cif_value_free(value2);
 
     tmp = u_strdup(val_str2);
-    TEST(tmp == NULL, 0, test_name, 25);
-    TEST(cif_value_create(CIF_UNK_KIND, &value), CIF_OK, test_name, 26);
-    TEST(cif_value_copy_char(value, val_str2), CIF_OK, test_name, 27);
-    TEST(cif_value_create(CIF_UNK_KIND, &value2), CIF_OK, test_name, 28);
-    TEST(cif_value_parse_numb(value2, tmp), CIF_OK, test_name, 29); /* responsibility for tmp passes to value2*/
-    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 30);
-    TEST(assert_values_equal(value, value2), 0, test_name, 31);
-    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 32);
-    TEST(!assert_values_equal(value, value2), 0, test_name, 33);
+    TEST(tmp == NULL, 0, test_name, 28);
+    TEST(cif_value_create(CIF_UNK_KIND, &value), CIF_OK, test_name, 29);
+    TEST(cif_value_copy_char(value, val_str2), CIF_OK, test_name, 30);
+    TEST(cif_value_create(CIF_UNK_KIND, &value2), CIF_OK, test_name, 31);
+    TEST(cif_value_parse_numb(value2, tmp), CIF_OK, test_name, 32); /* responsibility for tmp passes to value2*/
+    TEST(cif_value_set_quoted(value2, CIF_QUOTED), CIF_OK, test_name, 33);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 34);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 35);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 36);
+    TEST(!assert_values_equal(value, value2), 0, test_name, 37);
     cif_value_free(value);
     cif_value_free(value2);
 
-    TEST(cif_value_create(CIF_UNK_KIND, &value), CIF_OK, test_name, 34);
-    TEST(cif_value_copy_char(value, val_str3), CIF_OK, test_name, 35);
+    TEST(cif_value_create(CIF_UNK_KIND, &value), CIF_OK, test_name, 38);
+    TEST(cif_value_copy_char(value, val_str3), CIF_OK, test_name, 39);
     value2 = NULL;
-    TEST(cif_value_clone(value, &value2), CIF_OK, test_name, 36);
-    TEST(cif_value_get_number(value, &d), CIF_INVALID_NUMBER, test_name, 37);
-    TEST(!assert_values_equal(value, value2), 0, test_name, 38);
+    TEST(cif_value_clone(value, &value2), CIF_OK, test_name, 40);
+    TEST(cif_value_get_number(value, &d), CIF_INVALID_NUMBER, test_name, 41);
+    TEST(!assert_values_equal(value, value2), 0, test_name, 42);
     cif_value_free(value);
     cif_value_free(value2);
 

@@ -32,7 +32,7 @@ endif
 cif2_syncheck_SOURCES = \
   examples/syncheck.c \
   cif.h \
-  examples/messages.h
+  cif_error.h
 
 cif2_table1_SOURCES = \
   examples/table1.c \

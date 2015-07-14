@@ -230,6 +230,11 @@ static int write_text(void *context, UChar *text, int32_t length, int fold, int 
 static int fold_line(const UChar *line, int do_fold, int target_length, int window, int for_prefix);
 
 /*
+ * An internal function for writing a character value in unquoted form.  Returns a CIF API result code.
+ */
+static int write_unquoted(void *context, const UChar *text, int32_t length);
+
+/*
  * An internal function for writing a character value in quoted form.  Returns a CIF API result code.
  */
 static int write_quoted(void *context, const UChar *text, int32_t length, char delimiter);
@@ -970,6 +975,9 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
             memset(char_counts, 0, sizeof(char_counts));
             for (ch = text[length]; ch; ch = text[++length]) {
                 char_counts[(ch < 127) ? ch : 127] += 1;
+                if (ch == UCHAR_CR) {
+                    ch = UCHAR_NL;
+                }
                 if (ch == UCHAR_NL) {
                     has_nl_semi = (has_nl_semi || (text[length + 1] == UCHAR_SEMI));
                     if (char_counts[UCHAR_NL] == 1) {
@@ -1007,6 +1015,20 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
 
                 /* If there are no newlines in the text, then all options are on the table */
                 if (char_counts[UCHAR_NL] == 0) {
+
+                    /* Maybe whitespace-delimited */
+                    if ((cif_value_is_quoted(char_value) == CIF_NOT_QUOTED) && (max_line <= LINE_LENGTH(context))
+                            && (char_counts[UCHAR_SP] == 0) && (char_counts[UCHAR_TAB] == 0)
+                            && (char_counts[UCHAR_OBRK] == 0) && (char_counts[UCHAR_CBRK] == 0)
+                            && (char_counts[UCHAR_OBRC] == 0) && (char_counts[UCHAR_CBRC] == 0)
+                            && (text[0] != UCHAR_SQ) && (text[0] != UCHAR_DQ) && (text[0] != UCHAR_HASH)
+                            && (text[0] != UCHAR_DOLLAR) && (text[0] != UCHAR_UNDER)
+                            ) {
+                        /* Flagged as unquoted and having valid form for being presented unquoted */
+                        result = write_unquoted(context, text, max_line);
+                        goto done;
+                    }
+
                     /* Maybe single-delimited */
                     if (max_line <= (LINE_LENGTH(context) - (2 + extra_space))) {
                         if (char_counts[UCHAR_SQ] == 0) {
@@ -1306,6 +1328,12 @@ static int fold_line(const UChar *line, int do_fold, int target_length, int wind
     return 0;
 }
 
+static int write_unquoted(void *context, const UChar *text, int32_t length) {
+    int32_t nchars = write_uliteral(context, text, length, CIF_WRAP);
+
+    return (nchars < 0) ? -nchars : (((length < 0) || (length == nchars)) ? CIF_OK : CIF_ERROR);
+}
+
 static int write_quoted(void *context, const UChar *text, int32_t length, char delimiter) {
     int32_t nchars;
     int last_column = LAST_COLUMN(context);
@@ -1353,7 +1381,10 @@ static int write_numb(void *context, cif_value_tp *numb_value) {
     int result;
     UChar *text;
 
-    if (cif_value_get_text(numb_value, &text) == CIF_OK) {
+    if (cif_value_is_quoted(numb_value) == CIF_QUOTED) {
+        /* The value is quoted, so output the literal text value, quoted */
+        result = write_char(context, numb_value, CIF_TRUE);
+    } else if (cif_value_get_text(numb_value, &text) == CIF_OK) {
         int32_t nchars = write_uliteral(context, text, -1, IS_SEPARATE_VALUES(context));
         free(text);
         result = ((nchars < 0) ? -nchars : ((nchars > 0) ? 0 : CIF_ERROR));
