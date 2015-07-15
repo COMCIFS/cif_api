@@ -3114,10 +3114,10 @@ CIF_INTFUNC_DECL(cif_cstr_to_ustr, (
  *
  * @param[in] str a NUL-terminated Unicode string to analyze
  * @param[in] allow_unquoted zero if whitespace-delimited form is not an acceptable alternative, otherwise nonezero
- * @param[in] allow_triple_quoted zero if whitespace-delimited form is not an acceptable alternative (i.e. for
- *     CIF 1.1 form), otherwise nonezero
- * @param[in] length_limit the line-length limit with which the formatted-result must conform
- * @param[in,out] result a pointer to a @c struct @c cif_string_analysis_s to be filled in with the analysis result;
+ * @param[in] allow_triple_quoted zero if triple-quoted form is not an acceptable alternative (i.e. for
+ *     CIF 1.1 format), otherwise nonezero
+ * @param[in] length_limit the line-length limit with which the formatted result must conform
+ * @param[in,out] result a pointer to a @c @{ struct cif_string_analysis_s @} to be filled in with the analysis result;
  *     must not be NULL
  *
  * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
