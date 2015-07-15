@@ -423,3 +423,183 @@ static int cif_fold_case(const UChar *src, int32_t srclen, UChar **result, int32
 
     return CIF_MEMORY_ERROR;
 }
+
+int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_quoted, int32_t length_limit,
+        struct cif_string_analysis_s *result) {
+    static const UChar apos_delim[] = { UCHAR_SQ, 0 };
+    static const UChar quot_delim[] = { UCHAR_DQ, 0 };
+    static const UChar apos3_delim[] = { UCHAR_SQ, UCHAR_SQ, UCHAR_SQ, 0 };
+    static const UChar quot3_delim[] = { UCHAR_DQ, UCHAR_DQ, UCHAR_DQ, 0 };
+    static const UChar text_delim[] = { UCHAR_NL, UCHAR_SEMI, 0 };
+
+    /* uses signed 32-bit integer character counters -- sufficient for very (very!) long values */
+    int32_t char_counts[128] = { 0 };
+    int32_t first_line = 0;
+    int32_t this_line = 0;
+    int32_t max_line = 0;
+    int32_t length = 0;
+    int32_t consec_semis = 0;
+    int32_t most_semis = 0;
+    int32_t crlf_count = 0;
+    int has_nl_semi = CIF_FALSE;
+    int has_trailing_ws = CIF_FALSE;
+    int32_t num_lines;
+    UChar ch;
+
+    result->has_reserved_start = CIF_FALSE;
+
+    /* Analyze the text to inform the choice of delimiters */
+    for (ch = str[0]; ch; ch = str[++length]) {
+        char_counts[(ch < 127) ? ch : 127] += 1;
+        switch (ch) {
+            case UCHAR_CR:
+                if (str[length + 1] == UCHAR_NL) {
+                    crlf_count += 1;
+                    break;
+                } /* else fall through */
+            case UCHAR_NL:
+                has_nl_semi = (has_nl_semi || (str[length + 1] == UCHAR_SEMI));
+                has_trailing_ws = (has_trailing_ws || ((length > 0) && (
+                        (str[length - 1] == UCHAR_SP) || (str[length - 1] == UCHAR_TAB)
+                        || (str[length - 1] == UCHAR_VT))));
+                if (char_counts[UCHAR_NL] + char_counts[UCHAR_CR] == 1) {
+                    first_line = this_line;
+                    max_line = this_line;
+                } else if (this_line > max_line) {
+                    max_line = this_line;
+                }
+                if (consec_semis > most_semis) {
+                    most_semis = consec_semis;
+                }
+                consec_semis = 0;
+                this_line = 0;
+                break;
+            case UCHAR_SEMI:
+                consec_semis += 1;
+                this_line += 1;
+                break;
+            default:
+                consec_semis = 0;
+                this_line += 1;
+                break;
+        }
+    }
+
+    /* handle the stats for the last line */
+    if (consec_semis > most_semis) {
+        most_semis = consec_semis;
+    }
+    num_lines = 1 + char_counts[UCHAR_NL] + char_counts[UCHAR_CR] - crlf_count;
+    if (num_lines == 1) {
+        first_line = this_line;
+        max_line = this_line;
+    } else if (this_line > max_line) {
+        max_line = this_line;
+    }
+
+    /* If the longest line surpasses the length limit then we cannot use anything other than a text block */
+    if (max_line <= length_limit) {
+
+        /* If the value is contained within a single line then all options are on the table */
+        if (num_lines == 1) {
+
+            /* Maybe whitespace-delimited */
+            if (allow_unquoted
+                    && ((char_counts[UCHAR_SP] + char_counts[UCHAR_TAB] + char_counts[UCHAR_OBRK]
+                        + char_counts[UCHAR_CBRK] + char_counts[UCHAR_OBRC] + char_counts[UCHAR_CBRC]) == 0)
+                    && (str[0] != UCHAR_SQ) && (str[0] != UCHAR_DQ) && (str[0] != UCHAR_HASH)
+                    && (str[0] != UCHAR_DOLLAR) && (str[0] != UCHAR_UNDER)
+                    ) {
+                /* Flagged as unquoted and having valid form for being presented unquoted */
+                result->delim[0] = 0; /* = write_unquoted(context, text, max_line); */
+                result->delim_length = 0;
+                goto done;
+            }
+
+            /* Maybe single-delimited */
+            if (max_line <= (length_limit - 2)) {
+                if (char_counts[UCHAR_SQ] == 0) {
+                    /* recommend apostrophe delimiters */
+                    u_strcpy(result->delim, apos_delim);
+                    result->delim_length = 1;
+                    goto done;
+                } else if (char_counts[UCHAR_DQ] == 0) {
+                    /* recommend quote delimiters */
+                    u_strcpy(result->delim, quot_delim);
+                    result->delim_length = 1;
+                    goto done;
+                } /* else neither (single) apostrophe or quotation mark is suitable */
+            }
+
+            /* maybe triple-delimited */
+            if (allow_triple_quoted && (max_line <= (length_limit - 6))) {
+                if (u_strstr(str, apos3_delim) == NULL) {
+                    u_strcpy(result->delim, apos3_delim);
+                    result->delim_length = 3;
+                    goto done;
+                } else if (u_strstr(str, quot3_delim) == NULL) {
+                    u_strcpy(result->delim, quot3_delim);
+                    result->delim_length = 3;
+                    goto done;
+                }
+            }
+
+        } else
+        /*
+         * We can use triple quotes if neither the first line nor the last is too long, and if the text does
+         * not contain both triple delimiters, provided that triple-quoting is permitted at all in the dialect
+         * we are writing.
+         */
+        if (allow_triple_quoted && (this_line < (length_limit - 3)) && (first_line < (length_limit - 3))) {
+            if (u_strstr(str, apos3_delim) == NULL) {
+                u_strcpy(result->delim, apos3_delim);
+                result->delim_length = 3;
+                goto done;
+            } else if (u_strstr(str, quot3_delim) == NULL) {
+                u_strcpy(result->delim, quot3_delim);
+                result->delim_length = 3;
+                goto done;
+            }
+        }
+    }
+
+    /* if control reaches this point then all alternatives other than a text block have been ruled out */
+    u_strcpy(result->delim, text_delim);
+    result->delim_length = 2;
+
+    /* check whether the beginning of the value emulates a prefix or a fold separator */
+    if (str[0] != UCHAR_SEMI) {
+        int32_t index;
+
+        for (index = first_line - 1; index >= 0; index -= 1) {
+            switch (str[index]) {
+                case UCHAR_TAB:
+                case UCHAR_SP:
+                    /* trailing spaces and tabs do not affect the determination */
+                    break;
+                case UCHAR_BSL:
+                    /*
+                     * The last non-whitespace character is a backslash, so the beginning of the text
+                     * looks like a prefixing and/or line-folding marker.  It can be handled via line folding.
+                     */
+                    result->has_reserved_start = CIF_TRUE;
+
+                    /* fall through */
+                default:
+                    goto done;
+            }
+        }
+    }
+
+    done:
+    result->num_lines = num_lines;
+    result->length = length;
+    result->length_first = first_line;
+    result->length_last = this_line;
+    result->length_max = max_line;
+    result->contains_text_delim = has_nl_semi;
+    result->max_semi_run = consec_semis;
+    result->has_trailing_ws = has_trailing_ws;
+
+    return CIF_OK;
+}

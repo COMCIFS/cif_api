@@ -1071,6 +1071,70 @@ struct cif_write_opts_s {
     int cif_version;
 };
 
+/**
+ * @brief Represents the results of analyzing a string for characteristics directing its form when presented as a CIF
+ * data value.
+ */
+struct cif_string_analysis_s {
+
+    /**
+     * @brief the recommended delimiter string
+     */
+    UChar   delim[4];
+
+    /**
+     * @brief the overall number of @c UChar units in the analyzed string
+     */
+    int32_t length;
+
+    /**
+     * @brief the number of @c UChar units in the first line of the analyzed string, excluding line terminators
+     */
+    int32_t length_first;
+
+    /**
+     * @brief the number of @c UChar units in the last line of the analyzed string
+     */
+    int32_t length_last;
+
+    /**
+     * @brief the number of @c UChar units in the longest line of the analyzed string, excluding line terminators
+     */
+    int32_t length_max;
+
+    /**
+     * @brief the number of lines in the analyzed string, which is one more than the number of line terminators in it
+     */
+    int32_t num_lines;
+
+    /**
+     * @brief the length of the longest run of consecutive semicolon characters in the input string
+     */
+    int32_t max_semi_run;
+
+    /**
+     * @brief the number of @c UChar units in the recommended delimiter
+     */
+    unsigned delim_length;
+
+    /**
+     * @brief non-zero if and only if the analyzed string contains the text-field delimiter
+     */
+    int contains_text_delim;
+
+    /**
+     * @brief non-zero if and only if the analyzed string starts with a character sequence that has special
+     * significance with respect to the recommended delimiters
+     */
+    int has_reserved_start;
+
+    /**
+     * @brief non-zero if and only if the analyzed string contains in-line whitespace immediately prior to any line
+     * terminator
+     */
+    int has_trailing_ws;
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2262,7 +2326,7 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  Additionally, values of character kind and suitable
  * content will be automatically coerced to numeric kind by functions @c cif_value_get_number() and
  * @c cif_value_get_su(), and under some circumstances, values will be coerced between character and n/a or
- * unknown-value kind via function @cif_value_set_quoted().  If it is not known, the kind of a value object can be
+ * unknown-value kind via function @c cif_value_set_quoted().  If it is not known, the kind of a value object can be
  * determined via @c cif_value_kind(); this is important, because many of the value manipulation functions are useful
  * only for values of certain kinds.
  *
@@ -3033,6 +3097,37 @@ CIF_INTFUNC_DECL(cif_cstr_to_ustr, (
         const char *cstr,
         int32_t srclen,
         UChar **ustr
+        ));
+/**
+ * @brief Analyzes a Unicode string with a view toward determining how it can be represented in CIF format as a data
+ * value
+ *
+ * Analyzes the input string to determine what form type of delimiters can be used for it to present it as a CIF-format
+ * data value, and to evaluate other properties that may affect how it is presented, such as whether the line-folding
+ * or text-prefixing protocol may need to be applied to it.  Results are provided in a caller-provided structure.
+ *
+ * This function considers delimiters in the following order: no delimiter (other than whitespace), apostrophe or
+ * quotation mark, triple apostrophe or triple quotation mark, newline/semicolon.  It will recommend the first among
+ * those that is not explicitly excluded and which is consistent with the input string.  It applies CIF 2.0 rules for
+ * its evaluation in all cases.  That is compatible with CIF 1.1 output format, but in some cases text-field form may
+ * be recommended for values that could be expressed in CIF 1.1 with just apostrophe or quotation-mark delimiters.
+ *
+ * @param[in] str a NUL-terminated Unicode string to analyze
+ * @param[in] allow_unquoted zero if whitespace-delimited form is not an acceptable alternative, otherwise nonezero
+ * @param[in] allow_triple_quoted zero if whitespace-delimited form is not an acceptable alternative (i.e. for
+ *     CIF 1.1 form), otherwise nonezero
+ * @param[in] length_limit the line-length limit with which the formatted-result must conform
+ * @param[in,out] result a pointer to a @c struct @c cif_string_analysis_s to be filled in with the analysis result;
+ *     must not be NULL
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+CIF_INTFUNC_DECL(cif_analyze_string, (
+        const UChar *str,
+        int allow_unquoted,
+        int allow_triple_quoted,
+        int32_t length_limit,
+        struct cif_string_analysis_s *result
         ));
 
 /**

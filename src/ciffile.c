@@ -956,165 +956,48 @@ static int write_char(void *context, cif_value_tp *char_value, int allow_text) {
     UChar *text;
 
     if (cif_value_get_text(char_value, &text) == CIF_OK) {
-        /* uses signed 32-bit integer character counters -- sufficient for very (very!) long text blocks */
-        int32_t char_counts[128];
-        int32_t first_line = 0;
-        int32_t this_line = 0;
-        int32_t max_line = 0;
-        int32_t length = 0;
-        int32_t consec_semis = 0;
-        int32_t most_semis = 0;
+        struct cif_string_analysis_s analysis;
         /* extra_space accounts for space consumed by preceding output that must not be separated from the current */
-        int32_t extra_space = (IS_SEPARATE_VALUES(context) ? 0 : LAST_COLUMN(context));
-        int has_nl_semi = CIF_FALSE;
-        UChar ch;
+        /* int32_t extra_space = (IS_SEPARATE_VALUES(context) ? 0 : LAST_COLUMN(context)); */
 
-        if (!IS_CIF1(context) || ((result = cif_validate_cif11_characters(text, NULL)) == CIF_OK)) {
+        if ((!IS_CIF1(context) || ((result = cif_validate_cif11_characters(text, NULL)) == CIF_OK))
+                && ((result = cif_analyze_string(text, !cif_value_is_quoted(char_value), !IS_CIF1(context),
+                        LINE_LENGTH(context), &analysis)) == CIF_OK)
+                ) {
 
-            /* Analyze the text to inform the choice of delimiters */
-            memset(char_counts, 0, sizeof(char_counts));
-            for (ch = text[length]; ch; ch = text[++length]) {
-                char_counts[(ch < 127) ? ch : 127] += 1;
-                if (ch == UCHAR_CR) {
-                    ch = UCHAR_NL;
-                }
-                if (ch == UCHAR_NL) {
-                    has_nl_semi = (has_nl_semi || (text[length + 1] == UCHAR_SEMI));
-                    if (char_counts[UCHAR_NL] == 1) {
-                        first_line = this_line;
-                    }
-                    if (this_line > max_line) {
-                        max_line = this_line;
-                    }
-                    if (consec_semis > most_semis) {
-                        most_semis = consec_semis;
-                    }
-                    consec_semis = 0;
-                    this_line = 0;
-                } else {
-                    if (ch == UCHAR_SEMI) {
-                        consec_semis += 1;
+            switch(analysis.delim_length) {
+                case 0: /* whitespace-delimited */
+                    assert(analysis.delim[0] == 0);
+                    result = write_unquoted(context, text, analysis.length_max);
+                    break;
+                case 1: /* single-quoted */
+                    assert(analysis.delim[0] == UCHAR_SQ || analysis.delim[0] == UCHAR_DQ);
+                    result = write_quoted(context, text, analysis.length, analysis.delim[0]);
+                    break;
+                case 3: /* triple-quoted */
+                    assert(analysis.delim[0] == UCHAR_SQ || analysis.delim[0] == UCHAR_DQ);
+                    result = write_triple_quoted(context, text, analysis.length_first + 3, analysis.length_last, analysis.delim[0]);
+                    break;
+                case 2: /* text field */
+                    assert(analysis.delim[0] == UCHAR_NL);
+                    /* XXX: should really flag more specifically for whether prefixing is enabled */
+                    if (!allow_text || (analysis.contains_text_delim && IS_CIF1(context))) {
+                        result = CIF_DISALLOWED_VALUE;
                     } else {
-                        if (consec_semis > most_semis) {
-                            most_semis = consec_semis;
-                        }
-                        consec_semis = 0;
+                        /* write as a text block, possibly with line-folding and/or prefixing  */
+                        result = write_text(context, text, analysis.length,
+                                ((analysis.length_first >= LINE_LENGTH(context))
+                                        || (analysis.length_max > LINE_LENGTH(context))
+                                        || analysis.has_reserved_start
+                                        || (analysis.max_semi_run >= (LINE_LENGTH(context) - 1))),
+                                analysis.contains_text_delim);
                     }
-                    this_line += 1;
-                }
-            }
-            if (char_counts[UCHAR_NL] == 0) {
-                first_line = this_line;
-            }
-            if (this_line > max_line) {
-                max_line = this_line;
-            }
-
-            /* If the longest line surpasses the length limit then we cannot use anything other than a text block */
-            if (max_line <= (LINE_LENGTH(context))) {
-
-                /* If there are no newlines in the text, then all options are on the table */
-                if (char_counts[UCHAR_NL] == 0) {
-
-                    /* Maybe whitespace-delimited */
-                    if ((cif_value_is_quoted(char_value) == CIF_NOT_QUOTED) && (max_line <= LINE_LENGTH(context))
-                            && (char_counts[UCHAR_SP] == 0) && (char_counts[UCHAR_TAB] == 0)
-                            && (char_counts[UCHAR_OBRK] == 0) && (char_counts[UCHAR_CBRK] == 0)
-                            && (char_counts[UCHAR_OBRC] == 0) && (char_counts[UCHAR_CBRC] == 0)
-                            && (text[0] != UCHAR_SQ) && (text[0] != UCHAR_DQ) && (text[0] != UCHAR_HASH)
-                            && (text[0] != UCHAR_DOLLAR) && (text[0] != UCHAR_UNDER)
-                            ) {
-                        /* Flagged as unquoted and having valid form for being presented unquoted */
-                        result = write_unquoted(context, text, max_line);
-                        goto done;
-                    }
-
-                    /* Maybe single-delimited */
-                    if (max_line <= (LINE_LENGTH(context) - (2 + extra_space))) {
-                        if (char_counts[UCHAR_SQ] == 0) {
-                            /* write the value as an apostrophe-delimited string */
-                            result = write_quoted(context, text, length, UCHAR_SQ);
-                            goto done;
-                        } else if (char_counts[UCHAR_DQ] == 0) {
-                            result = write_quoted(context, text, length, UCHAR_DQ);
-                            goto done;
-                        } /* else neither (single) apostrophe or quotation mark is suitable */
-                    }
-
-                    /* maybe triple-delimited */
-                    if (!IS_CIF1(context) && (max_line <= (LINE_LENGTH(context) - (6 + extra_space)))) {
-                        /*
-                         * line 1 lengths expressed to write_triple_quoted() here include the closing delimiter,
-                         * because it will appear on the first line in this case.  Line 1 lengths NEVER include the
-                         * opening delimiter.
-                         */
-                        if (u_strstr(text, sq3) == NULL) {
-                            result = write_triple_quoted(context, text, length + 3, this_line, UCHAR_SQ);
-                            goto done;
-                        } else if (u_strstr(text, dq3) == NULL) {
-                            result = write_triple_quoted(context, text, length + 3, this_line, UCHAR_DQ);
-                            goto done;
-                        }
-                    }
-
-                } else
-                /*
-                 * We can use triple quotes if neither the first line nor the last is too long, and if the text does
-                 * not contain both triple delimiters, provided that triple-quoting is permitted at all in the dialect
-                 * we are writing.
-                 */
-                if (!IS_CIF1(context) && ((this_line < (LINE_LENGTH(context) - 3))
-                                && (first_line < (LINE_LENGTH(context) - (3 + extra_space))))) {
-                    if (u_strstr(text, sq3) == NULL) {
-                        result = write_triple_quoted(context, text, first_line, this_line, UCHAR_SQ);
-                        goto done;
-                    } else if (u_strstr(text, dq3) == NULL) {
-                        result = write_triple_quoted(context, text, first_line, this_line, UCHAR_DQ);
-                        goto done;
-                    }
-                }
-            }
-
-            /* if control reaches this point then all alternatives other than a text block have been ruled out */
-            /* XXX: should really flag more specifically for whether prefixing is enabled */
-            if (allow_text && !(has_nl_semi && IS_CIF1(context))) {
-                /* write as a text block, possibly with line-folding and/or prefixing  */
-                int fold = ((max_line > LINE_LENGTH(context))
-                        || (most_semis >= (LINE_LENGTH(context) - 1))
-                        || ((!has_nl_semi) && ((first_line + 1) > LINE_LENGTH(context))));
-
-                if (!(fold || has_nl_semi)) { /* otherwise it's redundant to perform the following test */
-                    /* scan backward through the first line to check whether it mimics a prefix or folding marker */
-                    int32_t index;
-
-                    for (index = first_line - 1; index >= 0; index -= 1) {
-                        switch (text[index]) {
-                            case UCHAR_TAB:
-                            case UCHAR_SP:
-                                /* trailing spaces and tabs do not affect the determination */
-                                break;
-                            case UCHAR_BSL:
-                                /*
-                                 * The last non-whitespace character is a backslash, so the beginning of the text
-                                 * looks like a prefixing and/or line-folding marker.  It can be handled via line folding.
-                                 */
-                                fold = CIF_TRUE;
-
-                                /* fall through */
-                            default:
-                                goto end_scan;
-                        }
-                    }
-                }
-
-                end_scan:
-                result = write_text(context, text, length, fold, has_nl_semi);
-            } else {
-                result = CIF_DISALLOWED_VALUE;
+                    break;
+                default: /* unexpected value */
+                    result = CIF_INTERNAL_ERROR;
+                    break;
             }
         }
-
-        done:
         free(text);
     } else {
         result = CIF_ERROR;
