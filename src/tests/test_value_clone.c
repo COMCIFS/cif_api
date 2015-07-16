@@ -32,7 +32,7 @@ int main(void) {
     cif_value_tp *clone = NULL;
     cif_value_tp *element = NULL;
     cif_value_tp *element2 = NULL;
-    U_STRING_DECL(value_text, "value text", 11);
+    U_STRING_DECL(value_text, "value_text", 11); /* suitable to be set unquoted */
     U_STRING_DECL(numb_text, "1.234(5)", 9);
     U_STRING_DECL(one, "1.000", 6);
     U_STRING_DECL(two, "2e-00", 6);
@@ -44,7 +44,7 @@ int main(void) {
     size_t extra;
     int i;
 
-    U_STRING_INIT(value_text, "value text", 11);
+    U_STRING_INIT(value_text, "value_text", 11);
     U_STRING_INIT(numb_text, "1.234(5)", 9);
     U_STRING_INIT(one, "1.000", 6);
     U_STRING_INIT(two, "2e-00", 6);

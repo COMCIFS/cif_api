@@ -2658,6 +2658,10 @@ CIF_FUNC_DECL(cif_quoted_tp, cif_value_is_quoted, (
  * CIF_NA_KIND.  It must must not be called with @c QUOTED as its second argument when the first has kind
  * @c CIF_LIST_KIND or @c CIF_TABLE_KIND.
  *
+ * Values of character kind representing reserved strings (see @c cif_is_reserved_string()) cannot be set unquoted.
+ * Values of list or table kind cannot be set quoted, regardless of their contents.  If this function is asked to
+ * perform such an action then it will instead return @c CIF_ARGUMENT_ERROR.
+ *
  * @param[in, out] value a pointer to the value object whose quoting status is requested; must point at an initialized
  *      value
  *
@@ -3112,6 +3116,11 @@ CIF_INTFUNC_DECL(cif_cstr_to_ustr, (
  * its evaluation in all cases.  That is compatible with CIF 1.1 output format, but in some cases text-field form may
  * be recommended for values that could be expressed in CIF 1.1 with just apostrophe or quotation-mark delimiters.
  *
+ * For generality, this function always recommends one of the quoted forms for strings beginning with a semicolon.
+ * Some such strings can be presented whitespace-delimited, <em>but not at the beginning of a line</em>.  Since the
+ * position at which a string may be presented is not a property of the string itself, this function considers it
+ * unsafe to use whitespace-delimited form to present any string beginning with a semicolon.
+ *
  * @param[in] str a NUL-terminated Unicode string to analyze
  * @param[in] allow_unquoted zero if whitespace-delimited form is not an acceptable alternative, otherwise nonezero
  * @param[in] allow_triple_quoted zero if triple-quoted form is not an acceptable alternative (i.e. for
@@ -3128,6 +3137,24 @@ CIF_INTFUNC_DECL(cif_analyze_string, (
         int allow_triple_quoted,
         int32_t length_limit,
         struct cif_string_analysis_s *result
+        ));
+
+/**
+ * @brief Determines whether a given string takes a reserved form that must not be presented whitespace-delimited in a CIF
+ *
+ * This function looks for individual reserved character at the beginning of the string, and compares the string
+ * overall to several reserved words and forms.  Unlike most CIF API functions, this one does not return a CIF API
+ * result code.
+ *
+ * Although strings containing CIF whitespace or certain other characters cannot be presented whitespace-delimited,
+ * they are not for that reason considered "reserved" for the purposes of this function.
+ *
+ * @param [in] str a NUL-terminated Unicode string to analyze; must not be NULL
+ *
+ * @return non-zero if and only if the string has a reserved form
+ */
+CIF_INTFUNC_DECL(cif_is_reserved_string, (
+        const UChar *str
         ));
 
 /**

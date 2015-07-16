@@ -2330,26 +2330,13 @@ cif_quoted_tp cif_value_is_quoted(cif_value_tp *value) {
     }
 }
 
-/**
- * @brief Sets whether the value should be interpreted as if it were presented quoted
- *
- * This function may coerce values in-place between kind @c CIF_CHAR_KIND and either @c CIF_UNK_KIND or @c
- * CIF_NA_KIND.  It must must not be called with @c QUOTED as its second argument when the first has kind
- * @c CIF_LIST_KIND or @c CIF_TABLE_KIND.
- *
- * @param[in] value a pointer to the value object whose quoting status is requested; must point at an initialized value
- *
- * @param[in,out] quoted a pointer to the location where the quoting status should be recorded; must not be NULL
- *
- * @return Returns CIF_OK on success, or an error code (typically @c CIF_ARGUMENT_ERROR or @c CIF_ERROR ) on failure.
- */
 int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
+    static const UChar unk_string[] = { UCHAR_QUERY, 0 };
+    static const UChar  na_string[] = { UCHAR_DECIMAL, 0 };
+    static const UChar disallowed_chars[] = {
+            UCHAR_OBRK, UCHAR_CBRK, UCHAR_OBRC, UCHAR_CBRC, UCHAR_SP, UCHAR_TAB, UCHAR_NL, UCHAR_CR, 0
+    };
     int result;
-    U_STRING_DECL(unk_string, "?", 2);
-    U_STRING_DECL(na_string, ".", 2);
-
-    U_STRING_INIT(unk_string, "?", 2);
-    U_STRING_INIT(na_string, ".", 2);
 
     switch (value->kind) {
         case CIF_UNK_KIND:
@@ -2382,6 +2369,10 @@ int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
                     result = cif_value_init(value, CIF_UNK_KIND);
                 } else if (!u_strcmp(value->as_char.text, na_string)) {
                     result = cif_value_init(value, CIF_NA_KIND);
+                } else if (cif_is_reserved_string(value->as_char.text)
+                        || (value->as_char.text[u_strcspn(value->as_char.text, disallowed_chars)])) {
+                    /* reserved or whitespace-containing string */
+                    result = CIF_ARGUMENT_ERROR;
                 } else {
                     value->as_char.quoted = quoted;
                     result = CIF_OK;

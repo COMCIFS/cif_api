@@ -424,6 +424,89 @@ static int cif_fold_case(const UChar *src, int32_t srclen, UChar **result, int32
     return CIF_MEMORY_ERROR;
 }
 
+int cif_is_reserved_string(const UChar *str) {
+    int32_t len;
+#define UCHAR_A 0x41
+#define UCHAR_a 0x61
+#define UCHAR_B 0x42
+#define UCHAR_b 0x62
+#define UCHAR_D 0x44
+#define UCHAR_d 0x64
+#define UCHAR_E 0x45
+#define UCHAR_e 0x65
+#define UCHAR_G 0x47
+#define UCHAR_g 0x67
+#define UCHAR_L 0x4C
+#define UCHAR_l 0x6C
+#define UCHAR_O 0x4F
+#define UCHAR_o 0x6f
+#define UCHAR_P 0x50
+#define UCHAR_p 0x70
+#define UCHAR_S 0x53
+#define UCHAR_s 0x73
+#define UCHAR_T 0x54
+#define UCHAR_t 0x74
+#define UCHAR_V 0x56
+#define UCHAR_v 0x76
+
+    switch (str[0]) {
+        case UCHAR_UNDER:
+        case UCHAR_HASH:
+        case UCHAR_DOLLAR:
+        case UCHAR_SQ:
+        case UCHAR_DQ:
+            /* reserved first character */
+            return 1;
+        case UCHAR_D:
+        case UCHAR_d:
+            /* check for data_* */
+            return (((str[1] == UCHAR_A) || (str[1] == UCHAR_a))
+                    && ((str[2] == UCHAR_T) || (str[2] == UCHAR_t))
+                    && ((str[3] == UCHAR_A) || (str[3] == UCHAR_a))
+                    && (str[4] == UCHAR_UNDER)
+                    );
+        case UCHAR_G:
+        case UCHAR_g:
+            /* check for global_ (exact) */
+            return (((str[1] == UCHAR_L) || (str[1] == UCHAR_l))
+                    && ((str[2] == UCHAR_O) || (str[2] == UCHAR_o))
+                    && ((str[3] == UCHAR_B) || (str[3] == UCHAR_b))
+                    && ((str[4] == UCHAR_A) || (str[4] == UCHAR_a))
+                    && ((str[5] == UCHAR_L) || (str[5] == UCHAR_l))
+                    && (str[6] == UCHAR_UNDER) && (str[7] == 0)
+                    );
+        case UCHAR_L:
+        case UCHAR_l:
+            /* check for loop_ (exact) */
+            return (((str[1] == UCHAR_O) || (str[1] == UCHAR_o))
+                    && ((str[2] == UCHAR_O) || (str[2] == UCHAR_o))
+                    && ((str[3] == UCHAR_P) || (str[3] == UCHAR_p))
+                    && (str[4] == UCHAR_UNDER) && (str[5] == 0)
+                    );
+        case UCHAR_S:
+        case UCHAR_s:
+            switch (str[1]) {
+                case UCHAR_A:
+                case UCHAR_a:
+                    /* check for save_* */
+                    return (((str[2] == UCHAR_V) || (str[2] == UCHAR_v))
+                            && ((str[3] == UCHAR_E) || (str[3] == UCHAR_e))
+                            && (str[4] == UCHAR_UNDER)
+                            );
+                case UCHAR_T:
+                case UCHAR_t:
+                    /* check for stop_ (exact) */
+                    return (((str[2] == UCHAR_O) || (str[2] == UCHAR_o))
+                            && ((str[3] == UCHAR_P) || (str[3] == UCHAR_p))
+                            && (str[4] == UCHAR_UNDER) && (str[5] == 0)
+                            );
+            }  /* default: nothing */
+            break;
+    } /* default: nothing */
+
+    return 0;
+}
+
 int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_quoted, int32_t length_limit,
         struct cif_string_analysis_s *result) {
     static const UChar apos_delim[] = { UCHAR_SQ, 0 };
@@ -508,7 +591,8 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
                     && ((char_counts[UCHAR_SP] + char_counts[UCHAR_TAB] + char_counts[UCHAR_OBRK]
                         + char_counts[UCHAR_CBRK] + char_counts[UCHAR_OBRC] + char_counts[UCHAR_CBRC]) == 0)
                     && (str[0] != UCHAR_SQ) && (str[0] != UCHAR_DQ) && (str[0] != UCHAR_HASH)
-                    && (str[0] != UCHAR_DOLLAR) && (str[0] != UCHAR_UNDER)
+                    && (str[0] != UCHAR_DOLLAR) && (str[0] != UCHAR_UNDER) && (str[0] != UCHAR_SEMI)
+                    && !cif_is_reserved_string(str)
                     ) {
                 /* Flagged as unquoted and having valid form for being presented unquoted */
                 result->delim[0] = 0; /* = write_unquoted(context, text, max_line); */
