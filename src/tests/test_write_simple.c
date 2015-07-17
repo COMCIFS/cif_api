@@ -39,7 +39,6 @@ int main(void) {
     cif_tp *cif_readback = NULL;
     cif_block_tp *block = NULL;
     cif_value_tp *value = NULL;
-    cif_value_tp *value2 = NULL;
     UChar value_sq_string[] = { 'S', 'a', 'y', ' ', '"', 'B', 'o', 'o', '"', 0 };
     UChar value_dq_string[] = { 'D', 'r', '.', ' ', 'O', '\'', 'M', 'a', 'l', 'l', 'e', 'y', 0 };
     UChar value_text_string[] = { 'D', 'e', 'l', 'i', 'm', 's', ' ', 'a', 'r', 'e', ':', 0x0a, '\'', '\'', '\'', ' ',
@@ -59,7 +58,6 @@ int main(void) {
             'f', 'o', 'r', ' ', 'm', 'u', 'l', 't', 'i', 'l', 'i', 'n', 'e', 's', 0 };
     UChar value_dq3_string[] = { 'T', 'r', 'y', ' ', 't', 'h', 'i', 's', ':', ' ', '\'', '\'', '\'', ' ',
             '_', 'n', 'a', 'm', 'e', 0x0a, ';', 0x0a, ';', ' ', '\'', '\'', '\'', 0 };
-    UChar value_numb_quoted[] = { '1', '.', '2', '5', 0 };
     UChar value_text_unquoted[] = { 't', 'e', 'x', 't', 0 };
     U_STRING_DECL(block_code,           "simple_data", 12);
     U_STRING_DECL(name_unknown_value,   "_unknown_value", 15);

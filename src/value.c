@@ -252,7 +252,6 @@ int fegetround(void);
     } else { \
         cif_value_tp *v = (cif_value_tp *) val; \
         cif_kind_tp _kind; \
-        cif_quoted_tp _q; \
         int _D_result; \
         v->kind = CIF_UNK_KIND; \
         if (cif_buf_read(_buf, &_kind, sizeof(cif_kind_tp)) == sizeof(cif_kind_tp)) { \

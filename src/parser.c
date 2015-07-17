@@ -2315,8 +2315,6 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
                     SET_RESULT(result);
                 }
 
-                FAILURE_HANDLER(late):
-
                 /* clean up the buffer */
                 free(buffer);
             } /* else failed to allocate the text buffer */

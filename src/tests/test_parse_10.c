@@ -44,9 +44,6 @@ int main(void) {
     cif_value_tp *value = NULL;
     UChar *ustr;
 
-
-    size_t count;
-    unsigned int packet_flags;
     double d;
 
     U_STRING_DECL(code_10,           "10", 3);

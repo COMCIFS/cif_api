@@ -34,7 +34,6 @@ int main(void) {
     char test_name[80] = "test_get_api_version";
     const char *expected_version = getenv(VERSION_VAR);
     char *reported_version;
-    int result;
 
     TESTHEADER(test_name);
     TEST(expected_version == NULL, 0, test_name, 1);

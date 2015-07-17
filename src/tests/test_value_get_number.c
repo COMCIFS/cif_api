@@ -28,8 +28,10 @@
 #include "test.h"
 #include "assert_value.h"
 
-UChar *u_strdup(UChar *src) {
-    UChar *dest = malloc((u_strlen(src) + 1) * sizeof(UChar));
+UChar *u_strdup(const UChar *src);
+
+UChar *u_strdup(const UChar *src) {
+    UChar *dest = (UChar *) malloc((u_strlen(src) + 1) * sizeof(UChar));
 
     if (dest) {
         u_strcpy(dest, src);

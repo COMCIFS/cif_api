@@ -65,7 +65,6 @@ int main(void) {
     U_STRING_DECL(value_sq_string,      "sq", 3);
     U_STRING_DECL(value_dq_string,      "dq", 3);
     U_STRING_DECL(value_text_string,    "text", 5);
-    U_STRING_DECL(value_numb_quoted,    "1.0", 4);
     U_STRING_DECL(value_query_quoted,   "?", 2);
     U_STRING_DECL(value_dot_quoted,     ".", 2);
     U_STRING_DECL(value_numb_tz,        "17.12500", 9);
@@ -87,7 +86,6 @@ int main(void) {
     U_STRING_INIT(value_sq_string,      "sq", 3);
     U_STRING_INIT(value_dq_string,      "dq", 3);
     U_STRING_INIT(value_text_string,    "text", 5);
-    U_STRING_INIT(value_numb_quoted,    "1.0", 4);
     U_STRING_INIT(value_query_quoted,   "?", 2);
     U_STRING_INIT(value_dot_quoted,     ".", 2);
     U_STRING_INIT(value_numb_tz,        "17.12500", 9);

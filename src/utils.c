@@ -425,7 +425,6 @@ static int cif_fold_case(const UChar *src, int32_t srclen, UChar **result, int32
 }
 
 int cif_is_reserved_string(const UChar *str) {
-    int32_t len;
 #define UCHAR_A 0x41
 #define UCHAR_a 0x61
 #define UCHAR_B 0x42

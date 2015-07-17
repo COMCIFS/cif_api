@@ -764,7 +764,6 @@ static int walk_packet(cif_packet_tp *packet, cif_handler_tp *handler, void *con
         return handler_result;
     } else {
         struct entry_s *item;
-        unsigned int packet_size = HASH_COUNT(packet->map.head);
 
         for (item = packet->map.head; item != NULL; item = (struct entry_s *) item->hh.next) {
             int item_result;
