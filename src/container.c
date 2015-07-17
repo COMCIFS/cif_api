@@ -689,7 +689,7 @@ int cif_container_destroy(
 int cif_container_get_code(
         cif_container_tp *container,
         UChar **code) {
-    UChar *temp = cif_u_strdup(container->code_orig);
+    UChar *temp;
 
     assert(container->code_orig != NULL);
     temp = cif_u_strdup(container->code_orig);

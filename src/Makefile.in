@@ -73,7 +73,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = $(am__EXEEXT_1)
+bin_PROGRAMS = cif_linguist$(EXEEXT) $(am__EXEEXT_1)
 DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/examples.am $(srcdir)/tests.am
 @build_examples_TRUE@am__append_1 = \
@@ -222,6 +222,10 @@ am_cif2_table3_OBJECTS = table3.$(OBJEXT)
 cif2_table3_OBJECTS = $(am_cif2_table3_OBJECTS)
 cif2_table3_LDADD = $(LDADD)
 cif2_table3_DEPENDENCIES = libcif.la
+am_cif_linguist_OBJECTS = linguist.$(OBJEXT)
+cif_linguist_OBJECTS = $(am_cif_linguist_OBJECTS)
+cif_linguist_LDADD = $(LDADD)
+cif_linguist_DEPENDENCIES = libcif.la
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
@@ -555,7 +559,7 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(cif2_addauthor_SOURCES) $(cif2_syncheck_SOURCES) \
 	$(cif2_table1_SOURCES) $(cif2_table3_SOURCES) \
-	tests/test_block_create_frame1.c \
+	$(cif_linguist_SOURCES) tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -597,7 +601,8 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_write_loops.c tests/test_write_simple.c
 DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	$(cif2_syncheck_SOURCES) $(cif2_table1_SOURCES) \
-	$(cif2_table3_SOURCES) tests/test_block_create_frame1.c \
+	$(cif2_table3_SOURCES) $(cif_linguist_SOURCES) \
+	tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -883,6 +888,7 @@ EXTRA_DIST = notes.txt style.txt tests/assert_cifs.h \
 AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS) $(PROFILING_CPPFLAGS)
 AM_CFLAGS = $(PROFILING_CFLAGS)
 AM_LDFLAGS = $(PROFILING_LDFLAGS)
+LDADD = libcif.la
 MAINTAINERCLEANFILES = internal/schema.h internal/version.h
 cif2_syncheck_SOURCES = \
   examples/syncheck.c \
@@ -1010,7 +1016,7 @@ libcif_la_SOURCES = \
 nodist_libcif_la_SOURCES = $(BUILT_SOURCES)
 libcif_la_LIBADD = $(ICU_LIBS)
 libcif_la_LDFLAGS = $(AM_LDFLAGS) $(LIB_VERSION_FLAGS) -no-undefined
-LDADD = libcif.la
+cif_linguist_SOURCES = tools/linguist.c
 
 # A sed script that processes a slightly-restricted dialect of SQL into a
 # comma-delimited list of C string literals, each containing the text of
@@ -1166,6 +1172,9 @@ cif2_table1$(EXEEXT): $(cif2_table1_OBJECTS) $(cif2_table1_DEPENDENCIES) $(EXTRA
 cif2_table3$(EXEEXT): $(cif2_table3_OBJECTS) $(cif2_table3_DEPENDENCIES) $(EXTRA_cif2_table3_DEPENDENCIES) 
 	@rm -f cif2_table3$(EXEEXT)
 	$(LINK) $(cif2_table3_OBJECTS) $(cif2_table3_LDADD) $(LIBS)
+cif_linguist$(EXEEXT): $(cif_linguist_OBJECTS) $(cif_linguist_DEPENDENCIES) $(EXTRA_cif_linguist_DEPENDENCIES) 
+	@rm -f cif_linguist$(EXEEXT)
+	$(LINK) $(cif_linguist_OBJECTS) $(cif_linguist_LDADD) $(LIBS)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
@@ -1384,6 +1393,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cif.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ciffile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/container.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linguist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/loop.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/packet.Plo@am__quote@
@@ -1539,6 +1549,20 @@ table3.obj: examples/table3.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='examples/table3.c' object='table3.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o table3.obj `if test -f 'examples/table3.c'; then $(CYGPATH_W) 'examples/table3.c'; else $(CYGPATH_W) '$(srcdir)/examples/table3.c'; fi`
+
+linguist.o: tools/linguist.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT linguist.o -MD -MP -MF $(DEPDIR)/linguist.Tpo -c -o linguist.o `test -f 'tools/linguist.c' || echo '$(srcdir)/'`tools/linguist.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/linguist.Tpo $(DEPDIR)/linguist.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/linguist.c' object='linguist.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o linguist.o `test -f 'tools/linguist.c' || echo '$(srcdir)/'`tools/linguist.c
+
+linguist.obj: tools/linguist.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT linguist.obj -MD -MP -MF $(DEPDIR)/linguist.Tpo -c -o linguist.obj `if test -f 'tools/linguist.c'; then $(CYGPATH_W) 'tools/linguist.c'; else $(CYGPATH_W) '$(srcdir)/tools/linguist.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/linguist.Tpo $(DEPDIR)/linguist.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/linguist.c' object='linguist.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o linguist.obj `if test -f 'tools/linguist.c'; then $(CYGPATH_W) 'tools/linguist.c'; else $(CYGPATH_W) '$(srcdir)/tools/linguist.c'; fi`
 
 test_block_create_frame1.o: tests/test_block_create_frame1.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_create_frame1.o -MD -MP -MF $(DEPDIR)/test_block_create_frame1.Tpo -c -o test_block_create_frame1.o `test -f 'tests/test_block_create_frame1.c' || echo '$(srcdir)/'`tests/test_block_create_frame1.c
