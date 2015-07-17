@@ -23,6 +23,20 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
+#ifdef _WIN32
+#ifdef DLL_EXPORT
+#define DECLSPEC __declspec(dllexport)
+#else
+#ifndef LIBCIF_STATIC
+#define DECLSPEC __declspec(dllimport)
+#endif
+#endif
+#endif
+
+#ifndef DECLSPEC
+#define DECLSPEC
+#endif
+
 /**
  * @file
  *
@@ -34,12 +48,12 @@
  * @brief A table of short descriptions of the errors indicated by the various
  *        CIF API error codes
  */
-extern const char cif_errlist[][80];
+DECLSPEC extern const char cif_errlist[][80];
 
 /**
  * @brief The number of entries in @c cif_errlist
  */
-extern const int cif_nerr;
+DECLSPEC extern const int cif_nerr;
 
 /**
  * @}

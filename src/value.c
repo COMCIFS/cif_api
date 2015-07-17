@@ -1722,6 +1722,23 @@ static int frac_bits(double d, int *exponent) {
     }
 }
 
+static int cif_value_convert_to_numb(cif_value_tp *n) {
+    UChar *text;
+    int result = cif_value_get_text(n, &text);
+    cif_quoted_tp quoted = cif_value_is_quoted(n);
+
+    if (result == CIF_OK) {
+        result = cif_value_parse_numb(n, text);
+        if (result != CIF_OK) {
+            free(text);
+        } else if (quoted) {
+            result = cif_value_set_quoted(n, quoted);
+        }
+    }
+
+    return result;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2388,23 +2405,6 @@ int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
     return result;
 }
 
-
-static int cif_value_convert_to_numb(cif_value_tp *n) {
-    UChar *text;
-    int result = cif_value_get_text(n, &text);
-    cif_quoted_tp quoted = cif_value_is_quoted(n);
-
-    if (result == CIF_OK) {
-        result = cif_value_parse_numb(n, text);
-        if (result != CIF_OK) {
-            free(text);
-        } else if (quoted) {
-            result = cif_value_set_quoted(n, quoted);
-        }
-    }
-
-    return result;
-}
 
 int cif_value_get_number(cif_value_tp *n, double *val) {
     struct numb_value_s *numb;

@@ -537,6 +537,10 @@ extern int total_queries;
  * function headers for private, non-static functions
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef HAVE_DECL_STRDUP
 #ifdef HAVE_STRDUP
 extern char *strdup(const char *s)

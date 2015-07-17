@@ -323,107 +323,6 @@ int cif_normalize_table_index(const UChar *name, int32_t namelen, UChar **normal
     }
 }
 
-#ifdef __cplusplus
-}
-#endif
-
-/*
- * Computes a normalization of the given Unicode string.  Returns a CIF error code on failure; otherwise, sets *result
- * to the normalized Unicode string, and the caller assumes responsibility for cleaning up that string.  The original
- * string is not modified.
- */
-static int cif_unicode_normalize(const UChar *src, int32_t srclen, UNormalizationMode mode, UChar **result,
-        int32_t *result_length,  int terminate) {
-    FAILURE_HANDLING;
-    int32_t src_chars = ((srclen >= 0) ? srclen : u_strlen(src));
-
-    /* prepare an output buffer, reserving space for a trailing NUL character */
-    int32_t buffer_chars = src_chars + 1;
-    UChar *buf = (UChar *) malloc(((size_t) buffer_chars) * sizeof(UChar));
- 
-    while (buf) {
-        /* perform the normalization */
-        UErrorCode code = U_ZERO_ERROR;
-        int32_t normalized_chars = unorm_normalize(src, src_chars, mode, 0, buf, buffer_chars, &code);
-
-        if ((code == U_STRING_NOT_TERMINATED_WARNING) && terminate) {
-            /* (only) the terminator did not fit in the buffer */
-            /* enlarge and terminate the buffer; no need to re-normalize */
-            UChar *temp = (UChar *) realloc(buf, ((size_t) normalized_chars + 1) * sizeof (UChar));
-
-            if (temp != NULL) {
-                /* buf is no longer a valid pointer */
-                temp[normalized_chars] = 0;
-                *result = temp;
-                *result_length = normalized_chars;
-                return CIF_OK;
-            } /* else reallocation failure; buf remains valid */
-            FAIL(soft, CIF_MEMORY_ERROR);
-        } else if (U_SUCCESS(code)) { /* Note: ICU warning codes are accounted successful */
-            /* output captured and terminator written -- it's all good */
-            *result = buf;
-            *result_length = normalized_chars;
-            return CIF_OK;
-        } else if (code == U_BUFFER_OVERFLOW_ERROR) {
-            /* a larger output buffer was needed */
-
-            /* allocate a sufficient buffer; do not realloc() because it is useless to preserve the current content */
-            free(buf);
-            buffer_chars = (size_t) normalized_chars + 1;
-            buf = (UChar *) malloc(buffer_chars * sizeof (UChar));  /* no need for a NULL check here */
-
-            /* run the normalization routine again to capture the missing output */
-            continue;
-        } /* else normalization failed */
-
-        FAILURE_HANDLER(soft):
-#ifdef DEBUG
-        fprintf(stderr, "error: Unicode normalization failure: %s\n", u_errorName(code));
-#endif
-
-        free(buf);
-        FAILURE_TERMINUS;
-    }
-
-    return CIF_MEMORY_ERROR;
-}
-
-static int cif_fold_case(const UChar *src, int32_t srclen, UChar **result, int32_t *result_length) {
-    int32_t src_chars = ((srclen < 0) ? u_strlen(src) : srclen);
-
-    /* initial guess: the folded version will not contain more code units than the unfolded */
-    int32_t buffer_chars = src_chars + 1;
-    UChar *buf = (UChar *) malloc(((size_t) buffer_chars) * sizeof(UChar));
-
-    while (buf) {
-        UErrorCode code = U_ZERO_ERROR;
-        int32_t folded_chars = u_strFoldCase(buf, buffer_chars, src, src_chars, U_FOLD_CASE_DEFAULT, &code);
-
-        if (U_SUCCESS(code)) { /* Note: ICU warning codes are accounted successful */
-            /* case folding was successful, but result is not necessarily NUL-terminated */
-            *result = buf;
-            *result_length = folded_chars;
-            return CIF_OK;
-        } else if (code == U_BUFFER_OVERFLOW_ERROR) {
-            /* the destination buffer was too small */
-
-            /* allocate a sufficient buffer */
-            free(buf);
-            buffer_chars = (size_t) folded_chars + 1;
-            buf = (UChar *) malloc(buffer_chars * sizeof(UChar));  /* no need for a NULL check here */
-
-            /* re-fold */
-            continue;
-        }  /* else case-folding failure */
-
-        /* clean up and fail */
-        free(buf);
-        return CIF_ERROR;
-    }
-
-    return CIF_MEMORY_ERROR;
-}
-
 int cif_is_reserved_string(const UChar *str) {
 #define UCHAR_A 0x41
 #define UCHAR_a 0x61
@@ -685,4 +584,105 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
     result->has_trailing_ws = has_trailing_ws;
 
     return CIF_OK;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+/*
+ * Computes a normalization of the given Unicode string.  Returns a CIF error code on failure; otherwise, sets *result
+ * to the normalized Unicode string, and the caller assumes responsibility for cleaning up that string.  The original
+ * string is not modified.
+ */
+static int cif_unicode_normalize(const UChar *src, int32_t srclen, UNormalizationMode mode, UChar **result,
+        int32_t *result_length,  int terminate) {
+    FAILURE_HANDLING;
+    int32_t src_chars = ((srclen >= 0) ? srclen : u_strlen(src));
+
+    /* prepare an output buffer, reserving space for a trailing NUL character */
+    int32_t buffer_chars = src_chars + 1;
+    UChar *buf = (UChar *) malloc(((size_t) buffer_chars) * sizeof(UChar));
+
+    while (buf) {
+        /* perform the normalization */
+        UErrorCode code = U_ZERO_ERROR;
+        int32_t normalized_chars = unorm_normalize(src, src_chars, mode, 0, buf, buffer_chars, &code);
+
+        if ((code == U_STRING_NOT_TERMINATED_WARNING) && terminate) {
+            /* (only) the terminator did not fit in the buffer */
+            /* enlarge and terminate the buffer; no need to re-normalize */
+            UChar *temp = (UChar *) realloc(buf, ((size_t) normalized_chars + 1) * sizeof (UChar));
+
+            if (temp != NULL) {
+                /* buf is no longer a valid pointer */
+                temp[normalized_chars] = 0;
+                *result = temp;
+                *result_length = normalized_chars;
+                return CIF_OK;
+            } /* else reallocation failure; buf remains valid */
+            FAIL(soft, CIF_MEMORY_ERROR);
+        } else if (U_SUCCESS(code)) { /* Note: ICU warning codes are accounted successful */
+            /* output captured and terminator written -- it's all good */
+            *result = buf;
+            *result_length = normalized_chars;
+            return CIF_OK;
+        } else if (code == U_BUFFER_OVERFLOW_ERROR) {
+            /* a larger output buffer was needed */
+
+            /* allocate a sufficient buffer; do not realloc() because it is useless to preserve the current content */
+            free(buf);
+            buffer_chars = (size_t) normalized_chars + 1;
+            buf = (UChar *) malloc(buffer_chars * sizeof (UChar));  /* no need for a NULL check here */
+
+            /* run the normalization routine again to capture the missing output */
+            continue;
+        } /* else normalization failed */
+
+        FAILURE_HANDLER(soft):
+#ifdef DEBUG
+        fprintf(stderr, "error: Unicode normalization failure: %s\n", u_errorName(code));
+#endif
+
+        free(buf);
+        FAILURE_TERMINUS;
+    }
+
+    return CIF_MEMORY_ERROR;
+}
+
+static int cif_fold_case(const UChar *src, int32_t srclen, UChar **result, int32_t *result_length) {
+    int32_t src_chars = ((srclen < 0) ? u_strlen(src) : srclen);
+
+    /* initial guess: the folded version will not contain more code units than the unfolded */
+    int32_t buffer_chars = src_chars + 1;
+    UChar *buf = (UChar *) malloc(((size_t) buffer_chars) * sizeof(UChar));
+
+    while (buf) {
+        UErrorCode code = U_ZERO_ERROR;
+        int32_t folded_chars = u_strFoldCase(buf, buffer_chars, src, src_chars, U_FOLD_CASE_DEFAULT, &code);
+
+        if (U_SUCCESS(code)) { /* Note: ICU warning codes are accounted successful */
+            /* case folding was successful, but result is not necessarily NUL-terminated */
+            *result = buf;
+            *result_length = folded_chars;
+            return CIF_OK;
+        } else if (code == U_BUFFER_OVERFLOW_ERROR) {
+            /* the destination buffer was too small */
+
+            /* allocate a sufficient buffer */
+            free(buf);
+            buffer_chars = (size_t) folded_chars + 1;
+            buf = (UChar *) malloc(buffer_chars * sizeof(UChar));  /* no need for a NULL check here */
+
+            /* re-fold */
+            continue;
+        }  /* else case-folding failure */
+
+        /* clean up and fail */
+        free(buf);
+        return CIF_ERROR;
+    }
+
+    return CIF_MEMORY_ERROR;
 }
