@@ -50,6 +50,16 @@ AC_ARG_ENABLE([doc-rebuild],
 
 AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
 
+AC_ARG_WITH([linguist],
+  [AS_HELP_STRING([--without-linguist], [Omit program cif_linguist])],
+  [AS_CASE([$[]{with_linguist}],
+    [yes|no], [],
+              [AC_MSG_ERROR([Unrecognized value '$[]{with_linguist}' for --with-linguist])]
+    )],
+  [with_linguist='yes'])
+
+AM_CONDITIONAL([make_linguist], [test "x$[]{with_linguist}" = xyes])
+
 AC_ARG_ENABLE([c89-enforcement],
   [AS_HELP_STRING([--enable-c89-enforcement],
     [configure normally tries to verify that the chosen C compiler supports C89.  That behavior can be diasabled via this option, as may be necessary in certain environments, such as when a C++ compiler is chosen. [default=yes]])],

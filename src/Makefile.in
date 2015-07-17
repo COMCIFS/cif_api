@@ -73,7 +73,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = cif_linguist$(EXEEXT) $(am__EXEEXT_1)
+@make_linguist_FALSE@bin_PROGRAMS = $(am__EXEEXT_1)
+@make_linguist_TRUE@bin_PROGRAMS = cif_linguist$(EXEEXT) \
+@make_linguist_TRUE@	$(am__EXEEXT_1)
 DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/examples.am $(srcdir)/tests.am
 @build_examples_TRUE@am__append_1 = \

@@ -651,6 +651,8 @@ install_docs_FALSE
 install_docs_TRUE
 build_examples_FALSE
 build_examples_TRUE
+make_linguist_FALSE
+make_linguist_TRUE
 make_docs_FALSE
 make_docs_TRUE
 MAINT
@@ -778,6 +780,7 @@ with_sysroot
 enable_libtool_lock
 enable_maintainer_mode
 enable_doc_rebuild
+with_linguist
 enable_c89_enforcement
 enable_debug
 enable_extra_warnings
@@ -1459,6 +1462,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
+  --without-linguist      Omit program cif_linguist
   --with-examples         build and install the example programs
   --without-docs          do not install the documentation. See also
                           --enable-doc-rebuild. [default=yes]
@@ -11842,6 +11846,30 @@ else
 fi
 
 
+
+# Check whether --with-linguist was given.
+if test "${with_linguist+set}" = set; then :
+  withval=$with_linguist; case ${with_linguist} in #(
+  yes|no) :
+     ;; #(
+  *) :
+    as_fn_error $? "Unrecognized value '${with_linguist}' for --with-linguist" "$LINENO" 5
+     ;;
+esac
+else
+  with_linguist='yes'
+fi
+
+
+ if test "x${with_linguist}" = xyes; then
+  make_linguist_TRUE=
+  make_linguist_FALSE='#'
+else
+  make_linguist_TRUE='#'
+  make_linguist_FALSE=
+fi
+
+
 # Check whether --enable-c89-enforcement was given.
 if test "${enable_c89_enforcement+set}" = set; then :
   enableval=$enable_c89_enforcement; case ${enable_c89_enforcement} in #(
@@ -13480,6 +13508,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${make_docs_TRUE}" && test -z "${make_docs_FALSE}"; then
   as_fn_error $? "conditional \"make_docs\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${make_linguist_TRUE}" && test -z "${make_linguist_FALSE}"; then
+  as_fn_error $? "conditional \"make_linguist\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${build_examples_TRUE}" && test -z "${build_examples_FALSE}"; then

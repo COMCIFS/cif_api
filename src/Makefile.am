@@ -20,7 +20,12 @@
 
 lib_LTLIBRARIES = libcif.la
 include_HEADERS = cif.h cif_error.h
+
+if make_linguist
 bin_PROGRAMS = cif_linguist
+else
+bin_PROGRAMS =
+endif
 
 ## Library versioning (LibTool style):
 ##
