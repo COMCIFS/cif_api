@@ -3106,15 +3106,16 @@ CIF_INTFUNC_DECL(cif_cstr_to_ustr, (
  * @brief Analyzes a Unicode string with a view toward determining how it can be represented in CIF format as a data
  * value
  *
- * Analyzes the input string to determine what form type of delimiters can be used for it to present it as a CIF-format
- * data value, and to evaluate other properties that may affect how it is presented, such as whether the line-folding
- * or text-prefixing protocol may need to be applied to it.  Results are provided in a caller-provided structure.
+ * The analysis in particular recommends a (possibly empty) delimiter for the value, and it evaluates several other
+ * properties that may affect how it must be presented, such as whether the line-folding or text-prefixing protocol may
+ * need to be applied to it.  Results are provided in a caller-provided structure.
  *
  * This function considers delimiters in the following order: no delimiter (other than whitespace), apostrophe or
  * quotation mark, triple apostrophe or triple quotation mark, newline/semicolon.  It will recommend the first among
- * those that is not explicitly excluded and which is consistent with the input string.  It applies CIF 2.0 rules for
- * its evaluation in all cases.  That is compatible with CIF 1.1 output format, but in some cases text-field form may
- * be recommended for values that could be expressed in CIF 1.1 with just apostrophe or quotation-mark delimiters.
+ * those that is not explicitly excluded via function argument, and which is consistent with the input string.  It
+ * applies CIF 2.0 rules for its evaluation in all cases, which will result in text-field (or triple-quoted) form
+ * being recommended for some values that could be expressed in CIF 1.1 with just apostrophe or quotation-mark
+ * delimiters.
  *
  * For generality, this function always recommends one of the quoted forms for strings beginning with a semicolon.
  * Some such strings can be presented whitespace-delimited, <em>but not at the beginning of a line</em>.  Since the
@@ -3140,9 +3141,10 @@ CIF_INTFUNC_DECL(cif_analyze_string, (
         ));
 
 /**
- * @brief Determines whether a given string takes a reserved form that must not be presented whitespace-delimited in a CIF
+ * @brief Determines whether a given string takes a reserved form that must not be presented whitespace-delimited in a
+ * CIF
  *
- * This function looks for individual reserved character at the beginning of the string, and compares the string
+ * This function looks for individual reserved characters at the beginning of the string, and compares the string
  * overall to several reserved words and forms.  Unlike most CIF API functions, this one does not return a CIF API
  * result code.
  *
