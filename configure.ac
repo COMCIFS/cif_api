@@ -51,12 +51,13 @@ AC_ARG_ENABLE([doc-rebuild],
 AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
 
 AC_ARG_WITH([linguist],
-  [AS_HELP_STRING([--without-linguist], [Omit program cif_linguist])],
+  [AS_HELP_STRING([--with-linguist], [Build the experimental program cif_linguist])],
   [AS_CASE([$[]{with_linguist}],
     [yes|no], [],
               [AC_MSG_ERROR([Unrecognized value '$[]{with_linguist}' for --with-linguist])]
     )],
-  [with_linguist='yes'])
+  [with_linguist='no'])
+
 
 AM_CONDITIONAL([make_linguist], [test "x$[]{with_linguist}" = xyes])
 

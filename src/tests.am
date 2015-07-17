@@ -99,6 +99,13 @@ compiled_tests = \
 #   - updates the CIF in-place
 # - syntax-only mode
 
+if make_linguist
+#  compiled_tests += \
+#    linguist/test_linguist_20to20 \
+#    linguist/test_linguist_11to20 \
+#    linguist/test_linguist_20to11
+endif
+
 check_PROGRAMS = $(compiled_tests)
 EXTRA_DIST += \
   tests/assert_cifs.h \

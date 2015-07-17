@@ -307,23 +307,6 @@ void process_args(int argc, char *argv[], struct cif_parse_opts_s *parse_opts) {
     parse_opts->error_callback = error_callback;
     process_args_output_format(parse_opts, DEFAULT_OUTPUT_FORMAT);
 
-    /*
-     * Options supported:
-     *
-     * -f --input-format (CIF 1.0, 1.1, 2.0, auto)
-     * -e --input-encoding=encoding
-     * -l --input-line-folding
-     * -p --input-text-prefixing
-     * -F --output-format (CIF 1.1, 2.0, [STAR 2.0, CIFXML])
-     * -E --output-encoding
-     * -L --output-line-folding
-     * -P --output-text-prefixing=prefix
-     * -q --quiet suppress diagnostics
-     * -s --strict halt on parse error
-     *
-     * FUTURE: options from file
-     */
-
     for (i = 1; i < argc; i += 1) {
         if ((argv[i][0] != '-') || (!argv[i][1])) {
             /* a non-option argument */
@@ -375,31 +358,31 @@ void process_args(int argc, char *argv[], struct cif_parse_opts_s *parse_opts) {
                             /* '-' by itself is a file designator, not an option */
                             goto end_options;
                         }
-                        continue;
+                        goto end_arg;
                     case 'f':
                         PROCESS_ARGS(input_format, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'e':
                         PROCESS_ARGS(input_encoding, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'l':
                         PROCESS_ARGS(input_folding, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'p':
                         PROCESS_ARGS(input_prefixing, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'F':
                         PROCESS_ARGS(output_format, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'E':
                         PROCESS_ARGS(output_encoding, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'L':
                         PROCESS_ARGS(output_folding, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'P':
                         PROCESS_ARGS(output_prefixing, parse_opts, i, j);
-                        continue;
+                        goto end_arg;
                     case 'q': /* quiet mode */
                         process_args_quiet(parse_opts);
                         break;
@@ -411,6 +394,8 @@ void process_args(int argc, char *argv[], struct cif_parse_opts_s *parse_opts) {
                         break;
                 } /* switch */
             } /* for j */
+            end_arg:
+            ;
         } /* else */
     } /* for i */
 
@@ -685,6 +670,8 @@ int flush_container(cif_container_tp *container, void *context UNUSED) {
         free(frames);
     }
 
+    CONTEXT_POP_CONTAINER(context);
+
     return result;
 }
 
@@ -806,11 +793,13 @@ int print_item(UChar *name, cif_value_tp *value, void *context) {
  */
 int print_list(cif_value_tp *value, void *context) {
     static const UChar list_open[] = { UCHAR_OBRK, 0 };
-    static const UChar list_close[] = { UCHAR_OBRK, 0 };
+    static const UChar list_close[] = { UCHAR_SP, UCHAR_CBRK, 0 };
     size_t count;
     int result;
 
-    if ((result = cif_value_get_element_count(value, &count)) == CIF_OK) {
+    if (CONTEXT_OUTFORMAT(context) == CIF11) {
+        result = CIF_DISALLOWED_VALUE;
+    } else if ((result = cif_value_get_element_count(value, &count)) == CIF_OK) {
         if ((result = print_u_literal(SPACE_REQUIRED, list_open, 1, context)) == CIF_OK) {
             size_t index;
 
@@ -819,13 +808,12 @@ int print_list(cif_value_tp *value, void *context) {
 
                 if (cif_value_get_element_at(value, index, &element) != CIF_OK) {
                     return CIF_INTERNAL_ERROR;
-                    /* TODO: provide for no lead space for the first value */
                 } else if ((result = print_item(NULL, element, context)) != CIF_TRAVERSE_CONTINUE) {
                     return result;
                 }
             }
 
-            result = print_u_literal(SPACE_ALLOWED, list_close, 1, context);
+            result = print_u_literal(SPACE_ALLOWED, list_close, 2, context);
         }
     }
 
@@ -834,12 +822,14 @@ int print_list(cif_value_tp *value, void *context) {
 
 int print_table(cif_value_tp *value, void *context) {
     static const UChar table_open[] =  { UCHAR_OBRC, 0 };
-    static const UChar table_close[] = { UCHAR_OBRC, 0 };
+    static const UChar table_close[] = { UCHAR_SP, UCHAR_CBRC, 0 };
     static const UChar entry_colon[] = { UCHAR_COLON, 0 };
     const UChar **keys;
     int result;
 
-    if ((result = cif_value_get_keys(value, &keys)) == CIF_OK) {
+    if (CONTEXT_OUTFORMAT(context) == CIF11) {
+        result = CIF_DISALLOWED_VALUE;
+    } else if ((result = cif_value_get_keys(value, &keys)) == CIF_OK) {
         if ((result = print_u_literal(SPACE_REQUIRED, table_open, 1, context)) == CIF_OK) {
             const UChar **key;
 
@@ -854,10 +844,9 @@ int print_table(cif_value_tp *value, void *context) {
                 } else {
                     /* copying the key is inefficient, but the original belongs to the table value */
                     if (((result = cif_value_copy_char(kv, *key)) != CIF_OK)
-                            /* TODO: whitespace handling */
                             || ((result = print_value_text(kv, context)) != CIF_OK)
                             || ((result = print_u_literal(SPACE_FORBIDDEN, entry_colon, 1, context)) != CIF_OK)
-                            || ((result = print_value_text(ev, context)) != CIF_OK)
+                            || ((result = print_item(NULL, ev, context)) != CIF_TRAVERSE_CONTINUE)
                             ) {
                         cif_value_free(kv);
                         goto cleanup;
@@ -868,7 +857,7 @@ int print_table(cif_value_tp *value, void *context) {
                 }
             }
 
-            result = print_u_literal(SPACE_ALLOWED, table_close, 1, context);
+            result = print_u_literal(SPACE_ALLOWED, table_close, 2, context);
         }
 
         cleanup:
@@ -958,7 +947,7 @@ int print_text_field(UChar *str, int do_fold, int do_prefix, void *context) {
 
                 if (!do_fold) {
                     assert(do_prefix);
-                    if (u_fprintf(CONTEXT_OUT(context), PREFIX "%*S\n", line_len, line_start)
+                    if (u_fprintf(CONTEXT_OUT(context), PREFIX "%.*S\n", line_len, line_start)
                             < (prefix_len + line_len + 1)) {
                         return CIF_ERROR;
                     }
@@ -982,12 +971,12 @@ int print_text_field(UChar *str, int do_fold, int do_prefix, void *context) {
                                     || (fold_start[fold_len - 1] == UCHAR_TAB)
                                     || (fold_start[fold_len - 1] == UCHAR_BSL));
 
-                            if (u_fprintf(CONTEXT_OUT(context), "%s%*S%s\n", (do_prefix ? PREFIX : ""),
+                            if (u_fprintf(CONTEXT_OUT(context), "%s%.*S%s\n", (do_prefix ? PREFIX : ""),
                                     fold_len, fold_start, (protect ? "\\\n" : "")) < (prefix_len + fold_len)) {
                                 return CIF_ERROR;
                             }
                         } else {
-                            if (u_fprintf(CONTEXT_OUT(context), "%s%*S\\\n", (do_prefix ? PREFIX : ""),
+                            if (u_fprintf(CONTEXT_OUT(context), "%s%.*S\\\n", (do_prefix ? PREFIX : ""),
                                     fold_len, fold_start) < (prefix_len + fold_len)) {
                                 return CIF_ERROR;
                             }
@@ -1007,7 +996,9 @@ int print_text_field(UChar *str, int do_fold, int do_prefix, void *context) {
                 }
             }
 
-            result = CIF_OK;
+            /* closing delimiter */
+            /* the leading newline will already have been output */
+            result = (u_fputc(UCHAR_SEMI, CONTEXT_OUT(context)) == UCHAR_SEMI) ? CIF_OK : CIF_ERROR;
         }
     }
 
@@ -1196,21 +1187,16 @@ int error_callback(int code, size_t line, size_t column, const UChar *text, size
         return code;
     } else {
         /* TODO: corrective output in some cases (?) */
-        /*
-        switch (code) {
-            default:
-        }
-        */
-        return 0;
+        return CIF_OK;
     }
 }
 
 void keyword_callback(size_t line UNUSED, size_t column UNUSED, const UChar *keyword, size_t length, void *data) {
-    /* TODO */
+    /* TODO: implementing this callback will help with preserving comments in the input  */
 }
 
 void dataname_callback(size_t line UNUSED, size_t column UNUSED, const UChar *dataname, size_t length, void *data) {
-    /* TODO */
+    /* TODO: implementing this callback will help with preserving comments in the input  */
 }
 
 /* function intended to handle cif_start events */
@@ -1287,8 +1273,6 @@ int ensure_space(int data_length, void *context) {
  */
 int print_u_literal(int preceding_space, const UChar *str, int line1_length, void *context) {
     int32_t nprinted;
-
-    /* FIXME: rewrite this to use ensure_space() */
 
     if (CONTEXT_COLUMN(context)) {
         int32_t nspace = ((preceding_space > 0) ? preceding_space : 0);
@@ -1390,6 +1374,10 @@ int main(int argc, char *argv[]) {
     assert(context.out && context.ustderr);
 
     result = cif_parse(stdin, parse_opts, &cif);
+
+    if (result != CIF_OK) {
+        handle_cif_end(cif, &context);
+    }
     ignored = cif_destroy(cif);
     free(parse_opts);
 
@@ -1400,9 +1388,9 @@ int main(int argc, char *argv[]) {
     /*
      * Exit codes:
      *  3 - parse aborted because of errors
-     *  2 - parse skipped
+     *  2 - parse skipped (from function usage())
      *  1 - parse completed with errors
      *  0 - parse completed without errors
      */
-    return ((result != CIF_OK) << 1) + (context.error_count ? 1 : 0);
+    return (result != CIF_OK) ? 3 : (context.error_count ? 1 : 0);
 }

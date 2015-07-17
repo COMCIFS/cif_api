@@ -1462,7 +1462,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --without-linguist      Omit program cif_linguist
+  --with-linguist         Build the experimental program cif_linguist
   --with-examples         build and install the example programs
   --without-docs          do not install the documentation. See also
                           --enable-doc-rebuild. [default=yes]
@@ -11857,8 +11857,9 @@ if test "${with_linguist+set}" = set; then :
      ;;
 esac
 else
-  with_linguist='yes'
+  with_linguist='no'
 fi
+
 
 
  if test "x${with_linguist}" = xyes; then

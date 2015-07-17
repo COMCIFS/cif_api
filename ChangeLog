@@ -36,6 +36,11 @@ Version 0.4.0
   designates whether a value is consider 'quoted' or not, provides additional
   coercions around some changes to that attribute's value, and where possible,
   honors that attribute on output.
+* Added EXPERIMENTAL program cif_linguist
+  Added program CIF format translation program cif_linguist to the
+  distribution.  It is only lightly tested, and it has several notable
+  limitations, such as stripping all CIF comments in the course of
+  translation.
 
 Version 0.3.0
 * Changed type names
