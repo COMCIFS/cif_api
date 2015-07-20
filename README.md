@@ -1,4 +1,4 @@
-# CIF API 0.3.0 (public release)
+# CIF API 0.4.0 (public release)
 
 The CIF API provides a standard C interface for reading, writing, and
 manipulating Crystallographic Information Files (CIFs).  It is targeted
@@ -13,6 +13,12 @@ API library.  One of them is a text-mode CIF 2.0 file syntax checker, which
 might be of some interest.  Also, the tests (`src/tests/`) collectively provide
 a fairly comprehensive demonstration of the API's features, though their
 primary purpose is to verify that the library works as intended.
+
+The package also includes EXPERIMENTAL program cif_linguist, which converts
+data between various versions of the CIF format.  It is not built or
+installed by default on account of its experimental nature, but configure
+option --with-linguist will cause it to be included for building and
+installation.
 
 Refer to file INSTALL for general installation instructions.  Build details
 specific to this package follow:
