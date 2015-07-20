@@ -28,7 +28,7 @@ Version 0.4.0
   avoid distinguishing NUMB values from CHAR values at parse time, relying
   instead on coercing values as needed, later.
 * Added a value property tracking quoted status
-  The longstanding CIF conventions establish that the interpretation of a data
+  Longstanding CIF conventions establish that the interpretation of a data
   value can depend on whether it is presented whitespace-delimited or in one
   of the other forms.  They contain some specific examples of how that
   distinction is conventionally used, but nothing restricts the distinction to
@@ -37,10 +37,16 @@ Version 0.4.0
   coercions around some changes to that attribute's value, and where possible,
   honors that attribute on output.
 * Added EXPERIMENTAL program cif_linguist
-  Added program CIF format translation program cif_linguist to the
-  distribution.  It is only lightly tested, and it has several notable
-  limitations, such as stripping all CIF comments in the course of
-  translation.
+  Added CIF format translation program cif_linguist to the distribution.
+  It is only lightly tested, and it has several notable limitations, such
+  as stripping all CIF comments in the course of translation.
+* Added public functions and header
+  Added new public functions cif_analyze_string() and
+  cif_is_reserved_string().  These are used internally for making decisions
+  about value coercion and formatting, but they are also made accessible for
+  library users.  Added new public header cif_error.h declaring global
+  variables provided by the CIF API library that contain
+  programmatically-accessible text explaining each CIF error code.
 
 Version 0.3.0
 * Changed type names

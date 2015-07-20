@@ -19,7 +19,9 @@ primary purpose is to verify that the library works as intended.
 
 The package now includes EXPERIMENTAL program 'cif_linguist' for converting
 data between CIF formats.  This program is not well tested and is certain to
-contain bugs (though no specific bugs are known at this time).
+contain bugs (though no specific bugs are known at this time).  It is not
+built or installed by default; to include it in the build, the package must
+be configured with the --with-linguist option.
 
 Refer to file INSTALL for general installation instructions.  Build details
 specific to this package follow:
@@ -45,8 +47,10 @@ specific to this package follow:
   Considerable effort was devoted, however, to restricting implementation code
   to the intersection of standard C90 and standard C99, and additionally to
   avoiding code that has different meaning in C and C++.  With very few
-  caveats, any compiler that is compliant with any one of C90, C99, C2011,
-  C++98, or C++2011 should be able to build the project.
+  caveats, any compiler that is compliant with any one of C89/C90, C99, C2011,
+  C++98, or C++2011 should be able to build the project.  Building with a
+  C++ compiler may require using the --disable-c89-enforcement configuration
+  option, however.
 
 * At present, the --enable-extra-warnings configuration option is effective
   only for gcc.
@@ -54,7 +58,7 @@ specific to this package follow:
 * There are a few other project-specific configuration options, but
   they are adequately explained in configure's help text.
 
-The package has been built and tested successfully on Linux (CentOS 6, Debian);
+The package has been built and tested successfully on Linux (CentOS 6, Debian;
 this is the primary development platform), on OS X 10.8, and on Windows 7.
 For OS X builds, the needed dependencies are readily available via the "Fink"
 package management system and its public repositories, among other means.
@@ -63,7 +67,7 @@ further information is provided in file README_Windows.  Those approaches
 assume you want to use the provided package build system; other approaches
 may be available if you want to build the project with a different toolchain,
 such as Visual Studio on Windows or XCode on OS X.  The project has few,
-if any, toolchain dependencies, but only limited support is available for
+if any, toolchain dependencies, but no support is currently available for
 such build strategies.
 
 
@@ -84,7 +88,7 @@ Tennessee, U.S.A..  Specific exceptions include, but are not necessarily
 limited to, the contents of the 'uthash' directory; those files are
 subject to the copyright statement and license in the file 'LICENSE' in
 that directory, and it is subject to those terms that they are distributed
-to you.  Additionally, many components of the build system are
+to you herein.  Additionally, many components of the build system are
 parts of, or were generated via, the GNU AutoTools suite.  These contain
 code belonging to the Free Software Foundation (FSF), and each is marked
 with an FSF ownership notice and statements of rights.  The FSF components
