@@ -26,11 +26,33 @@
 #include <stdio.h>
 #include "../cif.h"
 #include "test.h"
+#include "assert_value.h"
+
+UChar *u_strdup(const UChar *src);
+
+UChar *u_strdup(const UChar *src) {
+    UChar *dest = (UChar *) malloc((u_strlen(src) + 1) * sizeof(UChar));
+
+    if (dest) {
+        u_strcpy(dest, src);
+    }
+
+    return dest;
+}
 
 int main(void) {
+    U_STRING_DECL(val_str1, "-10.250(125)", 13);
+    U_STRING_DECL(val_str2, "1742E+02", 9);
+    U_STRING_DECL(val_str3, "1 ", 4);
     char test_name[80] = "test_value_get_number";
     cif_value_tp *value;
+    cif_value_tp *value2;
+    UChar *tmp;
     double d;
+
+    U_STRING_INIT(val_str1, "-10.250(125)", 13);
+    U_STRING_INIT(val_str2, "1742E+02", 9);
+    U_STRING_INIT(val_str3, "1 ", 4);
 
     TESTHEADER(test_name);
 
@@ -46,8 +68,8 @@ int main(void) {
     cif_value_free(value);
 
     TEST(cif_value_create(CIF_CHAR_KIND, &value), CIF_OK, test_name, 7);
-    TEST(cif_value_get_number(value, &d), CIF_ARGUMENT_ERROR, test_name, 8);
-    TEST(cif_value_get_su(value, &d), CIF_ARGUMENT_ERROR, test_name, 9);
+    TEST(cif_value_get_number(value, &d), CIF_INVALID_NUMBER, test_name, 8);
+    TEST(cif_value_get_su(value, &d), CIF_INVALID_NUMBER, test_name, 9);
     cif_value_free(value);
 
     TEST(cif_value_create(CIF_LIST_KIND, &value), CIF_OK, test_name, 10);
@@ -59,6 +81,46 @@ int main(void) {
     TEST(cif_value_get_number(value, &d), CIF_ARGUMENT_ERROR, test_name, 14);
     TEST(cif_value_get_su(value, &d), CIF_ARGUMENT_ERROR, test_name, 15);
     cif_value_free(value);
+
+    /* Test char-to-numb coercion */
+    tmp = u_strdup(val_str1);
+    TEST(tmp == NULL, 0, test_name, 16);
+    TEST(cif_value_create(CIF_UNK_KIND, &value), CIF_OK, test_name, 17);
+    TEST(cif_value_copy_char(value, val_str1), CIF_OK, test_name, 18);
+    TEST(cif_value_create(CIF_UNK_KIND, &value2), CIF_OK, test_name, 19);
+    TEST(cif_value_parse_numb(value2, tmp), CIF_OK, test_name, 20); /* responsibility for tmp passes to value2*/
+    TEST(cif_value_set_quoted(value2, CIF_QUOTED), CIF_OK, test_name, 21);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 22);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 23);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 24);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 25);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 26);    /* coercion doesn't change quoting status */
+    TEST(!assert_values_equal(value, value2), 0, test_name, 27);
+    cif_value_free(value);
+    cif_value_free(value2);
+
+    tmp = u_strdup(val_str2);
+    TEST(tmp == NULL, 0, test_name, 28);
+    TEST(cif_value_create(CIF_UNK_KIND, &value), CIF_OK, test_name, 29);
+    TEST(cif_value_copy_char(value, val_str2), CIF_OK, test_name, 30);
+    TEST(cif_value_create(CIF_UNK_KIND, &value2), CIF_OK, test_name, 31);
+    TEST(cif_value_parse_numb(value2, tmp), CIF_OK, test_name, 32); /* responsibility for tmp passes to value2*/
+    TEST(cif_value_set_quoted(value2, CIF_QUOTED), CIF_OK, test_name, 33);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 34);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 35);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 36);
+    TEST(!assert_values_equal(value, value2), 0, test_name, 37);
+    cif_value_free(value);
+    cif_value_free(value2);
+
+    TEST(cif_value_create(CIF_UNK_KIND, &value), CIF_OK, test_name, 38);
+    TEST(cif_value_copy_char(value, val_str3), CIF_OK, test_name, 39);
+    value2 = NULL;
+    TEST(cif_value_clone(value, &value2), CIF_OK, test_name, 40);
+    TEST(cif_value_get_number(value, &d), CIF_INVALID_NUMBER, test_name, 41);
+    TEST(!assert_values_equal(value, value2), 0, test_name, 42);
+    cif_value_free(value);
+    cif_value_free(value2);
 
     return 0;
 }

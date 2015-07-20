@@ -198,11 +198,13 @@ struct cif_pktitr_s {
 
 typedef struct char_value_s {
     cif_kind_tp kind;  /* expected: CIF_CHAR_KIND */
+    cif_quoted_tp quoted;
     UChar *text;
 } cif_char_tp;
 
 typedef struct numb_value_s {
     cif_kind_tp kind;  /* expected: CIF_NUMB_KIND */
+    cif_quoted_tp quoted;
     UChar *text;
     int sign;         /* expected: +-1 */
     /*
@@ -316,7 +318,9 @@ struct scanner_s {
     /* user callback support */
     cif_handler_tp *handler;
     cif_parse_error_callback_tp error_callback;
-    cif_whitespace_callback_tp whitespace_callback;
+    cif_syntax_callback_tp whitespace_callback;
+    cif_syntax_callback_tp keyword_callback;
+    cif_syntax_callback_tp dataname_callback;
     void *user_data;
 
     /*

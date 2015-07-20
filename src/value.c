@@ -116,6 +116,24 @@ int fegetround(void);
 } while (0)
 
 /**
+ * @brief Serializes a value of type cif_quoted_tp
+ *
+ * The serialized representation is simply the the bytes of the value itself, in machine order.
+ *
+ * @param[in] quoted the cif_quoted_tp value to serialize (not a pointer)
+ * @param[in,out] buffer a pointer to the @c write_buffer_tp buffer to which the serialized form should be appended;
+ *         must not be NULL.
+ * @param[in] onerr the label to which execution should branch in the event that an error occurs; must be defined in the
+ *         scope where this macro is used.
+ */
+#define SERIALIZE_QUOTED_FLAG(quoted, buffer, onerr) do { \
+    const cif_quoted_tp q = (quoted); \
+    int SQF_result; \
+    write_buffer_tp *q_buf = (buffer); \
+    if ((SQF_result = cif_buf_write(q_buf, &q, sizeof(cif_quoted_tp))) != CIF_OK) FAIL(onerr, SQF_result); \
+} while (0)
+
+/**
  * @brief Deserializes a Unicode string from the given buffer, assuming the format produced by @c SERIALIZE_USTRING().
  *
  * A new Unicode string is allocated for the result, and on success, a pointer to it is assigned to @c dest (which
@@ -152,6 +170,29 @@ int fegetround(void);
 } while (0)
 
 /**
+ * @brief Deserializes a value of type cif_quoted_tp from the given buffer
+ *
+ * The result is checked against the valid values for type cif_quoted_tp
+ *
+ * @param[out] quoted an lvalue of type cif_quoted_tp wherein the deserialized result should be stored
+ * @param[in,out] a @c read_buffer_tp from which the serialized data should be read; on success its position is
+ *         immediately after the last byte of the serialized value, but on failure its position becomes undefined;
+ *         must not be NULL.
+ * @param[in] onerr the name of the failure handler to which execution should branch in the event that an error occurs;
+ *         must be defined in the scope where this macro is used.
+ */
+#define DESERIALIZE_QUOTED_FLAG(quoted, buffer, onerr) do { \
+    read_buffer_tp *q_buf = (buffer); \
+    cif_quoted_tp tq; \
+    if ((cif_buf_read(q_buf, &tq, sizeof(cif_quoted_tp)) == sizeof(cif_quoted_tp)) \
+            && ((tq == CIF_QUOTED) || (tq == CIF_NOT_QUOTED))) { \
+        quoted = tq; \
+        break; \
+    } \
+    DEFAULT_FAIL(onerr); \
+} while (0)
+
+/**
  * @brief Serializes a value object and any component objects, appending the result to the specified buffer.
  *
  * @param[in] value a pointer to the @c cif_value_tp object to serialize; must not be NULL.
@@ -170,6 +211,7 @@ int fegetround(void);
         case CIF_NUMB_KIND: \
         case CIF_CHAR_KIND: \
             SERIALIZE_USTRING(val->as_char.text, s_buf, onerr); \
+            SERIALIZE_QUOTED_FLAG(val->as_char.quoted, s_buf, onerr); \
             break; \
         case CIF_LIST_KIND: \
             if ((S_result = cif_list_serialize(&(val->as_list), s_buf)) != CIF_OK) FAIL(onerr, S_result); \
@@ -221,6 +263,7 @@ int fegetround(void);
                     DESERIALIZE_USTRING(v->as_char.text, _buf, vfail); \
                     if ((_kind == CIF_NUMB_KIND) && ((_D_result = cif_value_parse_numb(v, v->as_char.text)) != CIF_OK))\
                         FAIL(vfail, _D_result); \
+                    DESERIALIZE_QUOTED_FLAG(v->as_char.quoted, _buf, vfail); \
                     break; \
                 case CIF_LIST_KIND: \
                     if ((_D_result = cif_list_deserialize(&(v->as_list), _buf)) != CIF_OK) \
@@ -349,6 +392,11 @@ static void cif_char_value_clean(struct char_value_s *char_value);
 static void cif_numb_value_clean(struct numb_value_s *numb_value);
 static void cif_list_value_clean(struct list_value_s *list_value);
 static void cif_table_value_clean(struct table_value_s *table_value);
+
+/*
+ * Value-coercion functions
+ */
+static int cif_value_convert_to_numb(cif_value_tp *n);
 
 /*
  * Clones a list value, assuming all fields of the target object contain garbage
@@ -544,6 +592,7 @@ static int cif_value_clone_numb(struct numb_value_s *value, struct numb_value_s 
             clone->sign = value->sign;
             clone->scale = value->scale;
             clone->kind = CIF_NUMB_KIND;
+            clone->quoted = value->quoted;
 
             /* success */
             return CIF_OK;
@@ -1673,6 +1722,23 @@ static int frac_bits(double d, int *exponent) {
     }
 }
 
+static int cif_value_convert_to_numb(cif_value_tp *n) {
+    UChar *text;
+    int result = cif_value_get_text(n, &text);
+    cif_quoted_tp quoted = cif_value_is_quoted(n);
+
+    if (result == CIF_OK) {
+        result = cif_value_parse_numb(n, text);
+        if (result != CIF_OK) {
+            free(text);
+        } else if (quoted) {
+            result = cif_value_set_quoted(n, quoted);
+        }
+    }
+
+    return result;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1709,6 +1775,7 @@ int cif_value_create(cif_kind_tp kind, cif_value_tp **value) {
                 temp->as_char.text = (UChar *) malloc(sizeof(UChar));
                 if (temp->as_char.text == NULL) FAIL(soft, CIF_MEMORY_ERROR);
                 *(temp->as_char.text) = 0;
+                temp->as_char.quoted = CIF_QUOTED;
                 temp->kind = CIF_CHAR_KIND;
                 break;
             case CIF_NUMB_KIND:
@@ -1789,6 +1856,7 @@ int cif_value_clone(cif_value_tp *value, cif_value_tp **clone) {
         case CIF_CHAR_KIND:
             temp->as_char.text = cif_u_strdup(value->as_char.text);
             if (temp->as_char.text == NULL) FAIL(soft, CIF_MEMORY_ERROR);
+            temp->as_char.quoted = value->as_char.quoted;
             temp->kind = CIF_CHAR_KIND;
             break;
         case CIF_NUMB_KIND:
@@ -1835,6 +1903,7 @@ int cif_value_init(cif_value_tp *value, cif_kind_tp kind) {
                     result = CIF_MEMORY_ERROR;
                 } else {
                     *(value->as_char.text) = 0;
+                    value->as_char.quoted = CIF_QUOTED;
                     value->kind = CIF_CHAR_KIND;
                 }
                 break;
@@ -2043,6 +2112,7 @@ int cif_value_parse_numb(cif_value_tp *n, UChar *text) {
         /* Successful parse; copy results to the target value object */
         cif_value_clean(n);
         numb->kind = CIF_NUMB_KIND;
+        numb->quoted = CIF_NOT_QUOTED;
         numb->text = text;
         numb->sign = n_temp.sign;
         numb->digits = n_temp.digits;
@@ -2065,6 +2135,7 @@ int cif_value_init_char(cif_value_tp *value, UChar *text) {
     } else {
         cif_value_clean(value);
         value->as_char.text = text;
+        value->as_char.quoted = CIF_QUOTED;
         value->kind = CIF_CHAR_KIND;
         return CIF_OK;
     }
@@ -2139,6 +2210,7 @@ int cif_value_init_numb(cif_value_tp *n, double val, double su, int scale, int m
                     assert(text != NULL);
                     cif_value_clean(n);
                     numb->kind = CIF_NUMB_KIND;
+                    numb->quoted = CIF_NOT_QUOTED;
                     numb->sign = (val < 0) ? -1 : 1;
                     numb->text = text;
                     numb->digits = digit_buf;
@@ -2263,30 +2335,119 @@ cif_kind_tp cif_value_kind(cif_value_tp *value) {
     return value->kind;
 }
 
-int cif_value_get_number(cif_value_tp *n, double *val) {
-    if (n->kind != CIF_NUMB_KIND) {
-        return CIF_ARGUMENT_ERROR;
-    } else {
-        struct numb_value_s *numb = &(n->as_numb);
-        double d = to_double(numb->digits, numb->scale);
-
-        *val = ((numb->sign < 0) ? -d : d);
-        return CIF_OK;
+cif_quoted_tp cif_value_is_quoted(cif_value_tp *value) {
+    switch (value->kind) {
+        case CIF_CHAR_KIND:
+            return value->as_char.quoted;
+        case CIF_NUMB_KIND:
+            return value->as_numb.quoted;
+        default:
+            return CIF_NOT_QUOTED;
     }
 }
 
-int cif_value_get_su(cif_value_tp *n, double *su) {
-    if (n->kind != CIF_NUMB_KIND) {
-        return CIF_ARGUMENT_ERROR;
-    } else {
-        struct numb_value_s *numb = &(n->as_numb);
+int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
+    static const UChar unk_string[] = { UCHAR_QUERY, 0 };
+    static const UChar  na_string[] = { UCHAR_DECIMAL, 0 };
+    static const UChar disallowed_chars[] = {
+            UCHAR_OBRK, UCHAR_CBRK, UCHAR_OBRC, UCHAR_CBRC, UCHAR_SP, UCHAR_TAB, UCHAR_NL, UCHAR_CR, 0
+    };
+    int result;
 
-        *su = (numb->su_digits == NULL)
-                ? 0.0
-                : to_double(numb->su_digits, numb->scale);
-
-        return CIF_OK;
+    switch (value->kind) {
+        case CIF_UNK_KIND:
+            result = (quoted ? cif_value_copy_char(value, unk_string) : CIF_OK);
+            break;
+        case CIF_NA_KIND:
+            result = (quoted ? cif_value_copy_char(value, na_string) : CIF_OK);
+            break;
+        case CIF_LIST_KIND:
+            result = (quoted ? CIF_ARGUMENT_ERROR : CIF_OK);
+            break;
+        case CIF_TABLE_KIND:
+            result = (quoted ? CIF_ARGUMENT_ERROR : CIF_OK);
+            break;
+        case CIF_NUMB_KIND:
+            value->as_numb.quoted = (quoted ? CIF_QUOTED : CIF_NOT_QUOTED);
+            result = CIF_OK;
+            break;
+        case CIF_CHAR_KIND:
+            if (quoted || !value->as_char.quoted) {
+                /* no change or unquoted to quoted */
+                value->as_char.quoted =  (quoted ? CIF_QUOTED : CIF_NOT_QUOTED);
+                result = CIF_OK;
+            } else {
+                /* quoted to unquoted */
+                if (!*(value->as_char.text)) {
+                    /* empty string */
+                    result = CIF_ARGUMENT_ERROR;
+                } else if (!u_strcmp(value->as_char.text, unk_string)) {
+                    result = cif_value_init(value, CIF_UNK_KIND);
+                } else if (!u_strcmp(value->as_char.text, na_string)) {
+                    result = cif_value_init(value, CIF_NA_KIND);
+                } else if (cif_is_reserved_string(value->as_char.text)
+                        || (value->as_char.text[u_strcspn(value->as_char.text, disallowed_chars)])) {
+                    /* reserved or whitespace-containing string */
+                    result = CIF_ARGUMENT_ERROR;
+                } else {
+                    value->as_char.quoted = quoted;
+                    result = CIF_OK;
+                }
+            }
+            break;
+        default:
+            /* the other cases enumerate all valid kinds */
+            assert(CIF_FALSE);
+            result = CIF_INTERNAL_ERROR;
+            break;
     }
+
+    return result;
+}
+
+
+int cif_value_get_number(cif_value_tp *n, double *val) {
+    struct numb_value_s *numb;
+    double d;
+
+    if (n->kind == CIF_CHAR_KIND) {
+        /* attempt to convert to a number */
+        int result = cif_value_convert_to_numb(n);
+
+        if (result != CIF_OK) {
+            return result;
+        }
+    } else if (n->kind != CIF_NUMB_KIND) {
+        return CIF_ARGUMENT_ERROR;
+    }
+
+    numb = &(n->as_numb);
+    d = to_double(numb->digits, numb->scale);
+    *val = ((numb->sign < 0) ? -d : d);
+
+    return CIF_OK;
+}
+
+int cif_value_get_su(cif_value_tp *n, double *su) {
+    struct numb_value_s *numb;
+
+    if (n->kind == CIF_CHAR_KIND) {
+        /* attempt to convert to a number */
+        int result = cif_value_convert_to_numb(n);
+
+        if (result != CIF_OK) {
+            return result;
+        }
+    } else if (n->kind != CIF_NUMB_KIND) {
+        return CIF_ARGUMENT_ERROR;
+    }
+
+    numb = &(n->as_numb);
+    *su = (numb->su_digits == NULL)
+            ? 0.0
+            : to_double(numb->su_digits, numb->scale);
+
+    return CIF_OK;
 }
 
 int cif_value_get_text(cif_value_tp *value, UChar **text) {

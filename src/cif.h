@@ -544,11 +544,13 @@
  */
 #define CIF_NULL_KEY          140
 
-/**
+/*
  * @brief A result code indicating that during parsing, a text field putatively employing the text prefix protocol
  *         contained a line that did not begin with the prefix
  */
+/*
 #define CIF_MISSING_PREFIX    141
+*/
 
 /**
  * @brief A return code for CIF-handler functions (see @c cif_handler_tp) that indicates CIF traversal should continue
@@ -699,6 +701,23 @@ typedef enum {
 } cif_kind_tp;
 
 /**
+ * The type used for representing values' quoting status, to allow applications to distinguish between the same value
+ * when presented quoted and when presented unquoted.
+ */
+typedef enum {
+
+    /**
+     * @brief the value should be interpreted as if it is not quoted; evaluates to false in boolean context
+     */
+    CIF_NOT_QUOTED = 0,
+
+    /**
+     * @brief the value should be interpreted as if it is quoted; evaluates to true in boolean context
+     */
+    CIF_QUOTED = 1
+} cif_quoted_tp;
+
+/**
  * @brief A set of functions defining a handler interface for directing and taking appropriate action in response
  *     to a traversal of a CIF.
  *
@@ -747,7 +766,11 @@ typedef struct {
     /** @brief A handler function for the end of a loop packet */
     int (*handle_packet_end)(cif_packet_tp *packet, void *context);
 
-    /** @brief A handler function for data items (there are not separate beginning and end callbacks) */
+    /**
+     * @brief A handler function for data items (there are not separate beginning and end callbacks).  If called with
+     * a NULL name then value is a placeholder -- this normally happens only in a parsing context, when a duplicate
+     * data name is enrolled in a loop.
+     */
     int (*handle_item)(UChar *name, cif_value_tp *value, void *context);
 
 } cif_handler_tp;
@@ -773,31 +796,27 @@ typedef struct {
 typedef int (*cif_parse_error_callback_tp)(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
- * @brief The type of a callback function by which a client application can be notified of whitespace encountered
- *     during CIF parsing.
+ * @brief The type of a callback function by which a client application can be notified of a syntactic element
  *
- * CIF whitespace appearing outside any data value is not semantically significant from a CIF perspective, but it may
- * be useful to the calling application.  An application interested in being notified about whitespace as it is parsed
- * can register a callback function of this type with the parser.  Unlike a CIF handler or an error callback, whitespace
- * callbacks cannot directly influence CIF traversal or interrupt parsing, but they have access to the same user data
- * object that all other callbacks receive.
+ * Callbacks of this type are provided for some syntax elements that are not otherwise directly signaled, such as
+ * whitespace runs, certain keywords, and data names.  These support a physical / lexical view of a parse process, as
+ * opposed to the logical / structural view provided by the callbacks belonging to a @c cif_handler_tp .
+ * Unlike a CIF handler those or or an error callback, syntax callbacks cannot directly influence CIF traversal or
+ * interrupt parsing, but they have access to the same user data object that all other callbacks receive.
  *
- * The pointer @p ws and all subsequent values through @p ws @c + @p length are guaranteed to be valid pointer values
- * for comparison and arithmetic.  The result of dereferencing @p ws @c + @p length is undefined.
+ * The pointer @p token and all subsequent values through @p token @c + @p length are guaranteed to be valid pointer
+ * values for comparison and arithmetic.  The result of dereferencing @p token @c + @p length is not defined.
  *
- * Whitespace is generally reported in multi-character blocks, which may span lines, but the reported whitespace
- * sequences are not guaranteed to be maximal.  Physical runs of whitespace in the input CIF may be split across more
- * than one callback call.
- * 
- * @param[in] line the one-based line number of the start of the whitespace
- * @param[in] column the one-based column number of the first character of the whitespace run
- * @param[in] ws a pointer to the start of the whitespace sequence, which is @em not necessarily NUL-terminated
- * @param[in] length the number of characters in the whitespace sequence.  ( @p ws + @p length ) is guaranteed to be a
+ * @param[in] line the one-based line number of the start of the syntax element
+ * @param[in] column the one-based column number of the first character of the syntax element
+ * @param[in] token a pointer to the start of the character sequence of the element, which is @em not necessarily
+ *         NUL-terminated
+ * @param[in] length the number of characters in the sequence.  ( @p token + @p length ) is guaranteed to be a
  *         valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether
  *         incrementing it results in a valid pointer value is undefined.
  * @param[in,out] data a pointer to the user data object provided by the parser caller
  */
-typedef void (*cif_whitespace_callback_tp)(size_t line, size_t column, const UChar *ws, size_t length, void *data);
+typedef void (*cif_syntax_callback_tp)(size_t line, size_t column, const UChar *token, size_t length, void *data);
 
 /**
  * @brief Represents a collection of CIF parsing options.
@@ -811,18 +830,21 @@ typedef void (*cif_whitespace_callback_tp)(size_t line, size_t column, const UCh
 struct cif_parse_opts_s {
 
     /**
-     * @brief If non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead
-     *         of as CIF 1.
+     * @brief Influences the parser's selection of CIF 1 or CIF 2 format to handle a CIF stream
      *
      * Because the CIF-version code is @em required in CIF 2 but optional in CIF 1, it is most correct to assume CIF 1
      * when there is no version code.  Nevertheless, if a CIF is known or assumed to otherwise comply with CIF2, then
      * it is desirable to parse it that way regardless of the absence of a version code.
      *
-     * CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled (albeit
-     * with an error on account of the missing version code).  On the other hand, CIF 1 streams that (allowably)
-     * omit the version code may be parsed incorrectly if this option is enabled.
+     * CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option has value greater
+     * than zero (albeit with an error on account of the missing version code).  On the other hand, CIF 1 streams that
+     * (allowably) omit the version code may be parsed incorrectly if this option is enabled.
+     *
+     * Moreover, CIF streams will be parsed as CIF 2 regardless of an explicit version code to the contrary if this
+     * option has a value of 20 or greater, and they will be parsed as CIF 1.1 regardless of an explicit version code
+     * to the contrary if this option has a value less than zero.
      */
-    int default_to_cif2;
+    int prefer_cif2;
 
     /**
      * @brief If not @c NULL , names the coded character set with which the parser will attempt to interpret plain
@@ -988,7 +1010,26 @@ struct cif_parse_opts_s {
      * other elements appearing in the CIF.  The parser does not guarantee to collect @em maximal whitespace runs;
      * it may at times split consecutive whitespace into multiple runs, performing a callback for each one.
      */
-    cif_whitespace_callback_tp whitespace_callback;
+    cif_syntax_callback_tp whitespace_callback;
+
+    /**
+     * @brief A callback function by which the client application can be notified about CIF keywords
+     *
+     * If not @c NULL, this function will be called by the parser whenever it encounters a CIF keyword that does not
+     * directly correspond to or trigger a CIF Handler callback.  At this version, that is only the 'loop_' keyword,
+     * but a future version may also signal other keywords, so callback functions attached to this hook should check
+     * which keyword they receive if in fact they care.
+     */
+    cif_syntax_callback_tp keyword_callback;
+
+    /**
+     * @brief A callback function by which the client application can be notified about CIF data names as they are
+     * encountered
+     *
+     * If not @c NULL, this function will be called by the parser whenever it encounters a data name in the input CIF.
+     * before it is reported as part of a loop or individual data item.
+     */
+    cif_syntax_callback_tp dataname_callback;
 
     /**
      * @brief A callback function by which the client application can be notified about parse errors, affording it the
@@ -1019,10 +1060,79 @@ struct cif_parse_opts_s {
 struct cif_write_opts_s {
 
     /**
-     * @brief serves solely to prevent the structure from being empty, lest that present an issue for certain
-     *        compilers or runtime libraries.
+     * @brief Indicates the CIF major version with which the output must comply.
+     *
+     * Valid values include @c 1 for CIF 1.1 and @c 2 for CIF 2.0; value `0` means the default for the version of
+     * the CIF API in use; for the present version, the default is CIF 2.0.
+     *
+     * Note that the text-prefix protocol will be applied in CIF 1.1 mode for values that otherwise could not be
+     * represented.
      */
-    int unused;
+    int cif_version;
+};
+
+/**
+ * @brief Represents the results of analyzing a string for characteristics directing its form when presented as a CIF
+ * data value.
+ */
+struct cif_string_analysis_s {
+
+    /**
+     * @brief the recommended delimiter string
+     */
+    UChar   delim[4];
+
+    /**
+     * @brief the overall number of @c UChar units in the analyzed string
+     */
+    int32_t length;
+
+    /**
+     * @brief the number of @c UChar units in the first line of the analyzed string, excluding line terminators
+     */
+    int32_t length_first;
+
+    /**
+     * @brief the number of @c UChar units in the last line of the analyzed string
+     */
+    int32_t length_last;
+
+    /**
+     * @brief the number of @c UChar units in the longest line of the analyzed string, excluding line terminators
+     */
+    int32_t length_max;
+
+    /**
+     * @brief the number of lines in the analyzed string, which is one more than the number of line terminators in it
+     */
+    int32_t num_lines;
+
+    /**
+     * @brief the length of the longest run of consecutive semicolon characters in the input string
+     */
+    int32_t max_semi_run;
+
+    /**
+     * @brief the number of @c UChar units in the recommended delimiter
+     */
+    unsigned delim_length;
+
+    /**
+     * @brief non-zero if and only if the analyzed string contains the text-field delimiter
+     */
+    int contains_text_delim;
+
+    /**
+     * @brief non-zero if and only if the analyzed string starts with a character sequence that has special
+     * significance with respect to the recommended delimiters
+     */
+    int has_reserved_start;
+
+    /**
+     * @brief non-zero if and only if the analyzed string contains in-line whitespace immediately prior to any line
+     * terminator
+     */
+    int has_trailing_ws;
 };
 
 #ifdef __cplusplus
@@ -1142,18 +1252,32 @@ CIF_INTFUNC_DECL(cif_parse_error_die, (
 /**
  * @brief Formats the CIF data represented by the @c cif handle to the specified output stream.
  *
+ * By default, the output is in CIF 2.0 format, but the write options can be used to request CIF 1.1 format instead.
+ * These extra considerations apply to CIF 1.1 output mode:
+ * @li In CIF 1.1 mode, any data names, values, block codes, or frame codes in the provided CIF that cannot be
+ * expressed in CIF 1.1 will be be rejected, causing this function to fail.
+ * @li The CIF 1.1 dialect written by this function is also well-formed CIF 2.0, except for the CIF-version header and
+ * possibly the encoding.  In particular, it employs the line-folding protocol both to represent data values with
+ * extremely long lines, and to escape multi-line values that otherwise would be misinterpreted as employing the
+ * line-folding protocol and / or the text prefix protocol by a parser that recognizes those protocols (including
+ * function @c cif_parse()).  As a result, however, parsers that @em do @em not recognize the line folding protocol may
+ * interpret some of the resulting values differently than was intended.
+ *
+ *
  * Ownership of the arguments does not transfer to the function.
  *
  * @param[in,out] stream a @c FILE @c * to which to write the CIF format output; must be a non-NULL pointer to a
- *         writable stream.
+ *         writable stream.  In the event that the write options request CIF 1.1 output, this file should be open in
+ *         @em text mode (on those systems that have distinct text and binary modes)
  *
  * @param[in] options a pointer to a @c struct @c cif_write_opts_s object describing options to use for writing, or
  *         @c NULL to use default values for all options
  *
  * @param[in] cif a handle on the CIF object to serialize to the specified stream
  *
- * @return Returns @c CIF_OK if the data are fully written, or else an error code (typically @c CIF_ERROR ).
- *         The stream state is undefined after a failure.
+ * @return Returns @c CIF_OK if the data are fully written, or else an error code (typically @c CIF_ERROR,
+ *         or @c CIF_DISALLOWED_CHAR or @c CIF_DISALLOWED_VALUE in CIF 1.1 mode).  The stream state is undefined after
+ *         a failure.
  */
 CIF_INTFUNC_DECL(cif_write, (
         FILE *stream,
@@ -2183,19 +2307,28 @@ CIF_VOIDFUNC_DECL(cif_packet_free, (
  * @{
  * CIF data values are represented by and to CIF API functions via the opaque data type @c cif_value_tp .  Because this
  * type is truly opaque, @c cif_value_tp objects cannot directly be declared.  Independent value objects must instead
- * be created via function @c cif_value_create() , and @em independent ones should be released via @c cif_value_free()
+ * be created via function @c cif_value_create(), and @em independent ones should be released via @c cif_value_free()
  * when they are no longer needed.  Unlike the "handles" on CIF structural components that are used in several other
  * parts of the API, @c cif_value_tp objects are complete data objects, independent from the backing CIF storage
  * mechanism, albeit sometimes parts of larger aggregate value objects.
+ *
+ * CIF permits values' interpretations to be sensitive to whether they are presented whitespace-delimited string form
+ * as opposed to being presented in one of the quoted string forms.  The CIF API in fact builds in one such distinction
+ * in its provision for value kinds @c CIF_UNK_KIND and @c CIF_NA_KIND (see below).  Technically, that is a matter of
+ * convention rather than one of the underlying CIF format or data model, but recognition of the special significance
+ * of the values attributed to these kinds is essentially universal.
  *
  * The API classifies values into several distinct "kinds": character (Unicode string) values, apparently-numeric
  * values, list values, table values, unknown-value place holders, and not-applicable/default-value place holders.
  * These alternatives are represented by the enumeration @c cif_kind_tp.  Value kinds are assigned when values are
  * created, but may be changed by re-initialization.  Several functions serve this purpose: @c cif_value_init(), of
  * course, but also @c cif_value_init_char(), @c cif_value_copy_char(), @c cif_value_parse_numb(),
- * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  If it is unknown, the kind of a value object can be
- * determined via @c cif_value_kind(); this is important, because many of the value manipulation functions are
- * useful only for values of certain kinds.
+ * @c cif_value_init_numb(), and @c cif_value_autoinit_numb().  Additionally, values of character kind and suitable
+ * content will be automatically coerced to numeric kind by functions @c cif_value_get_number() and
+ * @c cif_value_get_su(), and under some circumstances, values will be coerced between character and n/a or
+ * unknown-value kind via function @c cif_value_set_quoted().  If it is not known, the kind of a value object can be
+ * determined via @c cif_value_kind(); this is important, because many of the value manipulation functions are useful
+ * only for values of certain kinds.
  *
  * Values of list and table kind aggregate other value objects.  The aggregates do not accept independent value objects
  * directly into themselves; instead they make copies of values entered into them so as to reduce confusion
@@ -2295,8 +2428,8 @@ CIF_INTFUNC_DECL(cif_value_clone, (
  *
  * This function is equivalent to @c cif_value_clean() when the specified kind is @c CIF_UNK_KIND, and it is less useful
  * than the character- and number-specific (re)initialization functions.  It is the only means available to change an
- * existing value in-place to a list, table, or N/A value, however, and it can be used to efficently empty a list or
- * table value.
+ * existing general value in-place to a list, table, or N/A value, however, and it can be used to efficently empty a
+ * list or table value.
  *
  * On failure, the value is left in a valid but otherwise unspecified state.
  *
@@ -2319,6 +2452,9 @@ CIF_INTFUNC_DECL(cif_value_init, (
  * value object will become sensitive to text changes performed afterward via the @c text pointer.  This behavior
  * could be described as wrapping an existing Unicode string in a CIF value object.
  *
+ * The value is marked as quoted; provided it has suitable form, it can subsequently be marked unquoted via
+ * @c cif_value_set_quoted().
+ *
  * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
  *
  * @param[in] text the new text content for the specified value object; must not be NULL
@@ -2339,6 +2475,9 @@ CIF_INTFUNC_DECL(cif_value_init_char, (
  * <strong><em>Responsibility for the @c text argument does not change</em></strong>, and the value object does not
  * become sensitive to change via the @c text pointer.  Unlike @c cif_value_init_char(), this function is thus suitable
  * for use with initialization text that resides on the stack (e.g. in a local array variable) or in read-only memory.
+ *
+ * The value is marked as quoted; provided it has suitable form, it can subsequently be marked unquoted via
+ * @c cif_value_set_quoted().
  *
  * @param[in,out] value a pointer to the value object to be initialized; must not be NULL
  *
@@ -2365,6 +2504,9 @@ CIF_INTFUNC_DECL(cif_value_copy_char, (
  * floating-point format.
  *
  * This behavior could be described as wrapping an existing Unicode string in a (numeric) CIF value object.
+ *
+ * The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via
+ * @c cif_value_set_quoted().
  *
  * @param[in,out] numb the value object into which to parse the text
  *
@@ -2398,13 +2540,16 @@ CIF_INTFUNC_DECL(cif_value_parse_numb, (
  * to exactly zero at the specified scale, then the resulting number object represents an exact number, whether the su
  * given was itself exactly zero or not.
  *
- * If the scale is greater than zero or if pure decimal notation would require more than @p max_leading_zeroes
+ * If the scale is less than zero or if pure decimal notation would require more than @p max_leading_zeroes
  * leading zeroes after the decimal point, then the number's text representation is formatted in scientific notation
  * (d.ddde+-dd; the number of digits of mantissa and exponent may vary).  Otherwise, it is formatted in decimal
  * notation.
  *
  * It is an error if a text representation consistent with the arguments would require more characters than the
  * CIF 2.0 maximum line length (2048 characters).
+ *
+ * The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via
+ * @c cif_value_set_quoted().
  *
  * The behavior of this function is constrained by the characteristics of the data type (@c double ) of the 
  * @p value and @p su parameters.  Behavior is undefined if a scale is specified that exceeds the maximum possible
@@ -2454,6 +2599,9 @@ CIF_INTFUNC_DECL(cif_value_init_numb, (
  * The value's text representation is expressed in scientific notation if it would otherwise have more than five
  * leading zeroes or any trailing insignificant zeroes.  Otherwise, it is expressed in plain decimal notation.
  *
+ * The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via
+ * @c cif_value_set_quoted().
+ *
  * Behavior is undefined if @p val or @p su has a value that does not correspond to a finite real number (i.e.
  * if one of those values represents an infinite value or does not represent any number at all).
  *
@@ -2490,7 +2638,48 @@ CIF_FUNC_DECL(cif_kind_tp, cif_value_kind, (
         ));
 
 /**
+ * @brief Returns whether the value should be interpreted as if it were presented quoted
+ *
+ * Unlike most CIF functions, the return value is not an error code, as no error conditions are defined for or
+ * detectable by this function.
+ *
+ * @param[in] value a pointer to the value object whose quoting status is requested; must point at an initialized value
+ *
+ * @return Returns the quoting code of the specified value
+ */
+CIF_FUNC_DECL(cif_quoted_tp, cif_value_is_quoted, (
+        cif_value_tp *value
+        ));
+
+/**
+ * @brief Sets whether the value should be interpreted as if it were presented quoted
+ *
+ * This function may coerce values in-place between kind @c CIF_CHAR_KIND and either @c CIF_UNK_KIND or @c
+ * CIF_NA_KIND.  It must must not be called with @c QUOTED as its second argument when the first has kind
+ * @c CIF_LIST_KIND or @c CIF_TABLE_KIND.
+ *
+ * Values of character kind representing reserved strings (see @c cif_is_reserved_string()) cannot be set unquoted.
+ * Values of list or table kind cannot be set quoted, regardless of their contents.  If this function is asked to
+ * perform such an action then it will instead return @c CIF_ARGUMENT_ERROR.
+ *
+ * @param[in, out] value a pointer to the value object whose quoting status is requested; must point at an initialized
+ *      value
+ *
+ * @param[in] quoted the quoting status to set
+ *
+ * @return Returns CIF_OK on success, or an error code (typically @c CIF_ARGUMENT_ERROR or @c CIF_ERROR ) on failure.
+ */
+CIF_INTFUNC_DECL(cif_value_set_quoted, (
+        cif_value_tp *value,
+        cif_quoted_tp quoted
+        ));
+
+/**
  * @brief Returns the value represented by the given number value object.
+ *
+ * If the provided value is of character kind then first an attempt is made to convert it to numeric kind, as if by
+ * parsing its text value via @c cif_value_parse_numb().  If the value is not initially of numeric kind, then this
+ * function's success depends on such a conversion.
  *
  * Behavior is implementation-defined if the represented numeric value is outside the representable range of type
  * @c double .  Some of the possible behaviors include raising a floating-point trap and returning a special value,
@@ -2500,8 +2689,9 @@ CIF_FUNC_DECL(cif_kind_tp, cif_value_kind, (
  * @param[in,out] val a pointer to the location where the numeric value should be recorded; must be a valid pointer
  *         to suitably-aligned storage large enough to accommodate a @c double.
  *
- * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
- *         another code, typically @c CIF_ERROR, if an error occurs.
+ * @return Returns @c CIF_OK on success, @c CIF_INVALID_NUMBER if the provided object is of character kind and
+ *         cannot be parsed as a number, @c CIF_ARGUMENT_ERROR if the provided object is othewise not of numeric kind,
+ *         or another code, typically @c CIF_ERROR, if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_value_get_number, (
         cif_value_tp *numb,
@@ -2511,6 +2701,10 @@ CIF_INTFUNC_DECL(cif_value_get_number, (
 /**
  * @brief Returns the uncertainty of the value represented by the given number value object.
  *
+ * If the provided value is of character kind then first an attempt is made to convert it to numeric kind, as if by
+ * parsing its text value via @c cif_value_parse_numb().  If the value is not initially of numeric kind, then this
+ * function's success depends on such a conversion.
+ *
  * The uncertainty is zero for an exact number.  Behavior is implementation-defined if the uncertainty is outside the
  * representable range of type @c double .
  *
@@ -2518,8 +2712,9 @@ CIF_INTFUNC_DECL(cif_value_get_number, (
  * @param[in,out] su a pointer to the location where the uncertainty should be recorded; must be a valid pointer
  *         to suitably aligned storage large enough to accommodate a @c double.
  *
- * @return Returns @c CIF_OK on success, @c CIF_ARGUMENT_ERROR if the provided object is not of numeric kind, or
- *         another code, typically @c CIF_ERROR, if an error occurs.
+ * @return Returns @c CIF_OK on success, @c CIF_INVALID_NUMBER if the provided object is of character kind and
+ *         cannot be parsed as a number, @c CIF_ARGUMENT_ERROR if the provided object is othewise not of numeric kind,
+ *         or another code, typically @c CIF_ERROR, if an error occurs.
  */
 CIF_INTFUNC_DECL(cif_value_get_su, (
         cif_value_tp *numb,
@@ -2906,6 +3101,62 @@ CIF_INTFUNC_DECL(cif_cstr_to_ustr, (
         const char *cstr,
         int32_t srclen,
         UChar **ustr
+        ));
+/**
+ * @brief Analyzes a Unicode string with a view toward determining how it can be represented in CIF format as a data
+ * value
+ *
+ * The analysis in particular recommends a (possibly empty) delimiter for the value, and it evaluates several other
+ * properties that may affect how it must be presented, such as whether the line-folding or text-prefixing protocol may
+ * need to be applied to it.  Results are provided in a caller-provided structure.
+ *
+ * This function considers delimiters in the following order: no delimiter (other than whitespace), apostrophe or
+ * quotation mark, triple apostrophe or triple quotation mark, newline/semicolon.  It will recommend the first among
+ * those that is not explicitly excluded via function argument, and which is consistent with the input string.  It
+ * applies CIF 2.0 rules for its evaluation in all cases, which will result in text-field (or triple-quoted) form
+ * being recommended for some values that could be expressed in CIF 1.1 with just apostrophe or quotation-mark
+ * delimiters.
+ *
+ * For generality, this function always recommends one of the quoted forms for strings beginning with a semicolon.
+ * Some such strings can be presented whitespace-delimited, <em>but not at the beginning of a line</em>.  Since the
+ * position at which a string may be presented is not a property of the string itself, this function considers it
+ * unsafe to use whitespace-delimited form to present any string beginning with a semicolon.
+ *
+ * @param[in] str a NUL-terminated Unicode string to analyze
+ * @param[in] allow_unquoted zero if whitespace-delimited form is not an acceptable alternative, otherwise nonezero
+ * @param[in] allow_triple_quoted zero if triple-quoted form is not an acceptable alternative (i.e. for
+ *     CIF 1.1 format), otherwise nonezero
+ * @param[in] length_limit the line-length limit with which the formatted result must conform
+ * @param[in,out] result a pointer to a @c @{ struct cif_string_analysis_s @} to be filled in with the analysis result;
+ *     must not be NULL
+ *
+ * @return @c CIF_OK on success, or an error code (typically @c CIF_ERROR ) on failure
+ */
+CIF_INTFUNC_DECL(cif_analyze_string, (
+        const UChar *str,
+        int allow_unquoted,
+        int allow_triple_quoted,
+        int32_t length_limit,
+        struct cif_string_analysis_s *result
+        ));
+
+/**
+ * @brief Determines whether a given string takes a reserved form that must not be presented whitespace-delimited in a
+ * CIF
+ *
+ * This function looks for individual reserved characters at the beginning of the string, and compares the string
+ * overall to several reserved words and forms.  Unlike most CIF API functions, this one does not return a CIF API
+ * result code.
+ *
+ * Although strings containing CIF whitespace or certain other characters cannot be presented whitespace-delimited,
+ * they are not for that reason considered "reserved" for the purposes of this function.
+ *
+ * @param [in] str a NUL-terminated Unicode string to analyze; must not be NULL
+ *
+ * @return non-zero if and only if the string has a reserved form
+ */
+CIF_INTFUNC_DECL(cif_is_reserved_string, (
+        const UChar *str
         ));
 
 /**

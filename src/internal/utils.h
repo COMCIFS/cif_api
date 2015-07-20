@@ -45,14 +45,17 @@
 /* The __visibility__ attribute is not supported on win32 */
 #define INTERNAL __attribute__ ((__warn_unused_result__))
 #define INTERNAL_VOID
+#define INTERNAL_VAR
 #else
 #define INTERNAL __attribute__ ((__visibility__ ("hidden"), __warn_unused_result__))
 #define INTERNAL_VOID __attribute__ ((__visibility__ ("hidden")))
+#define INTERNAL_VAR __attribute__ ((__visibility__ ("hidden")))
 #endif
 #else
 #define UNUSED
 #define INTERNAL
 #define INTERNAL_VOID
+#define INTERNAL_VAR
 #endif
 
 /* simple macros */
@@ -448,18 +451,20 @@ extern int total_queries;
     } \
     switch (v->kind) { \
         case CIF_CHAR_KIND: \
-            if ((sqlite3_bind_text16(s, 2 + ofs, v->as_char.text, -1, SQLITE_STATIC) != SQLITE_OK) \
-                    || (sqlite3_bind_text16(s, 3 + ofs, v->as_char.text, -1, SQLITE_STATIC)) != SQLITE_OK) { \
+            if ((sqlite3_bind_int(s, 2 + ofs, v->as_char.quoted) != SQLITE_OK) \
+                    || (sqlite3_bind_text16(s, 3 + ofs, v->as_char.text, -1, SQLITE_STATIC) != SQLITE_OK) \
+                    || (sqlite3_bind_text16(s, 4 + ofs, v->as_char.text, -1, SQLITE_STATIC) != SQLITE_OK)) { \
                 DEFAULT_FAIL(onsqlerr); \
             } \
             break; \
         case CIF_NUMB_KIND: \
-            if ((sqlite3_bind_text16(s, 2 + ofs, v->as_numb.text, -1, SQLITE_STATIC) != SQLITE_OK) \
+            if ((sqlite3_bind_int(s, 2 + ofs, v->as_numb.quoted) != SQLITE_OK) \
+                    || (sqlite3_bind_text16(s, 3 + ofs, v->as_numb.text, -1, SQLITE_STATIC) != SQLITE_OK) \
                     || (cif_value_get_number(v, &svp_d) != CIF_OK) \
-                    || (sqlite3_bind_double(s, 3 + ofs, svp_d) != SQLITE_OK) \
-                    || (sqlite3_bind_text(s, 4 + ofs, v->as_numb.digits, -1, SQLITE_STATIC) != SQLITE_OK) \
-                    || (sqlite3_bind_text(s, 5 + ofs, v->as_numb.su_digits, -1, SQLITE_STATIC) != SQLITE_OK) \
-                    || (sqlite3_bind_int(s, 6 + ofs, v->as_numb.scale) != SQLITE_OK)) { \
+                    || (sqlite3_bind_double(s, 4 + ofs, svp_d) != SQLITE_OK) \
+                    || (sqlite3_bind_text(s, 5 + ofs, v->as_numb.digits, -1, SQLITE_STATIC) != SQLITE_OK) \
+                    || (sqlite3_bind_text(s, 6 + ofs, v->as_numb.su_digits, -1, SQLITE_STATIC) != SQLITE_OK) \
+                    || (sqlite3_bind_int(s, 7 + ofs, v->as_numb.scale) != SQLITE_OK)) { \
                 DEFAULT_FAIL(onsqlerr); \
             } \
             break; \
@@ -471,7 +476,7 @@ extern int total_queries;
                 char *blob = buf->for_writing.start; \
                 int limit = (int) buf->for_writing.limit; \
                 cif_buf_free_metadata(buf); \
-                if (sqlite3_bind_blob(s, 3 + ofs, blob, limit, free) != SQLITE_OK) { \
+                if (sqlite3_bind_blob(s, 4 + ofs, blob, limit, free) != SQLITE_OK) { \
                     DEFAULT_FAIL(onsqlerr); \
                 } \
             } \
@@ -490,25 +495,27 @@ extern int total_queries;
     _value->kind = (cif_kind_tp) sqlite3_column_int(_stmt, _col_ofs); \
     switch (_value->kind) { \
         case CIF_CHAR_KIND: \
-            GET_COLUMN_STRING(_stmt, _col_ofs + 2, _value->as_char.text, HANDLER_LABEL(errlabel)); \
+            _value->as_char.quoted = (sqlite3_column_int(_stmt, _col_ofs + 1) ? CIF_QUOTED : CIF_NOT_QUOTED); \
+            GET_COLUMN_STRING(_stmt, _col_ofs + 3, _value->as_char.text, HANDLER_LABEL(errlabel)); \
             if (_value->as_char.text != NULL) break; \
             FAIL(errlabel, CIF_INTERNAL_ERROR); \
         case CIF_NUMB_KIND: \
-            GET_COLUMN_STRING(_stmt, _col_ofs + 2, _value->as_numb.text, HANDLER_LABEL(errlabel)); \
-            GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 3, _value->as_numb.digits, HANDLER_LABEL(errlabel)); \
+            _value->as_numb.quoted = (sqlite3_column_int(_stmt, _col_ofs + 1) ? CIF_QUOTED : CIF_NOT_QUOTED); \
+            GET_COLUMN_STRING(_stmt, _col_ofs + 3, _value->as_numb.text, HANDLER_LABEL(errlabel)); \
+            GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 4, _value->as_numb.digits, HANDLER_LABEL(errlabel)); \
             if ((_value->as_numb.text != NULL) && (*(_value->as_numb.text) != 0) && (_value->as_numb.digits != NULL) \
                     && (*(_value->as_numb.digits) != '\0')) { \
-                GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 4, _value->as_numb.su_digits, HANDLER_LABEL(errlabel)); \
-                _value->as_numb.scale = sqlite3_column_int(_stmt, _col_ofs + 5); \
+                GET_COLUMN_BYTESTRING(_stmt, _col_ofs + 5, _value->as_numb.su_digits, HANDLER_LABEL(errlabel)); \
+                _value->as_numb.scale = sqlite3_column_int(_stmt, _col_ofs + 6); \
                 _value->as_numb.sign = (*(_value->as_numb.text) == UCHAR_MINUS) ? -1 : 1; \
                 break; \
             } \
             FAIL(errlabel, CIF_INTERNAL_ERROR); \
         case CIF_LIST_KIND: \
         case CIF_TABLE_KIND: \
-            _blob = (const void *) sqlite3_column_blob(_stmt, _col_ofs + 1); \
+            _blob = (const void *) sqlite3_column_blob(_stmt, _col_ofs + 2); \
             if ((_blob != NULL) && (cif_value_deserialize( \
-                    _blob, (size_t) sqlite3_column_bytes(_stmt, _col_ofs + 1), _value) == CIF_OK)) { \
+                    _blob, (size_t) sqlite3_column_bytes(_stmt, _col_ofs + 2), _value) == CIF_OK)) { \
                 break; \
             } \
             FAIL(errlabel, CIF_INTERNAL_ERROR); \
@@ -523,9 +530,16 @@ extern int total_queries;
 /* The number of _bytes_ in the given null(-character)-terminated Unicode string */
 #define U_BYTES(s) (u_strlen(s) * sizeof(UChar))
 
+/* the number of elements in fixed-length array a */
+#define ARRAY_LENGTH(a) (sizeof(a) / sizeof(a[0]))
+
 /*
  * function headers for private, non-static functions
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef HAVE_DECL_STRDUP
 #ifdef HAVE_STRDUP
@@ -538,6 +552,12 @@ extern char *strdup(const char *s) INTERNAL
 #endif
 ;
 #endif
+
+/* Global data */
+
+/* A Unicode string containing all the characters that are allowed anywhere in CIF 1.1 documents */
+extern const UChar cif11_chars[] INTERNAL_VAR;
+extern const size_t cif11_chars_elements INTERNAL_VAR;
 
 /*
  * An internal version of cif_create_block() that allows block code validation to be suppressed (when 'lenient' is
@@ -748,6 +768,19 @@ int cif_parse_internal(
         const char *extra_ws,
         const char *extra_eol,
         cif_tp *dest
+        ) INTERNAL;
+
+/*
+ * Validates that the specified Unicode string contains only characters that are in the CIF 1.1 character set.  Returns
+ * CIF_OK if all characters are allowed, or CIF_DISALLOWED_CHAR if not.
+ *
+ * @param[in] s a pointer to the NUL-terminated Unicode string to test
+ * @param[in,out] disallowed if not NULL, points to the location where a pointer to the first disallowed character
+ *         appears in @c s should be recorded.  NULL is recorded there if all characters are allowed
+ */
+int cif_validate_cif11_characters(
+        UChar *s,
+        UChar **disallowed
         ) INTERNAL;
 
 #ifdef __cplusplus

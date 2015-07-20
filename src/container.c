@@ -689,7 +689,7 @@ int cif_container_destroy(
 int cif_container_get_code(
         cif_container_tp *container,
         UChar **code) {
-    UChar *temp = cif_u_strdup(container->code_orig);
+    UChar *temp;
 
     assert(container->code_orig != NULL);
     temp = cif_u_strdup(container->code_orig);
@@ -1024,8 +1024,8 @@ int cif_container_set_all_values(
      */
     PREPARE_STMT(cif, set_all_values, SET_ALL_VALUES_SQL);
     TRACELINE;
-    if ((sqlite3_bind_int64(cif->set_all_values_stmt, 7, container->id) == SQLITE_OK)
-            && (sqlite3_bind_text16(cif->set_all_values_stmt, 8, item_name, -1, SQLITE_STATIC) == SQLITE_OK)) {
+    if ((sqlite3_bind_int64(cif->set_all_values_stmt, 8, container->id) == SQLITE_OK)
+            && (sqlite3_bind_text16(cif->set_all_values_stmt, 9, item_name, -1, SQLITE_STATIC) == SQLITE_OK)) {
         STEP_HANDLING;
 
         SET_VALUE_PROPS(cif->set_all_values_stmt, 0, val, hard, soft);

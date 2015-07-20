@@ -23,7 +23,7 @@ AC_PREREQ([2.63])
 dnl quoting delimiters in the bug report address does not affect the generated
 dnl configure script, but may offer some protection against the address being
 dnl scraped from this Autoconf file:
-AC_INIT([CIF API], [0.3.0], [John[.]Bollinger[@]StJude[.]org])
+AC_INIT([CIF API], [0.4.0], [John[.]Bollinger[@]StJude[.]org])
 AC_CONFIG_SRCDIR([src/cif.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -49,6 +49,17 @@ AC_ARG_ENABLE([doc-rebuild],
   [enable_doc_rebuild='no'])
 
 AM_CONDITIONAL([make_docs], [test "x$[]{enable_doc_rebuild}" = xyes])
+
+AC_ARG_WITH([linguist],
+  [AS_HELP_STRING([--with-linguist], [Build the experimental program cif_linguist])],
+  [AS_CASE([$[]{with_linguist}],
+    [yes|no], [],
+              [AC_MSG_ERROR([Unrecognized value '$[]{with_linguist}' for --with-linguist])]
+    )],
+  [with_linguist='no'])
+
+
+AM_CONDITIONAL([make_linguist], [test "x$[]{with_linguist}" = xyes])
 
 AC_ARG_ENABLE([c89-enforcement],
   [AS_HELP_STRING([--enable-c89-enforcement],

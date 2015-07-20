@@ -19,8 +19,13 @@
 #
 
 lib_LTLIBRARIES = libcif.la
-include_HEADERS = cif.h
+include_HEADERS = cif.h cif_error.h
+
+if make_linguist
+bin_PROGRAMS = cif_linguist
+else
 bin_PROGRAMS =
+endif
 
 ## Library versioning (LibTool style):
 ##
@@ -48,9 +53,9 @@ bin_PROGRAMS =
 ##
 ## These decisions should be made once per software release, based on changes from
 ## one release to the next (not, for example, every time the library is built).
-LIB_CURRENT = 1
+LIB_CURRENT = 2
 LIB_REVISION = 0
-LIB_AGE = 0
+LIB_AGE = 1
 
 if win32
   LIB_VERSION_FLAGS = -avoid-version
@@ -74,6 +79,7 @@ EXTRA_DIST = notes.txt style.txt
 AM_CPPFLAGS = $(C_STD_FLAGS) $(ICU_CPPFLAGS) $(SQLITE_CPPFLAGS) -I $(top_srcdir)/uthash $(WARNING_FLAGS) $(PROFILING_CPPFLAGS)
 AM_CFLAGS = $(PROFILING_CFLAGS)
 AM_LDFLAGS = $(PROFILING_LDFLAGS)
+LDADD = libcif.la
 
 CLEANFILES += gmon.out
 MAINTAINERCLEANFILES = internal/schema.h internal/version.h
@@ -105,7 +111,7 @@ nodist_libcif_la_SOURCES = $(BUILT_SOURCES)
 libcif_la_LIBADD = $(ICU_LIBS)
 libcif_la_LDFLAGS = $(AM_LDFLAGS) $(LIB_VERSION_FLAGS) -no-undefined
 
-LDADD = libcif.la
+cif_linguist_SOURCES = tools/linguist.c
 
 # A sed script that processes a slightly-restricted dialect of SQL into a
 # comma-delimited list of C string literals, each containing the text of

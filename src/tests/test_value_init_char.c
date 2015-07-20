@@ -49,6 +49,7 @@ int main(void) {
     /* reinitialize the value as kind CHAR */
     TEST(cif_value_init_char(value, init_text), CIF_OK, test_name, 3);
     TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 4);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 5);
 
     /* check that the value carries a dependent reference to the initialization text */
     *init_text = (UChar) 'X';

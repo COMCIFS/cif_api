@@ -196,12 +196,13 @@ int main(void) {
     /* reinitialize the value as kind NUMB, scale 8, measured, excessive leading zeroes */
     TEST(cif_value_init_numb(value, 0.00000042, 0.00000017, 8, 5), CIF_OK, test_name, 91);
     TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 92);
-    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 93);
-    TEST(!assert_doubles_equal(d, 0.00000042, DBL_TEST_ULPS), 0, test_name, 94);
-    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 95);
-    TEST(!assert_doubles_equal(d, 0.00000017, DBL_TEST_ULPS), 0, test_name, 96);
-    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 97);
-    TEST(u_strcmp(vm0_00000042s_00000017_s8, text), 0, test_name, 98);
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 93);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 94);
+    TEST(!assert_doubles_equal(d, 0.00000042, DBL_TEST_ULPS), 0, test_name, 95);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 96);
+    TEST(!assert_doubles_equal(d, 0.00000017, DBL_TEST_ULPS), 0, test_name, 97);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 98);
+    TEST(u_strcmp(vm0_00000042s_00000017_s8, text), 0, test_name, 99);
     free(text);
 
     cif_value_free(value);

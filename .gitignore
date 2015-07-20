@@ -30,6 +30,7 @@ stamp-h1
 /src/cif2_table1
 /src/cif2_table3
 /src/cif2_addauthor
+/src/cif_linguist
 
 # General working files
 *.swp

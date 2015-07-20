@@ -282,7 +282,7 @@ ACLOCAL_AMFLAGS = -I m4
 # 'distcheck' should verify that building the examples works.
 # It would be nice to test documentation rebuilding, too, but 'distcheck'
 # doesn't like it that 'distclean' doesn't then remove the generarted docs.
-AM_DISTCHECK_CONFIGURE_FLAGS = --with-examples
+AM_DISTCHECK_CONFIGURE_FLAGS = --with-examples --with-linguist
 doxygen_examples = \
   misc/basic_parsing.c \
   misc/parse_errors.c \
@@ -336,7 +336,7 @@ DISTCLEANFILES = Doxyfile
 @make_docs_FALSE@doxygen_man_targets = 
 @make_docs_TRUE@doxygen_man_targets = dox-man
 @make_docs_FALSE@dox_deps = 
-@make_docs_TRUE@dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
+@make_docs_TRUE@dox_deps = Doxyfile src/cif.h src/cif_error.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
 @install_docs_FALSE@html_install = :
 
 # The chmod in the below command must ensure the target files writable

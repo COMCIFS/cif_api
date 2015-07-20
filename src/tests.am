@@ -89,13 +89,22 @@ compiled_tests = \
     tests/test_write_simple \
     tests/test_write_complex \
     tests/test_write_loops \
-    tests/test_write_frames
+    tests/test_write_frames \
+    tests/test_write_11 \
+    tests/test_value_set_quoted
 # Future tests:
 # cif_parse
 # - parse into existing CIF
 #   - duplicate block code
 #   - updates the CIF in-place
 # - syntax-only mode
+
+if make_linguist
+#  compiled_tests += \
+#    linguist/test_linguist_20to20 \
+#    linguist/test_linguist_11to20 \
+#    linguist/test_linguist_20to11
+endif
 
 check_PROGRAMS = $(compiled_tests)
 EXTRA_DIST += \

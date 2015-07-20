@@ -51,6 +51,12 @@
 /* double quote */
 #define UCHAR_DQ       0x22
 
+/* the hash symbol */
+#define UCHAR_HASH     0x23
+
+/* the dollar sign */
+#define UCHAR_DOLLAR   0x24
+
 /* single quote */
 #define UCHAR_SQ       0x27
 
@@ -87,11 +93,26 @@
 /* uppercase Latin E */
 #define UCHAR_E        0x45
 
+/* opening square bracket */
+#define UCHAR_OBRK     0x5b
+
 /* backslash */
 #define UCHAR_BSL      0x5c
 
+/* closing square bracket */
+#define UCHAR_CBRK     0x5d
+
+/* the underscore */
+#define UCHAR_UNDER    0x5f
+
 /* lowercase Latin e */
 #define UCHAR_e        0x65
+
+/* opening curly brace */
+#define UCHAR_OBRC     0x7b
+
+/* closing curly brace */
+#define UCHAR_CBRC     0x7d
 
 /* byte-order mark */
 #define UCHAR_BOM      0xfeff

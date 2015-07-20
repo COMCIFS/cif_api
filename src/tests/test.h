@@ -230,13 +230,25 @@ struct set_el {
 } while (0)
 
 #ifdef _WIN32
+
+/*
+ * Win32's tmpfile() is not usable (it tries to create files in the root directory, which is often not writable).
+ * We therefore provide an alternative that is a little nicer.  Note that it uses _tempnam(), which is not particularly
+ * secure, but it is intended to be used only in the automated tests.
+ */
 #define tmpfile cif_win32_tmpfile
 
 FILE *cif_win32_tmpfile(void);
 
 FILE *cif_win32_tmpfile(void) {
-    char *filename = _tempnam(NULL, "test");
-    FILE *file = fopen(filename, "w+bTD");
+    char *filename = _tempnam(NULL, "cifapi_test");
+    FILE *file = fopen(filename,
+#ifdef TEXT_TEMPFILE
+            "w+tTD"
+#else
+            "w+bTD"
+#endif
+    );
 
     free(filename);
     return file;

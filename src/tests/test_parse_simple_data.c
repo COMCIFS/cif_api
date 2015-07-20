@@ -31,7 +31,7 @@
 #include "test.h"
 
 #define BUFFER_SIZE 512
-#define NUM_ITEMS     8
+#define NUM_ITEMS    12
 int main(void) {
     char test_name[80] = "test_parse_simple_data";
     char local_file_name[] = "simple_data.cif";
@@ -57,10 +57,17 @@ int main(void) {
     U_STRING_DECL(name_text_string,     "_text_string", 13);
     U_STRING_DECL(name_numb_plain,      "_numb_plain", 12);
     U_STRING_DECL(name_numb_su,         "_numb_su", 9);
+    U_STRING_DECL(name_numb_quoted,     "_numb_quoted", 13);
+    U_STRING_DECL(name_numb_tz,         "_numb_tz", 9);
+    U_STRING_DECL(name_query_quoted,    "_query_quoted", 14);
+    U_STRING_DECL(name_dot_quoted,      "_dot_quoted", 12);
     U_STRING_DECL(value_unquoted_string, "unquoted", 9);
-    U_STRING_DECL(value_sq_string,       "sq", 3);
-    U_STRING_DECL(value_dq_string,       "dq", 3);
-    U_STRING_DECL(value_text_string,     "text", 5);
+    U_STRING_DECL(value_sq_string,      "sq", 3);
+    U_STRING_DECL(value_dq_string,      "dq", 3);
+    U_STRING_DECL(value_text_string,    "text", 5);
+    U_STRING_DECL(value_query_quoted,   "?", 2);
+    U_STRING_DECL(value_dot_quoted,     ".", 2);
+    U_STRING_DECL(value_numb_tz,        "17.12500", 9);
 
     U_STRING_INIT(block_code,           "simple_data", 12);
     U_STRING_INIT(name_unknown_value,   "_unknown_value", 15);
@@ -71,10 +78,17 @@ int main(void) {
     U_STRING_INIT(name_text_string,     "_text_string", 13);
     U_STRING_INIT(name_numb_plain,      "_numb_plain", 12);
     U_STRING_INIT(name_numb_su,         "_numb_su", 9);
+    U_STRING_INIT(name_numb_quoted,     "_numb_quoted", 13);
+    U_STRING_INIT(name_numb_tz,         "_numb_tz", 9);
+    U_STRING_INIT(name_query_quoted,    "_query_quoted", 14);
+    U_STRING_INIT(name_dot_quoted,      "_dot_quoted", 12);
     U_STRING_INIT(value_unquoted_string, "unquoted", 9);
-    U_STRING_INIT(value_sq_string,       "sq", 3);
-    U_STRING_INIT(value_dq_string,       "dq", 3);
-    U_STRING_INIT(value_text_string,     "text", 5);
+    U_STRING_INIT(value_sq_string,      "sq", 3);
+    U_STRING_INIT(value_dq_string,      "dq", 3);
+    U_STRING_INIT(value_text_string,    "text", 5);
+    U_STRING_INIT(value_query_quoted,   "?", 2);
+    U_STRING_INIT(value_dot_quoted,     ".", 2);
+    U_STRING_INIT(value_numb_tz,        "17.12500", 9);
 
     /* Initialize data and prepare the test fixture */
     TESTHEADER(test_name);
@@ -121,47 +135,88 @@ int main(void) {
       /* check each expected item */
     TEST(cif_container_get_value(block, name_unknown_value, &value), CIF_OK, test_name, 17);
     TEST(cif_value_kind(value), CIF_UNK_KIND, test_name, 18);
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 19);
 
-    TEST(cif_container_get_value(block, name_na_value, &value), CIF_OK, test_name, 19);
-    TEST(cif_value_kind(value), CIF_NA_KIND, test_name, 20);
+    TEST(cif_container_get_value(block, name_na_value, &value), CIF_OK, test_name, 20);
+    TEST(cif_value_kind(value), CIF_NA_KIND, test_name, 21);
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 22);
 
-    TEST(cif_container_get_value(block, name_unquoted_string, &value), CIF_OK, test_name, 21);
-    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 22);
-    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 23);
-    TEST(u_strcmp(value_unquoted_string, ustr), 0, test_name, 24);
+    TEST(cif_container_get_value(block, name_unquoted_string, &value), CIF_OK, test_name, 23);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 24);
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 25);
+    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 26);
+    TEST(u_strcmp(value_unquoted_string, ustr), 0, test_name, 27);
     free(ustr);
 
-    TEST(cif_container_get_value(block, name_sq_string, &value), CIF_OK, test_name, 25);
-    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 26);
-    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 27);
-    TEST(u_strcmp(value_sq_string, ustr), 0, test_name, 28);
-    free(ustr);
-
-    TEST(cif_container_get_value(block, name_dq_string, &value), CIF_OK, test_name, 29);
-    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 30);
+    TEST(cif_container_get_value(block, name_sq_string, &value), CIF_OK, test_name, 28);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 29);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 30);
     TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 31);
-    TEST(u_strcmp(value_dq_string, ustr), 0, test_name, 32);
+    TEST(u_strcmp(value_sq_string, ustr), 0, test_name, 32);
     free(ustr);
 
-    TEST(cif_container_get_value(block, name_text_string, &value), CIF_OK, test_name, 33);
+    TEST(cif_container_get_value(block, name_dq_string, &value), CIF_OK, test_name, 33);
     TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 34);
-    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 35);
-    TEST(u_strcmp(value_text_string, ustr), 0, test_name, 36);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 35);
+    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 36);
+    TEST(u_strcmp(value_dq_string, ustr), 0, test_name, 37);
     free(ustr);
 
-    TEST(cif_container_get_value(block, name_numb_plain, &value), CIF_OK, test_name, 37);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 38);
-    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 39);
-    TEST_NOT(d == 1250.0, 0, test_name, 40);
-    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 41);
-    TEST_NOT(d == 0.0, 0, test_name, 42);
+    TEST(cif_container_get_value(block, name_text_string, &value), CIF_OK, test_name, 38);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 39);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 40);
+    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 41);
+    TEST(u_strcmp(value_text_string, ustr), 0, test_name, 42);
+    free(ustr);
 
-    TEST(cif_container_get_value(block, name_numb_su, &value), CIF_OK, test_name, 43);
-    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 44);
+    TEST(cif_container_get_value(block, name_numb_plain, &value), CIF_OK, test_name, 43);
+    /* TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 38); */
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 44);
     TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 45);
-    TEST_NOT(d == 0.0625, 0, test_name, 46);  /* 0.0625 is exactly representable as an IEEE binary or decimal float */
+    TEST_NOT(d == 1250.0, 0, test_name, 46);
     TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 47);
-    TEST_NOT(abs(d - 0.0002) < 1e-10, 0, test_name, 48);
+    TEST_NOT(d == 0.0, 0, test_name, 48);
+
+    TEST(cif_container_get_value(block, name_numb_su, &value), CIF_OK, test_name, 49);
+    /* TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 44); */
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 50);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 51);
+    TEST_NOT(d == 0.0625, 0, test_name, 52);  /* 0.0625 is exactly representable as an IEEE binary or decimal float */
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 53);
+    TEST_NOT(abs(d - 0.0002) < 1e-10, 0, test_name, 54);
+
+    TEST(cif_container_get_value(block, name_numb_quoted, &value), CIF_OK, test_name, 55);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 56);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 57);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 58);
+    TEST_NOT(d == 1.0, 0, test_name, 59);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 60);
+    TEST_NOT(d == 0.0, 0, test_name, 61);
+
+    TEST(cif_container_get_value(block, name_query_quoted, &value), CIF_OK, test_name, 62);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 63);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 64);
+    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 65);
+    TEST(u_strcmp(value_query_quoted, ustr), 0, test_name, 66);
+    free(ustr);
+
+    TEST(cif_container_get_value(block, name_dot_quoted, &value), CIF_OK, test_name, 67);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 68);
+    TEST(cif_value_is_quoted(value), CIF_QUOTED, test_name, 69);
+    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 70);
+    TEST(u_strcmp(value_dot_quoted, ustr), 0, test_name, 71);
+    free(ustr);
+
+    TEST(cif_container_get_value(block, name_numb_tz, &value), CIF_OK, test_name, 72);
+    TEST(cif_value_kind(value), CIF_CHAR_KIND, test_name, 73);
+    TEST(cif_value_is_quoted(value), CIF_NOT_QUOTED, test_name, 74);
+    TEST(cif_value_get_text(value, &ustr), CIF_OK, test_name, 75);
+    TEST(u_strcmp(value_numb_tz, ustr), 0, test_name, 76);
+    free(ustr);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 77);
+    TEST_NOT(d == 17.125, 0, test_name, 78);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 79);
+    TEST_NOT(d == 0.0, 0, test_name, 80);
 
     /* clean up */
     cif_value_free(value);

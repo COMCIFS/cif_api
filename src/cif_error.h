@@ -1,8 +1,5 @@
 /*
- * test_get_api_version.c
- *
- * Tests the CIF API's cif_create() and cif_destroy() functions, as much
- * as can be done in isolation.
+ * cif_errlist.h
  *
  * Copyright 2014, 2015 John C. Bollinger
  *
@@ -23,24 +20,43 @@
  * along with the CIF API.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "../cif.h"
-#include "test.h"
+#ifndef MESSAGES_H
+#define MESSAGES_H
 
-#define VERSION_VAR "API_VERSION"
+#ifdef _WIN32
+#ifdef DLL_EXPORT
+#define DECLSPEC __declspec(dllexport)
+#else
+#ifndef LIBCIF_STATIC
+#define DECLSPEC __declspec(dllimport)
+#endif
+#endif
+#endif
 
-int main(void) {
-    char test_name[80] = "test_get_api_version";
-    const char *expected_version = getenv(VERSION_VAR);
-    char *reported_version;
+#ifndef DECLSPEC
+#define DECLSPEC
+#endif
 
-    TESTHEADER(test_name);
-    TEST(expected_version == NULL, 0, test_name, 1);
-    TEST(cif_get_api_version(&reported_version), CIF_OK, test_name, 2);
-    TEST(reported_version == NULL, 0, test_name, 3);
-    TEST(strcmp(expected_version, reported_version), 0, test_name, 4);
+/**
+ * @file
+ *
+ * @addtogroup return_codes
+ * @{
+ */
 
-    return 0;
-}
+/**
+ * @brief A table of short descriptions of the errors indicated by the various
+ *        CIF API error codes
+ */
+DECLSPEC extern const char cif_errlist[][80];
 
+/**
+ * @brief The number of entries in @c cif_errlist
+ */
+DECLSPEC extern const int cif_nerr;
+
+/**
+ * @}
+ */
+
+#endif

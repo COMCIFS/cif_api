@@ -25,7 +25,7 @@ ACLOCAL_AMFLAGS = -I m4
 # 'distcheck' should verify that building the examples works.
 # It would be nice to test documentation rebuilding, too, but 'distcheck'
 # doesn't like it that 'distclean' doesn't then remove the generarted docs.
-AM_DISTCHECK_CONFIGURE_FLAGS = --with-examples
+AM_DISTCHECK_CONFIGURE_FLAGS = --with-examples --with-linguist
 
 doxygen_examples = \
   misc/basic_parsing.c \
@@ -79,7 +79,7 @@ DISTCLEANFILES = Doxyfile
 if make_docs
 doxygen_html_targets = dox-html
 doxygen_man_targets = dox-man
-dox_deps = Doxyfile src/cif.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
+dox_deps = Doxyfile src/cif.h src/cif_error.h src/parser.c misc/main.dox misc/footer.html misc/dox.css $(doxygen_examples)
 else
 doxygen_html_targets =
 doxygen_man_targets =
