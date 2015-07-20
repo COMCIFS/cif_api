@@ -62,6 +62,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">(Re)initializes the given value as a number with the specified value and uncertainty, automatically choosing the number of significant digits to keep based on the specified <code>su</code> and <code>su_rule</code>.  <a href="#gacd228b9e592c6be981df3cea02176319"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gadc69676873c55ee05aa0b06bf8b16364">cif_value_kind</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the kind code of the specified value.  <a href="#gadc69676873c55ee05aa0b06bf8b16364"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga91436bec5f43ed8627871d5eea6192a6">cif_value_is_quoted</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns whether the value should be interpreted as if it were presented quoted.  <a href="#ga91436bec5f43ed8627871d5eea6192a6"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c">cif_value_set_quoted</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, <a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a> quoted)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets whether the value should be interpreted as if it were presented quoted.  <a href="#gafa57153e1fc82f0891c354bff3b42a6c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga5d0671fa297a3db716b824dc3fc5396c">cif_value_get_number</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *numb, double *val)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the value represented by the given number value object.  <a href="#ga5d0671fa297a3db716b824dc3fc5396c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gaf260b314e086bdc6e01650432e3c0c0a">cif_value_get_su</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *numb, double *su)</td></tr>
@@ -88,8 +92,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Removes an item from a table value, optionally returning the value.  <a href="#ga67366971f91389a49d9b9523e761cc20"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
-<p>CIF data values are represented by and to CIF API functions via the opaque data type <code>cif_value_tp</code> . Because this type is truly opaque, <code>cif_value_tp</code> objects cannot directly be declared. Independent value objects must instead be created via function <code><a class="el" href="group__value__funcs.html#ga3fe1a17cd35418767eaefd343f926e0b" title="Allocates and initializes a new value object of the specified kind.">cif_value_create()</a></code> , and <em>independent</em> ones should be released via <code><a class="el" href="group__value__funcs.html#gae023e5c1166c8f457333d776686a8f30" title="Frees the specified value object and all resources associated with it.">cif_value_free()</a></code> when they are no longer needed. Unlike the "handles" on CIF structural components that are used in several other parts of the API, <code>cif_value_tp</code> objects are complete data objects, independent from the backing CIF storage mechanism, albeit sometimes parts of larger aggregate value objects.</p>
-<p>The API classifies values into several distinct "kinds": character (Unicode string) values, apparently-numeric values, list values, table values, unknown-value place holders, and not-applicable/default-value place holders. These alternatives are represented by the enumeration <code>cif_kind_tp</code>. Value kinds are assigned when values are created, but may be changed by re-initialization. Several functions serve this purpose: <code><a class="el" href="group__value__funcs.html#ga332f27466b5af3f5d829394dbd803047" title="Reinitializes the provided value object to a default value of the specified kind...">cif_value_init()</a></code>, of course, but also <code><a class="el" href="group__value__funcs.html#ga3be5dea8ed4231d7b9ae0859f886e025" title="(Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with the...">cif_value_init_char()</a></code>, <code><a class="el" href="group__value__funcs.html#ga8be8921146e46ffe018892db81cbb107" title="(Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with a...">cif_value_copy_char()</a></code>, <code><a class="el" href="group__value__funcs.html#ga60c575d2fa5b5f0d83ab4d212e73e1ad" title="Parses the specified Unicode string to produce a floating-point number and its standard...">cif_value_parse_numb()</a></code>, <code><a class="el" href="group__value__funcs.html#ga80b0017214727b7fd841de3b90db8fa2" title="(Re)initializes the given value as a number with the specified value and uncertainty...">cif_value_init_numb()</a></code>, and <code><a class="el" href="group__value__funcs.html#gacd228b9e592c6be981df3cea02176319" title="(Re)initializes the given value as a number with the specified value and uncertainty...">cif_value_autoinit_numb()</a></code>. If it is unknown, the kind of a value object can be determined via <code><a class="el" href="group__value__funcs.html#gadc69676873c55ee05aa0b06bf8b16364" title="Returns the kind code of the specified value.">cif_value_kind()</a></code>; this is important, because many of the value manipulation functions are useful only for values of certain kinds.</p>
+<p>CIF data values are represented by and to CIF API functions via the opaque data type <code>cif_value_tp</code> . Because this type is truly opaque, <code>cif_value_tp</code> objects cannot directly be declared. Independent value objects must instead be created via function <code><a class="el" href="group__value__funcs.html#ga3fe1a17cd35418767eaefd343f926e0b" title="Allocates and initializes a new value object of the specified kind.">cif_value_create()</a></code>, and <em>independent</em> ones should be released via <code><a class="el" href="group__value__funcs.html#gae023e5c1166c8f457333d776686a8f30" title="Frees the specified value object and all resources associated with it.">cif_value_free()</a></code> when they are no longer needed. Unlike the "handles" on CIF structural components that are used in several other parts of the API, <code>cif_value_tp</code> objects are complete data objects, independent from the backing CIF storage mechanism, albeit sometimes parts of larger aggregate value objects.</p>
+<p>CIF permits values' interpretations to be sensitive to whether they are presented whitespace-delimited string form as opposed to being presented in one of the quoted string forms. The CIF API in fact builds in one such distinction in its provision for value kinds <code>CIF_UNK_KIND</code> and <code>CIF_NA_KIND</code> (see below). Technically, that is a matter of convention rather than one of the underlying CIF format or data model, but recognition of the special significance of the values attributed to these kinds is essentially universal.</p>
+<p>The API classifies values into several distinct "kinds": character (Unicode string) values, apparently-numeric values, list values, table values, unknown-value place holders, and not-applicable/default-value place holders. These alternatives are represented by the enumeration <code>cif_kind_tp</code>. Value kinds are assigned when values are created, but may be changed by re-initialization. Several functions serve this purpose: <code><a class="el" href="group__value__funcs.html#ga332f27466b5af3f5d829394dbd803047" title="Reinitializes the provided value object to a default value of the specified kind...">cif_value_init()</a></code>, of course, but also <code><a class="el" href="group__value__funcs.html#ga3be5dea8ed4231d7b9ae0859f886e025" title="(Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with the...">cif_value_init_char()</a></code>, <code><a class="el" href="group__value__funcs.html#ga8be8921146e46ffe018892db81cbb107" title="(Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with a...">cif_value_copy_char()</a></code>, <code><a class="el" href="group__value__funcs.html#ga60c575d2fa5b5f0d83ab4d212e73e1ad" title="Parses the specified Unicode string to produce a floating-point number and its standard...">cif_value_parse_numb()</a></code>, <code><a class="el" href="group__value__funcs.html#ga80b0017214727b7fd841de3b90db8fa2" title="(Re)initializes the given value as a number with the specified value and uncertainty...">cif_value_init_numb()</a></code>, and <code><a class="el" href="group__value__funcs.html#gacd228b9e592c6be981df3cea02176319" title="(Re)initializes the given value as a number with the specified value and uncertainty...">cif_value_autoinit_numb()</a></code>. Additionally, values of character kind and suitable content will be automatically coerced to numeric kind by functions <code><a class="el" href="group__value__funcs.html#ga5d0671fa297a3db716b824dc3fc5396c" title="Returns the value represented by the given number value object.">cif_value_get_number()</a></code> and <code><a class="el" href="group__value__funcs.html#gaf260b314e086bdc6e01650432e3c0c0a" title="Returns the uncertainty of the value represented by the given number value object...">cif_value_get_su()</a></code>, and under some circumstances, values will be coerced between character and n/a or unknown-value kind via function <code><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c" title="Sets whether the value should be interpreted as if it were presented quoted.">cif_value_set_quoted()</a></code>. If it is not known, the kind of a value object can be determined via <code><a class="el" href="group__value__funcs.html#gadc69676873c55ee05aa0b06bf8b16364" title="Returns the kind code of the specified value.">cif_value_kind()</a></code>; this is important, because many of the value manipulation functions are useful only for values of certain kinds.</p>
 <p>Values of list and table kind aggregate other value objects. The aggregates do not accept independent value objects directly into themselves; instead they make copies of values entered into them so as to reduce confusion about object ownership. Such internal copies can still be exposed outside their container objects, however, to reduce copying and facilitate value manipulation. Value objects that belong to a list or table aggregate are <em>dependent</em> on their container object, and must not be directly freed.</p>
 <p>Table values associate other values with Unicode string keys. Unlike CIF data values and keywords, table keys are not "case insensitive". They do, however, take Unicode canonical equivalence into account, thus Unicode strings containing different sequences of characters and yet canonically equivalent to each other can be used interchangeably as table keys. When keys are enumerated via <code><a class="el" href="group__value__funcs.html#gaaf36b5e373b50c8e1b0c1faf9651cc22" title="Retrieves an array of the keys of a table value.">cif_value_get_keys()</a></code>, the form of the key most recently used to enter a value into the table is the form provided. Table keys may contain whitespace, including leading and trailing whitespace, which is significant. The Unicode string consisting of zero characters is a valid table key. </p>
 <hr/><h2>Function Documentation</h2>
@@ -135,6 +140,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>The number's text representation will be formatted with a standard uncertainty if and only if the given su is greater than zero. In that case, the provided su_rule governs the number of decimal digits with which the value text is formatted, and the number of digits of value and su that are recorded. The largest scale is chosen such that the significant digits of the rounded su, interpreted as an integer, are less than or equal to the su_rule. The most commonly used su_rule is probably 19, but others are used as well, including at least 9, 27, 28, 29, and 99. The su_rule must be at least 2, and behavior is undefined if its decimal representation has more significant digits than the implementation-defined maximum decimal precision of a double. If su_rule is less than 6 then some standard uncertainties may be foratted as (0) in the value's text representation.</p>
 <p>If the <code>su</code> is exactly zero then all significant digits are recorded to represent the exact value of <code>val</code>. The <code>su_rule</code> is ignored in this case, and no su is included in the text representation.</p>
 <p>The value's text representation is expressed in scientific notation if it would otherwise have more than five leading zeroes or any trailing insignificant zeroes. Otherwise, it is expressed in plain decimal notation.</p>
+<p>The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via <code><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c" title="Sets whether the value should be interpreted as if it were presented quoted.">cif_value_set_quoted()</a></code>.</p>
 <p>Behavior is undefined if <code>val</code> or <code>su</code> has a value that does not correspond to a finite real number (i.e. if one of those values represents an infinite value or does not represent any number at all).</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -242,6 +248,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p>(Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with a copy of the specified text. </p>
 <p>This function performs the same job as <code><a class="el" href="group__value__funcs.html#ga3be5dea8ed4231d7b9ae0859f886e025" title="(Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with the...">cif_value_init_char()</a></code>, except that it makes a copy of the value text. <b><em>Responsibility for the <code>text</code> argument does not change</em></b>, and the value object does not become sensitive to change via the <code>text</code> pointer. Unlike <code><a class="el" href="group__value__funcs.html#ga3be5dea8ed4231d7b9ae0859f886e025" title="(Re)initializes the specified value object as being of kind CIF_CHAR_KIND, with the...">cif_value_init_char()</a></code>, this function is thus suitable for use with initialization text that resides on the stack (e.g. in a local array variable) or in read-only memory.</p>
+<p>The value is marked as quoted; provided it has suitable form, it can subsequently be marked unquoted via <code><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c" title="Sets whether the value should be interpreted as if it were presented quoted.">cif_value_set_quoted()</a></code>.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>value</em>&nbsp;</td><td>a pointer to the value object to be initialized; must not be NULL</td></tr>
@@ -532,6 +539,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="memdoc">
 
 <p>Returns the value represented by the given number value object. </p>
+<p>If the provided value is of character kind then first an attempt is made to convert it to numeric kind, as if by parsing its text value via <code><a class="el" href="group__value__funcs.html#ga60c575d2fa5b5f0d83ab4d212e73e1ad" title="Parses the specified Unicode string to produce a floating-point number and its standard...">cif_value_parse_numb()</a></code>. If the value is not initially of numeric kind, then this function's success depends on such a conversion.</p>
 <p>Behavior is implementation-defined if the represented numeric value is outside the representable range of type <code>double</code> . Some of the possible behaviors include raising a floating-point trap and returning a special value, such as an IEEE infinity.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -540,7 +548,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </table>
   </dd>
 </dl>
-<dl class="return"><dt><b>Returns:</b></dt><dd>Returns <code>CIF_OK</code> on success, <code>CIF_ARGUMENT_ERROR</code> if the provided object is not of numeric kind, or another code, typically <code>CIF_ERROR</code>, if an error occurs. </dd></dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>Returns <code>CIF_OK</code> on success, <code>CIF_INVALID_NUMBER</code> if the provided object is of character kind and cannot be parsed as a number, <code>CIF_ARGUMENT_ERROR</code> if the provided object is othewise not of numeric kind, or another code, typically <code>CIF_ERROR</code>, if an error occurs. </dd></dl>
 
 </div>
 </div>
@@ -570,6 +578,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="memdoc">
 
 <p>Returns the uncertainty of the value represented by the given number value object. </p>
+<p>If the provided value is of character kind then first an attempt is made to convert it to numeric kind, as if by parsing its text value via <code><a class="el" href="group__value__funcs.html#ga60c575d2fa5b5f0d83ab4d212e73e1ad" title="Parses the specified Unicode string to produce a floating-point number and its standard...">cif_value_parse_numb()</a></code>. If the value is not initially of numeric kind, then this function's success depends on such a conversion.</p>
 <p>The uncertainty is zero for an exact number. Behavior is implementation-defined if the uncertainty is outside the representable range of type <code>double</code> .</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -578,7 +587,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </table>
   </dd>
 </dl>
-<dl class="return"><dt><b>Returns:</b></dt><dd>Returns <code>CIF_OK</code> on success, <code>CIF_ARGUMENT_ERROR</code> if the provided object is not of numeric kind, or another code, typically <code>CIF_ERROR</code>, if an error occurs. </dd></dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>Returns <code>CIF_OK</code> on success, <code>CIF_INVALID_NUMBER</code> if the provided object is of character kind and cannot be parsed as a number, <code>CIF_ARGUMENT_ERROR</code> if the provided object is othewise not of numeric kind, or another code, typically <code>CIF_ERROR</code>, if an error occurs. </dd></dl>
 
 </div>
 </div>
@@ -649,7 +658,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p>Reinitializes the provided value object to a default value of the specified kind. </p>
 <p>The value referenced by the provided handle should have been allocated via <code><a class="el" href="group__value__funcs.html#ga3fe1a17cd35418767eaefd343f926e0b" title="Allocates and initializes a new value object of the specified kind.">cif_value_create()</a></code>. Any unneeded resources it holds are released. The specified value kind does not need to be the same as the value's present kind. Kind-specific default values are documented as with <code><a class="el" href="group__value__funcs.html#ga3fe1a17cd35418767eaefd343f926e0b" title="Allocates and initializes a new value object of the specified kind.">cif_value_create()</a></code>.</p>
-<p>This function is equivalent to <code><a class="el" href="group__value__funcs.html#gac6eb6d7ad6225498e56c89ee225c2c46" title="Frees any resources associated with the provided value object without freeing the...">cif_value_clean()</a></code> when the specified kind is <code>CIF_UNK_KIND</code>, and it is less useful than the character- and number-specific (re)initialization functions. It is the only means available to change an existing value in-place to a list, table, or N/A value, however, and it can be used to efficently empty a list or table value.</p>
+<p>This function is equivalent to <code><a class="el" href="group__value__funcs.html#gac6eb6d7ad6225498e56c89ee225c2c46" title="Frees any resources associated with the provided value object without freeing the...">cif_value_clean()</a></code> when the specified kind is <code>CIF_UNK_KIND</code>, and it is less useful than the character- and number-specific (re)initialization functions. It is the only means available to change an existing general value in-place to a list, table, or N/A value, however, and it can be used to efficently empty a list or table value.</p>
 <p>On failure, the value is left in a valid but otherwise unspecified state.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -689,6 +698,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p>(Re)initializes the specified value object as being of kind <code>CIF_CHAR_KIND</code>, with the specified text </p>
 <p>Any previous contents of the provided value object are first cleaned as if by <code><a class="el" href="group__value__funcs.html#gac6eb6d7ad6225498e56c89ee225c2c46" title="Frees any resources associated with the provided value object without freeing the...">cif_value_clean()</a></code>. <b><em>Responsibility for the provided string passes to the value object</em></b>; it should not subsequently be managed directly by the caller. This implies that the text must be dynamically allocated. The value object will become sensitive to text changes performed afterward via the <code>text</code> pointer. This behavior could be described as wrapping an existing Unicode string in a CIF value object.</p>
+<p>The value is marked as quoted; provided it has suitable form, it can subsequently be marked unquoted via <code><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c" title="Sets whether the value should be interpreted as if it were presented quoted.">cif_value_set_quoted()</a></code>.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>value</em>&nbsp;</td><td>a pointer to the value object to be initialized; must not be NULL</td></tr>
@@ -748,8 +758,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>Any previous contents of the provided value are released, as if by <code><a class="el" href="group__value__funcs.html#gac6eb6d7ad6225498e56c89ee225c2c46" title="Frees any resources associated with the provided value object without freeing the...">cif_value_clean()</a></code> .</p>
 <p>The value's text representation will be formatted with a standard uncertainty if and only if the given standard uncertainty (<code>su</code> ) is greater than zero. It is an error for the uncertainty to be less than zero, but it may be exactly equal to zero.</p>
 <p>The <code>scale</code> gives the number of significant digits to the right of the units digit; the value and uncertainty will be rounded or extended to this number of decimal places as needed. Any rounding is performed according to the floating-point rounding mode in effect at that time. The scale may be less than zero, indicating that the units digit and possibly some of the digits to its left are insignificant and not to be recorded. If the given su rounds to exactly zero at the specified scale, then the resulting number object represents an exact number, whether the su given was itself exactly zero or not.</p>
-<p>If the scale is greater than zero or if pure decimal notation would require more than <code>max_leading_zeroes</code> leading zeroes after the decimal point, then the number's text representation is formatted in scientific notation (d.ddde+-dd; the number of digits of mantissa and exponent may vary). Otherwise, it is formatted in decimal notation.</p>
+<p>If the scale is less than zero or if pure decimal notation would require more than <code>max_leading_zeroes</code> leading zeroes after the decimal point, then the number's text representation is formatted in scientific notation (d.ddde+-dd; the number of digits of mantissa and exponent may vary). Otherwise, it is formatted in decimal notation.</p>
 <p>It is an error if a text representation consistent with the arguments would require more characters than the CIF 2.0 maximum line length (2048 characters).</p>
+<p>The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via <code><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c" title="Sets whether the value should be interpreted as if it were presented quoted.">cif_value_set_quoted()</a></code>.</p>
 <p>The behavior of this function is constrained by the characteristics of the data type (<code>double</code> ) of the <code>value</code> and <code>su</code> parameters. Behavior is undefined if a scale is specified that exceeds the maximum possible precision of a value of type double, or such that <code>10^</code>(-scale) is greater than the greatest representable finite double. Behavior is undefined if <code>val</code> or <code>su</code> has a value that does not correspond to a finite real number (i.e. if one of those values represents an infinite value or does not represent any number at all).</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -817,6 +828,34 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 </div>
 </div>
+<a class="anchor" id="ga91436bec5f43ed8627871d5eea6192a6"></a><!-- doxytag: member="cif.h::cif_value_is_quoted" ref="ga91436bec5f43ed8627871d5eea6192a6" args="(cif_value_tp *value)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a> cif_value_is_quoted </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *&nbsp;</td>
+          <td class="paramname"> <em>value</em></td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Returns whether the value should be interpreted as if it were presented quoted. </p>
+<p>Unlike most CIF functions, the return value is not an error code, as no error conditions are defined for or detectable by this function.</p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>value</em>&nbsp;</td><td>a pointer to the value object whose quoting status is requested; must point at an initialized value</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>Returns the quoting code of the specified value </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="gadc69676873c55ee05aa0b06bf8b16364"></a><!-- doxytag: member="cif.h::cif_value_kind" ref="gadc69676873c55ee05aa0b06bf8b16364" args="(cif_value_tp *value)" -->
 <div class="memitem">
 <div class="memproto">
@@ -873,6 +912,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>Parses the specified Unicode string to produce a floating-point number and its standard uncertainty, recording them in the provided value object. </p>
 <p>For success, the entire input string must be successfully parsed. On success (only), any previous contents of the value object are released as if by <code><a class="el" href="group__value__funcs.html#gac6eb6d7ad6225498e56c89ee225c2c46" title="Frees any resources associated with the provided value object without freeing the...">cif_value_clean()</a></code> ; otherwise, the value object is not modified. <b><em>The value object takes ownership of the parsed text on success.</em></b> The caller is responsible for ensuring that the <code>text</code> pointer is not afterward used to modify its referrent. The representable values that can be initialized in this manner are not limited to those representable the machine's native floating-point format.</p>
 <p>This behavior could be described as wrapping an existing Unicode string in a (numeric) CIF value object.</p>
+<p>The value is marked as not quoted; provided it has suitable form, it can subsequently be marked quoted via <code><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c" title="Sets whether the value should be interpreted as if it were presented quoted.">cif_value_set_quoted()</a></code>.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>numb</em>&nbsp;</td><td>the value object into which to parse the text</td></tr>
@@ -1097,6 +1137,45 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </ul>
 </dd></dl>
 <dl class="see"><dt><b>See also:</b></dt><dd><a class="el" href="group__value__funcs.html#ga890298d11a6153e47bd22a306c7b71af" title="Replaces an existing element of a list value with a different value.">cif_value_set_element_at()</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gafa57153e1fc82f0891c354bff3b42a6c"></a><!-- doxytag: member="cif.h::cif_value_set_quoted" ref="gafa57153e1fc82f0891c354bff3b42a6c" args="(cif_value_tp *value, cif_quoted_tp quoted)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int cif_value_set_quoted </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *&nbsp;</td>
+          <td class="paramname"> <em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a>&nbsp;</td>
+          <td class="paramname"> <em>quoted</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Sets whether the value should be interpreted as if it were presented quoted. </p>
+<p>This function may coerce values in-place between kind <code>CIF_CHAR_KIND</code> and either <code>CIF_UNK_KIND</code> or <code>CIF_NA_KIND</code>. It must must not be called with <code>QUOTED</code> as its second argument when the first has kind <code>CIF_LIST_KIND</code> or <code>CIF_TABLE_KIND</code>.</p>
+<p>Values of character kind representing reserved strings (see <code><a class="el" href="group__utility__funcs.html#gafdec982eabc2045855c4b4be3a785e82" title="Determines whether a given string takes a reserved form that must not be presented...">cif_is_reserved_string()</a></code>) cannot be set unquoted. Values of list or table kind cannot be set quoted, regardless of their contents. If this function is asked to perform such an action then it will instead return <code>CIF_ARGUMENT_ERROR</code>.</p>
+<dl><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>value</em>&nbsp;</td><td>a pointer to the value object whose quoting status is requested; must point at an initialized value</td></tr>
+    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>quoted</em>&nbsp;</td><td>the quoting status to set</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>Returns CIF_OK on success, or an error code (typically <code>CIF_ARGUMENT_ERROR</code> or <code>CIF_ERROR</code> ) on failure. </dd></dl>
 
 </div>
 </div>

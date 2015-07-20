@@ -181,9 +181,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga52fc5b3e1dd94d599c9e9c40980ab262"></a><!-- doxytag: member="return_codes::CIF_NULL_KEY" ref="ga52fc5b3e1dd94d599c9e9c40980ab262" args="" -->
 #define&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__return__codes.html#ga52fc5b3e1dd94d599c9e9c40980ab262">CIF_NULL_KEY</a>&nbsp;&nbsp;&nbsp;140</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A result code indicating that during parsing of a table value, colon-delimited key/value "pair" was encountered with no key at all (just colon, value). <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae1d04d50127b5474405929549d1f04b9"></a><!-- doxytag: member="return_codes::CIF_MISSING_PREFIX" ref="gae1d04d50127b5474405929549d1f04b9" args="" -->
-#define&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__return__codes.html#gae1d04d50127b5474405929549d1f04b9">CIF_MISSING_PREFIX</a>&nbsp;&nbsp;&nbsp;141</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A result code indicating that during parsing, a text field putatively employing the text prefix protocol contained a line that did not begin with the prefix. <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga3237d6721c5d49e3470b2a4a588b6c4e"></a><!-- doxytag: member="return_codes::CIF_TRAVERSE_CONTINUE" ref="ga3237d6721c5d49e3470b2a4a588b6c4e" args="" -->
 #define&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__return__codes.html#ga3237d6721c5d49e3470b2a4a588b6c4e">CIF_TRAVERSE_CONTINUE</a>&nbsp;&nbsp;&nbsp;0</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A return code for CIF-handler functions (see <code><a class="el" href="structcif__handler__tp.html" title="A set of functions defining a handler interface for directing and taking appropriate...">cif_handler_tp</a></code>) that indicates CIF traversal should continue along its normal path; has the same value as CIF_OK. <br/></td></tr>
@@ -196,6 +193,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga3668a81b89b81259383442c2f6388e39"></a><!-- doxytag: member="return_codes::CIF_TRAVERSE_END" ref="ga3668a81b89b81259383442c2f6388e39" args="" -->
 #define&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__return__codes.html#ga3668a81b89b81259383442c2f6388e39">CIF_TRAVERSE_END</a>&nbsp;&nbsp;&nbsp;-3</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A return code for CIF-handler functions (see <code><a class="el" href="structcif__handler__tp.html" title="A set of functions defining a handler interface for directing and taking appropriate...">cif_handler_tp</a></code>) that indicates CIF traversal should stop immediately. <br/></td></tr>
+<tr><td colspan="2"><h2>Variables</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab5a262231f6c56d71f2f37bca09514f3"></a><!-- doxytag: member="return_codes::cif_errlist" ref="gab5a262231f6c56d71f2f37bca09514f3" args="[][80]" -->
+const char&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__return__codes.html#gab5a262231f6c56d71f2f37bca09514f3">cif_errlist</a> [][80]</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A table of short descriptions of the errors indicated by the various CIF API error codes. <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga00c0989efbe5f7c380199c29af5cf833"></a><!-- doxytag: member="return_codes::cif_nerr" ref="ga00c0989efbe5f7c380199c29af5cf833" args="" -->
+const int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__return__codes.html#ga00c0989efbe5f7c380199c29af5cf833">cif_nerr</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The number of entries in <code>cif_errlist</code>. <br/></td></tr>
 </table>
 <hr/><h2>Define Documentation</h2>
 <a class="anchor" id="gaf0757183aa3e85ccec14235c63a8ba97"></a><!-- doxytag: member="cif.h::CIF_ARGUMENT_ERROR" ref="gaf0757183aa3e85ccec14235c63a8ba97" args="" -->

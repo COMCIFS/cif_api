@@ -86,7 +86,7 @@ int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="str
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the end of a loop packet. <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6825e5a53a09e482058f7edd92c19cb3"></a><!-- doxytag: member="cif_handler_tp::handle_item" ref="a6825e5a53a09e482058f7edd92c19cb3" args=")(UChar *name, cif_value_tp *value, void *context)" -->
 int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a6825e5a53a09e482058f7edd92c19cb3">handle_item</a> )(UChar *name, <a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, void *context)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for data items (there are not separate beginning and end callbacks). <br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for data items (there are not separate beginning and end callbacks). If called with a NULL name then value is a placeholder -- this normally happens only in a parsing context, when a duplicate data name is enrolled in a loop. <br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>A set of functions defining a handler interface for directing and taking appropriate action in response to a traversal of a CIF. </p>

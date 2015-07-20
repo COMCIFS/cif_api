@@ -54,13 +54,30 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p><code>#include &lt;cif.h&gt;</code></p>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Data Fields</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47c3092672ebe90920175f0df28325cd"></a><!-- doxytag: member="cif_write_opts_s::unused" ref="a47c3092672ebe90920175f0df28325cd" args="" -->
-int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__write__opts__s.html#a47c3092672ebe90920175f0df28325cd">unused</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">serves solely to prevent the structure from being empty, lest that present an issue for certain compilers or runtime libraries. <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__write__opts__s.html#a3689d7d7d450b2c319f573462f83a27a">cif_version</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Indicates the CIF major version with which the output must comply.  <a href="#a3689d7d7d450b2c319f573462f83a27a"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>Represents a collection of CIF writing options. </p>
 <p>This is a place-holder for future options. No CIF write options are defined for the present version of the CIF API. </p>
+<hr/><h2>Field Documentation</h2>
+<a class="anchor" id="a3689d7d7d450b2c319f573462f83a27a"></a><!-- doxytag: member="cif_write_opts_s::cif_version" ref="a3689d7d7d450b2c319f573462f83a27a" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int <a class="el" href="structcif__write__opts__s.html#a3689d7d7d450b2c319f573462f83a27a">cif_write_opts_s::cif_version</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Indicates the CIF major version with which the output must comply. </p>
+<p>Valid values include <code>1</code> for CIF 1.1 and <code>2</code> for CIF 2.0; value `0` means the default for the version of the CIF API in use; for the present version, the default is CIF 2.0.</p>
+<p>Note that the text-prefix protocol will be applied in CIF 1.1 mode for values that otherwise could not be represented. </p>
+
+</div>
+</div>
 </div>
 <!--- window showing the filter options -->
 <div id="MSearchSelectWindow"

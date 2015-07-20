@@ -46,6 +46,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Represents a collection of CIF parsing options.  <a href="structcif__parse__opts__s.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__write__opts__s.html">cif_write_opts_s</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Represents a collection of CIF writing options.  <a href="structcif__write__opts__s.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__string__analysis__s.html">cif_string_analysis_s</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Represents the results of analyzing a string for characteristics directing its form when presented as a CIF data value.  <a href="structcif__string__analysis__s.html#_details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2>Typedefs</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga118532ee38b48f9879f2e18e18402731"></a><!-- doxytag: member="datatypes::cif_tp" ref="ga118532ee38b48f9879f2e18e18402731" args="" -->
 typedef struct cif_s&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a></td></tr>
@@ -71,8 +73,8 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type of all data value objects. <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga9bd06e152cfd90deb050f3c926cf31be">cif_parse_error_callback_tp</a> )(int code, size_t line, size_t column, const UChar *text, size_t length, void *data)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type of a callback function to be invoked when a parse error occurs.  <a href="#ga9bd06e152cfd90deb050f3c926cf31be"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">typedef void(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#gad91b2f852032bbf28823a43687bc1123">cif_whitespace_callback_tp</a> )(size_t line, size_t column, const UChar *ws, size_t length, void *data)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type of a callback function by which a client application can be notified of whitespace encountered during CIF parsing.  <a href="#gad91b2f852032bbf28823a43687bc1123"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef void(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a> )(size_t line, size_t column, const UChar *token, size_t length, void *data)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type of a callback function by which a client application can be notified of a syntactic element.  <a href="#ga36d7b2ac245b84e630ba8488c24c7c43"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Enumerations</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a> { <br/>
 &nbsp;&nbsp;<a class="el" href="group__datatypes.html#gga924f12fdd599ac5cbf18edc69ccd9e86a17f1584a1b60f1771342a314f04e9e83">CIF_CHAR_KIND</a> =  0, 
@@ -86,6 +88,9 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
  }</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>The type used for codes representing the dynamic kind of the data in a <code>cif_value_tp</code> object. </p>
  <a href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a> { <a class="el" href="group__datatypes.html#ggab312e9783ea613a434d4ef928a1513a1ae5f7e9ff3f017f7ebe1b23c64d4f1abd">CIF_NOT_QUOTED</a> =  0, 
+<a class="el" href="group__datatypes.html#ggab312e9783ea613a434d4ef928a1513a1a1cb46992540895a812439bc16f62f7ab">CIF_QUOTED</a> =  1
+ }</td></tr>
 </table>
 <hr/><h2>Typedef Documentation</h2>
 <a class="anchor" id="gafdefb093bf97d786caff539727b95786"></a><!-- doxytag: member="cif.h::cif_container_tp" ref="gafdefb093bf97d786caff539727b95786" args="" -->
@@ -148,27 +153,26 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 
 </div>
 </div>
-<a class="anchor" id="gad91b2f852032bbf28823a43687bc1123"></a><!-- doxytag: member="cif.h::cif_whitespace_callback_tp" ref="gad91b2f852032bbf28823a43687bc1123" args=")(size_t line, size_t column, const UChar *ws, size_t length, void *data)" -->
+<a class="anchor" id="ga36d7b2ac245b84e630ba8488c24c7c43"></a><!-- doxytag: member="cif.h::cif_syntax_callback_tp" ref="ga36d7b2ac245b84e630ba8488c24c7c43" args=")(size_t line, size_t column, const UChar *token, size_t length, void *data)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* <a class="el" href="group__datatypes.html#gad91b2f852032bbf28823a43687bc1123">cif_whitespace_callback_tp</a>)(size_t line, size_t column, const UChar *ws, size_t length, void *data)</td>
+          <td class="memname">typedef void(* <a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a>)(size_t line, size_t column, const UChar *token, size_t length, void *data)</td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
-<p>The type of a callback function by which a client application can be notified of whitespace encountered during CIF parsing. </p>
-<p>CIF whitespace appearing outside any data value is not semantically significant from a CIF perspective, but it may be useful to the calling application. An application interested in being notified about whitespace as it is parsed can register a callback function of this type with the parser. Unlike a CIF handler or an error callback, whitespace callbacks cannot directly influence CIF traversal or interrupt parsing, but they have access to the same user data object that all other callbacks receive.</p>
-<p>The pointer <code>ws</code> and all subsequent values through <code>ws</code> <code>+</code> <code>length</code> are guaranteed to be valid pointer values for comparison and arithmetic. The result of dereferencing <code>ws</code> <code>+</code> <code>length</code> is undefined.</p>
-<p>Whitespace is generally reported in multi-character blocks, which may span lines, but the reported whitespace sequences are not guaranteed to be maximal. Physical runs of whitespace in the input CIF may be split across more than one callback call.</p>
+<p>The type of a callback function by which a client application can be notified of a syntactic element. </p>
+<p>Callbacks of this type are provided for some syntax elements that are not otherwise directly signaled, such as whitespace runs, certain keywords, and data names. These support a physical / lexical view of a parse process, as opposed to the logical / structural view provided by the callbacks belonging to a <code><a class="el" href="structcif__handler__tp.html" title="A set of functions defining a handler interface for directing and taking appropriate...">cif_handler_tp</a></code> . Unlike a CIF handler those or or an error callback, syntax callbacks cannot directly influence CIF traversal or interrupt parsing, but they have access to the same user data object that all other callbacks receive.</p>
+<p>The pointer <code>token</code> and all subsequent values through <code>token</code> <code>+</code> <code>length</code> are guaranteed to be valid pointer values for comparison and arithmetic. The result of dereferencing <code>token</code> <code>+</code> <code>length</code> is not defined.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>line</em>&nbsp;</td><td>the one-based line number of the start of the whitespace </td></tr>
-    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>column</em>&nbsp;</td><td>the one-based column number of the first character of the whitespace run </td></tr>
-    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>ws</em>&nbsp;</td><td>a pointer to the start of the whitespace sequence, which is <em>not</em> necessarily NUL-terminated </td></tr>
-    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>length</em>&nbsp;</td><td>the number of characters in the whitespace sequence. ( <code>ws</code> + <code>length</code> ) is guaranteed to be a valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether incrementing it results in a valid pointer value is undefined. </td></tr>
+    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>line</em>&nbsp;</td><td>the one-based line number of the start of the syntax element </td></tr>
+    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>column</em>&nbsp;</td><td>the one-based column number of the first character of the syntax element </td></tr>
+    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>token</em>&nbsp;</td><td>a pointer to the start of the character sequence of the element, which is <em>not</em> necessarily NUL-terminated </td></tr>
+    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>length</em>&nbsp;</td><td>the number of characters in the sequence. ( <code>token</code> + <code>length</code> ) is guaranteed to be a valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether incrementing it results in a valid pointer value is undefined. </td></tr>
     <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>data</em>&nbsp;</td><td>a pointer to the user data object provided by the parser caller </td></tr>
   </table>
   </dd>
@@ -207,6 +211,30 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 </td></tr>
 <tr><td valign="top"><em><a class="anchor" id="gga924f12fdd599ac5cbf18edc69ccd9e86ad0537717ef261eb000a2af687a3b1091"></a><!-- doxytag: member="CIF_UNK_KIND" ref="gga924f12fdd599ac5cbf18edc69ccd9e86ad0537717ef261eb000a2af687a3b1091" args="" -->CIF_UNK_KIND</em>&nbsp;</td><td>
 <p>The kind code representing the unknown/unspecified data value. </p>
+</td></tr>
+</table>
+</dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gab312e9783ea613a434d4ef928a1513a1"></a><!-- doxytag: member="cif.h::cif_quoted_tp" ref="gab312e9783ea613a434d4ef928a1513a1" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>The type used for representing values' quoting status, to allow applications to distinguish between the same value when presented quoted and when presented unquoted. </p>
+<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="ggab312e9783ea613a434d4ef928a1513a1ae5f7e9ff3f017f7ebe1b23c64d4f1abd"></a><!-- doxytag: member="CIF_NOT_QUOTED" ref="ggab312e9783ea613a434d4ef928a1513a1ae5f7e9ff3f017f7ebe1b23c64d4f1abd" args="" -->CIF_NOT_QUOTED</em>&nbsp;</td><td>
+<p>the value should be interpreted as if it is not quoted; evaluates to false in boolean context </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="ggab312e9783ea613a434d4ef928a1513a1a1cb46992540895a812439bc16f62f7ab"></a><!-- doxytag: member="CIF_QUOTED" ref="ggab312e9783ea613a434d4ef928a1513a1a1cb46992540895a812439bc16f62f7ab" args="" -->CIF_QUOTED</em>&nbsp;</td><td>
+<p>the value should be interpreted as if it is quoted; evaluates to true in boolean context </p>
 </td></tr>
 </table>
 </dd>

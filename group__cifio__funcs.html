@@ -166,16 +166,21 @@ int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group
 <div class="memdoc">
 
 <p>Formats the CIF data represented by the <code>cif</code> handle to the specified output stream. </p>
+<p>By default, the output is in CIF 2.0 format, but the write options can be used to request CIF 1.1 format instead. These extra considerations apply to CIF 1.1 output mode: </p>
+<ul>
+<li>In CIF 1.1 mode, any data names, values, block codes, or frame codes in the provided CIF that cannot be expressed in CIF 1.1 will be be rejected, causing this function to fail. </li>
+<li>The CIF 1.1 dialect written by this function is also well-formed CIF 2.0, except for the CIF-version header and possibly the encoding. In particular, it employs the line-folding protocol both to represent data values with extremely long lines, and to escape multi-line values that otherwise would be misinterpreted as employing the line-folding protocol and / or the text prefix protocol by a parser that recognizes those protocols (including function <code><a class="el" href="group__cifio__funcs.html#gaa63c92a58e9b58d368b161bd0741d64c" title="Parses a CIF from the specified stream using the library&#39;s built-in parser.">cif_parse()</a></code>). As a result, however, parsers that <em>do</em> <em>not</em> recognize the line folding protocol may interpret some of the resulting values differently than was intended.</li>
+</ul>
 <p>Ownership of the arguments does not transfer to the function.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>stream</em>&nbsp;</td><td>a <code>FILE</code> <code>*</code> to which to write the CIF format output; must be a non-NULL pointer to a writable stream.</td></tr>
+    <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>stream</em>&nbsp;</td><td>a <code>FILE</code> <code>*</code> to which to write the CIF format output; must be a non-NULL pointer to a writable stream. In the event that the write options request CIF 1.1 output, this file should be open in <em>text</em> mode (on those systems that have distinct text and binary modes)</td></tr>
     <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>options</em>&nbsp;</td><td>a pointer to a <code>struct</code> <code><a class="el" href="structcif__write__opts__s.html" title="Represents a collection of CIF writing options.">cif_write_opts_s</a></code> object describing options to use for writing, or <code>NULL</code> to use default values for all options</td></tr>
     <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>cif</em>&nbsp;</td><td>a handle on the CIF object to serialize to the specified stream</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="return"><dt><b>Returns:</b></dt><dd>Returns <code>CIF_OK</code> if the data are fully written, or else an error code (typically <code>CIF_ERROR</code> ). The stream state is undefined after a failure. </dd></dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>Returns <code>CIF_OK</code> if the data are fully written, or else an error code (typically <code>CIF_ERROR</code>, or <code>CIF_DISALLOWED_CHAR</code> or <code>CIF_DISALLOWED_VALUE</code> in CIF 1.1 mode). The stream state is undefined after a failure. </dd></dl>
 
 </div>
 </div>

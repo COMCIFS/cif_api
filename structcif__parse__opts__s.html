@@ -54,8 +54,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p><code>#include &lt;cif.h&gt;</code></p>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Data Fields</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#afd581b33961530ef71a98783aab7fc07">default_to_cif2</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">If non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead of as CIF 1.  <a href="#afd581b33961530ef71a98783aab7fc07"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a2d39a63d7655f7951a9899bd9e3cc24c">prefer_cif2</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Influences the parser's selection of CIF 1 or CIF 2 format to handle a CIF stream.  <a href="#a2d39a63d7655f7951a9899bd9e3cc24c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a98d672990d6a6b0a94044421256b660b">default_encoding_name</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">If not <code>NULL</code> , names the coded character set with which the parser will attempt to interpret plain CIF 1.1 "text" files that do not bear recognized encoding information.  <a href="#a98d672990d6a6b0a94044421256b660b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a9c5a0a54dee1d77cc9c5531d6993f0b8">force_default_encoding</a></td></tr>
@@ -72,8 +72,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">ASCII characters that should be interpreted as CIF end-of-line [whitespace] characters.  <a href="#a75cba35666a09ce2861f31fe948c6acf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structcif__handler__tp.html">cif_handler_tp</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a4508b10109b811a30c950500a9234cfe">handler</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A set of handler functions by which the application can be notified of details of the parse progress as they occur, and through which it can influence the data recorded; may be <code>NULL</code>.  <a href="#a4508b10109b811a30c950500a9234cfe"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#gad91b2f852032bbf28823a43687bc1123">cif_whitespace_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#aef5d597b95b93c21166eb97a1a29c101">whitespace_callback</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about whitespace encountered outside data values.  <a href="#aef5d597b95b93c21166eb97a1a29c101"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#ac879b3d626898f828809e15e52c995e1">whitespace_callback</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about whitespace encountered outside data values.  <a href="#ac879b3d626898f828809e15e52c995e1"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a509366eafb1690727b681a95662d92c4">keyword_callback</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about CIF keywords.  <a href="#a509366eafb1690727b681a95662d92c4"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#aec8a029e2eb8829d5cf9d5fbc08c3023">dataname_callback</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about CIF data names as they are encountered.  <a href="#aec8a029e2eb8829d5cf9d5fbc08c3023"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga9bd06e152cfd90deb050f3c926cf31be">cif_parse_error_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a96747877315cb02b78779f862ca86d1e">error_callback</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about parse errors, affording it the option to interrupt the parse or allow it to continue.  <a href="#a96747877315cb02b78779f862ca86d1e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a66b7d5cb3d1244e724a7f15aa9b02c4f"></a><!-- doxytag: member="cif_parse_opts_s::user_data" ref="a66b7d5cb3d1244e724a7f15aa9b02c4f" args="" -->
@@ -84,6 +88,22 @@ void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="st
 <p>Represents a collection of CIF parsing options. </p>
 <p>Unlike most data types defined by the CIF API, the parse options are not opaque. This reflects the <code>struct's</code> intended use for collecting (only) user-settable option values. There is nevertheless still an object creation function, <code><a class="el" href="group__cifio__funcs.html#ga9a62365d8a9c9c000b6c3871ef3879d1" title="Allocates a parse options structure and initializes it with default values.">cif_parse_options_create()</a></code> ; applications allocating parse options only via that function will thereby insulate themselves against changes to the struct's size arising from additions to the option list in future versions of the API. </p>
 <hr/><h2>Field Documentation</h2>
+<a class="anchor" id="aec8a029e2eb8829d5cf9d5fbc08c3023"></a><!-- doxytag: member="cif_parse_opts_s::dataname_callback" ref="aec8a029e2eb8829d5cf9d5fbc08c3023" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a> <a class="el" href="structcif__parse__opts__s.html#aec8a029e2eb8829d5cf9d5fbc08c3023">cif_parse_opts_s::dataname_callback</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>A callback function by which the client application can be notified about CIF data names as they are encountered. </p>
+<p>If not <code>NULL</code>, this function will be called by the parser whenever it encounters a data name in the input CIF. before it is reported as part of a loop or individual data item. </p>
+
+</div>
+</div>
 <a class="anchor" id="a98d672990d6a6b0a94044421256b660b"></a><!-- doxytag: member="cif_parse_opts_s::default_encoding_name" ref="a98d672990d6a6b0a94044421256b660b" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -101,23 +121,6 @@ void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="st
 <p>If no encoding is specified via this option (i.e. it is <code>NULL</code> ) and no encoding signature is recognized in the input CIF, then for CIF 1.1 documents the parser will choose a default text encoding that is appropriate to the system on which it is running, and it will attempt to parse according to that encoding. How the default encoding is chosen is implementation dependent in this case.</p>
 <p>If the correct encoding of the input CIF is known, however, then that encoding can be specified by its IANA name via this option. Implementations may also recognize aliases and / or unregistered encoding names. If it is supported, the named encoding will be used in the event that no encoding signature is detected, bypassing the library's usual method for choosing a default encoding. This allows a CIF written in a localized encoding to be parsed correctly on a system with a different default locale. It should be noted, however, that such a CIF can reasonably be considered erroneous (on the system where it is being parsed) on account of its encoding.</p>
 <p>The names supported by this option are those recognized by ICU's "converter" API as converter / code page names. </p>
-
-</div>
-</div>
-<a class="anchor" id="afd581b33961530ef71a98783aab7fc07"></a><!-- doxytag: member="cif_parse_opts_s::default_to_cif2" ref="afd581b33961530ef71a98783aab7fc07" args="" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int <a class="el" href="structcif__parse__opts__s.html#afd581b33961530ef71a98783aab7fc07">cif_parse_opts_s::default_to_cif2</a></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>If non-zero, directs the parser to handle a CIF stream without any CIF-version code as CIF 2, instead of as CIF 1. </p>
-<p>Because the CIF-version code is <em>required</em> in CIF 2 but optional in CIF 1, it is most correct to assume CIF 1 when there is no version code. Nevertheless, if a CIF is known or assumed to otherwise comply with CIF2, then it is desirable to parse it that way regardless of the absence of a version code.</p>
-<p>CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option is enabled (albeit with an error on account of the missing version code). On the other hand, CIF 1 streams that (allowably) omit the version code may be parsed incorrectly if this option is enabled. </p>
 
 </div>
 </div>
@@ -211,6 +214,22 @@ void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="st
 
 </div>
 </div>
+<a class="anchor" id="a509366eafb1690727b681a95662d92c4"></a><!-- doxytag: member="cif_parse_opts_s::keyword_callback" ref="a509366eafb1690727b681a95662d92c4" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a> <a class="el" href="structcif__parse__opts__s.html#a509366eafb1690727b681a95662d92c4">cif_parse_opts_s::keyword_callback</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>A callback function by which the client application can be notified about CIF keywords. </p>
+<p>If not <code>NULL</code>, this function will be called by the parser whenever it encounters a CIF keyword that does not directly correspond to or trigger a CIF Handler callback. At this version, that is only the 'loop_' keyword, but a future version may also signal other keywords, so callback functions attached to this hook should check which keyword they receive if in fact they care. </p>
+
+</div>
+</div>
 <a class="anchor" id="adaa4b6e4c63ae97ff4047cb873aca57a"></a><!-- doxytag: member="cif_parse_opts_s::line_folding_modifier" ref="adaa4b6e4c63ae97ff4047cb873aca57a" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -246,6 +265,24 @@ void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="st
 
 </div>
 </div>
+<a class="anchor" id="a2d39a63d7655f7951a9899bd9e3cc24c"></a><!-- doxytag: member="cif_parse_opts_s::prefer_cif2" ref="a2d39a63d7655f7951a9899bd9e3cc24c" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int <a class="el" href="structcif__parse__opts__s.html#a2d39a63d7655f7951a9899bd9e3cc24c">cif_parse_opts_s::prefer_cif2</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Influences the parser's selection of CIF 1 or CIF 2 format to handle a CIF stream. </p>
+<p>Because the CIF-version code is <em>required</em> in CIF 2 but optional in CIF 1, it is most correct to assume CIF 1 when there is no version code. Nevertheless, if a CIF is known or assumed to otherwise comply with CIF2, then it is desirable to parse it that way regardless of the absence of a version code.</p>
+<p>CIF 2 streams that erroneously omit the version code will be parsed as CIF 2 if this option has value greater than zero (albeit with an error on account of the missing version code). On the other hand, CIF 1 streams that (allowably) omit the version code may be parsed incorrectly if this option is enabled.</p>
+<p>Moreover, CIF streams will be parsed as CIF 2 regardless of an explicit version code to the contrary if this option has a value of 20 or greater, and they will be parsed as CIF 1.1 regardless of an explicit version code to the contrary if this option has a value less than zero. </p>
+
+</div>
+</div>
 <a class="anchor" id="aa19fa312b8df3b00182551008063d147"></a><!-- doxytag: member="cif_parse_opts_s::text_prefixing_modifier" ref="aa19fa312b8df3b00182551008063d147" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -263,12 +300,12 @@ void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="st
 
 </div>
 </div>
-<a class="anchor" id="aef5d597b95b93c21166eb97a1a29c101"></a><!-- doxytag: member="cif_parse_opts_s::whitespace_callback" ref="aef5d597b95b93c21166eb97a1a29c101" args="" -->
+<a class="anchor" id="ac879b3d626898f828809e15e52c995e1"></a><!-- doxytag: member="cif_parse_opts_s::whitespace_callback" ref="ac879b3d626898f828809e15e52c995e1" args="" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__datatypes.html#gad91b2f852032bbf28823a43687bc1123">cif_whitespace_callback_tp</a> <a class="el" href="structcif__parse__opts__s.html#aef5d597b95b93c21166eb97a1a29c101">cif_parse_opts_s::whitespace_callback</a></td>
+          <td class="memname"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a> <a class="el" href="structcif__parse__opts__s.html#ac879b3d626898f828809e15e52c995e1">cif_parse_opts_s::whitespace_callback</a></td>
         </tr>
       </table>
 </div>
