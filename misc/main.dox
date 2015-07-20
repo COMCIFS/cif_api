@@ -25,31 +25,34 @@
  * @section introduction Introduction
  * These pages document a standard C library for manipulating Crytallographic Information
  * Framework / File (CIF) data, consisting of two parts:
- * @li opaque data types, function specifications, constants, and macro definitions jointly constituting an
+ * @li data types, function specifications, constants, and macro definitions jointly constituting an
  *     @em interface between programs that consume, manipulate, and produce CIF data and an underlying support
  *     library, and
  * @li an @em implementation of the interface functions and data types.
  *
- * Only the interface portion is proposed as a COMCIFS-sanctioned standard; the reference implementation is provided
- * to validate the form and clarify the intent of the interface specifications.  In other words, it is both proof
- * of concept and reference implementation.  Nevertheless, the the implementation is sufficiently stable and robust
- * for general use.
+ * This intentional distinction between interface and implementation allows alternative implementations to be
+ * substituted where they may have characteristics better suited to a particular problem or environment, without
+ * disturbing client programs.  By limiting the coupling between the library and its clients, it also helps
+ * reduce the amount of disruption that updates can cause.
  *
- * This initiative arose from a COMCIFS resolution adopted at the 2011 triennial conference of the International Union
- * of Crystallography (IUCr).  The intent was to create a standard programming interface for interacting with CIF data,
- * especially in light of the changes and additions arriving in CIF 2.0.  The working group tasked with the project
- * chose an approach whereby multiple common programming languages could be bound to the same underlying API, instead
- * of a family of separate, language-specific APIs being defined.  The best <i>lingua franca</i> for that purpose is
- * standard C, so the API and reference implementation are written in a C form that is compliant with C89, C99, and
- * C2011, as well as with C++98 and C++2011.
+ * This initiative arose from a COMCIFS decision at the 2011 triennial conference of the International Union
+ * of Crystallography (IUCr) to pursue development of a C API for CIF data, especially in especially in light of the
+ * changes and additions arriving in CIF 2.0.  The working group tasked with the project considered support for
+ * multiple languages, and ultimately chose an approach whereby multiple common programming languages could be
+ * bound to the same underlying API, instead of a family of separate, language-specific APIs being defined.  The
+ * best available <i>lingua franca</i> for that purpose is standard C, so the API and reference implementation are
+ * written in a C form that is compliant with C89, C99, and C2011, as well as with C++98 and C++2011.  With the
+ * working group having agreed on the general form and content of the API, the group facilitator (JCB) undertook
+ * fleshing out the details and providing a reference implementation to prove it out.
  *
- * No API specifically supporting validation is defined as part of this effort, though the parsing API contains hooks
- * that could be used to attach trans-parse validation functions.  Inasmuch as CIF validation is specific to the
- * relevant DDL, which is out of scope for this API, the extent of specific validation support that may be
+ * No function specifically supporting validation is defined as part of this effort, though the parsing API contains
+ * hooks that could be used to attach trans-parse validation behavior.  Post-parse validation operates above the
+ * level of the CIF API, and does not inherently require special support.  Inasmuch as CIF validation is specific to
+ * the relevant DDL, which is out of scope for this API, the extent of specific validation support that may be
  * implemented in any future release is unclear.
  *
  * @section concepts Concepts
- * Beyond general CIF concepts (see <i>Internationhal Tables for Crystallography, Vol G</i>, Hall & McMahon eds.) and
+ * Beyond general CIF concepts (see <i>International Tables for Crystallography, Vol. G</i>, Hall & McMahon eds.) and
  * additions and extensions brought by CIF 2.0, the CIF API has a few additional concepts that users and developers
  * should understand.
  *
@@ -58,7 +61,7 @@
  * (structured) text file or character stream, it focuses on the logical structure of the data: a CIF as a collection
  * of top-level data containers (data blocks) with one level of nested containers (save frames) and in the containers
  * data consisting of identifiers (data names) with one or more associated values, optionally organized into
- * possibly-repeating groups (loops).
+ * repeating groups (loops).
  *
  * That kind of abstraction is by no means novel, but the important and perhaps distinguishing point is that the
  * interface definitions intentionally do not specify the internal form of the data.  The documentation therefore
@@ -100,8 +103,8 @@
  * @li documenting resource management responsibilities and responsibility transfers associated with the various
  *         functions;
  * @li providing necessary resource management functions (@c cif_*_free() and in some cases @c cif_*_clean() );
- * @li preferring to copy data to avoid aliasing, so that management responsibilities remain clear; which allows that
- * @li composite objects taking responsibility for managing their components
+ * @li preferring to copy data to avoid aliasing, so that management responsibilities remain clear; which allows for
+ * @li composite objects taking responsibility for managing their components.
  *
  * @subsection unicode Unicode
  * CIF 2.0 expands the CIF character repertoire to all of Unicode, therefore the API must provide for representing
@@ -116,7 +119,7 @@
  * will generally use at least a few ICU library functions, therefore programs using the CIF API will typically need
  * the ICU libraries at run time (unless they are statically linked in).
  *
- * API users will frequently run into function arguments that are specified to be "Unicode strings", typically
+ * API users will frequently encounter function arguments that are specified to be "Unicode strings", typically
  * specified to be (and @em always expected to be) "NUL-terminated".  These are analogous to traditional
  * C strings, but with units of type @c UChar instead of the traditional @c char .  Using @c UChar units instead
  * of @c char units for Unicode strings makes working with Unicode strings fairly natural, especially with the ICU
