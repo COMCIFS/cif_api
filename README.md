@@ -7,11 +7,11 @@ as well.
 
 HTML documentation is available online at http://comcifs.github.io/cif_api/
 
-The package includes several example programs to demonstrate the API's usage;
+The package includes several example programs to demonstrate API usage;
 see `src/examples/`.  These may optionally be built (and installed) with the
 API library.  One of them is a text-mode CIF 2.0 file syntax checker, which
 might be of some interest.  Also, the tests (`src/tests/`) collectively provide
-a fairly comprehensive demonstration of the API's features, though their
+a fairly comprehensive demonstration of API features, though their
 primary purpose is to verify that the library works as intended.
 
 The package also includes EXPERIMENTAL program cif_linguist, which converts
