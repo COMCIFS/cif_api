@@ -91,8 +91,6 @@ typedef struct {
 } write_context_t;
 
 /* Unicode strings important for determining possible output formats for char values */
-static const UChar dq3[4] = { UCHAR_DQ, UCHAR_DQ, UCHAR_DQ, 0 };
-static const UChar sq3[4] = { UCHAR_SQ, UCHAR_SQ, UCHAR_SQ, 0 };
 static const char header_type[2][10] = { "\ndata_%S\n", "\nsave_%S\n" };
 
 /* the true data type of the CIF walker context pointers used by the CIF-writing functions */
