@@ -909,7 +909,7 @@ static int format_text_decimal(double sign_num, char *digit_buf, char *su_buf, s
 static int format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_t su_size, int scale,
         UChar **result) {
     int val_digits = strlen(digit_buf);
-    int most_significant_place = (val_digits - 1) - scale;
+    int most_significant_place = (val_digits ? (val_digits - 1) : 0) - scale;
     int exponent_digits = ((int) log10(abs(most_significant_place) + 0.5)) + 1;  /* adding 0.5 avoids log10(0) */
     size_t total_chars;
 
@@ -937,12 +937,20 @@ static int format_text_sci(double sign_num, char *digit_buf, char *su_buf, size_
             /* The sign, if needed */
             if (sign_num < 0) *(c++) = UCHAR_MINUS;
 
-            *(c++) = (UChar) *(next_digit++);
+            /* The value digits */
+            if (*digit_buf) {
+                *(c++) = (UChar) *(next_digit++);
 
-            if (*next_digit != '\0') {
-                *(c++) = UCHAR_DECIMAL;
-                USTRCPY_C(c, next_digit);
+                if (*next_digit != '\0') {
+                    *(c++) = UCHAR_DECIMAL;
+                    USTRCPY_C(c, next_digit);
+                }
+            } else {
+                /* There are no significant digits, so provide a zero */
+                *(c++) = (UChar) UCHAR_0;
             }
+
+            /* the exponent */
             *(c++) = UCHAR_e;
             if (most_significant_place < 0) {
                 *(c++) = UCHAR_MINUS;
@@ -1326,7 +1334,8 @@ static char *to_digits(double d, int scale) {
                 } while (--extra_ddigits > 0);
             } else {
                 /* truncate the digit string after the last significant digit */
-                while (p10 > 1) {
+                /* don't truncate more digits than there actually are (bug #1) */
+                while ((p10 > 1) && (work > result)) {
                     work -= 1;
                     p10 /= 10;
                 }
@@ -2189,6 +2198,11 @@ int cif_value_init_numb(cif_value_tp *n, double val, double su, int scale, int m
                         FAIL(su, CIF_MEMORY_ERROR);
                     } else {
                         su_size = strlen(su_buf);
+                        if (su_size == 0) {
+                            /* no significant digits of uncertainty remain after rounding to the specified scale */
+                            free(su_buf);
+                            su_buf = NULL;
+                        }
                     }
                 } else {
                     su_buf = NULL;

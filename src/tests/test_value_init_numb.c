@@ -47,6 +47,9 @@ int main(void) {
     U_STRING_DECL(vm0_5s_10_s0, "0(1)", 5);
     U_STRING_DECL(vm0_6s_10_s0, "1(1)", 5);
     U_STRING_DECL(vm0_00000042s_00000017_s8, "4.2e-07(17)", 12);
+    U_STRING_DECL(v1_23e4, "1.23e+04", 9);
+    U_STRING_DECL(v0s1, "0(1)", 5);
+    U_STRING_DECL(v0e2s1, "0e+02(1)", 9);
 
     U_STRING_INIT(v450_s1, "450.0", 6);
     U_STRING_INIT(v450_s0, "450", 4);
@@ -62,6 +65,9 @@ int main(void) {
     U_STRING_INIT(vm0_5s_10_s0, "0(1)", 5);
     U_STRING_INIT(vm0_6s_10_s0, "1(1)", 5);
     U_STRING_INIT(vm0_00000042s_00000017_s8, "4.2e-07(17)", 12);
+    U_STRING_INIT(v1_23e4, "1.23e+04", 9);
+    U_STRING_INIT(v0s1, "0(1)", 5);
+    U_STRING_INIT(v0e2s1, "0e+02(1)", 9);
 
     TESTHEADER(test_name);
 
@@ -203,6 +209,42 @@ int main(void) {
     TEST(!assert_doubles_equal(d, 0.00000017, DBL_TEST_ULPS), 0, test_name, 97);
     TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 98);
     TEST(u_strcmp(vm0_00000042s_00000017_s8, text), 0, test_name, 99);
+    free(text);
+
+    /* reinitialize the value as kind NUMB, scale -2, rounded, uncertainty rounded to zero */
+    /* Note: one exact FP comparison in this case */
+    TEST(cif_value_init_numb(value, 12345.0, 1.0, -2, 1), CIF_OK, test_name, 100);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 101);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 102);
+    TEST(!assert_doubles_equal(d, 12300.0, DBL_TEST_ULPS), 0, test_name, 103);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 104);
+    TEST((d != 0.0), 0, test_name, 105);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 106);
+    TEST(u_strcmp(v1_23e4, text), 0, test_name, 107);
+    free(text);
+
+    /* reinitialize the value as kind NUMB, scale 0, rounded to no significant digits */
+    /* Note: exact FP comparisons in this case */
+    TEST(cif_value_init_numb(value, 0.0625, 1.0, 0, 1), CIF_OK, test_name, 108);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 109);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 110);
+    TEST((d != 0.0), 0, test_name, 111);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 112);
+    TEST((d != 1.0), 0, test_name, 113);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 114);
+    TEST(u_strcmp(v0s1, text), 0, test_name, 115);
+    free(text);
+
+    /* reinitialize the value as kind NUMB, scale -2, rounded to no significant digits */
+    /* Note: exact FP comparisons in this case */
+    TEST(cif_value_init_numb(value, 6.25, 100.0, -2, 1), CIF_OK, test_name, 116);
+    TEST(cif_value_kind(value), CIF_NUMB_KIND, test_name, 117);
+    TEST(cif_value_get_number(value, &d), CIF_OK, test_name, 118);
+    TEST((d != 0.0), 0, test_name, 119);
+    TEST(cif_value_get_su(value, &d), CIF_OK, test_name, 120);
+    TEST((d != 100.0), 0, test_name, 121);
+    TEST(cif_value_get_text(value, &text), CIF_OK, test_name, 122);
+    TEST(u_strcmp(v0e2s1, text), 0, test_name, 123);
     free(text);
 
     cif_value_free(value);
