@@ -37,6 +37,7 @@ int main(void) {
     UChar empty_name[1] = { 0 };
     UChar invalid_name1[5] = { 0x5F, 0x4B, 0xFFFF, 0x79, 0 };
     UChar invalid_name2[5] = { 0x5F, 0x4B, 0x20, 0x79, 0 };
+    UChar invalid_name3[2] = { 0x5F, 0 };
     UChar name1[5] = { 0x5F, 0x4B, 0x45, 0x79, 0 };
     UChar name2[7] = { 0x5F, 0x56, 0x61, 0x6c, 0x75, 0x65, 0 };
     UChar uncomposed_name[6] = { 0x5F, 0x4B, 0x0073, 0x0307, 0x0323, 0 };
@@ -78,16 +79,20 @@ int main(void) {
     all_names[2] = uncomposed_name;
     TEST(cif_packet_create(&packet, all_names), CIF_INVALID_ITEMNAME, test_name, 11);
 
+    all_names[0] = invalid_name3;
+    all_names[1] = NULL;
+    TEST(cif_packet_create(&packet, all_names), CIF_INVALID_ITEMNAME, test_name, 12);
+
     /* Create a non-empty packet */
     all_names[0] = name1;
-    TEST(cif_packet_create(&packet, all_names), CIF_OK, test_name, 12);
-    TEST(cif_packet_get_names(packet, &names), CIF_OK, test_name, 13);
-    TEST(test_name_list(all_names, names), 0, test_name, 14);
+    TEST(cif_packet_create(&packet, all_names), CIF_OK, test_name, 13);
+    TEST(cif_packet_get_names(packet, &names), CIF_OK, test_name, 14);
+    TEST(test_name_list(all_names, names), 0, test_name, 15);
     free(names);
 
     for (counter = 0; all_names[counter] != NULL; counter += 1) {
-        TEST(cif_packet_get_item(packet, all_names[counter], &value), CIF_OK, test_name, 2 * counter + 15);
-        TEST(cif_value_kind(value), CIF_UNK_KIND, test_name, 2 * counter + 16);
+        TEST(cif_packet_get_item(packet, all_names[counter], &value), CIF_OK, test_name, 2 * counter + 16);
+        TEST(cif_value_kind(value), CIF_UNK_KIND, test_name, 2 * counter + 17);
     }
 
     cif_packet_free(packet);

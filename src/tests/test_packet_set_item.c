@@ -42,6 +42,7 @@ int main(void) {
     UChar equivalent_name[6] = { 0x5f, 'K', 0x0073, 0x0323, 0x0307, 0 };
     UChar simple_name[] = { '_', 'n', 'a', 'm', 'e', 0 };
     UChar invalid_name[] = { 'n', 'a', 'm', 'e', 0 };
+    UChar invalid_name2[] = { '_', 0 };
     UChar another_name[] = { '_', 'a', 'n', 'o', 't', 'h', 'e', 'r', '.', 'n', 'a', 'm', 'e', 0 };
     U_STRING_DECL(value_text, "Value teXt", 11);
 
@@ -99,6 +100,9 @@ int main(void) {
     TEST(u_strcmp(value_text, text), 0, test_name, 28);
     free(text);
     /* value and value2 both belong to the packet */
+
+    /* Test another invalid data name */
+    TEST(cif_packet_set_item(packet, invalid_name2, value2), CIF_INVALID_ITEMNAME, test_name, 29);
 
     cif_packet_free(packet);
 

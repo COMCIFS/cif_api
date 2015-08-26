@@ -37,9 +37,10 @@ int main(void) {
     cif_block_tp *block = NULL;
     cif_loop_tp *loop = NULL;
     cif_block_tp *block2;
-#define NUM_NAMES 6
+#define NUM_NAMES 7
 #define BUFLEN 64
     const char invalid_patterns[NUM_NAMES][BUFLEN] = {
+        "_",
         "no_leading_underscore",
         "_contains space",
         "_contains\\xanewline",
@@ -90,7 +91,7 @@ int main(void) {
 
     subtest = 2;
 
-    /* subtests 2 - 19: test invalid item names of various types in various positions */
+    /* subtests 2 - 22: test invalid item names of various types in various positions */
     for (counter = 0; counter <= NUM_NAMES; counter++) {
         item_names[0] = invalid_names[counter];
         TEST(cif_container_create_loop(block, NULL, item_names, NULL), CIF_INVALID_ITEMNAME, test_name, subtest++);

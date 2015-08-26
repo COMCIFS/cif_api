@@ -56,6 +56,7 @@ int main(void) {
     U_STRING_DECL(item2u, "_ITEM2", 7);
     U_STRING_DECL(item3u, "_iTeM3", 7);
     U_STRING_DECL(invalid, "in valid", 9);
+    U_STRING_DECL(underscore, "_", 2);
     U_STRING_DECL(char_value1, "simple_Value", 13);
     U_STRING_DECL(psuedo_numb, "1", 2);
 
@@ -74,6 +75,7 @@ int main(void) {
     U_STRING_INIT(item2u, "_ITEM2", 7);
     U_STRING_INIT(item3u, "_iTeM3", 7);
     U_STRING_INIT(invalid, "in valid", 9);
+    U_STRING_INIT(underscore, "_", 2);
     U_STRING_INIT(char_value1, "simple_Value", 13);
     U_STRING_INIT(psuedo_numb, "1", 2);
 
@@ -319,6 +321,10 @@ int main(void) {
     TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 138);
     TEST(cif_container_set_value(block, invalid, NULL), CIF_INVALID_ITEMNAME, test_name, 139);
     TEST(cif_container_get_item_loop(block, invalid, NULL), CIF_NOSUCH_ITEM, test_name, 140);
+
+    TEST(cif_container_get_item_loop(block, underscore, NULL), CIF_NOSUCH_ITEM, test_name, 141);
+    TEST(cif_container_set_value(block, underscore, NULL), CIF_INVALID_ITEMNAME, test_name, 142);
+    TEST(cif_container_get_item_loop(block, underscore, NULL), CIF_NOSUCH_ITEM, test_name, 143);
 
     cif_frame_free(frame);
     cif_block_free(block);

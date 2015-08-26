@@ -174,7 +174,7 @@ static int cif_has_whitespace(const UChar *src) {
 
 static int cif_is_valid_name(const UChar *name, int for_item) {
     return ((name != NULL)
-            && ((for_item == 0) ? (*name != 0) : (*name == UCHAR_UNDERSCORE))
+            && ((for_item == 0) ? (*name != 0) : ((*name == UCHAR_UNDERSCORE) && (*(name + 1) != 0)))
             && (u_countChar32(name, -1) <= (int32_t) CIF_LINE_LENGTH - ((for_item == 0) ? 5 : 0))
             && (cif_has_whitespace(name) == 0)
             && (cif_has_disallowed_chars(name) == 0)) ? 1 : 0;
