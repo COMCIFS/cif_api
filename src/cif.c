@@ -185,7 +185,11 @@ int cif_get_api_version(char **version) {
 int cif_create(cif_tp **cif) {
     FAILURE_HANDLING;
     cif_tp *temp;
+#ifdef SQLITE_MEMORY_ONLY
+    U_STRING_DECL(sqlite_memory, ":memory:", 9);
 
+    U_STRING_INIT(sqlite_memory, ":memory:", 9);
+#endif
     if (cif == NULL) return CIF_ARGUMENT_ERROR;
 
     temp = (cif_tp *) malloc(sizeof(cif_tp));
@@ -204,7 +208,11 @@ int cif_create(cif_tp **cif) {
                  * use UTF-16 as its default character encoding (and also the function
                  * requires the filename to be encoded in UTF-16).
                  */
+#ifdef SQLITE_MEMORY_ONLY
+                && (DEBUG_WRAP2(sqlite3_open16(sqlite_memory, &(temp->db))) == SQLITE_OK)) {
+#else
                 && (DEBUG_WRAP2(sqlite3_open16(&cif_uchar_nul, &(temp->db))) == SQLITE_OK)) {
+#endif
             int fks_enabled = 0;
 
 #ifdef PERFORM_QUERY_PROFILING
