@@ -44,6 +44,8 @@ struct syntax_report_s {
     int error_count;
 } ;
 
+int fast_mode = 0;
+
 /*
  * A macro to check the truthiness of a value (generally a function return
  * value), exiting the program with an error message if the value is falsey.
@@ -85,12 +87,23 @@ static int print_error(int code, size_t line, size_t column, const UChar *text, 
  * command-line arguments.  Returns an index into the argv array one greater
  * than that of the last option argument (which is the index of the first
  * non-option argument if there are any).
+ *
+ * The only option flag currently recognized is '-f', which requests a fast,
+ * syntax-only check, ignoring semantic requirements for data name, frame code,
+ * and block code uniqueness.
  */
 static int set_options(struct cif_parse_opts_s *options, int argc, char *argv[]) {
-    options->error_callback = print_error;
+    int next_arg;
 
-    /* in the future, additional options may be set according to command-line arguments */
-    return 1;
+    options->error_callback = print_error;
+    if (argc > 1 && !strcmp("-f", argv[1])) {
+        fast_mode = 1;
+        next_arg = 2;
+    } else {
+        next_arg = 1;
+    }
+
+    return next_arg;
 }
 
 /*
@@ -148,12 +161,12 @@ int main(int argc, char *argv[]) {
             report.error_count = 0;
             /*
              * Even though this program is loosely described as a "syntax checker", it does intend to check the
-             * semantic constraints around block code, frame code, and data name uniqueness.  For that to work, the
-             * parser must not be invoked in normal mode (by passing a non-NULL third argument), rather than in
-             * "syntax only".  If the required memory footprint for checking large files were a concern, then additional
-             * callbacks could be installed to truncate unneeded data.
+             * semantic constraints around block code, frame code, and data name uniqueness, except when operating
+             * in "fast" mode.  For that to work, the parser must be invoked in normal mode (by passing a non-NULL
+             * third argument), rather than in "syntax only" mode.  If the required memory footprint for checking
+             * large files were a concern, then additional callbacks could be installed to truncate unneeded data.
              */
-            CHECK_CALL(cif_parse(file, options, &cif), "parse the input CIF");
+            CHECK_CALL(cif_parse(file, options, fast_mode ? NULL : &cif), "parse the input CIF");
             u_fflush(ustderr);  /* flush now in case stderr and stdout point to the same device */
 
             /* summarize and clean up */

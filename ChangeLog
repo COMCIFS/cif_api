@@ -1,5 +1,23 @@
 CIF API Change Log
 
+Version 0.4.1
+* Added '-f' fast mode option to cif2_syncheck
+  If the -f option is passed to cif2_syncheck then it runs the parser in
+  syntax-only mode, with no data-handling callbacks.  This turns out to be
+  about 200 times faster (literally), but does not detect duplicate data
+  names, frame codes, or block codes.  This option was motivated by the
+  example parser provided with cctbx::ucif, which operates exactly the
+  same way.
+* Added support for SQLite memory-based mode
+  Added code protected by conditional-compilation directives to cif.c.  When
+  enabled, CIF storage will be handled by SQLite in-memory databases instead
+  of SQLite temporary databases.  Enabling this mode provides a parse-speed
+  advantage advantage on the order of 35%, but removes automatic spillover
+  to the file system.  The CIF API's SQLite form of CIF data is many times
+  larger than CIF's native text form, so spillover can be very important.
+  The build system intentionally provides no support for enabling
+  in-memory mode.
+
 Version 0.4.0
 * Added CIF 1.1-format output
   Previously, the CIF API could read either CIF 1.1 format or CIF 2.0 format,
@@ -10,7 +28,7 @@ Version 0.4.0
   When the trimmed first line of a text field ends with a backslash in
   CIF 2.0 output mode, or when the trimmed first line consists of a single
   backslash in CIF 1.1 mode, the text-field value must somehow be escaped to
-  prevent readers from interpreting the field from being prefixed and / or
+  prevent readers from interpreting the field as being prefixed and / or
   folded.  Prefixing was previously used for that purpose, but to better
   support CIF 1.1, line folding is now used instead.  (Prefixing is performed
   only if the field value contains a newline / semicolon digraph.)
