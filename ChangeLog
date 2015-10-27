@@ -15,7 +15,7 @@ Version 0.4.1
   advantage advantage on the order of 35%, but removes automatic spillover
   to the file system.  The CIF API's SQLite form of CIF data is many times
   larger than CIF's native text form, so spillover can be very important.
-  The build system intentionally provides no support for enabling
+  The build system intentionally provides no direct support for enabling
   in-memory mode.
 
 Version 0.4.0
