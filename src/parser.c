@@ -2929,18 +2929,18 @@ static int scan_text(struct scanner_s *scanner) {
                     break;
                 case EOL_CLASS:
                     /* HANDLE_EOL(scanner, c, sol); */
-do {
-    struct scanner_s *_s_eol = (scanner);
-    UChar _c = (c);
+                    do {
+                        struct scanner_s *_s_eol = (scanner);
+                        UChar _c = (c);
 
-    if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) {
-        int _ev = _s_eol->error_callback(CIF_OVERLENGTH_LINE, _s_eol->line,
-                scanner->column, _s_eol->next_char - 1, 0, _s_eol->user_data);
-        if (_ev != CIF_OK) return _ev;
-    }
-    sol = (((sol) << 2) + ((_c == UCHAR_NL) ? 1 : ((_c == UCHAR_CR) ? 2 : 3))) & 0xf;
-    POSN_INCLINE(_s_eol, (((sol) == 0x9) ? 0 : 1));
-} while (CIF_FALSE);
+                        if (POSN_COLUMN(scanner) > CIF_LINE_LENGTH) {
+                            int _ev = _s_eol->error_callback(CIF_OVERLENGTH_LINE, _s_eol->line,
+                                    scanner->column, _s_eol->next_char - 1, 0, _s_eol->user_data);
+                            if (_ev != CIF_OK) return _ev;
+                        }
+                        sol = (((sol) << 2) + ((_c == UCHAR_NL) ? 1 : ((_c == UCHAR_CR) ? 2 : 3))) & 0xf;
+                        POSN_INCLINE(_s_eol, (((sol) == 0x9) ? 0 : 1));
+                    } while (CIF_FALSE);
                     break;
                 default:
                     sol = 0;
@@ -2971,13 +2971,11 @@ do {
 }
 
 /*
- * Transfers one or possibly two character from the provided scanner's character source into its working character
+ * Transfers one or possibly two characters from the provided scanner's character source into its working character
  * buffer, provided that any are available.  Assumes that no characters have yet been transferred, and that the CIF
  * version being parsed may not yet be known.  Will raise the end-of-file flag if called when there are no characters
- * are available.  Returns CIF_OK if any characters are transferred, CIF_EOF if the EOF flag is raised without
+ * available.  Returns CIF_OK if any characters are transferred, CIF_EOF if the EOF flag is raised without
  * transferring any characters, or CIF_ERROR otherwise.
- *
- * Two characters are transferred
  *
  * Unlike get_more_chars(), this function accepts a Unicode byte-order mark, U+FEFF.
  */
