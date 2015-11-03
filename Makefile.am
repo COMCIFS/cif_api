@@ -27,6 +27,11 @@ ACLOCAL_AMFLAGS = -I m4
 # doesn't like it that 'distclean' doesn't then remove the generarted docs.
 AM_DISTCHECK_CONFIGURE_FLAGS = --with-examples --with-linguist
 
+pkgdocdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
+pkgconfigdir = $(libdir)/pkgconfig
+
+pkgconfig_DATA = misc/libcif.pc
+
 doxygen_examples = \
   misc/basic_parsing.c \
   misc/parse_errors.c \
@@ -97,8 +102,6 @@ html_install = test -d dox-html && html_dir=dox-html || html_dir=$(srcdir)/dox-h
 else
 html_install = :
 endif
-
-pkgdocdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 
 html-local: $(doxygen_html_targets)
 	:

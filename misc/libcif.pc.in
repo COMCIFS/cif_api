@@ -1,0 +1,15 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+libdir=@libdir@
+
+Name: CIF API library
+Description: The CIF API CIF-parsing and manipulation library
+URL: https://github.com/COMCIFS/cif_api/
+Version: @PACKAGE_VERSION@
+Requires: @ICU_PKG@
+Requires.private:
+Cflags: -I${includedir}
+Libs: -L${libdir} -lcif
+Libs.private: @ICU_NONPKG_LIBS@ @LIBS@
+

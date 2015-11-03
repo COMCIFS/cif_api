@@ -637,8 +637,11 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 SQLITE_CPPFLAGS
+ICU_NONPKG_LIBS
 ICU_LIBS
 ICU_CPPFLAGS
+ICU_PKG
+PKG_CONFIG
 win32_FALSE
 win32_TRUE
 PROFILING_LDFLAGS
@@ -647,17 +650,17 @@ PROFILING_CPPFLAGS
 WARNING_FLAGS
 C_STD_FLAGS
 DOXYGEN
-install_docs_FALSE
-install_docs_TRUE
-build_examples_FALSE
-build_examples_TRUE
-make_linguist_FALSE
-make_linguist_TRUE
-make_docs_FALSE
-make_docs_TRUE
 MAINT
 MAINTAINER_MODE_FALSE
 MAINTAINER_MODE_TRUE
+install_docs_FALSE
+install_docs_TRUE
+make_docs_FALSE
+make_docs_TRUE
+make_linguist_FALSE
+make_linguist_TRUE
+build_examples_FALSE
+build_examples_TRUE
 CPP
 OTOOL64
 OTOOL
@@ -778,16 +781,16 @@ enable_dependency_tracking
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-enable_maintainer_mode
-enable_doc_rebuild
+with_examples
 with_linguist
+enable_doc_rebuild
+with_docs
+enable_maintainer_mode
 enable_c89_enforcement
 enable_debug
 enable_extra_warnings
 enable_profiling
 enable_query_profiling
-with_examples
-with_docs
 with_test_fuzz
 '
       ac_precious_vars='build_alias
@@ -1424,35 +1427,36 @@ Optional Features:
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-doc-rebuild    Rebuild the generated documentation when the sources
+                          are out of date. Requires doxygen. [default=no]
   --disable-maintainer-mode  disable make rules and dependencies not useful
 			  (and sometimes confusing) to the casual installer
-  --enable-doc-rebuild    Rebuild the generated documentation. Requires
-                          doxygen. [default=no]
-  --enable-c89-enforcement
-                          configure normally tries to verify that the chosen C
-                          compiler supports C89. That behavior can be
-                          diasabled via this option, as may be necessary in
+  --disable-c89-enforcement
+                          disable verifying that the chosen C compiler
+                          supports C89. This option may be necessary in
                           certain environments, such as when a C++ compiler is
-                          chosen. [default=yes]
+                          chosen, but everywhere else it is at best useless.
   --enable-debug          cause the library to emit debug messages at runtime.
                           Desirable only for developers. [default=no]
   --enable-extra-warnings turn on extra compiler diagnostics intended to help
                           developers identify questionable code. Not all
                           warnings emitted as a result indicate genuine
                           problems. [default=no]
-  --enable-profiling[=type]
+  --enable-profiling[=flavor]
                           build the library and example programs with
                           profiling support (of the specified flavor). If no
                           profiling flavor is given then configure will
                           attempt to guess based on the chosen C compiler. The
-                          profiling types currently known to configure are:
-                          gnu. [default=no]
+                          profiling flavors currently known to configure are:
+                          gnu. Profiling may require static linkage; see
+                          --enable-static and maybe --disable-shared.
+                          [default=no]
   --enable-query-profiling
                           make the library emit information at runtime
                           pertaining to the time consumed by queries performed
                           against the internal database. Appropriate only for
                           debugging CIF API performance issues; do not enable
-                          for a production build.
+                          for a production build. [default=no]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1462,14 +1466,13 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-linguist         Build the experimental program cif_linguist
   --with-examples         build and install the example programs
+  --with-linguist         Build the experimental program cif_linguist
   --without-docs          do not install the documentation. See also
                           --enable-doc-rebuild. [default=yes]
   --with-test-fuzz=<fuzz ulps>
-                          specifies a relative fuzz factor for the tests to
-                          use in inexact floating-point comparisons.
-                          [default=2]
+                          a relative fuzz factor for the tests to use in
+                          inexact floating-point comparisons. [default=2]
 
 Some influential environment variables:
   CC          C compiler command
@@ -11797,30 +11800,60 @@ CC="$lt_save_CC"
 ac_config_headers="$ac_config_headers config.h"
 
 
+
 # User options
 
+## Options influencing WHAT to build / install
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
-$as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
-    # Check whether --enable-maintainer-mode was given.
-if test "${enable_maintainer_mode+set}" = set; then :
-  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
+
+# Check whether --with-examples was given.
+if test "${with_examples+set}" = set; then :
+  withval=$with_examples;
+    case $withval in #(
+  yes|no) :
+     ;; #(
+  *) :
+    as_fn_error $? "--with-examples=$withval is not supported" "$LINENO" 5 ;;
+esac
+
 else
-  USE_MAINTAINER_MODE=yes
+
+    with_examples='no'
+
 fi
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $USE_MAINTAINER_MODE" >&5
-$as_echo "$USE_MAINTAINER_MODE" >&6; }
-   if test $USE_MAINTAINER_MODE = yes; then
-  MAINTAINER_MODE_TRUE=
-  MAINTAINER_MODE_FALSE='#'
+
+ if test "x$with_examples" = xyes; then
+  build_examples_TRUE=
+  build_examples_FALSE='#'
 else
-  MAINTAINER_MODE_TRUE='#'
-  MAINTAINER_MODE_FALSE=
+  build_examples_TRUE='#'
+  build_examples_FALSE=
 fi
 
-  MAINT=$MAINTAINER_MODE_TRUE
 
+
+# Check whether --with-linguist was given.
+if test "${with_linguist+set}" = set; then :
+  withval=$with_linguist; case ${with_linguist} in #(
+  yes|no) :
+     ;; #(
+  *) :
+    as_fn_error $? "Unrecognized value '${with_linguist}' for --with-linguist" "$LINENO" 5
+     ;;
+esac
+else
+  with_linguist='no'
+fi
+
+
+ if test "x${with_linguist}" = xyes; then
+  make_linguist_TRUE=
+  make_linguist_FALSE='#'
+else
+  make_linguist_TRUE='#'
+  make_linguist_FALSE=
+fi
 
 
 # Check whether --enable-doc-rebuild was given.
@@ -11847,28 +11880,54 @@ fi
 
 
 
-# Check whether --with-linguist was given.
-if test "${with_linguist+set}" = set; then :
-  withval=$with_linguist; case ${with_linguist} in #(
+# Check whether --with-docs was given.
+if test "${with_docs+set}" = set; then :
+  withval=$with_docs; case $with_docs in #(
   yes|no) :
      ;; #(
   *) :
-    as_fn_error $? "Unrecognized value '${with_linguist}' for --with-linguist" "$LINENO" 5
+    as_fn_error $? "Unrecognized value '${with_docs}' for --with-docs" "$LINENO" 5
      ;;
 esac
 else
-  with_linguist='no'
+  with_docs=yes
 fi
 
 
-
- if test "x${with_linguist}" = xyes; then
-  make_linguist_TRUE=
-  make_linguist_FALSE='#'
+ if test "x${with_docs}" = xyes; then
+  install_docs_TRUE=
+  install_docs_FALSE='#'
 else
-  make_linguist_TRUE='#'
-  make_linguist_FALSE=
+  install_docs_TRUE='#'
+  install_docs_FALSE=
 fi
+
+
+
+## options influencing HOW to conduct the build
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
+$as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
+    # Check whether --enable-maintainer-mode was given.
+if test "${enable_maintainer_mode+set}" = set; then :
+  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
+else
+  USE_MAINTAINER_MODE=yes
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $USE_MAINTAINER_MODE" >&5
+$as_echo "$USE_MAINTAINER_MODE" >&6; }
+   if test $USE_MAINTAINER_MODE = yes; then
+  MAINTAINER_MODE_TRUE=
+  MAINTAINER_MODE_FALSE='#'
+else
+  MAINTAINER_MODE_TRUE='#'
+  MAINTAINER_MODE_FALSE=
+fi
+
+  MAINT=$MAINTAINER_MODE_TRUE
+
 
 
 # Check whether --enable-c89-enforcement was given.
@@ -11953,57 +12012,6 @@ $as_echo "#define PERFORM_QUERY_PROFILING 1" >>confdefs.h
 fi
 
 
-# Check whether --with-examples was given.
-if test "${with_examples+set}" = set; then :
-  withval=$with_examples;
-    case $withval in #(
-  yes|no) :
-     ;; #(
-  *) :
-    as_fn_error $? "--with-examples=$withval is not supported" "$LINENO" 5 ;;
-esac
-
-else
-
-    with_examples='no'
-
-fi
-
-
- if test "x$with_examples" = xyes; then
-  build_examples_TRUE=
-  build_examples_FALSE='#'
-else
-  build_examples_TRUE='#'
-  build_examples_FALSE=
-fi
-
-
-
-# Check whether --with-docs was given.
-if test "${with_docs+set}" = set; then :
-  withval=$with_docs; case $with_docs in #(
-  yes|no) :
-     ;; #(
-  *) :
-    as_fn_error $? "Unrecognized value '${with_docs}' for --with-docs" "$LINENO" 5
-     ;;
-esac
-else
-  with_docs=yes
-fi
-
-
- if test "x${with_docs}" = xyes; then
-  install_docs_TRUE=
-  install_docs_FALSE='#'
-else
-  install_docs_TRUE='#'
-  install_docs_FALSE=
-fi
-
-
-
 # Check whether --with-test-fuzz was given.
 if test "${with_test_fuzz+set}" = set; then :
   withval=$with_test_fuzz;
@@ -12035,6 +12043,7 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define DBL_TEST_ULPS $with_test_fuzz
 _ACEOF
+
 
 
 # Programs used during the build process
@@ -12710,9 +12719,146 @@ fi
 # Verify that the chosen C compiler supports C89 code
 if test "x${enable_c89_enforcement}" = xyes && test "x${ac_cv_prog_cc_c89}" = xno; then :
 
-  as_fn_error $? "The C compiler [$CC] does not support C89 code." "$LINENO" 5
+  as_fn_error $? "The C compiler [${CC}] does not support C89 code." "$LINENO" 5
 
 fi
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking how to run the C preprocessor" >&5
+$as_echo_n "checking how to run the C preprocessor... " >&6; }
+# On Suns, sometimes $CPP names a directory.
+if test -n "$CPP" && test -d "$CPP"; then
+  CPP=
+fi
+if test -z "$CPP"; then
+  if ${ac_cv_prog_CPP+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+      # Double quotes because CPP needs to be expanded
+    for CPP in "$CC -E" "$CC -E -traditional-cpp" "/lib/cpp"
+    do
+      ac_preproc_ok=false
+for ac_c_preproc_warn_flag in '' yes
+do
+  # Use a header file that comes with gcc, so configuring glibc
+  # with a fresh cross-compiler works.
+  # Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+  # <limits.h> exists even on freestanding compilers.
+  # On the NeXT, cc -E runs the code through the compiler's parser,
+  # not just through cpp. "Syntax error" is here to catch this case.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+		     Syntax error
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+  # Broken: fails on valid input.
+continue
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+  # OK, works on sane cases.  Now check whether nonexistent headers
+  # can be detected and how.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ac_nonexistent.h>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  # Broken: success on invalid input.
+continue
+else
+  # Passes both tests.
+ac_preproc_ok=:
+break
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+done
+# Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+rm -f conftest.i conftest.err conftest.$ac_ext
+if $ac_preproc_ok; then :
+  break
+fi
+
+    done
+    ac_cv_prog_CPP=$CPP
+
+fi
+  CPP=$ac_cv_prog_CPP
+else
+  ac_cv_prog_CPP=$CPP
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $CPP" >&5
+$as_echo "$CPP" >&6; }
+ac_preproc_ok=false
+for ac_c_preproc_warn_flag in '' yes
+do
+  # Use a header file that comes with gcc, so configuring glibc
+  # with a fresh cross-compiler works.
+  # Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+  # <limits.h> exists even on freestanding compilers.
+  # On the NeXT, cc -E runs the code through the compiler's parser,
+  # not just through cpp. "Syntax error" is here to catch this case.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+		     Syntax error
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+  # Broken: fails on valid input.
+continue
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+  # OK, works on sane cases.  Now check whether nonexistent headers
+  # can be detected and how.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ac_nonexistent.h>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  # Broken: success on invalid input.
+continue
+else
+  # Passes both tests.
+ac_preproc_ok=:
+break
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+done
+# Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+rm -f conftest.i conftest.err conftest.$ac_ext
+if $ac_preproc_ok; then :
+
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "C preprocessor \"$CPP\" fails sanity check
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for grep that handles long lines and -e" >&5
 $as_echo_n "checking for grep that handles long lines and -e... " >&6; }
@@ -12875,6 +13021,7 @@ done
   done
 IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_DOXYGEN" && ac_cv_path_DOXYGEN=":"
   ;;
 esac
 fi
@@ -12888,9 +13035,9 @@ $as_echo "no" >&6; }
 fi
 
 
-if test "x${DOXYGEN}" = x && test "x${enable_doc_rebuild}" = xyes; then :
+if test "${DOXYGEN}" = : && test "x${enable_doc_rebuild}" = xyes; then :
 
-  as_fn_error $? "Documentation regeneration is enabled, but doxygen is not found." "$LINENO" 5
+  as_fn_error $? "Documentation regeneration is enabled, but doxygen was not found." "$LINENO" 5
 
 fi
 
@@ -12919,7 +13066,7 @@ esac
 # that the real build will see, but we shouldn't make permanent changes to the
 # CPPFLAGS variable because it belongs to the user.
 CPPFLAGS_save="${CPPFLAGS}"
-CPPFLAGS="${C_STD_FLAGS} $CPPFLAGS"
+CPPFLAGS="${C_STD_FLAGS} ${CPPFLAGS}"
 
 # Output C[PP]FLAGS that cause the compiler to emit warnings about all conditions
 # we care to detect, if such flags are known.  Although not harmful for
@@ -12961,14 +13108,15 @@ case $enable_profiling in #(
   no) :
     : ;; #(
   *) :
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I don't know profiling type '${enable_profiling}'" >&5
-$as_echo "$as_me: WARNING: I don't know profiling type '${enable_profiling}'" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unknown profiling type '${enable_profiling}'" >&5
+$as_echo "$as_me: WARNING: Unknown profiling type '${enable_profiling}'" >&2;}
    ;;
 esac
 
 
 
 
+# Determine whether we are building on Windows
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -12985,7 +13133,6 @@ else
 fi
 rm -f conftest*
 
-
  if test "x${is_windows}" = xyes; then
   win32_TRUE=
   win32_FALSE='#'
@@ -12996,17 +13143,29 @@ fi
 
 
 # Headers
-for ac_header in fenv.h
+for ac_header in fenv.h stdint.h unistd.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "fenv.h" "ac_cv_header_fenv_h" "$ac_includes_default"
-if test "x$ac_cv_header_fenv_h" = xyes; then :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_FENV_H 1
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
 
 fi
 
 done
+
+ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
+if test "x$ac_cv_header_sqlite3_h" = xyes; then :
+
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Required header sqlite3.h was not found
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
 
 
 # Libraries
@@ -13120,43 +13279,166 @@ fi
 
 # TODO: check SQLite version >= 3.6.19 (or otherwise test that it supports and enforces foreign key constraints) */
 
-if which pkg-config >/dev/null; then :
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for the ICU I/O library" >&5
-$as_echo_n "checking for the ICU I/O library... " >&6; }
-    icuio_tags="icu-io icu"
-    ICU_LIBS=
-    for tag in ${icuio_tags}; do
-      ICU_LIBS=`pkg-config --libs ${tag} 2>/dev/null`" -licuio" && break
-    done
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${ICU_LIBS}" >&5
-$as_echo "${ICU_LIBS}" >&6; }
-    if test "x${ICU_LIBS}" = x; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "No pkg-config information for any of: ${icuio_tags}
-See \`config.log' for more details" "$LINENO" 5; }
+  ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+      # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG=":"
+  ;;
+esac
 fi
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU CPP flags" >&5
-$as_echo_n "checking for ICU CPP flags... " >&6; }
-    ICU_CPPFLAGS=`pkg-config --cflags-only-I ${tag} 2>/dev/null` || {
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  if test "${PKG_CONFIG}" = :; then :
+  as_fn_error $? "The 'pkg-config' command was not found" "$LINENO" 5
+fi
+
+  ICU_PKG=
+  ICU_NONPKG_LIBS=
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking libraries needed for ICU I/O" >&5
+$as_echo_n "checking libraries needed for ICU I/O... " >&6; }
+  icuio_tags="icu-io icu"
+  for tag in ${icuio_tags}; do
+    ICU_LIBS=`${PKG_CONFIG} --libs ${tag} 2>/dev/null` && { ICU_PKG=${tag}; break; }
+  done
+  if test "x${ICU_PKG}" = x; then :
+  as_fn_error $? "pkg-config does not know about ICU" "$LINENO" 5
+fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: pkg-config suggests ${ICU_LIBS}" >&5
+$as_echo "pkg-config suggests ${ICU_LIBS}" >&6; }
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking ICU CPP flags" >&5
+$as_echo_n "checking ICU CPP flags... " >&6; }
+  ICU_CPPFLAGS=`${PKG_CONFIG} --cflags-only-I ${tag} 2>/dev/null` || {
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
 $as_echo "" >&6; }
-      { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Could not retrieve flags for package ${tag}
-See \`config.log' for more details" "$LINENO" 5; }
-    }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${ICU_CPPFLAGS}" >&5
+    as_fn_error $? "Could not retrieve flags for package ${tag}" "$LINENO" 5
+  }
+  if test "x${ICU_CPPFLAGS}" = x; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: (none)" >&5
+$as_echo "(none)" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${ICU_CPPFLAGS}" >&5
 $as_echo "${ICU_CPPFLAGS}" >&6; }
-    CPPFLAGS="${CPPFLAGS} ${ICU_CPPFLAGS}"
+fi
+
+  _ax_icuio_CPPFLAGS_save="${CPPFLAGS}"
+  CPPFLAGS="${CPPFLAGS} ${ICU_CPPFLAGS}"
+
+  ac_fn_c_check_header_mongrel "$LINENO" "unicode/ustring.h" "ac_cv_header_unicode_ustring_h" "$ac_includes_default"
+if test "x$ac_cv_header_unicode_ustring_h" = xyes; then :
 
 else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "pkg-config not found
+as_fn_error $? "Required header unicode/ustring.h was not found
 See \`config.log' for more details" "$LINENO" 5; }
 fi
+
+
+  ac_fn_c_check_header_mongrel "$LINENO" "unicode/ustdio.h" "ac_cv_header_unicode_ustdio_h" "$ac_includes_default"
+if test "x$ac_cv_header_unicode_ustdio_h" = xyes; then :
+
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Required header unicode/ustdio.h was not found
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking the real name of u_fopen()" >&5
+$as_echo_n "checking the real name of u_fopen()... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+#include <unicode/ustdio.h>
+CONF_LINE: u_fopen
+
+_ACEOF
+  _ax_icuio_UFOPEN=`${CPP} conftest.c | ${SED} -n '/^CONF_LINE/ s/.*\s\(\w\+\)\s*$/\1/p'` || _ax_icuio_UFOPEN='error'
+  rm conftest.c
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${_ax_icuio_UFOPEN}" >&5
+$as_echo "${_ax_icuio_UFOPEN}" >&6; }
+  if test "x$_ax_icuio_UFOPEN" = xerror; then :
+  as_fn_error $? "An error while determining the true name of u_fopen" "$LINENO" 5
+fi
+
+  _ax_icuio_LIBS_save="${LIBS}"
+  LIBS="${ICU_LIBS} ${LIBS}"
+  as_ac_var=`$as_echo "ac_cv_func_${_ax_icuio_UFOPEN}" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "${_ax_icuio_UFOPEN}" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+
+else
+
+    ICU_LIBS="-licuio ${ICU_LIBS}"
+    LIBS="${ICU_LIBS} ${LIBS_save}"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: trying again with ${ICU_LIBS}" >&5
+$as_echo "$as_me: trying again with ${ICU_LIBS}" >&6;}
+    { eval `$as_echo "ac_cv_func_${_ax_icuio_UFOPEN}" | $as_tr_sh`=; unset `$as_echo "ac_cv_func_${_ax_icuio_UFOPEN}" | $as_tr_sh`;}
+    as_ac_var=`$as_echo "ac_cv_func_${_ax_icuio_UFOPEN}" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "${_ax_icuio_UFOPEN}" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  ICU_NONPKG_LIBS='-licuio'
+else
+  as_fn_error $? "Could not identify ICU I/O libraries" "$LINENO" 5
+fi
+
+
+fi
+
+  LIBS="${_ax_icuio_LIBS_save}"
+  CPPFLAGS="${_ax_icuio_CPPFLAGS_save}"
+  ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
 
 
 
@@ -13197,44 +13479,6 @@ if test "x$ac_cv_have_decl_fegetround" = xyes; then :
 $as_echo "#define HAVE_DECL_FEGETROUND 1" >>confdefs.h
 
 fi
-
-
-# Headers
-
-for ac_header in io.h stdint.h unistd.h
-do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-
-done
-
-ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
-if test "x$ac_cv_header_sqlite3_h" = xyes; then :
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Required header sqlite3.h was not found
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-
-
-ac_fn_c_check_header_mongrel "$LINENO" "unicode/ustring.h" "ac_cv_header_unicode_ustring_h" "$ac_includes_default"
-if test "x$ac_cv_header_unicode_ustring_h" = xyes; then :
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Required header unicode/ustring.h was not found
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-
 
 
 # Data types
@@ -13365,17 +13609,16 @@ _ACEOF
 fi
 
 
-# These output variables are defined for documentary purposes.  The makefiles add
-# them to the CPP flags, but the current configure script always leaves them empty:
-
+# This output variable is defined for documentary purposes.  The makefiles add
+# it to the CPP flags, but the current configure script always leaves it empty:
 
 
 # Reset the CPPFLAGS.  The changes we made for internal purposes must not be
 # propagated to the build environment (at least, not directly).
 CPPFLAGS="${CPPFLAGS_save}"
 
-# (Over)write the Makefiles and other configure-generated files
-ac_config_files="$ac_config_files Makefile src/Makefile"
+# (Over)write the Makefiles
+ac_config_files="$ac_config_files Makefile src/Makefile misc/libcif.pc"
 
 
 cat >confcache <<\_ACEOF
@@ -13503,24 +13746,24 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
-  as_fn_error $? "conditional \"MAINTAINER_MODE\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${make_docs_TRUE}" && test -z "${make_docs_FALSE}"; then
-  as_fn_error $? "conditional \"make_docs\" was never defined.
+if test -z "${build_examples_TRUE}" && test -z "${build_examples_FALSE}"; then
+  as_fn_error $? "conditional \"build_examples\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${make_linguist_TRUE}" && test -z "${make_linguist_FALSE}"; then
   as_fn_error $? "conditional \"make_linguist\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${build_examples_TRUE}" && test -z "${build_examples_FALSE}"; then
-  as_fn_error $? "conditional \"build_examples\" was never defined.
+if test -z "${make_docs_TRUE}" && test -z "${make_docs_FALSE}"; then
+  as_fn_error $? "conditional \"make_docs\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${install_docs_TRUE}" && test -z "${install_docs_FALSE}"; then
   as_fn_error $? "conditional \"install_docs\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
+  as_fn_error $? "conditional \"MAINTAINER_MODE\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
@@ -14407,6 +14650,7 @@ do
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "misc/libcif.pc") CONFIG_FILES="$CONFIG_FILES misc/libcif.pc" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
