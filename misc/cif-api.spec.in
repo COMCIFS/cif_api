@@ -106,7 +106,7 @@ rm -rf %{buildroot}
 %{_includedir}/cif.h
 %{_includedir}/cif_error.h
 %{_libdir}/libcif.so
-%{_libdir}/pkg-config
+%{_libdir}/pkgconfig
 
 
 %post -p /sbin/ldconfig
