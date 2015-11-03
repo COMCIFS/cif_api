@@ -26,6 +26,7 @@ stamp-h1
 /*.gz
 /dox-html/
 /dox-man/
+/misc/libcif.pc
 /src/cif2_syncheck
 /src/cif2_table1
 /src/cif2_table3
