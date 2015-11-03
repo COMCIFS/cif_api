@@ -9,6 +9,9 @@ Version future
   Added a spec file for building and installing the CIF API software via RPM.
   Both a 'configure' template for the spec file and a copy of the spec file
   itself are included in the misc/ subdirectory.
+* SQLite usage improvements
+  Switched from a default UTF-16 database to default UTF-8 for considerable
+  space savings and (surprisingly) approximately 2% faster performance.
 
 Version 0.4.1
 * Added '-f' fast mode option to cif2_syncheck
