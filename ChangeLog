@@ -1,5 +1,15 @@
 CIF API Change Log
 
+Version future
+* Added a pkg-config description
+  Added a template for a pkg-config .pc file describing libcif.  It is filled
+  by the configure script and the resulting .pc file is installed by 'make
+  install'.
+* Added an RPM spec file
+  Added a spec file for building and installing the CIF API software via RPM.
+  Both a 'configure' template for the spec file and a copy of the spec file
+  itself are included in the misc/ subdirectory.
+
 Version 0.4.1
 * Added '-f' fast mode option to cif2_syncheck
   If the -f option is passed to cif2_syncheck then it runs the parser in

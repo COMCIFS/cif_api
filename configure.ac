@@ -299,6 +299,7 @@ CPPFLAGS="${CPPFLAGS_save}"
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
+  misc/cif-api.spec
   misc/libcif.pc
 ])
 

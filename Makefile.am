@@ -47,6 +47,8 @@ EXTRA_DIST = \
   extras/README \
   extras/cif_parser.y \
   extras/cif_scanner.l \
+  misc/cif-api.spec \
+  misc/cif-api.spec.in \
   misc/cif_schema.sql \
   misc/dox.css \
   misc/footer.html \

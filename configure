@@ -13618,7 +13618,7 @@ fi
 CPPFLAGS="${CPPFLAGS_save}"
 
 # (Over)write the Makefiles
-ac_config_files="$ac_config_files Makefile src/Makefile misc/libcif.pc"
+ac_config_files="$ac_config_files Makefile src/Makefile misc/cif-api.spec misc/libcif.pc"
 
 
 cat >confcache <<\_ACEOF
@@ -14650,6 +14650,7 @@ do
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "misc/cif-api.spec") CONFIG_FILES="$CONFIG_FILES misc/cif-api.spec" ;;
     "misc/libcif.pc") CONFIG_FILES="$CONFIG_FILES misc/libcif.pc" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
