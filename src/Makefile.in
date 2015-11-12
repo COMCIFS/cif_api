@@ -187,6 +187,7 @@ am__EXEEXT_2 = tests/test_get_api_version$(EXEEXT) \
 	tests/test_loop_misc$(EXEEXT) tests/test_nesting$(EXEEXT) \
 	tests/test_container_assert_block$(EXEEXT) \
 	tests/test_ustrdup$(EXEEXT) tests/test_normalize$(EXEEXT) \
+	tests/test_analyze_string$(EXEEXT) \
 	tests/test_container_prune$(EXEEXT) \
 	tests/test_parse_10$(EXEEXT) \
 	tests/test_parse_simple_data$(EXEEXT) \
@@ -228,13 +229,17 @@ am_cif_linguist_OBJECTS = linguist.$(OBJEXT)
 cif_linguist_OBJECTS = $(am_cif_linguist_OBJECTS)
 cif_linguist_LDADD = $(LDADD)
 cif_linguist_DEPENDENCIES = libcif.la
+tests_test_analyze_string_SOURCES = tests/test_analyze_string.c
+tests_test_analyze_string_OBJECTS = test_analyze_string.$(OBJEXT)
+tests_test_analyze_string_LDADD = $(LDADD)
+tests_test_analyze_string_DEPENDENCIES = libcif.la
+am__dirstamp = $(am__leading_dot)dirstamp
 tests_test_block_create_frame1_SOURCES =  \
 	tests/test_block_create_frame1.c
 tests_test_block_create_frame1_OBJECTS =  \
 	test_block_create_frame1.$(OBJEXT)
 tests_test_block_create_frame1_LDADD = $(LDADD)
 tests_test_block_create_frame1_DEPENDENCIES = libcif.la
-am__dirstamp = $(am__leading_dot)dirstamp
 tests_test_block_create_frame2_SOURCES =  \
 	tests/test_block_create_frame2.c
 tests_test_block_create_frame2_OBJECTS =  \
@@ -561,7 +566,8 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	$(cif2_addauthor_SOURCES) $(cif2_syncheck_SOURCES) \
 	$(cif2_table1_SOURCES) $(cif2_table3_SOURCES) \
-	$(cif_linguist_SOURCES) tests/test_block_create_frame1.c \
+	$(cif_linguist_SOURCES) tests/test_analyze_string.c \
+	tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -604,7 +610,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	$(cif2_syncheck_SOURCES) $(cif2_table1_SOURCES) \
 	$(cif2_table3_SOURCES) $(cif_linguist_SOURCES) \
-	tests/test_block_create_frame1.c \
+	tests/test_analyze_string.c tests/test_block_create_frame1.c \
 	tests/test_block_create_frame2.c \
 	tests/test_block_get_all_frames.c tests/test_block_get_frame.c \
 	tests/test_container_assert_block.c \
@@ -962,6 +968,7 @@ compiled_tests = \
     tests/test_container_assert_block \
     tests/test_ustrdup \
     tests/test_normalize \
+    tests/test_analyze_string \
     tests/test_container_prune \
     tests/test_parse_10 \
     tests/test_parse_simple_data \
@@ -1183,6 +1190,9 @@ cif_linguist$(EXEEXT): $(cif_linguist_OBJECTS) $(cif_linguist_DEPENDENCIES) $(EX
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
+tests/test_analyze_string$(EXEEXT): $(tests_test_analyze_string_OBJECTS) $(tests_test_analyze_string_DEPENDENCIES) $(EXTRA_tests_test_analyze_string_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_analyze_string$(EXEEXT)
+	$(LINK) $(tests_test_analyze_string_OBJECTS) $(tests_test_analyze_string_LDADD) $(LIBS)
 tests/test_block_create_frame1$(EXEEXT): $(tests_test_block_create_frame1_OBJECTS) $(tests_test_block_create_frame1_DEPENDENCIES) $(EXTRA_tests_test_block_create_frame1_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_block_create_frame1$(EXEEXT)
 	$(LINK) $(tests_test_block_create_frame1_OBJECTS) $(tests_test_block_create_frame1_LDADD) $(LIBS)
@@ -1407,6 +1417,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/syncheck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/table1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/table3.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_analyze_string.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_create_frame2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_block_get_all_frames.Po@am__quote@
@@ -1568,6 +1579,20 @@ linguist.obj: tools/linguist.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tools/linguist.c' object='linguist.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o linguist.obj `if test -f 'tools/linguist.c'; then $(CYGPATH_W) 'tools/linguist.c'; else $(CYGPATH_W) '$(srcdir)/tools/linguist.c'; fi`
+
+test_analyze_string.o: tests/test_analyze_string.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_analyze_string.o -MD -MP -MF $(DEPDIR)/test_analyze_string.Tpo -c -o test_analyze_string.o `test -f 'tests/test_analyze_string.c' || echo '$(srcdir)/'`tests/test_analyze_string.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_analyze_string.Tpo $(DEPDIR)/test_analyze_string.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_analyze_string.c' object='test_analyze_string.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_analyze_string.o `test -f 'tests/test_analyze_string.c' || echo '$(srcdir)/'`tests/test_analyze_string.c
+
+test_analyze_string.obj: tests/test_analyze_string.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_analyze_string.obj -MD -MP -MF $(DEPDIR)/test_analyze_string.Tpo -c -o test_analyze_string.obj `if test -f 'tests/test_analyze_string.c'; then $(CYGPATH_W) 'tests/test_analyze_string.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_analyze_string.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_analyze_string.Tpo $(DEPDIR)/test_analyze_string.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_analyze_string.c' object='test_analyze_string.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_analyze_string.obj `if test -f 'tests/test_analyze_string.c'; then $(CYGPATH_W) 'tests/test_analyze_string.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_analyze_string.c'; fi`
 
 test_block_create_frame1.o: tests/test_block_create_frame1.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_block_create_frame1.o -MD -MP -MF $(DEPDIR)/test_block_create_frame1.Tpo -c -o test_block_create_frame1.o `test -f 'tests/test_block_create_frame1.c' || echo '$(srcdir)/'`tests/test_block_create_frame1.c
@@ -2821,6 +2846,8 @@ tests/test_ustrdup.log: tests/test_ustrdup$(EXEEXT)
 	@p='tests/test_ustrdup$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_normalize.log: tests/test_normalize$(EXEEXT)
 	@p='tests/test_normalize$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+tests/test_analyze_string.log: tests/test_analyze_string$(EXEEXT)
+	@p='tests/test_analyze_string$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_container_prune.log: tests/test_container_prune$(EXEEXT)
 	@p='tests/test_container_prune$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_parse_10.log: tests/test_parse_10$(EXEEXT)

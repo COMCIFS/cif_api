@@ -1093,7 +1093,7 @@ struct cif_string_analysis_s {
     int32_t length_first;
 
     /**
-     * @brief the number of @c UChar units in the last line of the analyzed string
+     * @brief the number of @c UChar units in the last line of the analyzed string, excluding line terminators
      */
     int32_t length_last;
 

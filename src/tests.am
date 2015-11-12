@@ -71,6 +71,7 @@ compiled_tests = \
     tests/test_container_assert_block \
     tests/test_ustrdup \
     tests/test_normalize \
+    tests/test_analyze_string \
     tests/test_container_prune \
     tests/test_parse_10 \
     tests/test_parse_simple_data \

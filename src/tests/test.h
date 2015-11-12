@@ -74,19 +74,14 @@ struct set_el {
   fprintf(stderr, "\n-- %s --\n", (name)); \
 } while (0)
 
-#define RETURN(code) do { \
-  sqlite3_shutdown(); \
-  return (code); \
-} while (0)
-
 /*
- * Emits a failure message to stderr and returns the specified code.
+ * Emits a failure message to stderr and returns a failure code.
  */
 #define FAIL(ret, name, code, sense, compare) do { \
   int _ret = (ret); \
   fprintf(stderr, "%s(%d): ... failed with code %d " sense " %d at line %d in " __FILE__ ".\n", \
           (name), _ret, (code), (compare), __LINE__); \
-  return (ret); \
+  return 1; \
 } while (0)
 
 /*

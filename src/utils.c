@@ -407,6 +407,14 @@ int cif_is_reserved_string(const UChar *str) {
 
 int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_quoted, int32_t length_limit,
         struct cif_string_analysis_s *result) {
+
+#define REMEMBER_SEMIS do { if (consec_semis > most_semis) most_semis = consec_semis; } while(0)
+#define TRACK_TRAILING_WS do { \
+    has_trailing_ws = (has_trailing_ws || ((length > 0) && ( \
+            (str[length - 1] == UCHAR_SP) || (str[length - 1] == UCHAR_TAB) \
+            || (str[length - 1] == UCHAR_VT)))); \
+} while (0)
+
     static const UChar apos_delim[] = { UCHAR_SQ, 0 };
     static const UChar quot_delim[] = { UCHAR_DQ, 0 };
     static const UChar apos3_delim[] = { UCHAR_SQ, UCHAR_SQ, UCHAR_SQ, 0 };
@@ -436,22 +444,19 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
             case UCHAR_CR:
                 if (str[length + 1] == UCHAR_NL) {
                     crlf_count += 1;
+                    TRACK_TRAILING_WS;
                     break;
                 } /* else fall through */
             case UCHAR_NL:
                 has_nl_semi = (has_nl_semi || (str[length + 1] == UCHAR_SEMI));
-                has_trailing_ws = (has_trailing_ws || ((length > 0) && (
-                        (str[length - 1] == UCHAR_SP) || (str[length - 1] == UCHAR_TAB)
-                        || (str[length - 1] == UCHAR_VT))));
+                TRACK_TRAILING_WS;
                 if (char_counts[UCHAR_NL] + char_counts[UCHAR_CR] == 1) {
                     first_line = this_line;
                     max_line = this_line;
                 } else if (this_line > max_line) {
                     max_line = this_line;
                 }
-                if (consec_semis > most_semis) {
-                    most_semis = consec_semis;
-                }
+                REMEMBER_SEMIS;
                 consec_semis = 0;
                 this_line = 0;
                 break;
@@ -460,6 +465,7 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
                 this_line += 1;
                 break;
             default:
+                REMEMBER_SEMIS;
                 consec_semis = 0;
                 this_line += 1;
                 break;
@@ -467,9 +473,8 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
     }
 
     /* handle the stats for the last line */
-    if (consec_semis > most_semis) {
-        most_semis = consec_semis;
-    }
+    REMEMBER_SEMIS;
+    TRACK_TRAILING_WS;
     num_lines = 1 + char_counts[UCHAR_NL] + char_counts[UCHAR_CR] - crlf_count;
     if (num_lines == 1) {
         first_line = this_line;
@@ -485,11 +490,12 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
         if (num_lines == 1) {
 
             /* Maybe whitespace-delimited */
-            if (allow_unquoted
+            if (allow_unquoted && (length > 0)
                     && ((char_counts[UCHAR_SP] + char_counts[UCHAR_TAB] + char_counts[UCHAR_OBRK]
                         + char_counts[UCHAR_CBRK] + char_counts[UCHAR_OBRC] + char_counts[UCHAR_CBRC]) == 0)
                     && (str[0] != UCHAR_SQ) && (str[0] != UCHAR_DQ) && (str[0] != UCHAR_HASH)
                     && (str[0] != UCHAR_DOLLAR) && (str[0] != UCHAR_UNDER) && (str[0] != UCHAR_SEMI)
+                    && ((length > 1) || ((str[0] != UCHAR_QUERY) && (str[0] != UCHAR_DECIMAL)))
                     && !cif_is_reserved_string(str)
                     ) {
                 /* Flagged as unquoted and having valid form for being presented unquoted */
@@ -515,11 +521,11 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
 
             /* maybe triple-delimited */
             if (allow_triple_quoted && (max_line <= (length_limit - 6))) {
-                if (u_strstr(str, apos3_delim) == NULL) {
+                if ((str[length - 1] != apos3_delim[0]) && (u_strstr(str, apos3_delim) == NULL)) {
                     u_strcpy(result->delim, apos3_delim);
                     result->delim_length = 3;
                     goto done;
-                } else if (u_strstr(str, quot3_delim) == NULL) {
+                } else if ((str[length - 1] != quot3_delim[0]) && (u_strstr(str, quot3_delim) == NULL)) {
                     u_strcpy(result->delim, quot3_delim);
                     result->delim_length = 3;
                     goto done;
@@ -529,15 +535,15 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
         } else
         /*
          * We can use triple quotes if neither the first line nor the last is too long, and if the text does
-         * not contain both triple delimiters, provided that triple-quoting is permitted at all in the dialect
-         * we are writing.
+         * not contain both triple delimiters, or contain one and end with a substring of the other, all
+         * provided that triple-quoting is permitted at all in the dialect we are writing.
          */
         if (allow_triple_quoted && (this_line < (length_limit - 3)) && (first_line < (length_limit - 3))) {
-            if (u_strstr(str, apos3_delim) == NULL) {
+            if ((str[length - 1] != apos3_delim[0]) && (u_strstr(str, apos3_delim) == NULL)) {
                 u_strcpy(result->delim, apos3_delim);
                 result->delim_length = 3;
                 goto done;
-            } else if (u_strstr(str, quot3_delim) == NULL) {
+            } else if ((str[length - 1] != quot3_delim[0]) && (u_strstr(str, quot3_delim) == NULL)) {
                 u_strcpy(result->delim, quot3_delim);
                 result->delim_length = 3;
                 goto done;
@@ -580,8 +586,11 @@ int cif_analyze_string(const UChar *str, int allow_unquoted, int allow_triple_qu
     result->length_last = this_line;
     result->length_max = max_line;
     result->contains_text_delim = has_nl_semi;
-    result->max_semi_run = consec_semis;
+    result->max_semi_run = most_semis;
     result->has_trailing_ws = has_trailing_ws;
+
+#undef TRACK_TRAILING_WS
+#undef REMEMBER_SEMIS
 
     return CIF_OK;
 }

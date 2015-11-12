@@ -12,6 +12,9 @@ Version future
 * SQLite usage improvements
   Switched from a default UTF-16 database to default UTF-8 for considerable
   space savings and (surprisingly) approximately 2% faster performance.
+* Unit tests and bug fixes for cif_analyze_string()
+  Implemented unit tests for function cif_analyze_string(), and fixed several
+  bugs that they revealed.  (Issues number 4, 5, 6, 7, and 8.)
 
 Version 0.4.1
 * Added '-f' fast mode option to cif2_syncheck
