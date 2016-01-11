@@ -81,6 +81,7 @@ compiled_tests = \
     tests/test_parse_simple_containers \
     tests/test_parse_simple_loops \
     tests/test_parse_cif1_quoting \
+    tests/test_parse_cif1_invalid \
     tests/test_parse_unicode \
     tests/test_parse_text_fields \
     tests/test_parse_minimal \

@@ -59,6 +59,7 @@ EXTRA_DIST = \
   test-data/bom_ver2.cif \
   test-data/cif_core.dic \
   test-data/cif1_quoting.cif \
+  test-data/cif1_invalid.cif \
   test-data/comment_only.cif \
   test-data/complex_data.cif \
   test-data/empty.cif \

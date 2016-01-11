@@ -2094,10 +2094,19 @@ static int parse_value(struct scanner_s *scanner, cif_value_tp **valuep) {
                          * Record the value as a string; it will later be coerced to a number automatically
                          * if requested as a number and if possible.  The value object takes ownership of the string.
                          */
-                        if (((result = cif_value_init_char(value, string)) != CIF_OK)
-                                || ((result = cif_value_set_quoted(value, CIF_NOT_QUOTED)) != CIF_OK)) {
+                        if ((result = cif_value_init_char(value, string)) != CIF_OK) {
                             /* initialization failed; free the string */
                             free(string);
+                        } else {
+                            /* the string now belongs to the value; it should not be freed independently */
+
+                            /* It was scanned unquoted; convert to unquoted form */
+                            result = cif_value_set_quoted(value, CIF_NOT_QUOTED);
+                            if (result == CIF_ARGUMENT_ERROR) {
+                                result = scanner->error_callback(CIF_INVALID_BARE_VALUE, scanner->line,
+                                        scanner->column, TVALUE_START(scanner), 1, scanner->user_data);
+                                /* recover simply by leaving the value marked as quoted */
+                            }
                         }
                     }
 
@@ -2489,14 +2498,14 @@ static int next_token(struct scanner_s *scanner) {
             case OBRAK1_CLASS:
             case CBRAK1_CLASS:
                 /* CIF 1 treatment of opening and closing square brackets */
+                /* fall through */
             case DOLLAR_CLASS:
-                /* error: disallowed start char for a ws-delimited value */
-                result = scanner->error_callback(CIF_INVALID_BARE_VALUE, scanner->line,
-                        scanner->column, TVALUE_START(scanner), 1, scanner->user_data);
-                if (result != CIF_OK) {
-                    break;
-                }
-                /* recover by scanning it as the start of a ws-delimited value anyway */
+                /*
+                 * disallowed start char for a ws-delimited value
+                 *
+                 * scan as the start of a ws-delimited value anyway; it will be reported / handled where the value
+                 * object is created
+                 */
                 /* fall through */
             default:
                 /* back up to ensure proper character validation in scan_unquoted() */

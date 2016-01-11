@@ -2668,6 +2668,8 @@ CIF_FUNC_DECL(cif_quoted_tp, cif_value_is_quoted, (
  * @param[in] quoted the quoting status to set
  *
  * @return Returns CIF_OK on success, or an error code (typically @c CIF_ARGUMENT_ERROR or @c CIF_ERROR ) on failure.
+ *     In particular, if @p value is of CHAR kind then a return code of @c CIF_ARGUMENT_ERROR means the value cannot
+ *     be presented in CIF unquoted, not even via coercion to a different kind.
  */
 CIF_INTFUNC_DECL(cif_value_set_quoted, (
         cif_value_tp *value,
@@ -3148,8 +3150,9 @@ CIF_INTFUNC_DECL(cif_analyze_string, (
  * overall to several reserved words and forms.  Unlike most CIF API functions, this one does not return a CIF API
  * result code.
  *
- * Although strings containing CIF whitespace or certain other characters cannot be presented whitespace-delimited,
- * they are not for that reason considered "reserved" for the purposes of this function.
+ * Although CIF whitespace and certain other characters cannot appear @i anywhere in a data value that is presented
+ * whitespace-delimited, strings containing those characters are not, for that reason, considered "reserved" for the
+ * purposes of this function.
  *
  * @param [in] str a NUL-terminated Unicode string to analyze; must not be NULL
  *

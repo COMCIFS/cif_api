@@ -197,6 +197,7 @@ am__EXEEXT_2 = tests/test_get_api_version$(EXEEXT) \
 	tests/test_parse_simple_containers$(EXEEXT) \
 	tests/test_parse_simple_loops$(EXEEXT) \
 	tests/test_parse_cif1_quoting$(EXEEXT) \
+	tests/test_parse_cif1_invalid$(EXEEXT) \
 	tests/test_parse_unicode$(EXEEXT) \
 	tests/test_parse_text_fields$(EXEEXT) \
 	tests/test_parse_minimal$(EXEEXT) \
@@ -422,6 +423,12 @@ tests_test_parse_10_SOURCES = tests/test_parse_10.c
 tests_test_parse_10_OBJECTS = test_parse_10.$(OBJEXT)
 tests_test_parse_10_LDADD = $(LDADD)
 tests_test_parse_10_DEPENDENCIES = libcif.la
+tests_test_parse_cif1_invalid_SOURCES =  \
+	tests/test_parse_cif1_invalid.c
+tests_test_parse_cif1_invalid_OBJECTS =  \
+	test_parse_cif1_invalid.$(OBJEXT)
+tests_test_parse_cif1_invalid_LDADD = $(LDADD)
+tests_test_parse_cif1_invalid_DEPENDENCIES = libcif.la
 tests_test_parse_cif1_quoting_SOURCES =  \
 	tests/test_parse_cif1_quoting.c
 tests_test_parse_cif1_quoting_OBJECTS =  \
@@ -592,6 +599,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_normalize.c tests/test_packet_create.c \
 	tests/test_packet_items.c tests/test_packet_remove_item.c \
 	tests/test_packet_set_item.c tests/test_parse_10.c \
+	tests/test_parse_cif1_invalid.c \
 	tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
@@ -635,6 +643,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	tests/test_normalize.c tests/test_packet_create.c \
 	tests/test_packet_items.c tests/test_packet_remove_item.c \
 	tests/test_packet_set_item.c tests/test_parse_10.c \
+	tests/test_parse_cif1_invalid.c \
 	tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c tests/test_parse_core.c \
 	tests/test_parse_list_data.c tests/test_parse_minimal.c \
@@ -978,6 +987,7 @@ compiled_tests = \
     tests/test_parse_simple_containers \
     tests/test_parse_simple_loops \
     tests/test_parse_cif1_quoting \
+    tests/test_parse_cif1_invalid \
     tests/test_parse_unicode \
     tests/test_parse_text_fields \
     tests/test_parse_minimal \
@@ -1310,6 +1320,9 @@ tests/test_packet_set_item$(EXEEXT): $(tests_test_packet_set_item_OBJECTS) $(tes
 tests/test_parse_10$(EXEEXT): $(tests_test_parse_10_OBJECTS) $(tests_test_parse_10_DEPENDENCIES) $(EXTRA_tests_test_parse_10_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_10$(EXEEXT)
 	$(LINK) $(tests_test_parse_10_OBJECTS) $(tests_test_parse_10_LDADD) $(LIBS)
+tests/test_parse_cif1_invalid$(EXEEXT): $(tests_test_parse_cif1_invalid_OBJECTS) $(tests_test_parse_cif1_invalid_DEPENDENCIES) $(EXTRA_tests_test_parse_cif1_invalid_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_parse_cif1_invalid$(EXEEXT)
+	$(LINK) $(tests_test_parse_cif1_invalid_OBJECTS) $(tests_test_parse_cif1_invalid_LDADD) $(LIBS)
 tests/test_parse_cif1_quoting$(EXEEXT): $(tests_test_parse_cif1_quoting_OBJECTS) $(tests_test_parse_cif1_quoting_DEPENDENCIES) $(EXTRA_tests_test_parse_cif1_quoting_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_cif1_quoting$(EXEEXT)
 	$(LINK) $(tests_test_parse_cif1_quoting_OBJECTS) $(tests_test_parse_cif1_quoting_LDADD) $(LIBS)
@@ -1457,6 +1470,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_remove_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_packet_set_item.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_10.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_cif1_invalid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_cif1_quoting.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_complex_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_parse_core.Po@am__quote@
@@ -2139,6 +2153,20 @@ test_parse_10.obj: tests/test_parse_10.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_10.c' object='test_parse_10.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_10.obj `if test -f 'tests/test_parse_10.c'; then $(CYGPATH_W) 'tests/test_parse_10.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_10.c'; fi`
+
+test_parse_cif1_invalid.o: tests/test_parse_cif1_invalid.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_cif1_invalid.o -MD -MP -MF $(DEPDIR)/test_parse_cif1_invalid.Tpo -c -o test_parse_cif1_invalid.o `test -f 'tests/test_parse_cif1_invalid.c' || echo '$(srcdir)/'`tests/test_parse_cif1_invalid.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_cif1_invalid.Tpo $(DEPDIR)/test_parse_cif1_invalid.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_cif1_invalid.c' object='test_parse_cif1_invalid.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_cif1_invalid.o `test -f 'tests/test_parse_cif1_invalid.c' || echo '$(srcdir)/'`tests/test_parse_cif1_invalid.c
+
+test_parse_cif1_invalid.obj: tests/test_parse_cif1_invalid.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_cif1_invalid.obj -MD -MP -MF $(DEPDIR)/test_parse_cif1_invalid.Tpo -c -o test_parse_cif1_invalid.obj `if test -f 'tests/test_parse_cif1_invalid.c'; then $(CYGPATH_W) 'tests/test_parse_cif1_invalid.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_cif1_invalid.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/test_parse_cif1_invalid.Tpo $(DEPDIR)/test_parse_cif1_invalid.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='tests/test_parse_cif1_invalid.c' object='test_parse_cif1_invalid.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o test_parse_cif1_invalid.obj `if test -f 'tests/test_parse_cif1_invalid.c'; then $(CYGPATH_W) 'tests/test_parse_cif1_invalid.c'; else $(CYGPATH_W) '$(srcdir)/tests/test_parse_cif1_invalid.c'; fi`
 
 test_parse_cif1_quoting.o: tests/test_parse_cif1_quoting.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT test_parse_cif1_quoting.o -MD -MP -MF $(DEPDIR)/test_parse_cif1_quoting.Tpo -c -o test_parse_cif1_quoting.o `test -f 'tests/test_parse_cif1_quoting.c' || echo '$(srcdir)/'`tests/test_parse_cif1_quoting.c
@@ -2866,6 +2894,8 @@ tests/test_parse_simple_loops.log: tests/test_parse_simple_loops$(EXEEXT)
 	@p='tests/test_parse_simple_loops$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_parse_cif1_quoting.log: tests/test_parse_cif1_quoting$(EXEEXT)
 	@p='tests/test_parse_cif1_quoting$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+tests/test_parse_cif1_invalid.log: tests/test_parse_cif1_invalid$(EXEEXT)
+	@p='tests/test_parse_cif1_invalid$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_parse_unicode.log: tests/test_parse_unicode$(EXEEXT)
 	@p='tests/test_parse_unicode$(EXEEXT)'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 tests/test_parse_text_fields.log: tests/test_parse_text_fields$(EXEEXT)
