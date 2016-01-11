@@ -691,7 +691,7 @@ int handle_loop_start(cif_loop_tp *loop, void *context) {
             UChar **name;
 
             for (name = names; *name; name += 1) {
-                if (u_fprintf(CONTEXT_OUT(context), "%S\n") != u_strlen(*name) + 2) {
+                if (u_fprintf(CONTEXT_OUT(context), "%S\n", *name) != u_strlen(*name) + 2) {
                     result = CIF_ERROR;
                 }
                 free(*name);
