@@ -1,4 +1,4 @@
-# CIF API 0.4.0 (public release)
+# CIF API 0.4.2 (public release)
 
 The CIF API provides a standard C interface for reading, writing, and
 manipulating Crystallographic Information Files (CIFs).  It is targeted

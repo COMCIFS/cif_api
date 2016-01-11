@@ -1,6 +1,6 @@
 CIF API Change Log
 
-Version future
+Version 0.4.2
 * Added a pkg-config description
   Added a template for a pkg-config .pc file describing libcif.  It is filled
   by the configure script and the resulting .pc file is installed by 'make
@@ -15,6 +15,15 @@ Version future
 * Unit tests and bug fixes for cif_analyze_string()
   Implemented unit tests for function cif_analyze_string(), and fixed several
   bugs that they revealed.  (Issues number 4, 5, 6, 7, and 8.)
+* Fixed a bug in cif_linguist's handling of loop headers
+  Fixed a flaw in cif_linguist in which it failed to output loop headers
+  correctly (issue 9).
+* Fixed a regression in the parser's recovery behavior for invalid values
+  The addition in v0.4.0 of a persistent distinction between quoted and
+  unquoted values caused a regression in the parser's behavior when it
+  encounters an unquoted value of a form that CIF does not permit.  That
+  bug is fixed, restoring the parser's error recovery behavior of accepting
+  the value.  Such values are marked as if they had been parsed quoted.
 
 Version 0.4.1
 * Added '-f' fast mode option to cif2_syncheck

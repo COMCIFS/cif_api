@@ -57,8 +57,8 @@ Step 2: Building the CIF API
 - Unpack the source distribution into a directory of your choice:
 
   cd work
-  tar xzf cif-api-0.3.0.tgz
-  cd cif-api-0.3.0
+  tar xzf cif-api-0.4.2.tgz
+  cd cif-api-0.4.2
 
 - Configure for building.  This is where the main difference comes
   in, as building native Windows binaries with MinGW-w64 is an act of
@@ -70,11 +70,11 @@ Step 2: Building the CIF API
   to build a 64-bit library for 64-bit Windows.  Alternatively, these
   host triplets might also be of interest: 'i686-w64-mingw32' for a 32-bit
   library and executables for 64-bit Windows, or 'i686-w32-mingw32' for a
-  32-bit and executables for 32-bit Windows (which should also run on
-  64-bit Windows).
+  32-bit library and executables for 32-bit Windows (which should also run
+  on 64-bit Windows).
 
   You may also provide any of the other options supported by the
-  configuration program, such as '--enable-examples', '--prefix', or
+  configuration program, such as '--with-examples', '--prefix', or
   '--bindir'.
 
 - Build via the 'make' command.  Unless you are cross-compiling a version
@@ -82,8 +82,8 @@ Step 2: Building the CIF API
   running 32-bit Windows, if that were possible), you are advised to build
   and run the tests, too.
 
-  'make' or 'make all' - build the library, and, if selected, the example
-                         programs
+  'make' or 'make all' - build the library, and any accompanying programs
+                         selected via the configuration script.
   'make check'         - build everything that 'make all' would build that
                          is not yet built, and also build and run the test
                          suite.

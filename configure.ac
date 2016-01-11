@@ -23,7 +23,7 @@ AC_PREREQ([2.63])
 dnl quoting delimiters in the bug report address does not affect the generated
 dnl configure script, but may offer some protection against the address being
 dnl scraped from this Autoconf file:
-AC_INIT([CIF API], [0.4.1], [John[.]Bollinger[@]StJude[.]org])
+AC_INIT([CIF API], [0.4.2], [John[.]Bollinger[@]StJude[.]org])
 AC_CONFIG_SRCDIR([src/cif.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])

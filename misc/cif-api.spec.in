@@ -116,6 +116,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jan 11 2016 John Bollinger <John.Bollinger@StJude.org> 0.4.2-1
+- Updated to version 0.4.2
+
 * Fri Oct 30 2015 John Bollinger <John.Bollinger@StJude.org> 0.4.1-1
 - Initial spec (Autoconf template)
 
