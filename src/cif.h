@@ -668,7 +668,7 @@ typedef union cif_value_u cif_value_tp;
 /**
  * @brief The type used for codes representing the dynamic kind of the data in a @c cif_value_tp object
  */
-typedef enum { 
+typedef enum cif_kind { 
     /**
      * @brief The kind code representing a character (Unicode string) data value
      */
@@ -701,10 +701,10 @@ typedef enum {
 } cif_kind_tp;
 
 /**
- * The type used for representing values' quoting status, to allow applications to distinguish between the same value
- * when presented quoted and when presented unquoted.
+ * @brief The type used for representing values' quoting status, to allow applications to distinguish between the
+ *     same value when presented quoted and when presented unquoted.
  */
-typedef enum {
+typedef enum cif_quoted {
 
     /**
      * @brief the value should be interpreted as if it is not quoted; evaluates to false in boolean context
@@ -734,7 +734,7 @@ typedef enum {
  * additional semantics specific to the traversal function (@c cif_walk() forwards the code to its caller as its
  * return value).
  */
-typedef struct {
+typedef struct cif_handler_s {
 
     /** @brief A handler function for the beginning of a top-level CIF object */
     int (*handle_cif_start)(cif_tp *cif, void *context);
@@ -776,7 +776,7 @@ typedef struct {
 } cif_handler_tp;
 
 /**
- * @brief The type of a callback function to be invoked when a parse error occurs.
+ * @brief A pointer to a callback function to be invoked when a parse error occurs.
  *
  * Note that this function receives the location where the error was @em detected , which is not necessarily the
  * location of the actual error.
@@ -796,7 +796,7 @@ typedef struct {
 typedef int (*cif_parse_error_callback_tp)(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 
 /**
- * @brief The type of a callback function by which a client application can be notified of a syntactic element
+ * @brief A pointer to a callback function by which a client application can be notified of a syntactic element
  *
  * Callbacks of this type are provided for some syntax elements that are not otherwise directly signaled, such as
  * whitespace runs, certain keywords, and data names.  These support a physical / lexical view of a parse process, as
@@ -3150,8 +3150,8 @@ CIF_INTFUNC_DECL(cif_analyze_string, (
  * overall to several reserved words and forms.  Unlike most CIF API functions, this one does not return a CIF API
  * result code.
  *
- * Although CIF whitespace and certain other characters cannot appear @i anywhere in a data value that is presented
- * whitespace-delimited, strings containing those characters are not, for that reason, considered "reserved" for the
+ * Although CIF whitespace and certain other characters cannot appear anywhere in a data value that is presented
+ * whitespace-delimited, strings containing those characters are not for that reason considered "reserved" for the
  * purposes of this function.
  *
  * @param [in] str a NUL-terminated Unicode string to analyze; must not be NULL
