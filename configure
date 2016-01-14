@@ -13079,6 +13079,8 @@ case ${CC} in #(
     WARNING_FLAGS="-Wall -Wextra -Wformat=2 -Winit-self -Wno-switch -Wno-switch-default -Wstrict-aliasing=2 -Wshadow -Wpointer-arith -Wc++-compat -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wnested-externs"
     if test ${enable_extra_warnings} = 'yes'; then :
   WARNING_FLAGS="${WARNING_FLAGS} -Wswitch -Wswitch-default -Wcast-qual -Wbad-function-cast"
+else
+  WARNING_FLAGS="${WARNING_FLAGS} -Wno-missing-field-initializers"
 fi
    ;; #(
   *) :

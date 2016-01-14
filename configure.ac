@@ -212,7 +212,8 @@ AS_CASE([${CC}],
   [gcc*], [
     WARNING_FLAGS="-Wall -Wextra -Wformat=2 -Winit-self -Wno-switch -Wno-switch-default -Wstrict-aliasing=2 -Wshadow -Wpointer-arith -Wc++-compat -Wcast-align -Wwrite-strings -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wredundant-decls -Wnested-externs"
     AS_IF([test ${enable_extra_warnings} = 'yes'],
-      [WARNING_FLAGS="${WARNING_FLAGS} -Wswitch -Wswitch-default -Wcast-qual -Wbad-function-cast"])
+      [WARNING_FLAGS="${WARNING_FLAGS} -Wswitch -Wswitch-default -Wcast-qual -Wbad-function-cast"],
+      [WARNING_FLAGS="${WARNING_FLAGS} -Wno-missing-field-initializers"])
   ],
   [WARNING_FLAGS=""])
 AC_SUBST([WARNING_FLAGS])
