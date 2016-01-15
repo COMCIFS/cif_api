@@ -888,6 +888,12 @@ int print_header(cif_tp *cif UNUSED, void *data) {
 int handle_cif_end(cif_tp *cif UNUSED, void *data) {
     struct context *context = (struct context *) data;
 
+    /* if this CIF was empty then consume any version comment */
+    if (context->at_start) {
+        consume_version_comment(context);
+        context->at_start = 0;
+    }
+
     /* dump any trailing comments or whitespace */
     if (print_all_ws_runs(context) <= 0) {
         /* no captured trailing whitespace */
