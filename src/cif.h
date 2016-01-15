@@ -1011,11 +1011,13 @@ struct cif_parse_opts_s {
      *
      * If not @c NULL, this function will be called by the parser whenever it encounters a run of insignificant
      * whitespace (including comments) in the input CIF.  Whitespace is insignificant if it serves only to separate
-     * other elements appearing in the CIF.  The parser does not guarantee to collect @em maximal whitespace runs;
-     * it may at times split consecutive whitespace into multiple runs, performing a callback for each one.
+     * other elements appearing in the CIF.
      *
-     * Zero-length whitespace will sometimes be reported via this function.  This corresponds to points where the input
-     * omits optional whitespace, or where the parser recovers from erroneous omission of required whitespace.
+     * The parser does not guarantee to collect @em maximal whitespace runs; it may at times split consecutive
+     * whitespace into multiple runs, performing a callback for each one.  It does, however, mark each transition from
+     * whitespace to non-whitespace by reporting a zero-length whitespace run.  It does so, too, for @em virtual
+     * whitespace -- where optional whitespace is omitted, or where the parser detects and recovers from omission of
+     * required whitespace.
      */
     cif_syntax_callback_tp whitespace_callback;
 

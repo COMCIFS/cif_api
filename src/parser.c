@@ -2358,21 +2358,17 @@ static int decode_text(struct scanner_s *scanner, UChar *text, int32_t text_leng
 }
 
 /*
- * Ensures that the provided scanner has the next available token identified and classified.
+ * Ensures that the provided scanner has the next available token identified and classified.  Consumes, and optionally
+ * reports, any whitespace and comments preceding that token.
  */
 static int next_token(struct scanner_s *scanner) {
     int result = CIF_OK;
     enum token_type last_ttype = scanner->ttype;
     enum token_type ttype = last_ttype;
 
-    /*
-     * after_ws is -1 immediately after a token that does not require the next to be whitespace separated;
-     * it is 1 immediately after genuine whitespace has been scanned; it is 0 elsewhere.
-     *
-     * Any token may follow these without intervening whitespace:
-     */
-    int after_ws = (last_ttype == END) ? 1 : ((((last_ttype == OLIST) || (last_ttype == OTABLE) || (last_ttype == KEY)
-            || (last_ttype == TKEY))) ? -1 : 0);
+    /* Any token may follow these without intervening whitespace: */
+    int after_ws = ((last_ttype == OLIST) || (last_ttype == OTABLE) || (last_ttype == KEY) || (last_ttype == TKEY)
+            || (last_ttype == END));
 
     while ((scanner->text_start >= scanner->next_char) /* else there is a token ready */
             && (result == CIF_OK)) {
@@ -2395,37 +2391,37 @@ static int next_token(struct scanner_s *scanner) {
         }
 
         /*
-         * Require whitespace separation between most tokens, but not between keys and values
+         * Require whitespace separation between most tokens, and track the end of whitespace runs
          */
         clazz = CLASS_OF(c, scanner);
-        if (after_ws != 1) {
-            switch (scanner->meta_class[clazz]) {
-                case CLOSE_META:
-                    /* notify the configured whitespace callback, if any, of zero-length whitespace */
-                    OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
-                            scanner->next_char - 1, 0, scanner->user_data));
+        switch (scanner->meta_class[clazz]) {
+            default:
+                if (!after_ws) {
+                    /* error: missing whitespace */
+                    result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line, scanner->column - 1,
+                            scanner->next_char - 1, 0, scanner->user_data);
+                    if (result != CIF_OK) {
+                        return result;
+                    } /* else recover by assuming the missing whitespace */
+                }
 
-                    /* no other action: whitespace is not required before closing brackets / braces */
+                if (clazz == HASH_CLASS) {
+                    /* the character introduces a comment, which does not break a whitespace run */
+                    /* (but comments cannot _start_ whitespace runs, hence the possible CIF_MISSING_SPACE error) */
                     break;
-                case WS_META:
-                    /* no action: whitespace is not required before other whitespace */
-                    break;
-                default:
-                    if (!after_ws) {
-                        /* error: missing whitespace */
-                        result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line, scanner->column - 1,
-                                scanner->next_char - 1, 0, scanner->user_data);
-                        if (result != CIF_OK) {
-                            return result;
-                        } /* else recover by assuming the missing whitespace */
-                    }
+                }
 
-                    /* notify the configured whitespace callback, if any, of zero-length whitespace */
-                    OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
-                            scanner->next_char - 1, 0, scanner->user_data));
+                /* fall through */
 
-                    break;
-            }
+            case CLOSE_META:  /* whitespace is not required before closing brackets or braces */
+                /* notify the whitespace callback, if any, of the end of a (possibly virtual) whitespace run */
+                OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                        scanner->next_char - 1, 0, scanner->user_data));
+                break;
+
+            case WS_META:  /* whitespace is not required before other whitespace */
+                /* no action */
+                break;
         }
 
         switch (clazz) {
@@ -2449,6 +2445,7 @@ static int next_token(struct scanner_s *scanner) {
                 } else {
                     break;     /* break from the SWITCH */
                 }
+                /* control does not reach here */
             case HASH_CLASS:
                 result = scan_to_eol(scanner);
                 if (result == CIF_OK) {
@@ -2623,11 +2620,10 @@ static int next_token(struct scanner_s *scanner) {
                 /* prepare to recover by dropping it */
                 CONSUME_TOKEN(scanner);
             }
-
-            /* Set the (possibly-corrected) token type in the scanner */
         } /* endif result == CIF_OK && ttype == VALUE */
     } /* end while */
 
+    /* Set the (possibly-corrected) token type in the scanner */
     scanner->ttype = ttype;
 
     return result;
