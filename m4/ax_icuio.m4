@@ -73,12 +73,17 @@ AC_DEFUN([AX_ICUIO], [
   AC_LANG_CONFTEST([
 AC_LANG_DEFINES_PROVIDED
 #include <unicode/ustdio.h>
-CONF_LINE: u_fopen
+CONF_LINE: u_fopen()
   ])
-  _ax_icuio_UFOPEN=`${CPP} ${CPPFLAGS} conftest.c | ${SED} -n '/^CONF_LINE/ s/.*\s\(\w\+\)\s*$/\1/p'` || _ax_icuio_UFOPEN='error'
+  # Clean up the preprocessor's output, and extract the function name from it
+  # This accommodates several interesting behaviors, such as inserting non-directive directives both immediately
+  # before and immediately after the replacement value of the u_fopen macro, so that it appears on a line all by itself
+  _ax_icuio_UFOPEN=`${CPP} ${CPPFLAGS} conftest.c | ${SED} -n -e '/^\s*#/d' -e '/^CONF_LINE/,/()/H' -e '/()/{x;s/\s*\S\+\s\+\(\w\+\).*/\1/p;q}'` \
+    || _ax_icuio_UFOPEN='error'
   rm conftest.c
   AC_MSG_RESULT([${_ax_icuio_UFOPEN}])
   AS_IF([test "x$_ax_icuio_UFOPEN" = xerror], [AC_MSG_ERROR([An error while determining the true name of u_fopen])])
+  AS_IF([test "x$_ax_icuio_UFOPEN" = x], [AC_MSG_ERROR([Failed to determine the true name of u_fopen])])
 
   _ax_icuio_LIBS_save="${LIBS}"
   LIBS="${ICU_LIBS} ${LIBS}"
