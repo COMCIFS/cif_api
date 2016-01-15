@@ -24,6 +24,10 @@ Version 0.4.2
   encounters an unquoted value of a form that CIF does not permit.  That
   bug is fixed, restoring the parser's error recovery behavior of accepting
   the value.  Such values are marked as if they had been parsed quoted.
+* Made cif_linguist preserve whitespace and comments
+  In a substantial revision to cif_linguist, supported by small changes to the
+  parser's usage of whitespace callbacks, made cif_linguist preserve
+  whitespace abd comments when it translates a file.
 
 Version 0.4.1
 * Added '-f' fast mode option to cif2_syncheck

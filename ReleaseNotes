@@ -5,15 +5,16 @@ Version 0.4.2 of the CIF API is a maintenance release, principally addressing
 bugs and improving performance of the core CIF API library and its accompanying
 example programs and tools.  Notable changes include:
 
+ - New feature: cif_linguist now preserves whitespace and comments
+ - Modified SQLite usage for significant memory savings and a slight performance
+   gain.
+ - Added pkg-config support
+ - Added an RPM spec file to the distribution
  - Bug fix: the numeric formatter incorrectly handled the case where all
             significant figures are rounded away.
  - Bug fix: the parser accepted "_" as a data name
- - Added an RPM spec file to the distribution
- - Added pkg-config support
- - Modified SQLite usage for significant memory savings and a slight performance
-   gain.
+ - Bug fix: cif_linguist consistently crashed when outputting loop headers
  - Several bug fixes in cif_analyze_string()
- - Fixed a serious bug in cif_linguist involving loop header output
 
 
 CIF_API 0.4.1 Release Notes
