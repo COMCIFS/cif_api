@@ -28,6 +28,11 @@ Version 0.4.2
   In a substantial revision to cif_linguist, supported by small changes to the
   parser's usage of whitespace callbacks, made cif_linguist preserve
   whitespace abd comments when it translates a file.
+* Fixed a build system bug related to finding ICU
+  The 'configure' program failed to determine the correct build options for
+  ICU support in the event that the ICU headers were not available in the
+  default include path (even though it correctly determined where to find
+  them).  The problem is resolved in this version.
 
 Version 0.4.1
 * Added '-f' fast mode option to cif2_syncheck

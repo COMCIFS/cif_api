@@ -75,7 +75,7 @@ AC_LANG_DEFINES_PROVIDED
 #include <unicode/ustdio.h>
 CONF_LINE: u_fopen
   ])
-  _ax_icuio_UFOPEN=`${CPP} conftest.c | ${SED} -n '/^CONF_LINE/ s/.*\s\(\w\+\)\s*$/\1/p'` || _ax_icuio_UFOPEN='error'
+  _ax_icuio_UFOPEN=`${CPP} ${CPPFLAGS} conftest.c | ${SED} -n '/^CONF_LINE/ s/.*\s\(\w\+\)\s*$/\1/p'` || _ax_icuio_UFOPEN='error'
   rm conftest.c
   AC_MSG_RESULT([${_ax_icuio_UFOPEN}])
   AS_IF([test "x$_ax_icuio_UFOPEN" = xerror], [AC_MSG_ERROR([An error while determining the true name of u_fopen])])

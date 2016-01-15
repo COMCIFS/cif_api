@@ -13398,7 +13398,7 @@ $as_echo_n "checking the real name of u_fopen()... " >&6; }
 CONF_LINE: u_fopen
 
 _ACEOF
-  _ax_icuio_UFOPEN=`${CPP} conftest.c | ${SED} -n '/^CONF_LINE/ s/.*\s\(\w\+\)\s*$/\1/p'` || _ax_icuio_UFOPEN='error'
+  _ax_icuio_UFOPEN=`${CPP} ${CPPFLAGS} conftest.c | ${SED} -n '/^CONF_LINE/ s/.*\s\(\w\+\)\s*$/\1/p'` || _ax_icuio_UFOPEN='error'
   rm conftest.c
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${_ax_icuio_UFOPEN}" >&5
 $as_echo "${_ax_icuio_UFOPEN}" >&6; }
