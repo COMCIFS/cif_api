@@ -19,14 +19,15 @@ Step 1: Set up an MSYS2 environment
   http://sourceforge.net/projects/msys2/
 
 - It's best to avoid installing in or under a directory with whitespace in
-  its name (i.e. "Program Files").
+  its name (i.e. "Program Files").  For the purposes of the rest of these
+  instructions, the default installation directory, c:\msys64, is assumed.
 
 - The installer will provide launchers for several variants of the MSYS2
   environment; the "MinGW-w64 Win64 Shell" launcher was used for CIF API
   building.  (This launches a bash shell running in a window.)
 
 - In the MSYS2 environment, /home can be mapped to the Windows user
-  directory by adding an entry to /c/etc/fstab:
+  directory by adding an entry to /c/msys64/etc/fstab:
 
   /c/Users /home any binary,bind,posix=0,nouser
 
@@ -42,6 +43,16 @@ Step 1: Set up an MSYS2 environment
   pacman --sync mingw-w64-x86_64-pkg-config
   pacman --sync mingw-w64-x86_64-icu
   pacman --sync mingw-w64-x86_64-sqlite3
+  pacman --sync make
+
+  I also find these convenient:
+
+  pacman --sync tar
+  pacman --sync vim
+
+  Tar, at least, is necessary if you want to build a new distribution package
+  in the MSYS2 environment, and it's awfully convenient for unpacking the
+  distribution tarball you might have received.
 
 - The "install" make target seems to require the installing user to have
   "Full Control" of the destination directories, which by default are
