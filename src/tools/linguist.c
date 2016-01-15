@@ -2,7 +2,7 @@
  * linguist.c
  *
  *
- * Copyright 2014, 2015 John C. Bollinger
+ * Copyright 2014, 2015, 2016 John C. Bollinger
  *
  *
  * This file is part of the CIF API.
@@ -38,14 +38,20 @@
 
 typedef enum { CIF11 = 0, CIF20 = 1, STAR20 = 2, NONE } format;
 
+struct ws_node {
+    UChar *ws;
+    struct ws_node *next_piece;
+    struct ws_node *next_run;
+};
+
 struct context {
     const char *progname;
     UFILE *out;
     UFILE *ustderr;
     const char *out_encoding;
     const char *element_separator;
-    const char *extra_eol;
-    const char *extra_ws;
+    UChar *extra_ws;
+    UChar *extra_eol;
     int no_fold11_output;
     int prefix11_output;
     int quiet;
@@ -56,7 +62,10 @@ struct context {
     int at_start;
     int in_container;
     int in_loop;
+    int in_ws_run;
     int column;
+    int synthesize_packet;
+    struct ws_node *ws_cache;
 };
 
 /* macros */
@@ -67,6 +76,21 @@ struct context {
 #define UNUSED
 #endif
 
+#ifdef _WIN32
+#define FILE_SEP '\\'
+#else
+#define FILE_SEP '/'
+#endif
+
+#ifdef DEBUG
+/*
+ * In a debugging build, emits the current file and line number to stderr
+ */
+#define TRACELINE fprintf(stderr, __FILE__ " line %d\n", __LINE__)
+#else
+#define TRACELINE
+#endif
+
 #define DEFAULT_OUTPUT_FORMAT "cif20"
 #define MAX_LINE_LENGTH 2048
 
@@ -74,11 +98,24 @@ struct context {
 #define UCHAR_LF    ((UChar) 0x0a)
 #define UCHAR_CR    ((UChar) 0x0d)
 #define UCHAR_SP    ((UChar) 0x20)
+#define UCHAR_HASH  ((UChar) 0x23)
 #define UCHAR_COLON ((UChar) 0x3a)
 #define UCHAR_SEMI  ((UChar) 0x3b)
+#define UCHAR_QUERY ((UChar) 0x3f)
+#define UCHAR_C     ((UChar) 0x43)
+#define UCHAR_F     ((UChar) 0x46)
+#define UCHAR_I     ((UChar) 0x49)
+#define UCHAR_a     ((UChar) 0x61)
+#define UCHAR_e     ((UChar) 0x65)
+#define UCHAR_l     ((UChar) 0x6c)
+#define UCHAR_o     ((UChar) 0x6f)
+#define UCHAR_p     ((UChar) 0x70)
+#define UCHAR_s     ((UChar) 0x73)
+#define UCHAR_v     ((UChar) 0x76)
 #define UCHAR_OBRK  ((UChar) 0x5b)
 #define UCHAR_BSL   ((UChar) 0x5c)
 #define UCHAR_CBRK  ((UChar) 0x5d)
+#define UCHAR_UNDER ((UChar) 0x5f)
 #define UCHAR_OBRC  ((UChar) 0x7b)
 #define UCHAR_CBRC  ((UChar) 0x7d)
 
@@ -102,28 +139,11 @@ struct context {
 #define SPACE_REQUIRED   1
 
 #define CONTEXT_PROGNAME(c) (((struct context *)(c))->progname)
-#define CONTEXT_OUT(c) (((struct context *)(c))->out)
-#define CONTEXT_ERR(c) (((struct context *)(c))->ustderr)
-#define CONTEXT_QUIET(c) (((struct context *)(c))->quiet)
-#define CONTEXT_HALT_ON_ERROR(c) (((struct context *)(c))->halt_on_error)
 #define CONTEXT_SET_OUTFORMAT(c, f) do { ((struct context *)(c))->output_format = (f); } while (0)
-#define CONTEXT_OUTFORMAT(c) (((struct context *)(c))->output_format)
 #define CONTEXT_SET_SEPARATOR(c, s) do { ((struct context *)(c))->element_separator = (s); } while (0)
-#define CONTEXT_SEPARATOR(c) (((struct context *)(c))->element_separator)
-#define CONTEXT_ERROR_COUNT(c) (((struct context *) (c))->error_count)
-#define CONTEXT_INC_ERROR_COUNT(c) do { ((struct context *) (c))->error_count += 1; } while (0)
-#define CONTEXT_IN_CONTAINER(c) (((struct context *) (c))->in_container)
-#define CONTEXT_PUSH_CONTAINER(c) do { ((struct context *) (c))->in_container += 1; } while (0)
-#define CONTEXT_POP_CONTAINER(c) do { ((struct context *) (c))->in_container -= 1; } while (0)
-#define CONTEXT_IN_LOOP(c) (((struct context *) (c))->in_loop)
-#define CONTEXT_TOGGLE_LOOP(c) do { ((struct context *) (c))->in_loop = !((struct context *) (c))->in_loop; } while (0)
-#define CONTEXT_AT_START(c) (((struct context *) (c))->at_start)
-#define CONTEXT_SET_STARTED(c) do { ((struct context *) (c))->at_start = 1; } while (0)
-#define CONTEXT_EXTRA_WS(c) (((struct context *) (c))->extra_ws)
-#define CONTEXT_EXTRA_EOL(c) (((struct context *) (c))->extra_eol)
-#define CONTEXT_SET_COLUMN(c, col) do { ((struct context *)(c))->column = (col); } while (0)
-#define CONTEXT_INC_COLUMN(c, amt) do { ((struct context *)(c))->column += (amt); } while (0)
-#define CONTEXT_COLUMN(c) (((struct context *)(c))->column)
+#define CONTEXT_IN_CONTAINER(c) ((c)->in_container)
+#define CONTEXT_PUSH_CONTAINER(c) do { (c)->in_container += 1; } while (0)
+#define CONTEXT_POP_CONTAINER(c) do {  (c)->in_container -= 1; } while (0)
 
 /*
  * A macro for handling short options that accept arguments
@@ -153,8 +173,13 @@ const char headers[][16] = {
         ""                /* STAR20 */
 };
 
+/* Do not reorder the elements of these arrays, and if new elements are ever added then put them at the end */
+const UChar standard_ws_chars[] = { UCHAR_SP, UCHAR_TAB, 0 };
+const UChar standard_eol_chars[] = { UCHAR_LF, UCHAR_CR, 0 };
+
 /* function prototypes */
 
+/* option handling */
 void usage(const char *progname);
 void process_args(int argc, char *argv[], struct cif_parse_opts_s *parse_opts);
 void process_args_input_encoding(struct cif_parse_opts_s *parse_opts, const char *encoding);
@@ -168,6 +193,8 @@ void process_args_output_prefixing(struct cif_parse_opts_s *parse_opts, const ch
 void process_args_quiet(struct cif_parse_opts_s *parse_opts);
 void process_args_strict(struct cif_parse_opts_s *parse_opts);
 int to_boolean(const char *val);
+
+/* parser callbacks */
 int print_header(cif_tp *cif, void *context);
 int handle_cif_end(cif_tp *cif, void *context);
 int open_block(cif_container_tp *block, void *context);
@@ -176,25 +203,34 @@ int finish_frame(cif_container_tp *container, void *context);
 int flush_container(cif_container_tp *container, void *context);
 int handle_loop_start(cif_loop_tp *loop, void *context);
 int handle_loop_end(cif_loop_tp *loop, void *context);
-int start_packet_on_new_line(cif_packet_tp *packet, void *context);
+int handle_packet_start(cif_packet_tp *packet, void *context);
 int discard_packet(cif_packet_tp *packet, void *context);
 int print_item(UChar *name, cif_value_tp *value, void *context);
-int print_list(cif_value_tp *value, void *context);
-int print_table(cif_value_tp *value, void *context);
-int print_value_text(cif_value_tp *value, void *context);
-int print_text_field(UChar *str, int do_fold, int do_prefix, void *context);
-ptrdiff_t compute_fold_length(UChar *fold_start, ptrdiff_t line_length, ptrdiff_t target_length, int window,
-        int allow_folding_before_semi);
-void whitespace_callback(size_t line, size_t column, const UChar *ws, size_t length, void *data);
+void discard_whitespace(size_t line, size_t column, const UChar *ws, size_t length, void *data);
+void preserve_whitespace(size_t line, size_t column, const UChar *ws, size_t length, void *data);
 int error_callback(int code, size_t line, size_t column, const UChar *text, size_t length, void *data);
 void keyword_callback(size_t line, size_t column, const UChar *keyword, size_t length, void *data);
 void dataname_callback(size_t line, size_t column, const UChar *dataname, size_t length, void *data);
-int print_code(cif_container_tp *container, void *context, const char *type);
+
+/* output, utility, and helper functions */
+void consume_version_comment(struct context *context);
+int print_code(cif_container_tp *container, struct context *context, const char *type);
 int flush_loops(cif_container_tp *container);
-int ensure_space(int data_length, void *context);
-int print_u_literal(int preceding_space, const UChar *str, int line1_length, void *context);
+int print_value(cif_value_tp *value, struct context *context, unsigned int ws_needed_max);
+int print_list(cif_value_tp *value, struct context *context);
+int print_table(cif_value_tp *value, struct context *context);
+int print_value_text(cif_value_tp *value, struct context *context, unsigned int ws_needed);
+int print_text_field(UChar *str, int do_fold, int do_prefix, struct context *context);
+ptrdiff_t compute_fold_length(UChar *fold_start, ptrdiff_t line_length, ptrdiff_t target_length, int window,
+        int allow_folding_before_semi);
+int32_t print_ws_run(struct context *context);
+int32_t print_all_ws_runs(struct context *context);
+int ensure_space(int minimum_space, int data_length, struct context *context);
+int print_u_literal(int preceding_space, const UChar *str, int line1_length, struct context *context);
 int print_delimited(UChar *str, UChar *delim, int delim_length, UFILE *out);
 void translate_whitespace(UChar *text, size_t length, const UChar *extra_eol, const UChar *extra_ws);
+void flush_ws(struct ws_node *start);
+struct ws_node *free_ws_node(struct ws_node *node);
 
 /* function implementations */
 
@@ -292,6 +328,149 @@ void usage(const char *progname) {
 /*
  * Returns 1 if the provided string represents truth, 0 if it represents falsehood, or -1 if it is unrecognized
  */
+int to_boolean(const char *val) {
+    size_t len = strlen(val);
+    char *dup = (char *) malloc((len + 1) * sizeof(char));
+    int result;
+
+    if (dup) {
+        char *c;
+
+        strcpy(dup, val);
+        for (c = dup; *c; c += 1) {
+            *c = tolower(*c);
+        }
+        val = dup;
+    }
+
+    if (len > 5) {
+        /* the maximum-length recognized value is "false", with length 5.  Fail now if the specified value is longer */
+        result = -1;
+    } else if (!(strcmp(val, "1") && strcmp(val, "yes") && strcmp(val, "true"))) {
+        result = 1;
+    } else if (!(strcmp(val, "0") && strcmp(val, "no") && strcmp(val, "false"))) {
+        result = 0;
+    } else {
+        result = -1;
+    }
+
+    free(dup);
+    return result;
+}
+
+void process_args_input_encoding(struct cif_parse_opts_s *parse_opts, const char *encoding) {
+    if (!encoding) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    }
+    if (strcmp(encoding, "auto")) {
+        parse_opts->default_encoding_name = NULL;
+        parse_opts->force_default_encoding = 0;
+    } else {
+        parse_opts->default_encoding_name = encoding;
+        parse_opts->force_default_encoding = 1;
+    }
+}
+
+void process_args_input_format(struct cif_parse_opts_s *parse_opts, const char *fmt) {
+    if (!fmt) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    }
+    if (!strcmp(fmt, "auto")) {
+        parse_opts->prefer_cif2 = 0;
+    } else if (!strcmp(fmt, "cif20")) {
+        parse_opts->prefer_cif2 = 20;
+    } else if (!strcmp(fmt, "cif11")) {
+        parse_opts->prefer_cif2 = -1;
+    } else if (!strcmp(fmt, "cif10")) {
+        parse_opts->prefer_cif2 = -1;
+        parse_opts->extra_ws_chars = "\v";
+        parse_opts->extra_eol_chars = "\f";
+    } else {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    }
+}
+
+void process_args_input_folding(struct cif_parse_opts_s *parse_opts, const char *folding) {
+    /* if the optional argument is not specified then it is taken as 1/true/yes */
+    int argval = folding ? to_boolean(folding) : 1;
+
+    if (argval < 0) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    } else {
+        /* +1 for true, -1 for false */
+        parse_opts->line_folding_modifier = 2 * argval - 1;
+    }
+}
+
+void process_args_input_prefixing(struct cif_parse_opts_s *parse_opts, const char *prefixing) {
+    /* if the optional argument is not specified then it is taken as 1/true/yes */
+    int argval = prefixing ? to_boolean(prefixing) : 1;
+
+    if (argval < 0) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    } else {
+        /* +1 for true, -1 for false */
+        parse_opts->text_prefixing_modifier = 2 * argval - 1;
+    }
+}
+
+void process_args_output_encoding(struct cif_parse_opts_s *parse_opts, const char *encoding) {
+    if (!encoding) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    }
+    ((struct context *) (parse_opts->user_data))->out_encoding = encoding;
+}
+
+void process_args_output_format(struct cif_parse_opts_s *parse_opts, const char *fmt) {
+    if (!fmt) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    } else if (!strcmp(fmt, "cif11")  || !strcmp(fmt, "cif1.1")) {
+        CONTEXT_SET_OUTFORMAT(parse_opts->user_data, CIF11);
+        CONTEXT_SET_SEPARATOR(parse_opts->user_data, NULL);
+    } else if (!strcmp(fmt, "cif20")  || !strcmp(fmt, "cif2.0")) {
+        CONTEXT_SET_OUTFORMAT(parse_opts->user_data, CIF20);
+        CONTEXT_SET_SEPARATOR(parse_opts->user_data, "");
+/*
+    } else if (!strcmp(fmt, "star20") || !strcmp(fmt, "star2.0")) {
+        CONTEXT_SET_OUTFORMAT(parse_opts->user_data, STAR20);
+        CONTEXT_SET_SEPARATOR(parse_opts->user_data, ",");
+ */
+    } else {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    }
+}
+
+void process_args_output_folding(struct cif_parse_opts_s *parse_opts, const char *folding) {
+    /* if the optional argument is not specified then it is taken as 1/true/yes */
+    int argval = folding ? to_boolean(folding) : 1;
+
+    if (argval < 0) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    } else {
+        assert(argval < 2);
+        ((struct context *) parse_opts->user_data)->no_fold11_output = 1 - argval;
+    }
+}
+
+void process_args_output_prefixing(struct cif_parse_opts_s *parse_opts, const char *prefixing) {
+    /* if the optional argument is not specified then it is taken as 1/true/yes */
+    int argval = prefixing ? to_boolean(prefixing) : 1;
+
+    if (argval < 0) {
+        usage(CONTEXT_PROGNAME(parse_opts->user_data));
+    } else {
+        ((struct context *) parse_opts->user_data)->no_fold11_output = argval;
+    }
+}
+
+void process_args_quiet(struct cif_parse_opts_s *parse_opts) {
+    ((struct context *) parse_opts->user_data)->quiet = 1;
+}
+
+void process_args_strict(struct cif_parse_opts_s *parse_opts) {
+    ((struct context *) parse_opts->user_data)->halt_on_error = 1;
+}
+
 void process_args(int argc, char *argv[], struct cif_parse_opts_s *parse_opts) {
     struct context *context = (struct context *) parse_opts->user_data;
     int infile_index = 0;
@@ -301,9 +480,11 @@ void process_args(int argc, char *argv[], struct cif_parse_opts_s *parse_opts) {
 
     assert(argc > 0);
 
-    c = strrchr(argv[0], '/'); /* XXX: What about Windows? */
+    c = strrchr(argv[0], FILE_SEP);  /* distinguish the program's simple name from any path component */
     context->progname = (c ? (c + 1) : argv[0]);
-    parse_opts->whitespace_callback = whitespace_callback;
+    parse_opts->whitespace_callback = preserve_whitespace;
+    parse_opts->keyword_callback = keyword_callback;
+    parse_opts->dataname_callback = dataname_callback;
     parse_opts->error_callback = error_callback;
     process_args_output_format(parse_opts, DEFAULT_OUTPUT_FORMAT);
 
@@ -429,194 +610,267 @@ void process_args(int argc, char *argv[], struct cif_parse_opts_s *parse_opts) {
     }
 
     /* final adjustments */
-    context->extra_eol = parse_opts->extra_eol_chars;
-    context->extra_ws = parse_opts->extra_ws_chars;
-}
 
-void process_args_input_encoding(struct cif_parse_opts_s *parse_opts, const char *encoding) {
-    if (!encoding) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    }
-    if (strcmp(encoding, "auto")) {
-        parse_opts->default_encoding_name = NULL;
-        parse_opts->force_default_encoding = 0;
-    } else {
-        parse_opts->default_encoding_name = encoding;
-        parse_opts->force_default_encoding = 1;
-    }
-}
+    context->at_start = 1;
 
-void process_args_input_format(struct cif_parse_opts_s *parse_opts, const char *fmt) {
-    if (!fmt) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    }
-    if (!strcmp(fmt, "auto")) {
-        parse_opts->prefer_cif2 = 0;
-    } else if (!strcmp(fmt, "cif20")) {
-        parse_opts->prefer_cif2 = 20;
-    } else if (!strcmp(fmt, "cif11")) {
-        parse_opts->prefer_cif2 = -1;
-    } else if (!strcmp(fmt, "cif10")) {
-        parse_opts->prefer_cif2 = -1;
-        parse_opts->extra_ws_chars = "\v";
-        parse_opts->extra_eol_chars = "\f";
-    } else {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    }
-}
-
-void process_args_input_folding(struct cif_parse_opts_s *parse_opts, const char *folding) {
-    /* if the optional argument is not specified then it is taken as 1/true/yes */
-    int argval = folding ? to_boolean(folding) : 1;
-
-    if (argval < 0) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    } else {
-        /* +1 for true, -1 for false */
-        parse_opts->line_folding_modifier = 2 * argval - 1;
-    }
-}
-
-void process_args_input_prefixing(struct cif_parse_opts_s *parse_opts, const char *prefixing) {
-    /* if the optional argument is not specified then it is taken as 1/true/yes */
-    int argval = prefixing ? to_boolean(prefixing) : 1;
-
-    if (argval < 0) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    } else {
-        /* +1 for true, -1 for false */
-        parse_opts->text_prefixing_modifier = 2 * argval - 1;
-    }
-}
-
-void process_args_output_encoding(struct cif_parse_opts_s *parse_opts, const char *encoding) {
-    if (!encoding) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    }
-    ((struct context *) (parse_opts->user_data))->out_encoding = encoding;
-}
-
-void process_args_output_format(struct cif_parse_opts_s *parse_opts, const char *fmt) {
-    if (!fmt) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    } else if (!strcmp(fmt, "cif11")  || !strcmp(fmt, "cif1.1")) {
-        CONTEXT_SET_OUTFORMAT(parse_opts->user_data, CIF11);
-        CONTEXT_SET_SEPARATOR(parse_opts->user_data, NULL);
-    } else if (!strcmp(fmt, "cif20")  || !strcmp(fmt, "cif2.0")) {
-        CONTEXT_SET_OUTFORMAT(parse_opts->user_data, CIF20);
-        CONTEXT_SET_SEPARATOR(parse_opts->user_data, "");
-/*
-    } else if (!strcmp(fmt, "star20") || !strcmp(fmt, "star2.0")) {
-        CONTEXT_SET_OUTFORMAT(parse_opts->user_data, STAR20);
-        CONTEXT_SET_SEPARATOR(parse_opts->user_data, ",");
- */
-    } else {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    }
-}
-
-void process_args_output_folding(struct cif_parse_opts_s *parse_opts, const char *folding) {
-    /* if the optional argument is not specified then it is taken as 1/true/yes */
-    int argval = folding ? to_boolean(folding) : 1;
-
-    if (argval < 0) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    } else {
-        assert(argval < 2);
-        ((struct context *) parse_opts->user_data)->no_fold11_output = 1 - argval;
-    }
-}
-
-void process_args_output_prefixing(struct cif_parse_opts_s *parse_opts, const char *prefixing) {
-    /* if the optional argument is not specified then it is taken as 1/true/yes */
-    int argval = prefixing ? to_boolean(prefixing) : 1;
-
-    if (argval < 0) {
-        usage(CONTEXT_PROGNAME(parse_opts->user_data));
-    } else {
-        ((struct context *) parse_opts->user_data)->no_fold11_output = argval;
-    }
-}
-
-void process_args_quiet(struct cif_parse_opts_s *parse_opts) {
-    ((struct context *) parse_opts->user_data)->quiet = 1;
-}
-
-void process_args_strict(struct cif_parse_opts_s *parse_opts) {
-    ((struct context *) parse_opts->user_data)->halt_on_error = 1;
-}
-
-/*
- * Translates the specified 'extra' end-of-line characters to to newlines and the specified 'extra' whitespace
- * characters to spaces in the provided text buffer.  The buffer is expected to be nul-terminated, but if its length is
- * already known then that can be specified as an argument for a minor efficiency improvement.  Otherwise, the length
- * should be passed as ((size_t) -1).
- */
-int to_boolean(const char *val) {
-    size_t len = strlen(val);
-    char *dup = (char *) malloc((len + 1) * sizeof(char));
-    int result;
-
-    if (dup) {
-        char *c;
-
-        strcpy(dup, val);
-        for (c = dup; *c; c += 1) {
-            *c = tolower(*c);
+    if (parse_opts->extra_ws_chars && parse_opts->extra_ws_chars[0]) {
+        context->extra_ws = (UChar *) malloc((strlen(parse_opts->extra_ws_chars) + 1) * sizeof(UChar));
+        if (!context->extra_ws) {
+            perror(context->progname);
+            exit(2);
         }
-        val = dup;
+        u_sprintf(context->extra_ws, "%s", parse_opts->extra_ws_chars);
     }
 
-    if (len > 5) {
-        /* the maximum-length recognized value is "false", with length 5.  Fail now if the specified value is longer */
-        result = -1;
-    } else if (!(strcmp(val, "1") && strcmp(val, "yes") && strcmp(val, "true"))) {
-        result = 1;
-    } else if (!(strcmp(val, "0") && strcmp(val, "no") && strcmp(val, "false"))) {
-        result = 0;
-    } else {
-        result = -1;
+    if (parse_opts->extra_eol_chars && parse_opts->extra_eol_chars[0]) {
+        context->extra_eol = (UChar *) malloc((strlen(parse_opts->extra_eol_chars) + 1) * sizeof(UChar));
+        if (!context->extra_eol) {
+            perror(context->progname);
+            exit(2);
+        }
+        u_sprintf(context->extra_eol, "%s", parse_opts->extra_eol_chars);
     }
-
-    free(dup);
-    return result;
 }
 
-int print_header(cif_tp *cif UNUSED, void *context) {
-    format fmt = CONTEXT_OUTFORMAT(context);
+struct ws_node *free_ws_node(struct ws_node *node) {
+    struct ws_node *next = node->next_piece;
+
+    free(node->ws);
+    free(node);
+
+    return next;
+}
+
+/*
+ * Prints and releases the next whitespace run stored in the specified context
+ *
+ * Returns the number of characters printed (which may be zero), or -1 if an I/O error occurs
+ */
+int32_t print_ws_run(struct context *context) {
+    if (!context->ws_cache) {
+        return 0;
+    } else {
+        struct ws_node *current = context->ws_cache;
+        int32_t rval = 0;
+
+        /* XXX: consider suppressing trailing non-comment whitespace */
+
+        /* we need to do this now, before we free the first cache element: */
+        context->ws_cache = context->ws_cache->next_run;
+
+        while (current) {
+            UChar *brk;
+            int32_t uncounted = 0;
+            int32_t nlines = 0;
+            int32_t nprinted;
+
+            assert(current->ws);
+
+            /* determine how many characters occur on lines preceding the last one of the run */
+            /* depends on any non-standard EOL chars to have been translated to standard ones */
+            for (brk = current->ws; (brk = u_strpbrk(brk, standard_eol_chars)); ) {
+                if ((*brk == UCHAR_CR) && (*(brk + 1) == UCHAR_LF)) {
+                    brk += 2;
+                } else {
+                    brk += 1;
+                }
+                /* note: we assume here that the whitespace run is not longer than an int32_t can count */
+                nlines += 1;
+                uncounted = brk - current->ws;
+            }
+
+            /* FIXME: this may print whitespace / comments beyond the line length limit */
+            if ((nprinted = u_fprintf(context->out, "%S", current->ws)) < uncounted) {
+                return -1;
+            } else {
+                rval += nprinted;
+                if (nlines) {
+                    context->column = nprinted - uncounted;
+                } else {
+                    context->column += nprinted;
+                }
+            }
+
+            current = free_ws_node(current);
+        }
+
+        return rval;
+    }
+}
+
+/*
+ * Prints and releases all whitespace runs stored in the specified context
+ *
+ * Returns the number of characters printed, which may be zero, or -1 if an error occurs
+ */
+int32_t print_all_ws_runs(struct context *context) {
+    int32_t rval = 0;
+
+    while (context->ws_cache) {
+        int32_t run_length;
+
+        if ((run_length = print_ws_run(context)) >= 0) {
+            rval += run_length;
+        } else {
+            return -1;
+        }
+    }
+
+    return rval;
+}
+
+/* Cleans up the whitespace cache, starting at the specified node.  Does nothing if the argument is null. */
+void flush_ws(struct ws_node *start) {
+    while (start) {
+        struct ws_node *next_run = start->next_run;
+        struct ws_node *one_piece = start;
+
+        while (one_piece) {
+            one_piece = free_ws_node(one_piece);
+        }
+
+        start = next_run;
+    }
+}
+
+/*
+ * Consumes a leading CIF version comment if one has been cached in the specified context
+ */
+void consume_version_comment(struct context *context) {
+    /*
+     * This function is perhaps over-engineered, as it accounts for the possibility that an initial CIF version comment
+     * was split over two or more calls to the whitespace callback.  The current parser will never do that, and it's
+     * difficult to imagine a future version that might do.  Nevertheless, this code is written to the CIF API
+     * _specification_, not to any particular implementation.
+     */
+
+    static const UChar cif_header_start[] = {
+            UCHAR_HASH, UCHAR_BSL, UCHAR_HASH, UCHAR_C, UCHAR_I, UCHAR_F, UCHAR_UNDER, 0 };
+    static const int check_length = sizeof(cif_header_start) / sizeof(cif_header_start[0]) - 1;
+
+    /*
+     * compare the lead part of any stored whitespace to the expected start of a CIF version header
+     *
+     * We need to consider only the pieces of the first run.  Under no circumstances will the header be spread over
+     * multiple runs (that's under this program's direct control).
+     */
+
+    struct ws_node *this_piece;
+    int checked = 0;
+
+    for (this_piece = context->ws_cache; this_piece; this_piece = this_piece->next_piece) {
+        UChar *next_char;
+
+        for (next_char = this_piece->ws; *next_char; ) {
+            if (*(next_char++) != cif_header_start[checked++]) {
+                /* no match */
+                return;
+            } else if (checked >= check_length) {
+
+                /* matched */
+
+                struct ws_node *next_run = context->ws_cache->next_run;
+
+                /* scan forward to the next line terminator */
+                for (next_char = u_strpbrk(next_char, standard_eol_chars);
+                        !next_char && this_piece->next_piece;
+                        next_char = u_strpbrk(this_piece->ws, standard_eol_chars)) {
+                    this_piece = this_piece->next_piece;
+                }
+
+                if (!next_char) {
+                    /* discard the whole run */
+                    for (this_piece = context->ws_cache; this_piece; ) {
+                        this_piece = free_ws_node(this_piece);
+                    }
+
+                    context->ws_cache = next_run;
+                } else {
+                    assert(this_piece);
+
+                    /* move the next_char pointer past the line terminator */
+                    next_char += (((*next_char == UCHAR_CR) && (*(next_char + 1) == UCHAR_LF)) ? 2 : 1);
+
+                    /* discard any leading pieces of this whitespace run */
+                    while (context->ws_cache != this_piece) {
+                        context->ws_cache = free_ws_node(context->ws_cache);
+                        context->ws_cache->next_run = next_run;
+                    }
+
+                    /* discard the matched portion of the current piece */
+                    memmove(this_piece->ws, next_char, (u_strlen(next_char) + 1) * sizeof(UChar));
+                }
+
+                /* done */
+                return;
+            } /* else still a possible match */
+        }
+    }
+
+    /* if control reaches here then there was no match */
+}
+
+/* function intended to handle cif_start events */
+int print_header(cif_tp *cif UNUSED, void *data) {
+    /* print a format header, if one is appropriate */
+    struct context *context = (struct context *) data;
+    format fmt = context->output_format;
     int32_t nchars;
 
     assert(fmt < NONE);
 
-    /*
-     * No newline is printed because the only thing that can immediately follow is whitespace or a block header,
-     * and a leading newline will alread be provided for the latter.
-     */
-    nchars = u_fprintf(CONTEXT_OUT(context), "%s", headers[fmt]);
+    TRACELINE;
+
+    /* non-empty headers are expected to be newline-terminated */
+    nchars = u_fprintf(context->out, "%s", headers[fmt]);
     if (nchars < 0) {
         return CIF_ERROR;
     } else {
-        CONTEXT_SET_COLUMN(context, 0);
+        context->column = 0;
         return CIF_OK;
     }
 }
 
-int handle_cif_end(cif_tp *cif UNUSED, void *context) {
-    u_fputc(0x0aU, CONTEXT_OUT(context));  /* ignore the result */
-    u_fclose(CONTEXT_OUT(context));
-    u_fclose(CONTEXT_ERR(context));
+int handle_cif_end(cif_tp *cif UNUSED, void *data) {
+    struct context *context = (struct context *) data;
+
+    TRACELINE;
+
+    /* dump any trailing comments or whitespace */
+    if (print_all_ws_runs(context) <= 0) {
+        /* no captured trailing whitespace */
+        u_fputc(UCHAR_LF, context->out);  /* ignore the result */
+    }
+
+    /* close the output */
+    u_fclose(context->out);
+    u_fclose(context->ustderr);
+
     return 0;
 }
 
 /* function intended to handle block_start events */
-int open_block(cif_container_tp *block, void *context) {
-    CONTEXT_SET_STARTED(context);
+int open_block(cif_container_tp *block, void *data) {
+    struct context *context = (struct context *) data;
+
+    TRACELINE;
+
+    if (context->at_start) {
+        consume_version_comment(context);
+        context->at_start = 0;
+    }
+    context->in_ws_run = 0;
     CONTEXT_PUSH_CONTAINER(context);
     return print_code(block, context, "data_");
 }
 
 /* function intended to handle frame_start events */
-int open_frame(cif_container_tp *frame, void *context) {
+int open_frame(cif_container_tp *frame, void *data) {
+    struct context *context = (struct context *) data;
+
+    TRACELINE;
+
+    context->in_ws_run = 0;
     if (CONTEXT_IN_CONTAINER(context)) {
         CONTEXT_PUSH_CONTAINER(context);
         return print_code(frame, context, "save_");
@@ -629,14 +883,33 @@ int open_frame(cif_container_tp *frame, void *context) {
  * Outputs a save frame terminator and cleans out the frame contents
  * Intended to handle frame_end events.
  */
-int finish_frame(cif_container_tp *container, void *context) {
+int finish_frame(cif_container_tp *container, void *data) {
+    static const UChar term[] = { UCHAR_s, UCHAR_a, UCHAR_v, UCHAR_e, UCHAR_UNDER, 0 };
+    struct context *context = (struct context *) data;
+    int32_t printed_ws = print_all_ws_runs(context);
+
+    TRACELINE;
+
+    context->in_ws_run = 0;
     if (CONTEXT_IN_CONTAINER(context)) {
-        if (u_fprintf(CONTEXT_OUT(context), "\nsave_\n") != 7) {
-            return CIF_ERROR;
+        if (printed_ws > 0) {
+            int result;
+
+            /* whitespace was printed from the context */
+            if ((result = print_u_literal(SPACE_ALLOWED, term, 5, context)) != CIF_OK) {
+                return result;
+            }
+        } else if (printed_ws == 0) {
+            if (u_fprintf(context->out, "\nsave_\n") != 7) {
+                return CIF_ERROR;
+            } else {
+                context->column = 0;
+            }
         } else {
-            CONTEXT_SET_COLUMN(context, 0);
+            return CIF_ERROR;
         }
     }
+
     return flush_container(container, context);
 }
 
@@ -644,9 +917,12 @@ int finish_frame(cif_container_tp *container, void *context) {
  * Removes all save frames and data from the specified container.
  * Intended to handle block_end events, and to participate in handling frame_end events.
  */
-int flush_container(cif_container_tp *container, void *context UNUSED) {
+int flush_container(cif_container_tp *container, void *data) {
+    struct context *context = (struct context *) data;
     int result;
     cif_container_tp **frames;
+
+    TRACELINE;
 
     if ((result = cif_container_get_all_frames(container, &frames)) == CIF_OK) {
         cif_container_tp **frame;
@@ -678,61 +954,123 @@ int flush_container(cif_container_tp *container, void *context UNUSED) {
 /*
  * Prints a loop header to the output
  */
-int handle_loop_start(cif_loop_tp *loop, void *context) {
-    if (CONTEXT_IN_CONTAINER(context)) {
-        int result;
+int handle_loop_start(cif_loop_tp *loop, void *data) {
+    static const UChar loop_kw[] = { UCHAR_l, UCHAR_o, UCHAR_o, UCHAR_p, UCHAR_UNDER, 0 };
+    static const size_t kw_len = (sizeof(loop_kw) / sizeof(loop_kw[0])) - 1;
+    static const UChar placeholder[] = { UCHAR_QUERY, 0 };
+    struct context *context = (struct context *) data;
+
+    TRACELINE;
+
+    context->in_ws_run = 0;
+
+    if (!CONTEXT_IN_CONTAINER(context)) {
+        return ((print_all_ws_runs(context) < 0) ? CIF_ERROR : CIF_OK);
+    } else {
+        int result = CIF_OK;
+        int32_t nprinted;
         UChar **names;
 
-        CONTEXT_TOGGLE_LOOP(context);
+        context->in_loop = 1;
 
-        if (u_fprintf(CONTEXT_OUT(context), "\nloop_\n") != 7) {
+        /* print the first recorded whitespace run, if any, and the loop_ keyword */
+        nprinted = print_ws_run(context);
+        if (nprinted > 0) {
+            result = print_u_literal(SPACE_ALLOWED, loop_kw, kw_len, context);
+        } else if ((nprinted == 0) && (u_fprintf(context->out, "\n%S", loop_kw) == (int32_t) (kw_len + 1))) {
+            context->column = kw_len;
+        } else {
             result = CIF_ERROR;
-        } else if ((result = cif_loop_get_names(loop, &names)) == CIF_OK) {
+        }
+
+        if ((result == CIF_OK) && ((result = cif_loop_get_names(loop, &names)) == CIF_OK)) {
             UChar **name;
 
             for (name = names; *name; name += 1) {
-                if (u_fprintf(CONTEXT_OUT(context), "%S\n", *name) != u_strlen(*name) + 2) {
-                    result = CIF_ERROR;
-                }
+                if (result == CIF_OK) {
+
+                    /* ensure whitespace separation */
+                    nprinted = print_ws_run(context);
+                    if ((nprinted == 0) && (u_fputc(UCHAR_LF, context->out) == UCHAR_LF)) {
+                        context->column =  0;
+                    } else if (nprinted <= 0) {
+                        result = CIF_ERROR;
+                        free(*name);
+                        continue;
+                    }
+
+                    /* print the name */
+                    result = print_u_literal(SPACE_ALLOWED, *name, u_strlen(*name), context);
+
+                }  /* else don't try to print the name, but we still need to free it */
                 free(*name);
+            }
+
+            if ((result == CIF_OK) && context->synthesize_packet) {
+                context->synthesize_packet = 0;
+
+                /* output a dummy packet for the loop so that it will not be empty */
+                if (u_fputc(UCHAR_LF, context->out) != UCHAR_LF) {
+                    result = CIF_ERROR;
+                } else {
+                    context->column = 0;
+                    for (name = names; (result == CIF_OK) && *name; name += 1) {
+                        /*
+                         * *name is an invalid pointer, but we need only to test it against NULL (above), not to
+                         * dereference it
+                         */
+                        if ((result = print_u_literal(SPACE_REQUIRED, placeholder, 1, context)) != CIF_OK) {
+                            break;
+                        }
+                    }
+
+                    if ((result == CIF_OK) && (u_fputc(UCHAR_LF, context->out) != UCHAR_LF)) {
+                        result = CIF_ERROR;
+                    }
+                }
             }
 
             free(names);
         }
 
-        CONTEXT_SET_COLUMN(context, 0);
         return result;
-    } else {
-        return 0;
     }
 }
 
 /*
- * Tracks that the parser has left a loop, and ends the current line
+ * Tracks that the parser has left a loop, and ends the current line if no other whitespace is recorded
  */
-int handle_loop_end(cif_loop_tp *loop UNUSED, void *context) {
-    if (CONTEXT_IN_CONTAINER(context)) {
-        CONTEXT_TOGGLE_LOOP(context);
+int handle_loop_end(cif_loop_tp *loop UNUSED, void *data) {
+    struct context *context = (struct context *) data;
 
-        if (u_fputc(0x0aU, CONTEXT_OUT(context)) != 0x0aU) {
-            return CIF_ERROR;
+    TRACELINE;
+
+    if (CONTEXT_IN_CONTAINER(context)) {
+        context->in_loop = 0;
+
+        if (context->column && !context->ws_cache) {
+            /* inject synthetic whitespace */
+            preserve_whitespace(0, 0, standard_eol_chars, 1, context);
         }
-        CONTEXT_SET_COLUMN(context, 0);
     }
-    return 0;
+
+    return CIF_TRAVERSE_CONTINUE;
 }
 
 /*
- * Causes each loop packet to start on a new line
+ * Causes each loop packet to start on a new line if no whitespace is obtained from context
  * Intended to handle packet_start events.
  */
-int start_packet_on_new_line(cif_packet_tp *packet UNUSED, void *context) {
+int handle_packet_start(cif_packet_tp *packet UNUSED, void *data) {
+    struct context *context = (struct context *) data;
+
+    TRACELINE;
+
+    /* no direct whitespace handling at this level */
     if (CONTEXT_IN_CONTAINER(context)) {
-        if (CONTEXT_COLUMN(context)) {
-            if (u_fputc(0x0aU, CONTEXT_OUT(context)) != 0x0aU) {
-                return CIF_ERROR;
-            }
-            CONTEXT_SET_COLUMN(context, 0);
+        if (context->column && !context->ws_cache) {
+            /* inject synthetic whitespace */
+            preserve_whitespace(0, 0, standard_eol_chars, 1, context);
         }
     }
     return CIF_TRAVERSE_CONTINUE;
@@ -743,95 +1081,201 @@ int start_packet_on_new_line(cif_packet_tp *packet UNUSED, void *context) {
  * Intended to handle packet_end events.
  */
 int discard_packet(cif_packet_tp *packet UNUSED, void *context UNUSED) {
+    /* no whitespace handling at this point */
+
+    TRACELINE;
+
     return CIF_TRAVERSE_SKIP_CURRENT;
 }
 
 /* Intended to handle item events. */
-int print_item(UChar *name, cif_value_tp *value, void *context) {
-    U_STRING_DECL(unk_value_literal, "?", 2);
-    U_STRING_DECL(na_value_literal, ".", 2);
+int print_item(UChar *name, cif_value_tp *value, void *data) {
+    struct context *context = (struct context *) data;
+    int32_t nprinted;
 
-    U_STRING_INIT(unk_value_literal, "?", 2);
-    U_STRING_INIT(na_value_literal, ".", 2);
+    TRACELINE;
 
-    if (CONTEXT_IN_CONTAINER(context)) {
-        if (name && !CONTEXT_IN_LOOP(context)) {
-            int32_t n_printed = u_fprintf(CONTEXT_OUT(context), "\n%S", name);
+    /* name is NULL or the data are outside any container then the value needs to be suppressed */
+    if (!(CONTEXT_IN_CONTAINER(context) && name)) {
+        /*
+         * Neither the item / value nor any internal insignificant whitespace should be printed.  If there is cached
+         * whitespace, however, then whatever of it appears at top level is set up to be merged with whatever
+         * whitespace is reported next.
+         */
+        struct ws_node *ws_start = context->ws_cache;
 
-            if (n_printed < 3) {
-                return CIF_ERROR;
+        if (ws_start) {
+            /* discard all whitespace runs but the first one (if in a loop) or up to two (otherwise) */
+            struct ws_node *last_run = context->in_loop ? ws_start : ws_start->next_run;
+
+            if (last_run) {
+                flush_ws(last_run->next_run);
+                last_run->next_run = NULL;
+
+                if (last_run != ws_start) {
+                    /* last_run points to the second run */
+                    /* merge whitespace runs */
+                    struct ws_node *this_piece = ws_start;
+
+                    while (this_piece->next_piece) {
+                        this_piece = this_piece->next_piece;
+                    }
+
+                    this_piece->next_piece = last_run;
+                    ws_start->next_run = NULL;
+                }
+            }
+
+            /* pretend the whitespace was unbroken by any value or item */
+            context->in_ws_run = 1;
+        }
+
+        return CIF_TRAVERSE_CONTINUE;
+    } else {
+        /*
+         * Marking the end of the whitespace run only _inside_ this conditional scope helps whitespace runs around and
+         * inside skipped values to be merged together.
+         */
+        context->in_ws_run = 0;
+
+        if (!context->in_loop) {
+            /* write the data name, with appropriate whitespace separation */
+
+            nprinted = print_ws_run(context);
+
+            if (nprinted > 0) {
+                int result;
+
+                if ((result = print_u_literal(SPACE_ALLOWED, name, u_strlen(name), context)) != CIF_OK) {
+                    return result;
+                }
+            } else if (nprinted == 0) {
+                int32_t n_printed = u_fprintf(context->out, "\n%S", name);
+
+                if (n_printed < 3) {
+                    return CIF_ERROR;
+                } else {
+                    context->column = n_printed - 1;
+                }
             } else {
-                CONTEXT_SET_COLUMN(context, n_printed - 1);
+                return CIF_ERROR;
             }
         }
 
         /* write the value */
-        switch(cif_value_kind(value)) {
-            case CIF_CHAR_KIND:
-            case CIF_NUMB_KIND:
-                return print_value_text(value, context);
-            case CIF_UNK_KIND:
-                return print_u_literal(SPACE_REQUIRED, unk_value_literal, 1, context);
-            case CIF_NA_KIND:
-                return print_u_literal(SPACE_REQUIRED, na_value_literal, 1, context);
-            case CIF_LIST_KIND:
-                return print_list(value, context);
-            case CIF_TABLE_KIND:
-                return print_table(value, context);
-            default:
-                /* unknown kind */
-                return CIF_INTERNAL_ERROR;
-        }
-    } /* else ignore it altogether */
-
-    return CIF_TRAVERSE_CONTINUE;
+        return print_value(value, context, 2);
+    }
 }
 
-/*
- * A callback function by which whitespace (including comments) in the input CIF is handled.  This version echoes
- * input whitespace to the output.
- */
-int print_list(cif_value_tp *value, void *context) {
-    static const UChar list_open[] = { UCHAR_OBRK, 0 };
-    static const UChar list_close[] = { UCHAR_SP, UCHAR_CBRK, 0 };
-    size_t count;
-    int result;
+int print_value(cif_value_tp *value, struct context *context, unsigned int ws_needed_max) {
+    U_STRING_DECL(unk_value_literal, "?", 2);
+    U_STRING_DECL(na_value_literal, ".", 2);
+    cif_kind_tp kind = cif_value_kind(value);
+    int32_t nprinted;
 
-    if (CONTEXT_OUTFORMAT(context) == CIF11) {
-        result = CIF_DISALLOWED_VALUE;
-    } else if ((result = cif_value_get_element_count(value, &count)) == CIF_OK) {
-        if ((result = print_u_literal(SPACE_REQUIRED, list_open, 1, context)) == CIF_OK) {
-            size_t index;
+    U_STRING_INIT(unk_value_literal, "?", 2);
+    U_STRING_INIT(na_value_literal, ".", 2);
 
-            for (index = 0; index < count; index += 1) {
-                cif_value_tp *element;
+    switch (kind) {
+        case CIF_NA_KIND:
+        case CIF_UNK_KIND:
+            nprinted = ((ws_needed_max > 1) ? print_all_ws_runs(context) : print_ws_run(context));
+            if (nprinted < 0) {
+                return CIF_ERROR;
+            }
+            break;
+        case CIF_LIST_KIND:
+        case CIF_TABLE_KIND:
+            nprinted = print_ws_run(context);
+            if (ws_needed_max && !nprinted) {
+                int result = ensure_space(1, 1, context);
 
-                if (cif_value_get_element_at(value, index, &element) != CIF_OK) {
-                    return CIF_INTERNAL_ERROR;
-                } else if ((result = print_item(NULL, element, context)) != CIF_TRAVERSE_CONTINUE) {
+                if (result != CIF_OK) {
                     return result;
                 }
             }
+            break;
+        default:
+            nprinted = 0;
+            break;
+    }
 
-            result = print_u_literal(SPACE_ALLOWED, list_close, 2, context);
+    switch(kind) {
+        case CIF_CHAR_KIND:
+        case CIF_NUMB_KIND:
+            return print_value_text(value, context, ws_needed_max);
+        case CIF_NA_KIND:
+        case CIF_UNK_KIND:
+            return print_u_literal((ws_needed_max && !nprinted),
+                    ((kind == CIF_UNK_KIND) ? unk_value_literal : na_value_literal),
+                    1, context);
+        case CIF_LIST_KIND:
+            return print_list(value, context);
+        case CIF_TABLE_KIND:
+            return print_table(value, context);
+        default:
+            /* unknown kind */
+            return CIF_INTERNAL_ERROR;
+    }
+
+    return CIF_ERROR;
+}
+
+/*
+ * Prints a List value to the output.  Printing any needed leading whitespace is the responsibility of the caller.
+ */
+int print_list(cif_value_tp *value, struct context *context) {
+    static const UChar list_open[] = { UCHAR_OBRK, 0 };
+    static const UChar list_close[] = { UCHAR_CBRK, 0 };
+    size_t count;
+    int result;
+
+    if (context->output_format == CIF11) {
+        /* List values cannot be output in CIF 1.1 format */
+        flush_ws(context->ws_cache);
+        result = CIF_DISALLOWED_VALUE;
+    } else if (((result = cif_value_get_element_count(value, &count)) == CIF_OK)
+            && ((result = print_u_literal(SPACE_ALLOWED, list_open, 1, context)) == CIF_OK)) {
+        size_t index;
+
+        for (index = 0; index < count; index += 1) {
+            cif_value_tp *element;
+
+            if (cif_value_get_element_at(value, index, &element) != CIF_OK) {
+                return CIF_INTERNAL_ERROR;
+            } else if ((result = print_value(element, context, index && 1)) != CIF_TRAVERSE_CONTINUE) {
+                return result;
+            }
+        }
+
+        if (print_ws_run(context) < 0) {
+            result = CIF_ERROR;
+        } else {
+            result = print_u_literal(SPACE_ALLOWED, list_close, 1, context);
         }
     }
 
     return result;
 }
 
-int print_table(cif_value_tp *value, void *context) {
+/*
+ * Prints a Table value to the output.   Printing any needed leading whitespace is the responsibility of the caller.
+ */
+int print_table(cif_value_tp *value, struct context *context) {
     static const UChar table_open[] =  { UCHAR_OBRC, 0 };
-    static const UChar table_close[] = { UCHAR_SP, UCHAR_CBRC, 0 };
+    static const UChar table_close[] = { UCHAR_CBRC, 0 };
     static const UChar entry_colon[] = { UCHAR_COLON, 0 };
     const UChar **keys;
     int result;
 
-    if (CONTEXT_OUTFORMAT(context) == CIF11) {
+    if (context->output_format == CIF11) {
+        /* Table values cannot be output in CIF 1.1 format */
+        flush_ws(context->ws_cache);
         result = CIF_DISALLOWED_VALUE;
     } else if ((result = cif_value_get_keys(value, &keys)) == CIF_OK) {
-        if ((result = print_u_literal(SPACE_REQUIRED, table_open, 1, context)) == CIF_OK) {
+        if ((result = print_u_literal(SPACE_ALLOWED, table_open, 1, context)) == CIF_OK) {
             const UChar **key;
+            int first = 1;
 
             for (key = keys; *key; key += 1) {
                 cif_value_tp *kv;
@@ -844,9 +1288,10 @@ int print_table(cif_value_tp *value, void *context) {
                 } else {
                     /* copying the key is inefficient, but the original belongs to the table value */
                     if (((result = cif_value_copy_char(kv, *key)) != CIF_OK)
-                            || ((result = print_value_text(kv, context)) != CIF_OK)
+                            || ((result = print_value_text(kv, context, !first)) != CIF_OK)
                             || ((result = print_u_literal(SPACE_FORBIDDEN, entry_colon, 1, context)) != CIF_OK)
-                            || ((result = print_item(NULL, ev, context)) != CIF_TRAVERSE_CONTINUE)
+                            || ((result = ((print_ws_run(context) < 0) ? CIF_ERROR : CIF_OK)) != CIF_OK)
+                            || ((result = print_value(ev, context, 1)) != CIF_TRAVERSE_CONTINUE)
                             ) {
                         cif_value_free(kv);
                         goto cleanup;
@@ -855,9 +1300,15 @@ int print_table(cif_value_tp *value, void *context) {
                     cif_value_free(kv);
                     /* ev (the entry's value) must not be freed -- it belongs to the table */
                 }
+
+                first = 0;
             }
 
-            result = print_u_literal(SPACE_ALLOWED, table_close, 2, context);
+            if (print_ws_run(context) < 0) {
+                result = CIF_ERROR;
+            } else {
+                result = print_u_literal(SPACE_ALLOWED, table_close, 1, context);
+            }
         }
 
         cleanup:
@@ -869,35 +1320,52 @@ int print_table(cif_value_tp *value, void *context) {
     return result;
 }
 
-int print_value_text(cif_value_tp *value, void *context) {
-    struct cif_string_analysis_s analysis;
+/*
+ * Prints the text of a value to the output
+ *
+ * ws_needed: indicates whether whitespace is required before the value itself.  If ws_needed is 0 then whitespace is
+ * optional, else whitespace is required.  If ws_needed is greater than 1, then all cached whitespace will be printed;
+ * otherwise, only the first run, if any, is printed.
+ */
+int print_value_text(cif_value_tp *value, struct context *context, unsigned int ws_needed) {
+    int n_ws;
     UChar *text;
     int result;
 
-    if ((result = cif_value_get_text(value, &text)) == CIF_OK) {
-        if ((result = cif_analyze_string(text, !cif_value_is_quoted(value), CONTEXT_OUTFORMAT(context) != CIF11,
+    /* output appropriate cached whitespace, if any */
+    n_ws = (ws_needed > 1) ? print_all_ws_runs(context) : print_ws_run(context);
+
+    if (n_ws < 0) {
+        return CIF_ERROR;
+    } else if ((result = cif_value_get_text(value, &text)) == CIF_OK) {
+        struct cif_string_analysis_s analysis;
+
+        if ((result = cif_analyze_string(text, !cif_value_is_quoted(value), context->output_format != CIF11,
                 MAX_LINE_LENGTH, &analysis)) == CIF_OK) {
             int32_t length;
+            int minimum_ws = (n_ws || !ws_needed) ? 0 : 1;
 
             switch (analysis.delim_length) {
                 case 3: /* triple-quoted */
                     if (analysis.num_lines > 1) {
-                        if (((result = ensure_space(analysis.length_first + 3, context)) == CIF_OK)
-                            && ((result = print_delimited(text, analysis.delim, 3, CONTEXT_OUT(context))) == CIF_OK)) {
-                            CONTEXT_SET_COLUMN(context, analysis.length_last + 3);
+                        if (((result = ensure_space(minimum_ws, analysis.length_first + 3, context)) == CIF_OK)
+                                && ((result = print_delimited(text, analysis.delim, 3, context->out))
+                                        == CIF_OK)) {
+                            context->column = analysis.length_last + 3;
                         }
                         break;
                     } /* else fall through */
                 case 1: /* single-quoted */
                 case 0: /* whitespace-delimited */
                     length = analysis.length_first + 2 * analysis.delim_length;
-                    if (((result = ensure_space(length, context)) == CIF_OK)
-                        && ((result = print_delimited(text, analysis.delim, analysis.delim_length,
-                                CONTEXT_OUT(context))) == CIF_OK)) {
-                        CONTEXT_SET_COLUMN(context, length);
+                    if (((result = ensure_space(minimum_ws, length, context)) == CIF_OK)
+                            && ((result = print_delimited(text, analysis.delim, analysis.delim_length,
+                                    context->out)) == CIF_OK)) {
+                        context->column = length;
                     }
                     break;
                 case 2:
+                    /* we don't need to make any further provision for whitespace in this case */
                     return print_text_field(text,
                             /* whether to fold: */
                             (analysis.length_max > MAX_LINE_LENGTH)
@@ -922,16 +1390,16 @@ int print_value_text(cif_value_tp *value, void *context) {
 }
 
 /* prints a string in text-field form, applying line-folding and / or text prefixing as directed */
-int print_text_field(UChar *str, int do_fold, int do_prefix, void *context) {
+int print_text_field(UChar *str, int do_fold, int do_prefix, struct context *context) {
     /* CIF line termination characters */
     static const UChar line_term[] = { 0xa, 0xd, 0 };
 
     int result;
 
     if (!(do_prefix || do_fold)) {
-        result = (u_fprintf(CONTEXT_OUT(context), "\n;%S\n;", str) < 4) ? CIF_ERROR : CIF_OK;
+        result = (u_fprintf(context->out, "\n;%S\n;", str) < 4) ? CIF_ERROR : CIF_OK;
     } else {
-        if (u_fprintf(CONTEXT_OUT(context), "\n;%s%s%s", (do_prefix ? PREFIX "\\" : ""), (do_fold ? "\\" : ""),
+        if (u_fprintf(context->out, "\n;%s%s%s", (do_prefix ? PREFIX "\\" : ""), (do_fold ? "\\" : ""),
                 ((do_prefix || do_fold) ? "\n" : "")) < 2) {
             result = CIF_ERROR;
         } else {
@@ -947,7 +1415,7 @@ int print_text_field(UChar *str, int do_fold, int do_prefix, void *context) {
 
                 if (!do_fold) {
                     assert(do_prefix);
-                    if (u_fprintf(CONTEXT_OUT(context), PREFIX "%.*S\n", line_len, line_start)
+                    if (u_fprintf(context->out, PREFIX "%.*S\n", line_len, line_start)
                             < (prefix_len + line_len + 1)) {
                         return CIF_ERROR;
                     }
@@ -971,12 +1439,12 @@ int print_text_field(UChar *str, int do_fold, int do_prefix, void *context) {
                                     || (fold_start[fold_len - 1] == UCHAR_TAB)
                                     || (fold_start[fold_len - 1] == UCHAR_BSL));
 
-                            if (u_fprintf(CONTEXT_OUT(context), "%s%.*S%s\n", (do_prefix ? PREFIX : ""),
+                            if (u_fprintf(context->out, "%s%.*S%s\n", (do_prefix ? PREFIX : ""),
                                     fold_len, fold_start, (protect ? "\\\n" : "")) < (prefix_len + fold_len)) {
                                 return CIF_ERROR;
                             }
                         } else {
-                            if (u_fprintf(CONTEXT_OUT(context), "%s%.*S\\\n", (do_prefix ? PREFIX : ""),
+                            if (u_fprintf(context->out, "%s%.*S\\\n", (do_prefix ? PREFIX : ""),
                                     fold_len, fold_start) < (prefix_len + fold_len)) {
                                 return CIF_ERROR;
                             }
@@ -998,12 +1466,12 @@ int print_text_field(UChar *str, int do_fold, int do_prefix, void *context) {
 
             /* closing delimiter */
             /* the leading newline will already have been output */
-            result = (u_fputc(UCHAR_SEMI, CONTEXT_OUT(context)) == UCHAR_SEMI) ? CIF_OK : CIF_ERROR;
+            result = (u_fputc(UCHAR_SEMI, context->out) == UCHAR_SEMI) ? CIF_OK : CIF_ERROR;
         }
     }
 
     if (result == CIF_OK) {
-        CONTEXT_SET_COLUMN(context, 1);
+        context->column = 1;
     }
 
     return result;
@@ -1096,122 +1564,172 @@ ptrdiff_t compute_fold_length(UChar *fold_start, ptrdiff_t line_length, ptrdiff_
     }
 }
 
-void whitespace_callback(size_t line UNUSED, size_t column UNUSED, const UChar *ws, size_t length, void *data) {
-    /* TODO: preserve comments, possibly strip other whitespace */
-#if 0
-    /* Note: this initializer may be subject to the selected source character set: */
-    static const UChar cif_header_start[] = { '#', '\\', '#', 'C', 'I', 'F', '_', 0 };
-    static const UChar standard_eol[] = { UCHAR_LF, UCHAR_CR, 0 };
-    const UChar *extra_eol = CONTEXT_EXTRA_EOL(data);
-    const UChar *extra_ws = CONTEXT_EXTRA_WS(data);
-    int32_t n_written;
-    int32_t tail_start;
-    int32_t tail_len;
-    UChar *ws_buf;
+/*
+ * A callback function by which whitespace (including comments) in the input CIF can be handled.  This version
+ * accumulates whitespace segments in a linked list of linked lists, for the output routines to use later.
+ *
+ * Non-standard whitespace characters are translated to standard ones here.
+ */
+void preserve_whitespace(size_t line UNUSED, size_t column UNUSED, const UChar *ws, size_t length, void *data) {
+    struct context *context = (struct context *) data;
 
-    /* suppress echoing any CIF header comment that appears at the beginning of the file */
-    if (CONTEXT_AT_START(data)) {
-        /*
-         * Note: this implementation depends on undocumented CIF API behavior of providing the whole header
-         * comment in one callback call.  It might one day break.
-         */
-        UChar *substr = u_strstr(ws, cif_header_start);
+    TRACELINE;
 
-        if (!substr || (substr == ws)) {
-            return;
-        }
-    }
-
-    /* make a nul-terminated copy of the data */
-    ws_buf = (UChar *) malloc((length + 1) * sizeof(*ws_buf));
-    u_strncpy(ws_buf, ws, length);
-    ws_buf[length] = 0;
-
-    /*
-     * CIF 1.0 output is not supported, so convert any *expected* unsupported characters to others with similar
-     * semantics.
-     */
-    if (extra_eol || extra_ws) {
-        translate_whitespace(ws_buf, length, extra_eol, extra_ws);
-    }
-
-    n_written = u_fprintf(CONTEXT_OUT(data), "%*S", (int32_t) length, ws_buf);
-    assert(n_written == length);
-
-    /* track position */
-    for (tail_start = 0, tail_len = length; tail_len; ) {
-        int32_t head_len = u_strcspn(ws_buf + tail_start, standard_eol);
-
-        if (head_len == tail_len) {
-            break;
-        } else {
-            tail_start += (head_len + 1);
-            tail_len -= (head_len + 1);
-        }
-    }
-
-    if (tail_len == length) {
-        /* no line terminator */
-        CONTEXT_INC_COLUMN(data, tail_len);
+    if (!ws) {
+        fprintf(stderr, "warning: received a null whitespace segment");
     } else {
-        CONTEXT_SET_COLUMN(data, tail_len);
+        struct ws_node *ws_node = (struct ws_node *) malloc(sizeof(*ws_node));
+
+        if (!ws_node) {
+            perror(context->progname);
+            /* this is not, in itself, a fatal condition */
+        } else {
+            /*
+             * NOTE: the ws argument might not be null terminated!
+             */
+            ws_node->next_piece = NULL;
+            ws_node->next_run = NULL;
+            ws_node->ws = (UChar *) malloc((length + 1) * sizeof(UChar));
+
+            if (!ws_node->ws) {
+                free(ws_node);
+                perror(context->progname);
+                /* this is not, in itself, a fatal condition */
+            } else {
+                struct ws_node *ws_cache = context->ws_cache;
+
+                memcpy(ws_node->ws, ws, length * sizeof(UChar));
+                ws_node->ws[length] = 0;
+                translate_whitespace(ws_node->ws, length, context->extra_eol, context->extra_ws);
+
+                if (!ws_cache) {
+                    context->ws_cache = ws_node;
+                } else {
+                    while (ws_cache->next_run) {
+                        ws_cache = ws_cache->next_run;
+                    }
+
+                    if (context->in_ws_run) {
+                        while (ws_cache->next_piece) {
+                            ws_cache = ws_cache->next_piece;
+                        }
+                        ws_cache->next_piece = ws_node;
+                    } else {
+                        ws_cache->next_run = ws_node;
+                    }
+                }
+
+                /*
+                 * zero-length whitespace signals a whitespace run that could or should have been present, but wasn't.
+                 * By refusing to change the in-whitespace flag for zero-length whitespace runs, we ensure that those
+                 * that are not part of larger runs (which should be all of them) are all treated as separate runs.
+                 */
+                if (length != 0) {
+                    context->in_ws_run = 1;
+                }
+            }
+        }
     }
-
-    /* clean up */
-    free(ws_buf);
-#endif
-
-    CONTEXT_SET_STARTED(data);
 }
 
 /*
- * A callback function by which whitespace (including comments) in the input CIF is handled.  This version echoes
- * input whitespace to the output
+ * A callback function by which whitespace (including comments) in the input CIF is handled.  This version discards all
+ * whitespace (by doing nothing).  The output routines will then generate minimal whitespace as needed, instead of
+ * echoing whitespace from the input.
  */
+void discard_whitespace(size_t line UNUSED, size_t column UNUSED, const UChar *ws UNUSED, size_t length UNUSED,
+        void *data UNUSED) {
+    /* TODO: either provide an option for discarding input whitespace or remove this callback */
+    /* empty */
+}
+
 int error_callback(int code, size_t line, size_t column, const UChar *text, size_t length, void *data) {
-    UFILE *ustderr = CONTEXT_ERR(data);
+    struct context *context = (struct context *) data;
 
-    CONTEXT_INC_ERROR_COUNT(data);
+    TRACELINE;
 
-    if (!CONTEXT_QUIET(data)) {
+    context->error_count += 1;
+
+    if (!context->quiet) {
         if ((0 <= code) && (code <= cif_nerr)) {
-            u_fprintf(ustderr, "CIF error %d at line %lu, column %lu, (near '%*S'): %s\n", code, (uint32_t) line,
-                    (uint32_t) column, (int32_t) length, text, cif_errlist[code]);
+            u_fprintf(context->ustderr, "CIF error %d at line %lu, column %lu, (near '%*S'): %s\n", code,
+                    (uint32_t) line, (uint32_t) column, (int32_t) length, text, cif_errlist[code]);
         } else {
-            u_fprintf(ustderr, "CIF error %d at line %lu, column %lu, (near '%*S'): (unknown error code)\n", code,
-                    (uint32_t) line, (uint32_t) column, (int32_t) length, text);
+            u_fprintf(context->ustderr, "CIF error %d at line %lu, column %lu, (near '%*S'): (unknown error code)\n",
+                    code, (uint32_t) line, (uint32_t) column, (int32_t) length, text);
         }
     }
 
-    if (CONTEXT_HALT_ON_ERROR(data)) {
+    if (context->halt_on_error) {
         return code;
     } else {
-        /* TODO: corrective output in some cases (?) */
+        /*
+         * Whitespace handling is on one hand sufficiently self-correcting, and on the other hand sufficiently tricky,
+         * that we do not need or want to apply corrective action with respect to whitespace for any documented error
+         * that the parser might raise.
+         *
+         * We take corrective structural action only for one error code, as the parser's recovery behavior in that case
+         * would otherwise lead to an (also) invalid CIF being produced.
+         */
+        if (code == CIF_EMPTY_LOOP) {
+            context->synthesize_packet = 1;
+        }
+
         return CIF_OK;
     }
 }
 
-void keyword_callback(size_t line UNUSED, size_t column UNUSED, const UChar *keyword, size_t length, void *data) {
-    /* TODO: implementing this callback will help with preserving comments in the input  */
+void keyword_callback(size_t line UNUSED, size_t column UNUSED, const UChar *keyword UNUSED, size_t length UNUSED,
+        void *data) {
+    /* helps to preserve whitespace structure from the input: */
+    TRACELINE;
+
+    ((struct context *) data)->in_ws_run = 0;
 }
 
-void dataname_callback(size_t line UNUSED, size_t column UNUSED, const UChar *dataname, size_t length, void *data) {
-    /* TODO: implementing this callback will help with preserving comments in the input  */
+void dataname_callback(size_t line UNUSED, size_t column UNUSED, const UChar *dataname UNUSED, size_t length UNUSED,
+        void *data) {
+    /* helps to preserve whitespace structure from the input: */
+    TRACELINE;
+
+    ((struct context *) data)->in_ws_run = 0;
 }
 
-/* function intended to handle cif_start events */
-int print_code(cif_container_tp *container, void *context, const char *type) {
+/*
+ * Outputs a data block or save frame header with the specified code
+ */
+int print_code(cif_container_tp *container, struct context *context, const char *type) {
     UChar *code;
-    uint32_t nchars;
+    int32_t nchars;
     int result;
 
     if ((result = cif_container_get_code(container, &code)) == CIF_OK) {
-        if ((nchars = u_fprintf(CONTEXT_OUT(context), "\n%s%S", type, code)) < 7) {
-            result = CIF_ERROR;
+        if (print_all_ws_runs(context)) {
+            int32_t code_length = u_strlen(code);
+
+            /*
+             * Whitespace obtained from the context was printed.  No additional whitespace is needed or wanted, but if
+             * for some reason the container header won't fit then ensure_space() will insert a newline.
+             */
+            if ((result = ensure_space(0, strlen(type) + code_length, context)) == CIF_OK) {
+                if ((nchars = u_fprintf(context->out, "%s%S", type, code)) <= code_length) {
+                    result = CIF_ERROR;
+                } else {
+                    context->column += nchars;
+                    result = CIF_OK;
+                }
+            }
+        } else {
+            /* no whitespace was available from the context */
+            if ((nchars = u_fprintf(context->out, "\n%s%S", type, code)) < 7) {
+                result = CIF_ERROR;
+            } else {
+                context->column = nchars - 1;  /* don't count the leading newline */
+                result = CIF_OK;
+            }
         }
-        CONTEXT_SET_COLUMN(context, nchars - 1);
+
         free(code);
-        result = CIF_OK;
     }
 
     return result;
@@ -1244,24 +1762,24 @@ int flush_loops(cif_container_tp *container) {
     return result;
 }
 
-int ensure_space(int data_length, void *context) {
-    int result = CIF_ERROR;
+int ensure_space(int minimum_space, int data_length, struct context *context) {
+    int result = CIF_OK;
 
-    if (CONTEXT_COLUMN(context) > 0) {
-        if ((1 + data_length + CONTEXT_COLUMN(context)) > MAX_LINE_LENGTH) {
-            if (u_fprintf(CONTEXT_OUT(context), "\n") == 1) {
-                CONTEXT_SET_COLUMN(context, 0);
-                result = CIF_OK;
+    if (context->column > 0) {
+        if ((minimum_space + data_length + context->column) > MAX_LINE_LENGTH) {
+            if (u_fprintf(context->out, "\n") == 1) {
+                context->column = 0;
+            } else {
+                result = CIF_ERROR;
             }
-        } else {
-            if (u_fprintf(CONTEXT_OUT(context), " ") == 1) {
-                CONTEXT_INC_COLUMN(context, 1);
-                result = CIF_OK;
+        } else if (minimum_space) {
+            if (u_fprintf(context->out, " ") == 1) {
+                context->column += 1;
+            } else {
+                result = CIF_ERROR;
             }
-        }
-    } else {
-        result = CIF_OK;
-    }
+        } /* else no action is required */
+    } /* else the next output goes to column 1, which automatically follows whitespace */
 
     return result;
 }
@@ -1270,52 +1788,63 @@ int ensure_space(int data_length, void *context) {
  * Prints a literal string to the output, possibly preceded by a newline or space.  Updates the context's current
  * column according to the specified length of the first line; callers will need to correct the column after printing
  * a multi-line string.
+ *
+ * preceding_space: the number of space characters to output before the string (ignored if the function chooses to
+ *     output a newline instead)
+ * str: the Unicode string to print
+ * line1_length: the number of characters in the longest initial substring of str that does not contain a newline
+ * context: a pointer to the relevant context object
+ *
+ * Returns a CIF API status code
  */
-int print_u_literal(int preceding_space, const UChar *str, int line1_length, void *context) {
+int print_u_literal(int preceding_space, const UChar *str, int line1_length, struct context *context) {
     int32_t nprinted;
 
-    if (CONTEXT_COLUMN(context)) {
+    if (context->column) {
         int32_t nspace = ((preceding_space > 0) ? preceding_space : 0);
-        int need_newline = (line1_length + CONTEXT_COLUMN(context) + nspace) > MAX_LINE_LENGTH;
+        int need_newline = (line1_length + context->column + nspace) > MAX_LINE_LENGTH;
 
         if (need_newline) {
             if (preceding_space < 0) {
                 return CIF_OVERLENGTH_LINE;
             } else {
-                if ((nprinted = u_fprintf(CONTEXT_OUT(context), "\n%S", str)) < 1) {
+                if ((nprinted = u_fprintf(context->out, "\n%S", str)) < 1) {
                     return CIF_ERROR;
                 }
-                CONTEXT_SET_COLUMN(context, nprinted - 1);
+                context->column = nprinted - 1;
             }
         } else {
-            if ((nprinted = u_fprintf(CONTEXT_OUT(context), "%*s%S", nspace, "", str)) < nspace) {
+            if ((nprinted = u_fprintf(context->out, "%*s%S", nspace, "", str)) < nspace) {
                 return CIF_ERROR;
             }
-            CONTEXT_INC_COLUMN(context, nprinted);
+            context->column += nprinted;
         }
     } else {
         /* already at the beginning of a line */
-        if ((nprinted = u_fprintf(CONTEXT_OUT(context), "%S", str)) < 0) {
+        if ((nprinted = u_fprintf(context->out, "%S", str)) < 0) {
             return CIF_ERROR;
         }
-        CONTEXT_SET_COLUMN(context, nprinted);
+        context->column = nprinted;
     }
 
     return CIF_OK;
 }
 
-/*
- * A program to convert among various dialects of CIF
- */
 int print_delimited(UChar *str, UChar *delim, int delim_length, UFILE *out) {
     return (u_fprintf(out, "%S%S%S", delim, str, delim) >= delim_length * 2) ? CIF_OK : CIF_ERROR;
 }
 
+/*
+ * Translates the specified 'extra' end-of-line characters to to newlines and the specified 'extra' whitespace
+ * characters to spaces in the provided text buffer.  The buffer is expected to be nul-terminated, but if its length is
+ * already known then that can be specified as an argument for a minor efficiency improvement.  Otherwise, the length
+ * should be passed as ((size_t) -1).
+ */
 void translate_whitespace(UChar *text, size_t length, const UChar *extra_eol, const UChar *extra_ws) {
     if (length == (size_t) -1) {
         length = u_strlen(text);
     }
-    if (extra_eol) {
+    if (extra_eol && extra_eol[0]) {
         size_t span_start = 0;
 
         for (;;) {
@@ -1323,12 +1852,12 @@ void translate_whitespace(UChar *text, size_t length, const UChar *extra_eol, co
             if (span_start >= length) {
                 break;
             } else {
-                text[span_start++] = (UChar) 0x0a; /* newline */
+                text[span_start++] = UCHAR_LF;
             }
         }
     }
 
-    if (extra_ws) {
+    if (extra_ws && extra_ws[0]) {
         size_t span_start = 0;
 
         for (;;) {
@@ -1336,16 +1865,19 @@ void translate_whitespace(UChar *text, size_t length, const UChar *extra_eol, co
             if (span_start >= length) {
                 break;
             } else {
-                text[span_start++] = (UChar) 0x20; /* space */
+                text[span_start++] = UCHAR_SP;
             }
         }
     }
 }
 
+/*
+ * A program to convert among various dialects of CIF
+ */
 int main(int argc, char *argv[]) {
     struct cif_parse_opts_s *parse_opts;
-    struct context context;
-    cif_handler_tp handler = {
+    struct context context = { 0 };
+    struct cif_handler_s handler = {
         print_header,      /* cif start */
         handle_cif_end,    /* cif end */
         open_block,        /* block start */
@@ -1354,15 +1886,13 @@ int main(int argc, char *argv[]) {
         finish_frame,      /* frame end */
         handle_loop_start, /* loop_start */
         handle_loop_end,   /* loop end */
-        start_packet_on_new_line, /* packet start */
+        handle_packet_start, /* packet start */
         discard_packet,    /* packet end */
         print_item         /* item */
     };
     cif_tp *cif = NULL;
     int result;
     int ignored;
-
-    memset(&context, 0, sizeof(context));
 
     if (cif_parse_options_create(&parse_opts) != CIF_OK) {
         exit(2);
@@ -1379,7 +1909,15 @@ int main(int argc, char *argv[]) {
         handle_cif_end(cif, &context);
     }
     ignored = cif_destroy(cif);
+
+    /* clean up */
     free(parse_opts);
+    if (context.extra_ws) {
+        free(context.extra_ws);
+    }
+    if (context.extra_eol) {
+        free(context.extra_eol);
+    }
 
     /*
      * The handler already closed the Unicode output and error streams
@@ -1388,7 +1926,7 @@ int main(int argc, char *argv[]) {
     /*
      * Exit codes:
      *  3 - parse aborted because of errors
-     *  2 - parse skipped (from function usage())
+     *  2 - parse skipped (e.g. from function usage() calling exit())
      *  1 - parse completed with errors
      *  0 - parse completed without errors
      */

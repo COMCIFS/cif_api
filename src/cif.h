@@ -1,7 +1,7 @@
 /*
  * cif.h
  *
- * Copyright 2014, 2015 John C. Bollinger
+ * Copyright 2014, 2015, 2016 John C. Bollinger
  *
  *
  * This file is part of the CIF API.
@@ -801,11 +801,14 @@ typedef int (*cif_parse_error_callback_tp)(int code, size_t line, size_t column,
  * Callbacks of this type are provided for some syntax elements that are not otherwise directly signaled, such as
  * whitespace runs, certain keywords, and data names.  These support a physical / lexical view of a parse process, as
  * opposed to the logical / structural view provided by the callbacks belonging to a @c cif_handler_tp .
- * Unlike a CIF handler those or or an error callback, syntax callbacks cannot directly influence CIF traversal or
+ * Unlike those or an error callback, syntax callbacks cannot directly influence CIF traversal or
  * interrupt parsing, but they have access to the same user data object that all other callbacks receive.
  *
  * The pointer @p token and all subsequent values through @p token @c + @p length are guaranteed to be valid pointer
- * values for comparison and arithmetic.  The result of dereferencing @p token @c + @p length is not defined.
+ * values for comparison and arithmetic.  The result of dereferencing @p token @c + @p length is not defined.  The
+ * caller does not guarantee that the data pointed to by @p token or the @p token pointer itself will remain valid or
+ * stable after this function returns.  If this function wants to provide longer-duration access then it must make a
+ * copy.
  *
  * @param[in] line the one-based line number of the start of the syntax element
  * @param[in] column the one-based column number of the first character of the syntax element
@@ -813,7 +816,8 @@ typedef int (*cif_parse_error_callback_tp)(int code, size_t line, size_t column,
  *         NUL-terminated
  * @param[in] length the number of characters in the sequence.  ( @p token + @p length ) is guaranteed to be a
  *         valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether
- *         incrementing it results in a valid pointer value is undefined.
+ *         incrementing it results in a valid pointer value is undefined.  Under some circumstances, @p length may be
+ *         zero.
  * @param[in,out] data a pointer to the user data object provided by the parser caller
  */
 typedef void (*cif_syntax_callback_tp)(size_t line, size_t column, const UChar *token, size_t length, void *data);
@@ -1002,13 +1006,16 @@ struct cif_parse_opts_s {
     cif_handler_tp *handler;
 
     /**
-     * @brief A callback function by which the client application can be notified about whitespace encountered outside
-     *         data values
+     * @brief A callback function by which the client application can be notified about whitespace that is not an
+     *         inherent part of any data value
      *
      * If not @c NULL, this function will be called by the parser whenever it encounters a run of insignificant
      * whitespace (including comments) in the input CIF.  Whitespace is insignificant if it serves only to separate
      * other elements appearing in the CIF.  The parser does not guarantee to collect @em maximal whitespace runs;
      * it may at times split consecutive whitespace into multiple runs, performing a callback for each one.
+     *
+     * Zero-length whitespace will sometimes be reported via this function.  This corresponds to points where the input
+     * omits optional whitespace, or where the parser recovers from erroneous omission of required whitespace.
      */
     cif_syntax_callback_tp whitespace_callback;
 

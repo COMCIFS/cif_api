@@ -1185,6 +1185,11 @@ static int parse_container(struct scanner_s *scanner, cif_container_tp *containe
                 /* recover by pushing back the colon */
                 scanner->next_char -= 1;
                 scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+
+                /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                        scanner->next_char - 1, 0, scanner->user_data));
+
                 /* fall through */
             case TVALUE:
             case QVALUE:
@@ -1281,6 +1286,11 @@ static int parse_item(struct scanner_s *scanner, cif_container_tp *container, UC
                 /* recover by pushing back the colon */
                 scanner->next_char -= 1;
                 scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+
+                /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                        scanner->next_char - 1, 0, scanner->user_data));
+
                 /* fall through */
             case OLIST:  /* opening delimiter of a list value */
             case OTABLE: /* opening delimiter of a table value */
@@ -1593,6 +1603,11 @@ static int parse_loop_packets(struct scanner_s *scanner, cif_loop_tp *loop, stri
                             /* recover by pushing back the colon */
                             scanner->next_char -= 1;
                             scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+
+                            /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                            OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                                    scanner->next_char - 1, 0, scanner->user_data));
+
                             /* fall through */
                         case OLIST:  /* opening delimiter of a list value */
                         case OTABLE: /* opening delimiter of a table value */
@@ -1796,6 +1811,11 @@ static int parse_list(struct scanner_s *scanner, cif_value_tp **listp) {
                 /* recover by pushing back the colon */
                 scanner->next_char -= 1;
                 scanner->ttype = alt_ttype;  /* TVALUE or QVALUE */
+
+                /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                        scanner->next_char - 1, 0, scanner->user_data));
+
                 /* fall through */
             case OLIST:  /* opening delimiter of a list value */
             case OTABLE: /* opening delimiter of a table value */
@@ -2345,9 +2365,14 @@ static int next_token(struct scanner_s *scanner) {
     enum token_type last_ttype = scanner->ttype;
     enum token_type ttype = last_ttype;
 
-    /* any token may follow these without intervening whitespace: */
-    int after_ws = ((last_ttype == END) || (last_ttype == OLIST) || (last_ttype == OTABLE) || (last_ttype == KEY)
-            || (last_ttype == TKEY));
+    /*
+     * after_ws is -1 immediately after a token that does not require the next to be whitespace separated;
+     * it is 1 immediately after genuine whitespace has been scanned; it is 0 elsewhere.
+     *
+     * Any token may follow these without intervening whitespace:
+     */
+    int after_ws = (last_ttype == END) ? 1 : ((((last_ttype == OLIST) || (last_ttype == OTABLE) || (last_ttype == KEY)
+            || (last_ttype == TKEY))) ? -1 : 0);
 
     while ((scanner->text_start >= scanner->next_char) /* else there is a token ready */
             && (result == CIF_OK)) {
@@ -2364,25 +2389,41 @@ static int next_token(struct scanner_s *scanner) {
                 ttype = END;
                 result = CIF_OK;
             }
+
+            /* break out of the scan loop: */
             break;
         }
 
-        /* Require whitespace separation between most tokens, but not between keys and values (where it is forbidden) */
+        /*
+         * Require whitespace separation between most tokens, but not between keys and values
+         */
         clazz = CLASS_OF(c, scanner);
-        if (!after_ws) {
+        if (after_ws != 1) {
             switch (scanner->meta_class[clazz]) {
-                case WS_META:
                 case CLOSE_META:
-                    /* do nothing: whitespace is never required before whitespace or before closing brackets / braces */
+                    /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                    OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                            scanner->next_char - 1, 0, scanner->user_data));
+
+                    /* no other action: whitespace is not required before closing brackets / braces */
+                    break;
+                case WS_META:
+                    /* no action: whitespace is not required before other whitespace */
                     break;
                 default:
-                    /* error: missing whitespace */
-                    result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line, scanner->column - 1,
-                            scanner->next_char - 1, 0, scanner->user_data);
-                    if (result != CIF_OK) {
-                        return result;
+                    if (!after_ws) {
+                        /* error: missing whitespace */
+                        result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line, scanner->column - 1,
+                                scanner->next_char - 1, 0, scanner->user_data);
+                        if (result != CIF_OK) {
+                            return result;
+                        } /* else recover by assuming the missing whitespace */
                     }
-                    /* recover by assuming the missing whitespace */
+
+                    /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                    OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                            scanner->next_char - 1, 0, scanner->user_data));
+
                     break;
             }
         }
@@ -2403,7 +2444,7 @@ static int next_token(struct scanner_s *scanner) {
 
                     /* move on */
                     CONSUME_TOKEN(scanner);
-                    after_ws = CIF_TRUE;
+                    after_ws = 1;
                     continue;  /* cycle the LOOP */
                 } else {
                     break;     /* break from the SWITCH */
@@ -2728,6 +2769,11 @@ static int scan_unquoted(struct scanner_s *scanner) {
                     if (result != CIF_OK) {
                         return result;
                     }
+
+                    /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                    OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                            scanner->next_char - 1, 0, scanner->user_data));
+
                     /* fall through */
                 case CLOSE_META:
                 case WS_META:
