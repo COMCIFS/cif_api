@@ -65,7 +65,7 @@ struct context {
     int in_ws_run;
     int column;
     int synthesize_packet;
-    struct ws_node *ws_cache;
+    struct ws_node *ws_queue;
 };
 
 /* macros */
@@ -648,16 +648,16 @@ void flush_ws(struct ws_node *start) {
  * Returns the number of characters printed (which may be zero), or -1 if an I/O error occurs
  */
 int32_t print_ws_run(struct context *context) {
-    if (!context->ws_cache) {
+    if (!context->ws_queue) {
         return 0;
     } else {
-        struct ws_node *current = context->ws_cache;
+        struct ws_node *current = context->ws_queue;
         int32_t rval = 0;
 
         /* XXX: consider suppressing trailing non-comment whitespace */
 
         /* we need to do this now, before we free the first cache element: */
-        context->ws_cache = context->ws_cache->next_run;
+        context->ws_queue = context->ws_queue->next_run;
 
         while (current) {
             UChar *brk;
@@ -707,7 +707,7 @@ int32_t print_ws_run(struct context *context) {
 int32_t print_all_ws_runs(struct context *context) {
     int32_t rval = 0;
 
-    while (context->ws_cache) {
+    while (context->ws_queue) {
         int32_t run_length;
 
         if ((run_length = print_ws_run(context)) >= 0) {
@@ -745,7 +745,7 @@ void consume_version_comment(struct context *context) {
     struct ws_node *this_piece;
     int checked = 0;
 
-    for (this_piece = context->ws_cache; this_piece; this_piece = this_piece->next_piece) {
+    for (this_piece = context->ws_queue; this_piece; this_piece = this_piece->next_piece) {
         UChar *next_char;
 
         for (next_char = this_piece->ws; *next_char; ) {
@@ -756,7 +756,7 @@ void consume_version_comment(struct context *context) {
 
                 /* matched */
 
-                struct ws_node *next_run = context->ws_cache->next_run;
+                struct ws_node *next_run = context->ws_queue->next_run;
 
                 /* scan forward to the next line terminator */
                 for (next_char = u_strpbrk(next_char, standard_eol_chars);
@@ -767,11 +767,11 @@ void consume_version_comment(struct context *context) {
 
                 if (!next_char) {
                     /* discard the whole run */
-                    for (this_piece = context->ws_cache; this_piece; ) {
+                    for (this_piece = context->ws_queue; this_piece; ) {
                         this_piece = free_ws_node(this_piece);
                     }
 
-                    context->ws_cache = next_run;
+                    context->ws_queue = next_run;
                 } else {
                     assert(this_piece);
 
@@ -779,9 +779,9 @@ void consume_version_comment(struct context *context) {
                     next_char += (((*next_char == UCHAR_CR) && (*(next_char + 1) == UCHAR_LF)) ? 2 : 1);
 
                     /* discard any leading pieces of this whitespace run */
-                    while (context->ws_cache != this_piece) {
-                        context->ws_cache = free_ws_node(context->ws_cache);
-                        context->ws_cache->next_run = next_run;
+                    while (context->ws_queue != this_piece) {
+                        context->ws_queue = free_ws_node(context->ws_queue);
+                        context->ws_queue->next_run = next_run;
                     }
 
                     /* discard the matched portion of the current piece */
@@ -1162,7 +1162,7 @@ int handle_loop_end(cif_loop_tp *loop UNUSED, void *data) {
     if (CONTEXT_IN_CONTAINER(context)) {
         context->in_loop = 0;
 
-        if (context->column && !context->ws_cache) {
+        if (context->column && !context->ws_queue) {
             /* inject synthetic whitespace */
             preserve_whitespace(0, 0, standard_eol_chars, 1, context);
         }
@@ -1180,7 +1180,7 @@ int handle_packet_start(cif_packet_tp *packet UNUSED, void *data) {
 
     /* no direct whitespace handling at this level */
     if (CONTEXT_IN_CONTAINER(context)) {
-        if (context->column && !context->ws_cache) {
+        if (context->column && !context->ws_queue) {
             /* inject synthetic whitespace */
             preserve_whitespace(0, 0, standard_eol_chars, 1, context);
         }
@@ -1456,7 +1456,7 @@ int print_list(cif_value_tp *value, struct context *context) {
 
     if (context->output_format == CIF11) {
         /* List values cannot be output in CIF 1.1 format */
-        flush_ws(context->ws_cache);
+        flush_ws(context->ws_queue);
         result = CIF_DISALLOWED_VALUE;
     } else if (((result = cif_value_get_element_count(value, &count)) == CIF_OK)
             && ((result = print_u_literal(SPACE_ALLOWED, list_open, 1, context)) == CIF_OK)) {
@@ -1494,7 +1494,7 @@ int print_table(cif_value_tp *value, struct context *context) {
 
     if (context->output_format == CIF11) {
         /* Table values cannot be output in CIF 1.1 format */
-        flush_ws(context->ws_cache);
+        flush_ws(context->ws_queue);
         result = CIF_DISALLOWED_VALUE;
     } else if ((result = cif_value_get_keys(value, &keys)) == CIF_OK) {
         if ((result = print_u_literal(SPACE_ALLOWED, table_open, 1, context)) == CIF_OK) {
@@ -1615,7 +1615,7 @@ int print_item(UChar *name, cif_value_tp *value, void *data) {
          * whitespace, however, then whatever of it appears at top level is set up to be merged with whatever
          * whitespace is reported next.
          */
-        struct ws_node *ws_start = context->ws_cache;
+        struct ws_node *ws_start = context->ws_queue;
 
         if (ws_start) {
             /* discard all whitespace runs but the first one (if in a loop) or up to two (otherwise) */
@@ -1781,7 +1781,7 @@ void preserve_whitespace(size_t line UNUSED, size_t column UNUSED, const UChar *
                 perror(context->progname);
                 /* this is not, in itself, a fatal condition */
             } else {
-                struct ws_node *ws_cache = context->ws_cache;
+                struct ws_node *ws_cache = context->ws_queue;
 
                 ws_node->ws[length] = 0;
                 if (length) {
@@ -1790,7 +1790,7 @@ void preserve_whitespace(size_t line UNUSED, size_t column UNUSED, const UChar *
                 }
 
                 if (!ws_cache) {
-                    context->ws_cache = ws_node;
+                    context->ws_queue = ws_node;
                 } else {
                     while (ws_cache->next_run) {
                         ws_cache = ws_cache->next_run;
