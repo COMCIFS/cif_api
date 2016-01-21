@@ -10,18 +10,19 @@ Pre-built, doxygen-generated programmer's documentation is available in
 dox-html/, and pre-built, doxygen-generated man pages are available in
 dox-man/.
 
-The package includes several example programs to demonstrate the API's usage;
+The package includes several example programs to demonstrate API usage;
 see src/examples.  These may optionally be built (and installed) with the
 API library.  One of them is a text-mode CIF 2.0 file syntax checker, which
 might be of some interest.  Also, the tests (src/tests) collectively provide
 a fairly comprehensive demonstration of the API's features, though their
 primary purpose is to verify that the library works as intended.
 
-The package now includes EXPERIMENTAL program 'cif_linguist' for converting
-data between CIF formats.  This program is not well tested and is certain to
-contain bugs (though no specific bugs are known at this time).  It is not
-built or installed by default; to include it in the build, the package must
-be configured with the --with-linguist option.
+The package also includes EXPERIMENTAL program 'cif_linguist' for converting
+data between various versions of the CIF format.  It is not built or
+installed by default on account of its experimental nature, but configure
+option --with-linguist will cause it to be included for building and
+installation.
+
 
 Refer to file INSTALL for general installation instructions.  Build details
 specific to this package follow:
@@ -58,7 +59,7 @@ specific to this package follow:
 * There are a few other project-specific configuration options, but
   they are adequately explained in configure's help text.
 
-The package has been built and tested successfully on Linux (CentOS 6, Debian;
+The package has been built and tested successfully on Linux (CentOS 6, Debian);
 this is the primary development platform), on OS X 10.8, and on Windows 7.
 For OS X builds, the needed dependencies are readily available via the "Fink"
 package management system and its public repositories, among other means.
@@ -67,7 +68,7 @@ further information is provided in file README_Windows.  Those approaches
 assume you want to use the provided package build system; other approaches
 may be available if you want to build the project with a different toolchain,
 such as Visual Studio on Windows or XCode on OS X.  The project has few,
-if any, toolchain dependencies, but no support is currently available for
+if any, toolchain dependencies, but only limited support is available for
 such build strategies.
 
 

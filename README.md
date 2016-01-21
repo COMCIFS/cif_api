@@ -14,10 +14,10 @@ might be of some interest.  Also, the tests (`src/tests/`) collectively provide
 a fairly comprehensive demonstration of API features, though their
 primary purpose is to verify that the library works as intended.
 
-The package also includes EXPERIMENTAL program cif_linguist, which converts
+The package also includes EXPERIMENTAL program `cif_linguist`, which converts
 data between various versions of the CIF format.  It is not built or
-installed by default on account of its experimental nature, but configure
-option --with-linguist will cause it to be included for building and
+installed by default on account of its experimental nature, but `configure`
+option `--with-linguist` will cause it to be included for building and
 installation.
 
 Refer to file INSTALL for general installation instructions.  Build details
@@ -44,8 +44,10 @@ specific to this package follow:
   Considerable effort was devoted, however, to restricting implementation code
   to the intersection of standard C90 and standard C99, and additionally to
   avoiding code that has different meaning in C and C++.  With very few
-  caveats, any compiler that is compliant with any one of C90, C99, C2011,
-  C++98, or C++2011 should be able to build the project.
+  caveats, any compiler that is compliant with any one of C89/C90, C99, C2011,
+  C++98, or C++2011 should be able to build the project.  Building with a
+  C++ compiler may require using the `--disable-c89-enforcement` configuration
+  option, however.
 
  * At present, the `--enable-extra-warnings` configuration option is effective
   only for gcc.
@@ -82,7 +84,7 @@ Tennessee, U.S.A..  Specific exceptions include, but are not necessarily
 limited to, the contents of the 'uthash' directory; those files are
 subject to the copyright statement and license in the file 'LICENSE' in
 that directory, and it is subject to those terms that they are distributed
-to you.  Additionally, many components of the build system are
+to you herein.  Additionally, many components of the build system are
 parts of, or were generated via, the GNU AutoTools suite.  These contain
 code belonging to the Free Software Foundation (FSF), and each is marked
 with an FSF ownership notice and statements of rights.  The FSF components
