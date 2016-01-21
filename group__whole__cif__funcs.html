@@ -50,7 +50,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Looks up and optionally returns the data block bearing the specified block code, if any, in the specified CIF.  <a href="#gab4db0c96e1f05332f23a9fc733f1c8b2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__whole__cif__funcs.html#gaf4b3170db6570967d31c4e0dd7870229">cif_get_all_blocks</a> (<a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a> *cif, <a class="el" href="group__datatypes.html#gac72757cd535deb2a338eb3b0a7afb29d">cif_block_tp</a> ***blocks)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Provides a null-terminated array of data block handles, one for each block in the specified CIF.  <a href="#gaf4b3170db6570967d31c4e0dd7870229"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__whole__cif__funcs.html#ga4773f5b0646e96e25d0f712c011f8bb1">cif_walk</a> (<a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a> *cif, <a class="el" href="structcif__handler__tp.html">cif_handler_tp</a> *handler, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__whole__cif__funcs.html#ga4773f5b0646e96e25d0f712c011f8bb1">cif_walk</a> (<a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a> *cif, <a class="el" href="structcif__handler__s.html">cif_handler_tp</a> *handler, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Performs a depth-first, natural-order traversal of a CIF, calling back to handler routines provided by the caller for each structural element.  <a href="#ga4773f5b0646e96e25d0f712c011f8bb1"></a><br/></td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
@@ -259,7 +259,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structcif__handler__tp.html">cif_handler_tp</a> *&nbsp;</td>
+          <td class="paramtype"><a class="el" href="structcif__handler__s.html">cif_handler_tp</a> *&nbsp;</td>
           <td class="paramname"> <em>handler</em>, </td>
         </tr>
         <tr>

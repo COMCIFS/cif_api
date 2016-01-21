@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>cif-api: cif_handler_tp Struct Reference</title>
+<title>cif-api: cif_handler_s Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javaScript" src="search/search.js"></script>
@@ -44,48 +44,48 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <div class="contents">
-<h1>cif_handler_tp Struct Reference<br/>
+<h1>cif_handler_s Struct Reference<br/>
 <small>
 [<a class="el" href="group__datatypes.html">Data types</a>]</small>
-</h1><!-- doxytag: class="cif_handler_tp" -->
+</h1><!-- doxytag: class="cif_handler_s" -->
 <p>A set of functions defining a handler interface for directing and taking appropriate action in response to a traversal of a CIF.  
 <a href="#_details">More...</a></p>
 
 <p><code>#include &lt;cif.h&gt;</code></p>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Data Fields</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a765e7d6a58aeb319dcdad862a3ef9957"></a><!-- doxytag: member="cif_handler_tp::handle_cif_start" ref="a765e7d6a58aeb319dcdad862a3ef9957" args=")(cif_tp *cif, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a765e7d6a58aeb319dcdad862a3ef9957">handle_cif_start</a> )(<a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a> *cif, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1e773cc67d4972612269837341984a46"></a><!-- doxytag: member="cif_handler_s::handle_cif_start" ref="a1e773cc67d4972612269837341984a46" args=")(cif_tp *cif, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#a1e773cc67d4972612269837341984a46">handle_cif_start</a> )(<a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a> *cif, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the beginning of a top-level CIF object. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acf986c173a4abc89e6e078c663ca37e4"></a><!-- doxytag: member="cif_handler_tp::handle_cif_end" ref="acf986c173a4abc89e6e078c663ca37e4" args=")(cif_tp *cif, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#acf986c173a4abc89e6e078c663ca37e4">handle_cif_end</a> )(<a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a> *cif, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afcd528d12724923401627d0261fb2f69"></a><!-- doxytag: member="cif_handler_s::handle_cif_end" ref="afcd528d12724923401627d0261fb2f69" args=")(cif_tp *cif, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#afcd528d12724923401627d0261fb2f69">handle_cif_end</a> )(<a class="el" href="group__datatypes.html#ga118532ee38b48f9879f2e18e18402731">cif_tp</a> *cif, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the end of a top-level CIF object. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0ef85475395535c3da91dca6dd44d762"></a><!-- doxytag: member="cif_handler_tp::handle_block_start" ref="a0ef85475395535c3da91dca6dd44d762" args=")(cif_container_tp *block, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a0ef85475395535c3da91dca6dd44d762">handle_block_start</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *block, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a28cb32347a9fe351a37652b9dde6ebff"></a><!-- doxytag: member="cif_handler_s::handle_block_start" ref="a28cb32347a9fe351a37652b9dde6ebff" args=")(cif_container_tp *block, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#a28cb32347a9fe351a37652b9dde6ebff">handle_block_start</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *block, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the beginning of a data block. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6cc6dbd5e260fd2e1fb18a59a5970161"></a><!-- doxytag: member="cif_handler_tp::handle_block_end" ref="a6cc6dbd5e260fd2e1fb18a59a5970161" args=")(cif_container_tp *block, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a6cc6dbd5e260fd2e1fb18a59a5970161">handle_block_end</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *block, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adf46d402588365e185538474c39b2601"></a><!-- doxytag: member="cif_handler_s::handle_block_end" ref="adf46d402588365e185538474c39b2601" args=")(cif_container_tp *block, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#adf46d402588365e185538474c39b2601">handle_block_end</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *block, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the end of a data block. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a01b21d09af47fb85f77efd2f119099e3"></a><!-- doxytag: member="cif_handler_tp::handle_frame_start" ref="a01b21d09af47fb85f77efd2f119099e3" args=")(cif_container_tp *frame, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a01b21d09af47fb85f77efd2f119099e3">handle_frame_start</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *frame, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a693faea2e7c36b2de5833254a1da0ca7"></a><!-- doxytag: member="cif_handler_s::handle_frame_start" ref="a693faea2e7c36b2de5833254a1da0ca7" args=")(cif_container_tp *frame, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#a693faea2e7c36b2de5833254a1da0ca7">handle_frame_start</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *frame, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the beginning of a save frame. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7d2aedd42034057e1fe47e740ad40e52"></a><!-- doxytag: member="cif_handler_tp::handle_frame_end" ref="a7d2aedd42034057e1fe47e740ad40e52" args=")(cif_container_tp *frame, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a7d2aedd42034057e1fe47e740ad40e52">handle_frame_end</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *frame, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6cfcbcf1234b10670a57d6e0b25c5b96"></a><!-- doxytag: member="cif_handler_s::handle_frame_end" ref="a6cfcbcf1234b10670a57d6e0b25c5b96" args=")(cif_container_tp *frame, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#a6cfcbcf1234b10670a57d6e0b25c5b96">handle_frame_end</a> )(<a class="el" href="group__datatypes.html#gafdefb093bf97d786caff539727b95786">cif_container_tp</a> *frame, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the end of a save frame. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adcee790e676f710338f56317f9b2aa49"></a><!-- doxytag: member="cif_handler_tp::handle_loop_start" ref="adcee790e676f710338f56317f9b2aa49" args=")(cif_loop_tp *loop, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#adcee790e676f710338f56317f9b2aa49">handle_loop_start</a> )(<a class="el" href="group__datatypes.html#gacedb378f63a1980e4235c470b622e335">cif_loop_tp</a> *loop, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aca4f5302eceb1066c9882059e2a57cf5"></a><!-- doxytag: member="cif_handler_s::handle_loop_start" ref="aca4f5302eceb1066c9882059e2a57cf5" args=")(cif_loop_tp *loop, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#aca4f5302eceb1066c9882059e2a57cf5">handle_loop_start</a> )(<a class="el" href="group__datatypes.html#gacedb378f63a1980e4235c470b622e335">cif_loop_tp</a> *loop, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the beginning of a loop. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8ce2e2d13c79cd611277d09cec082656"></a><!-- doxytag: member="cif_handler_tp::handle_loop_end" ref="a8ce2e2d13c79cd611277d09cec082656" args=")(cif_loop_tp *loop, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a8ce2e2d13c79cd611277d09cec082656">handle_loop_end</a> )(<a class="el" href="group__datatypes.html#gacedb378f63a1980e4235c470b622e335">cif_loop_tp</a> *loop, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a23bf7f8e65fc764456de17e383457a73"></a><!-- doxytag: member="cif_handler_s::handle_loop_end" ref="a23bf7f8e65fc764456de17e383457a73" args=")(cif_loop_tp *loop, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#a23bf7f8e65fc764456de17e383457a73">handle_loop_end</a> )(<a class="el" href="group__datatypes.html#gacedb378f63a1980e4235c470b622e335">cif_loop_tp</a> *loop, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the end of a loop. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad0fa1ae17584630c7666958670f1b7a3"></a><!-- doxytag: member="cif_handler_tp::handle_packet_start" ref="ad0fa1ae17584630c7666958670f1b7a3" args=")(cif_packet_tp *packet, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#ad0fa1ae17584630c7666958670f1b7a3">handle_packet_start</a> )(<a class="el" href="group__datatypes.html#ga1a9b0b1f2abee085ee5d32eb388f2d60">cif_packet_tp</a> *packet, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a76875ea82376ebd285a9e5024b937f07"></a><!-- doxytag: member="cif_handler_s::handle_packet_start" ref="a76875ea82376ebd285a9e5024b937f07" args=")(cif_packet_tp *packet, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#a76875ea82376ebd285a9e5024b937f07">handle_packet_start</a> )(<a class="el" href="group__datatypes.html#ga1a9b0b1f2abee085ee5d32eb388f2d60">cif_packet_tp</a> *packet, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the beginning of a loop packet. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a22b5b37dabe5e80bb7236bbb731b3d41"></a><!-- doxytag: member="cif_handler_tp::handle_packet_end" ref="a22b5b37dabe5e80bb7236bbb731b3d41" args=")(cif_packet_tp *packet, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a22b5b37dabe5e80bb7236bbb731b3d41">handle_packet_end</a> )(<a class="el" href="group__datatypes.html#ga1a9b0b1f2abee085ee5d32eb388f2d60">cif_packet_tp</a> *packet, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad7d92fbd7d48870af42070ed2aa45f16"></a><!-- doxytag: member="cif_handler_s::handle_packet_end" ref="ad7d92fbd7d48870af42070ed2aa45f16" args=")(cif_packet_tp *packet, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#ad7d92fbd7d48870af42070ed2aa45f16">handle_packet_end</a> )(<a class="el" href="group__datatypes.html#ga1a9b0b1f2abee085ee5d32eb388f2d60">cif_packet_tp</a> *packet, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for the end of a loop packet. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6825e5a53a09e482058f7edd92c19cb3"></a><!-- doxytag: member="cif_handler_tp::handle_item" ref="a6825e5a53a09e482058f7edd92c19cb3" args=")(UChar *name, cif_value_tp *value, void *context)" -->
-int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html#a6825e5a53a09e482058f7edd92c19cb3">handle_item</a> )(UChar *name, <a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, void *context)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a014998b98175222736eda7c6914aafdb"></a><!-- doxytag: member="cif_handler_s::handle_item" ref="a014998b98175222736eda7c6914aafdb" args=")(UChar *name, cif_value_tp *value, void *context)" -->
+int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html#a014998b98175222736eda7c6914aafdb">handle_item</a> )(UChar *name, <a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, void *context)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A handler function for data items (there are not separate beginning and end callbacks). If called with a NULL name then value is a placeholder -- this normally happens only in a parsing context, when a duplicate data name is enrolled in a loop. <br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>

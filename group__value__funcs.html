@@ -40,7 +40,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 <h1>Functions for manipulating value objects</h1><table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga3fe1a17cd35418767eaefd343f926e0b">cif_value_create</a> (<a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a> kind, <a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> **value)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga3fe1a17cd35418767eaefd343f926e0b">cif_value_create</a> (<a class="el" href="group__datatypes.html#gabe4aae51dfb723caed8280a05fe1f5e6">cif_kind_tp</a> kind, <a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> **value)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Allocates and initializes a new value object of the specified kind.  <a href="#ga3fe1a17cd35418767eaefd343f926e0b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gac6eb6d7ad6225498e56c89ee225c2c46">cif_value_clean</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Frees any resources associated with the provided value object without freeing the object itself, changing it into an instance of the explicit unknown value.  <a href="#gac6eb6d7ad6225498e56c89ee225c2c46"></a><br/></td></tr>
@@ -48,7 +48,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Frees the specified value object and all resources associated with it.  <a href="#gae023e5c1166c8f457333d776686a8f30"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga19562573b8a23de41705f0c15caefd9a">cif_value_clone</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, <a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> **clone)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Creates an independent copy of a CIF value object.  <a href="#ga19562573b8a23de41705f0c15caefd9a"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga332f27466b5af3f5d829394dbd803047">cif_value_init</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, <a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a> kind)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga332f27466b5af3f5d829394dbd803047">cif_value_init</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, <a class="el" href="group__datatypes.html#gabe4aae51dfb723caed8280a05fe1f5e6">cif_kind_tp</a> kind)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Reinitializes the provided value object to a default value of the specified kind.  <a href="#ga332f27466b5af3f5d829394dbd803047"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga3be5dea8ed4231d7b9ae0859f886e025">cif_value_init_char</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, UChar *text)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">(Re)initializes the specified value object as being of kind <code>CIF_CHAR_KIND</code>, with the specified text  <a href="#ga3be5dea8ed4231d7b9ae0859f886e025"></a><br/></td></tr>
@@ -60,11 +60,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">(Re)initializes the given value as a number with the specified value and uncertainty, with a number of significant figures determined by the specified <code>scale</code>  <a href="#ga80b0017214727b7fd841de3b90db8fa2"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gacd228b9e592c6be981df3cea02176319">cif_value_autoinit_numb</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *numb, double val, double su, unsigned int su_rule)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">(Re)initializes the given value as a number with the specified value and uncertainty, automatically choosing the number of significant digits to keep based on the specified <code>su</code> and <code>su_rule</code>.  <a href="#gacd228b9e592c6be981df3cea02176319"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gadc69676873c55ee05aa0b06bf8b16364">cif_value_kind</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#gabe4aae51dfb723caed8280a05fe1f5e6">cif_kind_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gadc69676873c55ee05aa0b06bf8b16364">cif_value_kind</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the kind code of the specified value.  <a href="#gadc69676873c55ee05aa0b06bf8b16364"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga91436bec5f43ed8627871d5eea6192a6">cif_value_is_quoted</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga44beb31c2fbeb5bd6c2c5f227fd584eb">cif_quoted_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga91436bec5f43ed8627871d5eea6192a6">cif_value_is_quoted</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns whether the value should be interpreted as if it were presented quoted.  <a href="#ga91436bec5f43ed8627871d5eea6192a6"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c">cif_value_set_quoted</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, <a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a> quoted)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#gafa57153e1fc82f0891c354bff3b42a6c">cif_value_set_quoted</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *value, <a class="el" href="group__datatypes.html#ga44beb31c2fbeb5bd6c2c5f227fd584eb">cif_quoted_tp</a> quoted)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets whether the value should be interpreted as if it were presented quoted.  <a href="#gafa57153e1fc82f0891c354bff3b42a6c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__value__funcs.html#ga5d0671fa297a3db716b824dc3fc5396c">cif_value_get_number</a> (<a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *numb, double *val)</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the value represented by the given number value object.  <a href="#ga5d0671fa297a3db716b824dc3fc5396c"></a><br/></td></tr>
@@ -268,7 +268,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
         <tr>
           <td class="memname">int cif_value_create </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a>&nbsp;</td>
+          <td class="paramtype"><a class="el" href="group__datatypes.html#gabe4aae51dfb723caed8280a05fe1f5e6">cif_kind_tp</a>&nbsp;</td>
           <td class="paramname"> <em>kind</em>, </td>
         </tr>
         <tr>
@@ -644,7 +644,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a>&nbsp;</td>
+          <td class="paramtype"><a class="el" href="group__datatypes.html#gabe4aae51dfb723caed8280a05fe1f5e6">cif_kind_tp</a>&nbsp;</td>
           <td class="paramname"> <em>kind</em></td><td>&nbsp;</td>
         </tr>
         <tr>
@@ -833,7 +833,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a> cif_value_is_quoted </td>
+          <td class="memname"><a class="el" href="group__datatypes.html#ga44beb31c2fbeb5bd6c2c5f227fd584eb">cif_quoted_tp</a> cif_value_is_quoted </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *&nbsp;</td>
           <td class="paramname"> <em>value</em></td>
@@ -861,7 +861,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a> cif_value_kind </td>
+          <td class="memname"><a class="el" href="group__datatypes.html#gabe4aae51dfb723caed8280a05fe1f5e6">cif_kind_tp</a> cif_value_kind </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a> *&nbsp;</td>
           <td class="paramname"> <em>value</em></td>
@@ -1153,7 +1153,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a>&nbsp;</td>
+          <td class="paramtype"><a class="el" href="group__datatypes.html#ga44beb31c2fbeb5bd6c2c5f227fd584eb">cif_quoted_tp</a>&nbsp;</td>
           <td class="paramname"> <em>quoted</em></td><td>&nbsp;</td>
         </tr>
         <tr>
@@ -1175,7 +1175,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </table>
   </dd>
 </dl>
-<dl class="return"><dt><b>Returns:</b></dt><dd>Returns CIF_OK on success, or an error code (typically <code>CIF_ARGUMENT_ERROR</code> or <code>CIF_ERROR</code> ) on failure. </dd></dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>Returns CIF_OK on success, or an error code (typically <code>CIF_ARGUMENT_ERROR</code> or <code>CIF_ERROR</code> ) on failure. In particular, if <code>value</code> is of CHAR kind then a return code of <code>CIF_ARGUMENT_ERROR</code> means the value cannot be presented in CIF unquoted, not even via coercion to a different kind. </dd></dl>
 
 </div>
 </div>

@@ -206,7 +206,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p>Determines whether a given string takes a reserved form that must not be presented whitespace-delimited in a CIF. </p>
 <p>This function looks for individual reserved characters at the beginning of the string, and compares the string overall to several reserved words and forms. Unlike most CIF API functions, this one does not return a CIF API result code.</p>
-<p>Although strings containing CIF whitespace or certain other characters cannot be presented whitespace-delimited, they are not for that reason considered "reserved" for the purposes of this function.</p>
+<p>Although CIF whitespace and certain other characters cannot appear anywhere in a data value that is presented whitespace-delimited, strings containing those characters are not for that reason considered "reserved" for the purposes of this function.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>str</em>&nbsp;</td><td>a NUL-terminated Unicode string to analyze; must not be NULL</td></tr>

@@ -70,10 +70,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">ASCII characters that should be interpreted as CIF inline whitespace.  <a href="#a726ecc2a60cc011824e395a70957c07f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a75cba35666a09ce2861f31fe948c6acf">extra_eol_chars</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">ASCII characters that should be interpreted as CIF end-of-line [whitespace] characters.  <a href="#a75cba35666a09ce2861f31fe948c6acf"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structcif__handler__tp.html">cif_handler_tp</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a4508b10109b811a30c950500a9234cfe">handler</a></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structcif__handler__s.html">cif_handler_tp</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a4508b10109b811a30c950500a9234cfe">handler</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A set of handler functions by which the application can be notified of details of the parse progress as they occur, and through which it can influence the data recorded; may be <code>NULL</code>.  <a href="#a4508b10109b811a30c950500a9234cfe"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#ac879b3d626898f828809e15e52c995e1">whitespace_callback</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about whitespace encountered outside data values.  <a href="#ac879b3d626898f828809e15e52c995e1"></a><br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about whitespace that is not an inherent part of any data value.  <a href="#ac879b3d626898f828809e15e52c995e1"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#a509366eafb1690727b681a95662d92c4">keyword_callback</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A callback function by which the client application can be notified about CIF keywords.  <a href="#a509366eafb1690727b681a95662d92c4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html#aec8a029e2eb8829d5cf9d5fbc08c3023">dataname_callback</a></td></tr>
@@ -203,14 +203,14 @@ void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="st
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structcif__handler__tp.html">cif_handler_tp</a>* <a class="el" href="structcif__parse__opts__s.html#a4508b10109b811a30c950500a9234cfe">cif_parse_opts_s::handler</a></td>
+          <td class="memname"><a class="el" href="structcif__handler__s.html">cif_handler_tp</a>* <a class="el" href="structcif__parse__opts__s.html#a4508b10109b811a30c950500a9234cfe">cif_parse_opts_s::handler</a></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
 <p>A set of handler functions by which the application can be notified of details of the parse progress as they occur, and through which it can influence the data recorded; may be <code>NULL</code>. </p>
-<p>If not itself NULL, then any non-null handler functions in the <code><a class="el" href="structcif__handler__tp.html" title="A set of functions defining a handler interface for directing and taking appropriate...">cif_handler_tp</a></code> to which this option points will be invoked by the parser at appropriate times as it traverses the input CIF text. The handlers' return codes <code>CIF_TRAVERSE_SKIP_CURRENT</code> and <code>CIF_TRAVERSE_SKIP_SIBLINGS</code> are interpreted as directing which data to record in the target CIF, if indeed the user has provided one. (The parser cannot altogether skip parsing any part of the input if it must identify the end of that part and there resume normal operation.) Handler callbacks are not invoked for entities thereby passed over. Handlers may modify the CIF under construction, subject to the limitations inherent in the CIF being incompletely constructed when they are called. </p>
+<p>If not itself NULL, then any non-null handler functions in the <code>cif_handler_tp</code> to which this option points will be invoked by the parser at appropriate times as it traverses the input CIF text. The handlers' return codes <code>CIF_TRAVERSE_SKIP_CURRENT</code> and <code>CIF_TRAVERSE_SKIP_SIBLINGS</code> are interpreted as directing which data to record in the target CIF, if indeed the user has provided one. (The parser cannot altogether skip parsing any part of the input if it must identify the end of that part and there resume normal operation.) Handler callbacks are not invoked for entities thereby passed over. Handlers may modify the CIF under construction, subject to the limitations inherent in the CIF being incompletely constructed when they are called. </p>
 
 </div>
 </div>
@@ -311,8 +311,9 @@ void *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="st
 </div>
 <div class="memdoc">
 
-<p>A callback function by which the client application can be notified about whitespace encountered outside data values. </p>
-<p>If not <code>NULL</code>, this function will be called by the parser whenever it encounters a run of insignificant whitespace (including comments) in the input CIF. Whitespace is insignificant if it serves only to separate other elements appearing in the CIF. The parser does not guarantee to collect <em>maximal</em> whitespace runs; it may at times split consecutive whitespace into multiple runs, performing a callback for each one. </p>
+<p>A callback function by which the client application can be notified about whitespace that is not an inherent part of any data value. </p>
+<p>If not <code>NULL</code>, this function will be called by the parser whenever it encounters a run of insignificant whitespace (including comments) in the input CIF. Whitespace is insignificant if it serves only to separate other elements appearing in the CIF.</p>
+<p>The parser does not guarantee to collect <em>maximal</em> whitespace runs; it may at times split consecutive whitespace into multiple runs, performing a callback for each one. It does, however, mark each transition from whitespace to non-whitespace by reporting a zero-length whitespace run. It does so, too, for <em>virtual</em> whitespace -- where optional whitespace is omitted, or where the parser detects and recovers from omission of required whitespace. </p>
 
 </div>
 </div>

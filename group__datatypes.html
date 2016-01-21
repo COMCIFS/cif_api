@@ -40,8 +40,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 <h1>Data types</h1><table border="0" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"><h2>Data Structures</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__tp.html">cif_handler_tp</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A set of functions defining a handler interface for directing and taking appropriate action in response to a traversal of a CIF.  <a href="structcif__handler__tp.html#_details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__handler__s.html">cif_handler_s</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A set of functions defining a handler interface for directing and taking appropriate action in response to a traversal of a CIF.  <a href="structcif__handler__s.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__parse__opts__s.html">cif_parse_opts_s</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Represents a collection of CIF parsing options.  <a href="structcif__parse__opts__s.html#_details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">struct &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structcif__write__opts__s.html">cif_write_opts_s</a></td></tr>
@@ -71,26 +71,36 @@ typedef struct cif_pktitr_s&nbsp;</td><td class="memItemRight" valign="bottom"><
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaf5c256b25e639154880eea5cb183b080"></a><!-- doxytag: member="datatypes::cif_value_tp" ref="gaf5c256b25e639154880eea5cb183b080" args="" -->
 typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#gaf5c256b25e639154880eea5cb183b080">cif_value_tp</a></td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type of all data value objects. <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabe4aae51dfb723caed8280a05fe1f5e6"></a><!-- doxytag: member="datatypes::cif_kind_tp" ref="gabe4aae51dfb723caed8280a05fe1f5e6" args="" -->
+typedef enum <a class="el" href="group__datatypes.html#gaa88d52309cf2fe02f842e48f831bae8c">cif_kind</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#gabe4aae51dfb723caed8280a05fe1f5e6">cif_kind_tp</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type used for codes representing the dynamic kind of the data in a <code>cif_value_tp</code> object. <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga44beb31c2fbeb5bd6c2c5f227fd584eb"></a><!-- doxytag: member="datatypes::cif_quoted_tp" ref="ga44beb31c2fbeb5bd6c2c5f227fd584eb" args="" -->
+typedef enum <a class="el" href="group__datatypes.html#gaf4ae90680005103c5b76a69d8bb01369">cif_quoted</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga44beb31c2fbeb5bd6c2c5f227fd584eb">cif_quoted_tp</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type used for representing values' quoting status, to allow applications to distinguish between the same value when presented quoted and when presented unquoted. <br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structcif__handler__s.html">cif_handler_s</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga07c828500c6b7675a1b38a0515dfc4e6">cif_handler_tp</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A set of functions defining a handler interface for directing and taking appropriate action in response to a traversal of a CIF.  <a href="#ga07c828500c6b7675a1b38a0515dfc4e6"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef int(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga9bd06e152cfd90deb050f3c926cf31be">cif_parse_error_callback_tp</a> )(int code, size_t line, size_t column, const UChar *text, size_t length, void *data)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type of a callback function to be invoked when a parse error occurs.  <a href="#ga9bd06e152cfd90deb050f3c926cf31be"></a><br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A pointer to a callback function to be invoked when a parse error occurs.  <a href="#ga9bd06e152cfd90deb050f3c926cf31be"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef void(*&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga36d7b2ac245b84e630ba8488c24c7c43">cif_syntax_callback_tp</a> )(size_t line, size_t column, const UChar *token, size_t length, void *data)</td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The type of a callback function by which a client application can be notified of a syntactic element.  <a href="#ga36d7b2ac245b84e630ba8488c24c7c43"></a><br/></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A pointer to a callback function by which a client application can be notified of a syntactic element.  <a href="#ga36d7b2ac245b84e630ba8488c24c7c43"></a><br/></td></tr>
 <tr><td colspan="2"><h2>Enumerations</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a> { <br/>
-&nbsp;&nbsp;<a class="el" href="group__datatypes.html#gga924f12fdd599ac5cbf18edc69ccd9e86a17f1584a1b60f1771342a314f04e9e83">CIF_CHAR_KIND</a> =  0, 
-<a class="el" href="group__datatypes.html#gga924f12fdd599ac5cbf18edc69ccd9e86a8eb9d1b74d5cc977580c23bab050c477">CIF_NUMB_KIND</a> =  1, 
-<a class="el" href="group__datatypes.html#gga924f12fdd599ac5cbf18edc69ccd9e86a1f6f7777560e91b1851eb88d1a4cebf8">CIF_LIST_KIND</a> =  2, 
-<a class="el" href="group__datatypes.html#gga924f12fdd599ac5cbf18edc69ccd9e86a0039af7b26dfaecfa8ab9d3fb5d91bc1">CIF_TABLE_KIND</a> =  3, 
+<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#gaa88d52309cf2fe02f842e48f831bae8c">cif_kind</a> { <br/>
+&nbsp;&nbsp;<a class="el" href="group__datatypes.html#ggaa88d52309cf2fe02f842e48f831bae8ca17f1584a1b60f1771342a314f04e9e83">CIF_CHAR_KIND</a> =  0, 
+<a class="el" href="group__datatypes.html#ggaa88d52309cf2fe02f842e48f831bae8ca8eb9d1b74d5cc977580c23bab050c477">CIF_NUMB_KIND</a> =  1, 
+<a class="el" href="group__datatypes.html#ggaa88d52309cf2fe02f842e48f831bae8ca1f6f7777560e91b1851eb88d1a4cebf8">CIF_LIST_KIND</a> =  2, 
+<a class="el" href="group__datatypes.html#ggaa88d52309cf2fe02f842e48f831bae8ca0039af7b26dfaecfa8ab9d3fb5d91bc1">CIF_TABLE_KIND</a> =  3, 
 <br/>
-&nbsp;&nbsp;<a class="el" href="group__datatypes.html#gga924f12fdd599ac5cbf18edc69ccd9e86a2c237c84648837a9e16dc9933f2b67a5">CIF_NA_KIND</a> =  4, 
-<a class="el" href="group__datatypes.html#gga924f12fdd599ac5cbf18edc69ccd9e86ad0537717ef261eb000a2af687a3b1091">CIF_UNK_KIND</a> =  5
+&nbsp;&nbsp;<a class="el" href="group__datatypes.html#ggaa88d52309cf2fe02f842e48f831bae8ca2c237c84648837a9e16dc9933f2b67a5">CIF_NA_KIND</a> =  4, 
+<a class="el" href="group__datatypes.html#ggaa88d52309cf2fe02f842e48f831bae8cad0537717ef261eb000a2af687a3b1091">CIF_UNK_KIND</a> =  5
 <br/>
  }</td></tr>
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>The type used for codes representing the dynamic kind of the data in a <code>cif_value_tp</code> object. </p>
- <a href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">More...</a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a> { <a class="el" href="group__datatypes.html#ggab312e9783ea613a434d4ef928a1513a1ae5f7e9ff3f017f7ebe1b23c64d4f1abd">CIF_NOT_QUOTED</a> =  0, 
-<a class="el" href="group__datatypes.html#ggab312e9783ea613a434d4ef928a1513a1a1cb46992540895a812439bc16f62f7ab">CIF_QUOTED</a> =  1
+ <a href="group__datatypes.html#gaa88d52309cf2fe02f842e48f831bae8c">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__datatypes.html#gaf4ae90680005103c5b76a69d8bb01369">cif_quoted</a> { <a class="el" href="group__datatypes.html#ggaf4ae90680005103c5b76a69d8bb01369ae5f7e9ff3f017f7ebe1b23c64d4f1abd">CIF_NOT_QUOTED</a> =  0, 
+<a class="el" href="group__datatypes.html#ggaf4ae90680005103c5b76a69d8bb01369a1cb46992540895a812439bc16f62f7ab">CIF_QUOTED</a> =  1
  }</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight"><p>The type used for representing values' quoting status, to allow applications to distinguish between the same value when presented quoted and when presented unquoted. </p>
+ <a href="group__datatypes.html#gaf4ae90680005103c5b76a69d8bb01369">More...</a><br/></td></tr>
 </table>
 <hr/><h2>Typedef Documentation</h2>
 <a class="anchor" id="gafdefb093bf97d786caff539727b95786"></a><!-- doxytag: member="cif.h::cif_container_tp" ref="gafdefb093bf97d786caff539727b95786" args="" -->
@@ -106,6 +116,29 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 
 <p>An opaque handle on a managed CIF data block or save frame. </p>
 <p>From a structural perspective, save frames and data blocks are distinguished only by nesting level: data blocks are (the only meaningful) top-level components of whole CIFs, whereas save frames are nested inside data blocks. They are otherwise exactly the same with respect to contents and allowed operations, and <code>cif_container_tp</code> models that commonality. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga07c828500c6b7675a1b38a0515dfc4e6"></a><!-- doxytag: member="cif.h::cif_handler_tp" ref="ga07c828500c6b7675a1b38a0515dfc4e6" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structcif__handler__s.html">cif_handler_s</a>  <a class="el" href="structcif__handler__s.html">cif_handler_tp</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>A set of functions defining a handler interface for directing and taking appropriate action in response to a traversal of a CIF. </p>
+<p>Each structural element of the CIF being traversed will be presented to the appropriate handler function, along with the appropriate context object, if any. When traversal is performed via the <code><a class="el" href="group__whole__cif__funcs.html#ga4773f5b0646e96e25d0f712c011f8bb1" title="Performs a depth-first, natural-order traversal of a CIF, calling back to handler...">cif_walk()</a></code> function, the context object is the one passed to <code><a class="el" href="group__whole__cif__funcs.html#ga4773f5b0646e96e25d0f712c011f8bb1" title="Performs a depth-first, natural-order traversal of a CIF, calling back to handler...">cif_walk()</a></code> by its caller. The handler may perform any action it considers suitable, and it is expected to return a code influencing the traversal path, one of: </p>
+<ul>
+<li><code>CIF_TRAVERSE_CONTINUE</code> for the walker to continue on its default path (for instance, to descend to the current element's first child), or </li>
+<li><code>CIF_TRAVERSE_SKIP_CURRENT</code> for the walker to skip traversal of the current element's children, if any, and the current element itself if possible (meaningfully distinct from <code>CIF_TRAVERSE_CONTINUE</code> only for the <code>*_start</code> callbacks), or </li>
+<li><code>CIF_TRAVERSE_SKIP_SIBLINGS</code> for the walker to skip the current element if possible, its children, and all its siblings that have not yet been traversed, or </li>
+<li><code>CIF_TRAVERSE_END</code> for the walker to stop without traversing any more elements</li>
+</ul>
+<p>A handler function may, alternatively, return a CIF API error code, which has the effect of CIF_TRAVERSE_END plus additional semantics specific to the traversal function (<code><a class="el" href="group__whole__cif__funcs.html#ga4773f5b0646e96e25d0f712c011f8bb1" title="Performs a depth-first, natural-order traversal of a CIF, calling back to handler...">cif_walk()</a></code> forwards the code to its caller as its return value). </p>
 
 </div>
 </div>
@@ -136,7 +169,7 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 </div>
 <div class="memdoc">
 
-<p>The type of a callback function to be invoked when a parse error occurs. </p>
+<p>A pointer to a callback function to be invoked when a parse error occurs. </p>
 <p>Note that this function receives the location where the error was <em>detected</em> , which is not necessarily the location of the actual error.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
@@ -164,15 +197,15 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 </div>
 <div class="memdoc">
 
-<p>The type of a callback function by which a client application can be notified of a syntactic element. </p>
-<p>Callbacks of this type are provided for some syntax elements that are not otherwise directly signaled, such as whitespace runs, certain keywords, and data names. These support a physical / lexical view of a parse process, as opposed to the logical / structural view provided by the callbacks belonging to a <code><a class="el" href="structcif__handler__tp.html" title="A set of functions defining a handler interface for directing and taking appropriate...">cif_handler_tp</a></code> . Unlike a CIF handler those or or an error callback, syntax callbacks cannot directly influence CIF traversal or interrupt parsing, but they have access to the same user data object that all other callbacks receive.</p>
-<p>The pointer <code>token</code> and all subsequent values through <code>token</code> <code>+</code> <code>length</code> are guaranteed to be valid pointer values for comparison and arithmetic. The result of dereferencing <code>token</code> <code>+</code> <code>length</code> is not defined.</p>
+<p>A pointer to a callback function by which a client application can be notified of a syntactic element. </p>
+<p>Callbacks of this type are provided for some syntax elements that are not otherwise directly signaled, such as whitespace runs, certain keywords, and data names. These support a physical / lexical view of a parse process, as opposed to the logical / structural view provided by the callbacks belonging to a <code>cif_handler_tp</code> . Unlike those or an error callback, syntax callbacks cannot directly influence CIF traversal or interrupt parsing, but they have access to the same user data object that all other callbacks receive.</p>
+<p>The pointer <code>token</code> and all subsequent values through <code>token</code> <code>+</code> <code>length</code> are guaranteed to be valid pointer values for comparison and arithmetic. The result of dereferencing <code>token</code> <code>+</code> <code>length</code> is not defined. The caller does not guarantee that the data pointed to by <code>token</code> or the <code>token</code> pointer itself will remain valid or stable after this function returns. If this function wants to provide longer-duration access then it must make a copy.</p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>line</em>&nbsp;</td><td>the one-based line number of the start of the syntax element </td></tr>
     <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>column</em>&nbsp;</td><td>the one-based column number of the first character of the syntax element </td></tr>
     <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>token</em>&nbsp;</td><td>a pointer to the start of the character sequence of the element, which is <em>not</em> necessarily NUL-terminated </td></tr>
-    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>length</em>&nbsp;</td><td>the number of characters in the sequence. ( <code>token</code> + <code>length</code> ) is guaranteed to be a valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether incrementing it results in a valid pointer value is undefined. </td></tr>
+    <tr><td valign="top"><tt>[in]</tt>&nbsp;</td><td valign="top"><em>length</em>&nbsp;</td><td>the number of characters in the sequence. ( <code>token</code> + <code>length</code> ) is guaranteed to be a valid pointer value for comparison and arithmetic, but the result of dereferencing it is undefined; whether incrementing it results in a valid pointer value is undefined. Under some circumstances, <code>length</code> may be zero. </td></tr>
     <tr><td valign="top"><tt>[in,out]</tt>&nbsp;</td><td valign="top"><em>data</em>&nbsp;</td><td>a pointer to the user data object provided by the parser caller </td></tr>
   </table>
   </dd>
@@ -181,12 +214,12 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 </div>
 </div>
 <hr/><h2>Enumeration Type Documentation</h2>
-<a class="anchor" id="ga924f12fdd599ac5cbf18edc69ccd9e86"></a><!-- doxytag: member="cif.h::cif_kind_tp" ref="ga924f12fdd599ac5cbf18edc69ccd9e86" args="" -->
+<a class="anchor" id="gaa88d52309cf2fe02f842e48f831bae8c"></a><!-- doxytag: member="cif.h::cif_kind" ref="gaa88d52309cf2fe02f842e48f831bae8c" args="" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="group__datatypes.html#ga924f12fdd599ac5cbf18edc69ccd9e86">cif_kind_tp</a></td>
+          <td class="memname">enum <a class="el" href="group__datatypes.html#gaa88d52309cf2fe02f842e48f831bae8c">cif_kind</a></td>
         </tr>
       </table>
 </div>
@@ -194,22 +227,22 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 
 <p>The type used for codes representing the dynamic kind of the data in a <code>cif_value_tp</code> object. </p>
 <dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
-<tr><td valign="top"><em><a class="anchor" id="gga924f12fdd599ac5cbf18edc69ccd9e86a17f1584a1b60f1771342a314f04e9e83"></a><!-- doxytag: member="CIF_CHAR_KIND" ref="gga924f12fdd599ac5cbf18edc69ccd9e86a17f1584a1b60f1771342a314f04e9e83" args="" -->CIF_CHAR_KIND</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaa88d52309cf2fe02f842e48f831bae8ca17f1584a1b60f1771342a314f04e9e83"></a><!-- doxytag: member="CIF_CHAR_KIND" ref="ggaa88d52309cf2fe02f842e48f831bae8ca17f1584a1b60f1771342a314f04e9e83" args="" -->CIF_CHAR_KIND</em>&nbsp;</td><td>
 <p>The kind code representing a character (Unicode string) data value. </p>
 </td></tr>
-<tr><td valign="top"><em><a class="anchor" id="gga924f12fdd599ac5cbf18edc69ccd9e86a8eb9d1b74d5cc977580c23bab050c477"></a><!-- doxytag: member="CIF_NUMB_KIND" ref="gga924f12fdd599ac5cbf18edc69ccd9e86a8eb9d1b74d5cc977580c23bab050c477" args="" -->CIF_NUMB_KIND</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaa88d52309cf2fe02f842e48f831bae8ca8eb9d1b74d5cc977580c23bab050c477"></a><!-- doxytag: member="CIF_NUMB_KIND" ref="ggaa88d52309cf2fe02f842e48f831bae8ca8eb9d1b74d5cc977580c23bab050c477" args="" -->CIF_NUMB_KIND</em>&nbsp;</td><td>
 <p>The kind code representing a numeric or presumed-numeric data value. </p>
 </td></tr>
-<tr><td valign="top"><em><a class="anchor" id="gga924f12fdd599ac5cbf18edc69ccd9e86a1f6f7777560e91b1851eb88d1a4cebf8"></a><!-- doxytag: member="CIF_LIST_KIND" ref="gga924f12fdd599ac5cbf18edc69ccd9e86a1f6f7777560e91b1851eb88d1a4cebf8" args="" -->CIF_LIST_KIND</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaa88d52309cf2fe02f842e48f831bae8ca1f6f7777560e91b1851eb88d1a4cebf8"></a><!-- doxytag: member="CIF_LIST_KIND" ref="ggaa88d52309cf2fe02f842e48f831bae8ca1f6f7777560e91b1851eb88d1a4cebf8" args="" -->CIF_LIST_KIND</em>&nbsp;</td><td>
 <p>The kind code representing a CIF 2.0 list data value. </p>
 </td></tr>
-<tr><td valign="top"><em><a class="anchor" id="gga924f12fdd599ac5cbf18edc69ccd9e86a0039af7b26dfaecfa8ab9d3fb5d91bc1"></a><!-- doxytag: member="CIF_TABLE_KIND" ref="gga924f12fdd599ac5cbf18edc69ccd9e86a0039af7b26dfaecfa8ab9d3fb5d91bc1" args="" -->CIF_TABLE_KIND</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaa88d52309cf2fe02f842e48f831bae8ca0039af7b26dfaecfa8ab9d3fb5d91bc1"></a><!-- doxytag: member="CIF_TABLE_KIND" ref="ggaa88d52309cf2fe02f842e48f831bae8ca0039af7b26dfaecfa8ab9d3fb5d91bc1" args="" -->CIF_TABLE_KIND</em>&nbsp;</td><td>
 <p>The kind code representing a CIF 2.0 table data value. </p>
 </td></tr>
-<tr><td valign="top"><em><a class="anchor" id="gga924f12fdd599ac5cbf18edc69ccd9e86a2c237c84648837a9e16dc9933f2b67a5"></a><!-- doxytag: member="CIF_NA_KIND" ref="gga924f12fdd599ac5cbf18edc69ccd9e86a2c237c84648837a9e16dc9933f2b67a5" args="" -->CIF_NA_KIND</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaa88d52309cf2fe02f842e48f831bae8ca2c237c84648837a9e16dc9933f2b67a5"></a><!-- doxytag: member="CIF_NA_KIND" ref="ggaa88d52309cf2fe02f842e48f831bae8ca2c237c84648837a9e16dc9933f2b67a5" args="" -->CIF_NA_KIND</em>&nbsp;</td><td>
 <p>The kind code representing the not-applicable data value. </p>
 </td></tr>
-<tr><td valign="top"><em><a class="anchor" id="gga924f12fdd599ac5cbf18edc69ccd9e86ad0537717ef261eb000a2af687a3b1091"></a><!-- doxytag: member="CIF_UNK_KIND" ref="gga924f12fdd599ac5cbf18edc69ccd9e86ad0537717ef261eb000a2af687a3b1091" args="" -->CIF_UNK_KIND</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaa88d52309cf2fe02f842e48f831bae8cad0537717ef261eb000a2af687a3b1091"></a><!-- doxytag: member="CIF_UNK_KIND" ref="ggaa88d52309cf2fe02f842e48f831bae8cad0537717ef261eb000a2af687a3b1091" args="" -->CIF_UNK_KIND</em>&nbsp;</td><td>
 <p>The kind code representing the unknown/unspecified data value. </p>
 </td></tr>
 </table>
@@ -218,22 +251,23 @@ typedef union cif_value_u&nbsp;</td><td class="memItemRight" valign="bottom"><a 
 
 </div>
 </div>
-<a class="anchor" id="gab312e9783ea613a434d4ef928a1513a1"></a><!-- doxytag: member="cif.h::cif_quoted_tp" ref="gab312e9783ea613a434d4ef928a1513a1" args="" -->
+<a class="anchor" id="gaf4ae90680005103c5b76a69d8bb01369"></a><!-- doxytag: member="cif.h::cif_quoted" ref="gaf4ae90680005103c5b76a69d8bb01369" args="" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="group__datatypes.html#gab312e9783ea613a434d4ef928a1513a1">cif_quoted_tp</a></td>
+          <td class="memname">enum <a class="el" href="group__datatypes.html#gaf4ae90680005103c5b76a69d8bb01369">cif_quoted</a></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>The type used for representing values' quoting status, to allow applications to distinguish between the same value when presented quoted and when presented unquoted. </p>
 <dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
-<tr><td valign="top"><em><a class="anchor" id="ggab312e9783ea613a434d4ef928a1513a1ae5f7e9ff3f017f7ebe1b23c64d4f1abd"></a><!-- doxytag: member="CIF_NOT_QUOTED" ref="ggab312e9783ea613a434d4ef928a1513a1ae5f7e9ff3f017f7ebe1b23c64d4f1abd" args="" -->CIF_NOT_QUOTED</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaf4ae90680005103c5b76a69d8bb01369ae5f7e9ff3f017f7ebe1b23c64d4f1abd"></a><!-- doxytag: member="CIF_NOT_QUOTED" ref="ggaf4ae90680005103c5b76a69d8bb01369ae5f7e9ff3f017f7ebe1b23c64d4f1abd" args="" -->CIF_NOT_QUOTED</em>&nbsp;</td><td>
 <p>the value should be interpreted as if it is not quoted; evaluates to false in boolean context </p>
 </td></tr>
-<tr><td valign="top"><em><a class="anchor" id="ggab312e9783ea613a434d4ef928a1513a1a1cb46992540895a812439bc16f62f7ab"></a><!-- doxytag: member="CIF_QUOTED" ref="ggab312e9783ea613a434d4ef928a1513a1a1cb46992540895a812439bc16f62f7ab" args="" -->CIF_QUOTED</em>&nbsp;</td><td>
+<tr><td valign="top"><em><a class="anchor" id="ggaf4ae90680005103c5b76a69d8bb01369a1cb46992540895a812439bc16f62f7ab"></a><!-- doxytag: member="CIF_QUOTED" ref="ggaf4ae90680005103c5b76a69d8bb01369a1cb46992540895a812439bc16f62f7ab" args="" -->CIF_QUOTED</em>&nbsp;</td><td>
 <p>the value should be interpreted as if it is quoted; evaluates to true in boolean context </p>
 </td></tr>
 </table>
