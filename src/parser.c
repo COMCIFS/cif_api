@@ -2742,7 +2742,14 @@ static int scan_to_eol(struct scanner_s *scanner) {
 }
 
 static int scan_unquoted(struct scanner_s *scanner) {
+    static unsigned int data_classes[] = { D_CLASS, A_CLASS, T_CLASS, A_CLASS, UNDERSC_CLASS };
+    static unsigned int save_classes[] = { S_CLASS, A_CLASS, V_CLASS, E_CLASS, UNDERSC_CLASS };
+    static unsigned int kw_len = sizeof(data_classes) / sizeof(data_classes[0]);
+    static unsigned int data_mask = 1;
+    static unsigned int save_mask = 2;
+    unsigned int kw_flags = data_mask | save_mask;
     int lead_surrogate = CIF_FALSE;
+    int offset = -1;
 
     for (;;) {
         UChar *top = scanner->buffer + scanner->buffer_limit;
@@ -2756,22 +2763,48 @@ static int scan_unquoted(struct scanner_s *scanner) {
             if (result != CIF_OK) {
                 return result;
             }
+            offset += 1;
+
             switch (METACLASS_OF(c, scanner)) {
-                case OPEN_META:
-                    /* error: missing whitespace between values */
-                    /* this doesn't occur in CIF 1 mode because no characters are mapped to OPEN_META there */
-                    result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line,
-                            scanner->column, scanner->next_char - 1, 0, scanner->user_data);
-                    if (result != CIF_OK) {
-                        return result;
+                case GENERAL_META:
+                    if (offset < kw_len) {
+                        /* update flags recording whether we may be scanning a data block or save frame header */
+                        unsigned int c_class = CLASS_OF(c, scanner);
+
+                        kw_flags &= ~(data_mask * (c_class != data_classes[offset]));
+                        kw_flags &= ~(save_mask * (c_class != save_classes[offset]));
                     }
+                    break;
 
-                    /* notify the configured whitespace callback, if any, of zero-length whitespace */
-                    OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
-                            scanner->next_char - 1, 0, scanner->user_data));
+                /*
+                 * characters in the open and close metaclasses may appear in block and save frame headers,
+                 * but in other unquoted contexts, they constitute an error: missing whitespace between values
+                 */
 
-                    /* fall through */
+                case OPEN_META:
+                    /* this doesn't occur in CIF 1 mode because no characters are mapped to OPEN_META there */
+                    if (!kw_flags || offset < kw_len) {  /* not a data block or save frame header */
+                        result = scanner->error_callback(CIF_MISSING_SPACE, scanner->line,
+                                scanner->column, scanner->next_char - 1, 0, scanner->user_data);
+                        if (result != CIF_OK) {
+                            return result;
+                        }
+
+                        /* notify the configured whitespace callback, if any, of zero-length whitespace */
+                        OPTIONAL_VOIDCALL(scanner->whitespace_callback, (scanner->line, scanner->column,
+                                scanner->next_char - 1, 0, scanner->user_data));
+                        /* We've scanned one code unit too far; back off */
+                        BACK_UP(scanner);
+                        goto end_of_token;
+                    }
+                    break;
                 case CLOSE_META:
+                    if (!kw_flags || offset < kw_len) {  /* not a data block or save frame header */
+                        /* We've scanned one code unit too far; back off */
+                        BACK_UP(scanner);
+                        goto end_of_token;
+                    }
+                    break;
                 case WS_META:
                     if (c != EOF_CHAR) {
                         /* We've scanned one code unit too far; back off */

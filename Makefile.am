@@ -62,6 +62,7 @@ EXTRA_DIST = \
   test-data/cif1_invalid.cif \
   test-data/comment_only.cif \
   test-data/complex_data.cif \
+  test-data/container_names.cif \
   test-data/empty.cif \
   test-data/list_data.cif \
   test-data/nested.cif \
