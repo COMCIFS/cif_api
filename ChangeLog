@@ -1,5 +1,9 @@
 CIF API Change Log
 
+Version 0.4.3
+* Updated the RPM spec
+  Updated ICU pkgconfig dependencies in the RPM spec file.
+
 Version 0.4.2
 * Added a pkg-config description
   Added a template for a pkg-config .pc file describing libcif.  It is filled

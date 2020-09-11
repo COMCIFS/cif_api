@@ -1,5 +1,5 @@
 Name:           cif-api
-Version:        0.4.2
+Version:        0.4.3
 Release:        1%{?dist}
 Summary:        The CIF API runtime library and standard programs
 
@@ -8,7 +8,7 @@ License:        LGPLv3+
 URL:            https://github.com/COMCIFS/cif_api
 Source0:        %{name}-%{version}.tar.gz
 
-BuildRequires:  pkgconfig(icu)
+BuildRequires:  pkgconfig(icu-io)
 BuildRequires:  sqlite-devel >= 3.6.19
 
 %global _hardened_build 1
@@ -32,7 +32,7 @@ Summary:        The CIF API header files and development library
 Group:          Development / Libraries
 
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       pkgconfig(icu)
+Requires:       pkgconfig(icu-io)
 Requires:       sqlite3-devel >= 3.6.19
 
 
@@ -116,6 +116,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 11 2020 John Bollinger <John.Bollinger@StJude.org> 0.4.3-1
+- Updated to version 0.4.3
+- Modified ICU BR and RR
+
 * Mon Jan 11 2016 John Bollinger <John.Bollinger@StJude.org> 0.4.2-1
 - Updated to version 0.4.2
 
