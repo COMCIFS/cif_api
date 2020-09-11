@@ -91,15 +91,10 @@ with an FSF ownership notice and statements of rights.  The FSF components
 are distributed to you under the terms of version 3 of the GNU Public
 License (GPL).  A copy of of GPL version 3 is provided in file 'COPYING'.
 
-The International Union of Crystallography holds a patent on the STAR
+The International Union of Crystallography held a patent on the STAR
 file format, which is parent to CIF, and it is likely that the CIF API
-implementation provided herein practices that patent.  No license 
-to do so accompanies or is associated with this package itself, but the
-IUCr extends broad and liberal permission, as described in its policy on
-its CIF and STAR intellectual property: http://www.iucr.org/iucr-top/ipr.html.
-The CIF API author holds no other rights to practice the patent, but to the
-best of his knowledge, the CIF API implementation satisfies the IUCr's
-terms for licensure.
+implementation provided herein practices that patent.  This is moot,
+however, because the patent expired in 2010.
 
 **The CIF API is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
