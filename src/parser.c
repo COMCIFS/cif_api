@@ -2121,7 +2121,11 @@ static int parse_value(struct scanner_s *scanner, cif_value_tp **valuep) {
                             /* the string now belongs to the value; it should not be freed independently */
 
                             /* It was scanned unquoted; convert to unquoted form */
-                            result = cif_value_set_quoted(value, CIF_NOT_QUOTED);
+                            if (scanner->cif_version < 2) {
+                                result = cif_value_try_quoted(value, CIF_NOT_QUOTED);
+                            } else {
+                                result = cif_value_set_quoted(value, CIF_NOT_QUOTED);
+                            }
                             if (result == CIF_ARGUMENT_ERROR) {
                                 result = scanner->error_callback(CIF_INVALID_BARE_VALUE, scanner->line,
                                         scanner->column, TVALUE_START(scanner), 1, scanner->user_data);

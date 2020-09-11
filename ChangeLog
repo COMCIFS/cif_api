@@ -3,6 +3,15 @@ CIF API Change Log
 Version 0.4.3
 * Updated the RPM spec
   Updated ICU pkgconfig dependencies in the RPM spec file.
+* Fixed a regression in parsing of unquoted data values
+  Values presented unquoted in a CIF 1 document were rejected if they did
+  not meet CIF 2 requirements for unquoted values, which are stricter.
+  They are now accepted, but treated internally as if they had been presented
+  quoted.
+* Added function cif_value_try_unquoted()
+  It's like cif_value_set_unquoted(), but is silently ineffective at
+  converting values to unquoted when that is disallowed by CIF 2 but would
+  have been allowed by earlier CIF versions.
 
 Version 0.4.2
 * Added a pkg-config description

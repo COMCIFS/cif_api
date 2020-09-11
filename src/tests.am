@@ -94,7 +94,9 @@ compiled_tests = \
     tests/test_write_loops \
     tests/test_write_frames \
     tests/test_write_11 \
-    tests/test_value_set_quoted
+    tests/test_value_set_quoted \
+    tests/test_value_try_quoted \
+    tests/test_parse_cif11_unquoted
 # Future tests:
 # cif_parse
 # - parse into existing CIF

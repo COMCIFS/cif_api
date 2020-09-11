@@ -207,7 +207,9 @@ am__EXEEXT_2 = tests/test_get_api_version$(EXEEXT) \
 	tests/test_write_complex$(EXEEXT) \
 	tests/test_write_loops$(EXEEXT) \
 	tests/test_write_frames$(EXEEXT) tests/test_write_11$(EXEEXT) \
-	tests/test_value_set_quoted$(EXEEXT)
+	tests/test_value_set_quoted$(EXEEXT) \
+	tests/test_value_try_quoted$(EXEEXT) \
+	tests/test_parse_cif11_unquoted$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -472,6 +474,12 @@ tests_test_parse_10_SOURCES = tests/test_parse_10.c
 tests_test_parse_10_OBJECTS = tests/test_parse_10.$(OBJEXT)
 tests_test_parse_10_LDADD = $(LDADD)
 tests_test_parse_10_DEPENDENCIES = libcif.la
+tests_test_parse_cif11_unquoted_SOURCES =  \
+	tests/test_parse_cif11_unquoted.c
+tests_test_parse_cif11_unquoted_OBJECTS =  \
+	tests/test_parse_cif11_unquoted.$(OBJEXT)
+tests_test_parse_cif11_unquoted_LDADD = $(LDADD)
+tests_test_parse_cif11_unquoted_DEPENDENCIES = libcif.la
 tests_test_parse_cif1_invalid_SOURCES =  \
 	tests/test_parse_cif1_invalid.c
 tests_test_parse_cif1_invalid_OBJECTS =  \
@@ -601,6 +609,11 @@ tests_test_value_set_quoted_OBJECTS =  \
 	tests/test_value_set_quoted.$(OBJEXT)
 tests_test_value_set_quoted_LDADD = $(LDADD)
 tests_test_value_set_quoted_DEPENDENCIES = libcif.la
+tests_test_value_try_quoted_SOURCES = tests/test_value_try_quoted.c
+tests_test_value_try_quoted_OBJECTS =  \
+	tests/test_value_try_quoted.$(OBJEXT)
+tests_test_value_try_quoted_LDADD = $(LDADD)
+tests_test_value_try_quoted_DEPENDENCIES = libcif.la
 tests_test_write_11_SOURCES = tests/test_write_11.c
 tests_test_write_11_OBJECTS = tests/test_write_11.$(OBJEXT)
 tests_test_write_11_LDADD = $(LDADD)
@@ -683,6 +696,7 @@ am__depfiles_remade = ./$(DEPDIR)/cif.Plo ./$(DEPDIR)/ciffile.Plo \
 	tests/$(DEPDIR)/test_packet_remove_item.Po \
 	tests/$(DEPDIR)/test_packet_set_item.Po \
 	tests/$(DEPDIR)/test_parse_10.Po \
+	tests/$(DEPDIR)/test_parse_cif11_unquoted.Po \
 	tests/$(DEPDIR)/test_parse_cif1_invalid.Po \
 	tests/$(DEPDIR)/test_parse_cif1_quoting.Po \
 	tests/$(DEPDIR)/test_parse_complex_data.Po \
@@ -709,6 +723,7 @@ am__depfiles_remade = ./$(DEPDIR)/cif.Plo ./$(DEPDIR)/ciffile.Plo \
 	tests/$(DEPDIR)/test_value_init_numb.Po \
 	tests/$(DEPDIR)/test_value_parse_numb.Po \
 	tests/$(DEPDIR)/test_value_set_quoted.Po \
+	tests/$(DEPDIR)/test_value_try_quoted.Po \
 	tests/$(DEPDIR)/test_write_11.Po \
 	tests/$(DEPDIR)/test_write_complex.Po \
 	tests/$(DEPDIR)/test_write_frames.Po \
@@ -763,6 +778,7 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_normalize.c tests/test_packet_create.c \
 	tests/test_packet_items.c tests/test_packet_remove_item.c \
 	tests/test_packet_set_item.c tests/test_parse_10.c \
+	tests/test_parse_cif11_unquoted.c \
 	tests/test_parse_cif1_invalid.c \
 	tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c \
@@ -777,9 +793,10 @@ SOURCES = $(libcif_la_SOURCES) $(nodist_libcif_la_SOURCES) \
 	tests/test_value_copy_char.c tests/test_value_create.c \
 	tests/test_value_get_number.c tests/test_value_init_char.c \
 	tests/test_value_init_numb.c tests/test_value_parse_numb.c \
-	tests/test_value_set_quoted.c tests/test_write_11.c \
-	tests/test_write_complex.c tests/test_write_frames.c \
-	tests/test_write_loops.c tests/test_write_simple.c
+	tests/test_value_set_quoted.c tests/test_value_try_quoted.c \
+	tests/test_write_11.c tests/test_write_complex.c \
+	tests/test_write_frames.c tests/test_write_loops.c \
+	tests/test_write_simple.c
 DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	$(cif2_syncheck_SOURCES) $(cif2_table1_SOURCES) \
 	$(cif2_table3_SOURCES) $(cif_linguist_SOURCES) \
@@ -808,6 +825,7 @@ DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	tests/test_normalize.c tests/test_packet_create.c \
 	tests/test_packet_items.c tests/test_packet_remove_item.c \
 	tests/test_packet_set_item.c tests/test_parse_10.c \
+	tests/test_parse_cif11_unquoted.c \
 	tests/test_parse_cif1_invalid.c \
 	tests/test_parse_cif1_quoting.c \
 	tests/test_parse_complex_data.c \
@@ -822,9 +840,10 @@ DIST_SOURCES = $(libcif_la_SOURCES) $(cif2_addauthor_SOURCES) \
 	tests/test_value_copy_char.c tests/test_value_create.c \
 	tests/test_value_get_number.c tests/test_value_init_char.c \
 	tests/test_value_init_numb.c tests/test_value_parse_numb.c \
-	tests/test_value_set_quoted.c tests/test_write_11.c \
-	tests/test_write_complex.c tests/test_write_frames.c \
-	tests/test_write_loops.c tests/test_write_simple.c
+	tests/test_value_set_quoted.c tests/test_value_try_quoted.c \
+	tests/test_write_11.c tests/test_write_complex.c \
+	tests/test_write_frames.c tests/test_write_loops.c \
+	tests/test_write_simple.c
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -1277,7 +1296,9 @@ compiled_tests = \
     tests/test_write_loops \
     tests/test_write_frames \
     tests/test_write_11 \
-    tests/test_value_set_quoted
+    tests/test_value_set_quoted \
+    tests/test_value_try_quoted \
+    tests/test_parse_cif11_unquoted
 
 
 # This should really be AM_TESTS_ENVIRONMENT in an Automake that supports that.   v1.11 doesn't.
@@ -1754,6 +1775,12 @@ tests/test_parse_10.$(OBJEXT): tests/$(am__dirstamp) \
 tests/test_parse_10$(EXEEXT): $(tests_test_parse_10_OBJECTS) $(tests_test_parse_10_DEPENDENCIES) $(EXTRA_tests_test_parse_10_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_parse_10$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tests_test_parse_10_OBJECTS) $(tests_test_parse_10_LDADD) $(LIBS)
+tests/test_parse_cif11_unquoted.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+
+tests/test_parse_cif11_unquoted$(EXEEXT): $(tests_test_parse_cif11_unquoted_OBJECTS) $(tests_test_parse_cif11_unquoted_DEPENDENCIES) $(EXTRA_tests_test_parse_cif11_unquoted_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_parse_cif11_unquoted$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_test_parse_cif11_unquoted_OBJECTS) $(tests_test_parse_cif11_unquoted_LDADD) $(LIBS)
 tests/test_parse_cif1_invalid.$(OBJEXT): tests/$(am__dirstamp) \
 	tests/$(DEPDIR)/$(am__dirstamp)
 
@@ -1910,6 +1937,12 @@ tests/test_value_set_quoted.$(OBJEXT): tests/$(am__dirstamp) \
 tests/test_value_set_quoted$(EXEEXT): $(tests_test_value_set_quoted_OBJECTS) $(tests_test_value_set_quoted_DEPENDENCIES) $(EXTRA_tests_test_value_set_quoted_DEPENDENCIES) tests/$(am__dirstamp)
 	@rm -f tests/test_value_set_quoted$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(tests_test_value_set_quoted_OBJECTS) $(tests_test_value_set_quoted_LDADD) $(LIBS)
+tests/test_value_try_quoted.$(OBJEXT): tests/$(am__dirstamp) \
+	tests/$(DEPDIR)/$(am__dirstamp)
+
+tests/test_value_try_quoted$(EXEEXT): $(tests_test_value_try_quoted_OBJECTS) $(tests_test_value_try_quoted_DEPENDENCIES) $(EXTRA_tests_test_value_try_quoted_DEPENDENCIES) tests/$(am__dirstamp)
+	@rm -f tests/test_value_try_quoted$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(tests_test_value_try_quoted_OBJECTS) $(tests_test_value_try_quoted_LDADD) $(LIBS)
 tests/test_write_11.$(OBJEXT): tests/$(am__dirstamp) \
 	tests/$(DEPDIR)/$(am__dirstamp)
 
@@ -2004,6 +2037,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_packet_remove_item.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_packet_set_item.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_parse_10.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_parse_cif11_unquoted.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_parse_cif1_invalid.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_parse_cif1_quoting.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_parse_complex_data.Po@am__quote@ # am--include-marker
@@ -2030,6 +2064,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_value_init_numb.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_value_parse_numb.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_value_set_quoted.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_value_try_quoted.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_write_11.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_write_complex.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_write_frames.Po@am__quote@ # am--include-marker
@@ -2785,6 +2820,20 @@ tests/test_value_set_quoted.log: tests/test_value_set_quoted$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tests/test_value_try_quoted.log: tests/test_value_try_quoted$(EXEEXT)
+	@p='tests/test_value_try_quoted$(EXEEXT)'; \
+	b='tests/test_value_try_quoted'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+tests/test_parse_cif11_unquoted.log: tests/test_parse_cif11_unquoted$(EXEEXT)
+	@p='tests/test_parse_cif11_unquoted$(EXEEXT)'; \
+	b='tests/test_parse_cif11_unquoted'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -2948,6 +2997,7 @@ distclean: distclean-am
 	-rm -f tests/$(DEPDIR)/test_packet_remove_item.Po
 	-rm -f tests/$(DEPDIR)/test_packet_set_item.Po
 	-rm -f tests/$(DEPDIR)/test_parse_10.Po
+	-rm -f tests/$(DEPDIR)/test_parse_cif11_unquoted.Po
 	-rm -f tests/$(DEPDIR)/test_parse_cif1_invalid.Po
 	-rm -f tests/$(DEPDIR)/test_parse_cif1_quoting.Po
 	-rm -f tests/$(DEPDIR)/test_parse_complex_data.Po
@@ -2974,6 +3024,7 @@ distclean: distclean-am
 	-rm -f tests/$(DEPDIR)/test_value_init_numb.Po
 	-rm -f tests/$(DEPDIR)/test_value_parse_numb.Po
 	-rm -f tests/$(DEPDIR)/test_value_set_quoted.Po
+	-rm -f tests/$(DEPDIR)/test_value_try_quoted.Po
 	-rm -f tests/$(DEPDIR)/test_write_11.Po
 	-rm -f tests/$(DEPDIR)/test_write_complex.Po
 	-rm -f tests/$(DEPDIR)/test_write_frames.Po
@@ -3080,6 +3131,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f tests/$(DEPDIR)/test_packet_remove_item.Po
 	-rm -f tests/$(DEPDIR)/test_packet_set_item.Po
 	-rm -f tests/$(DEPDIR)/test_parse_10.Po
+	-rm -f tests/$(DEPDIR)/test_parse_cif11_unquoted.Po
 	-rm -f tests/$(DEPDIR)/test_parse_cif1_invalid.Po
 	-rm -f tests/$(DEPDIR)/test_parse_cif1_quoting.Po
 	-rm -f tests/$(DEPDIR)/test_parse_complex_data.Po
@@ -3106,6 +3158,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f tests/$(DEPDIR)/test_value_init_numb.Po
 	-rm -f tests/$(DEPDIR)/test_value_parse_numb.Po
 	-rm -f tests/$(DEPDIR)/test_value_set_quoted.Po
+	-rm -f tests/$(DEPDIR)/test_value_try_quoted.Po
 	-rm -f tests/$(DEPDIR)/test_write_11.Po
 	-rm -f tests/$(DEPDIR)/test_write_complex.Po
 	-rm -f tests/$(DEPDIR)/test_write_frames.Po

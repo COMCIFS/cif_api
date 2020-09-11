@@ -2666,19 +2666,59 @@ CIF_FUNC_DECL(cif_quoted_tp, cif_value_is_quoted, (
  * @c CIF_LIST_KIND or @c CIF_TABLE_KIND.
  *
  * Values of character kind representing reserved strings (see @c cif_is_reserved_string()) cannot be set unquoted.
+ * Values of character kind containing CIF whitespace, square brackets, or curly braces cannot be set unquoted.
  * Values of list or table kind cannot be set quoted, regardless of their contents.  If this function is asked to
  * perform such an action then it will instead return @c CIF_ARGUMENT_ERROR.
+ *
+ * Overall, this function follows CIF 2.0 restrictions about which values can be presented unquoted.  It will
+ * reject attempts to set other values unquoted, even if they could be presented unquoted in earlier versions
+ * of CIF.
  *
  * @param[in, out] value a pointer to the value object whose quoting status is requested; must point at an initialized
  *      value
  *
  * @param[in] quoted the quoting status to set
  *
- * @return Returns CIF_OK on success, or an error code (typically @c CIF_ARGUMENT_ERROR or @c CIF_ERROR ) on failure.
+ * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ARGUMENT_ERROR or @c CIF_ERROR ) on failure.
  *     In particular, if @p value is of CHAR kind then a return code of @c CIF_ARGUMENT_ERROR means the value cannot
  *     be presented in CIF unquoted, not even via coercion to a different kind.
  */
 CIF_INTFUNC_DECL(cif_value_set_quoted, (
+        cif_value_tp *value,
+        cif_quoted_tp quoted
+        ));
+
+/**
+ * @brief Sets whether the specified value should be interpreted as if it were presented quoted, failing silently
+ * in cases where CIF versions disagree
+ *
+ * This is a slightly relaxed version of @c cif_value_set_quoted(), convenient for use with data from a CIF 1.1 or
+ * earlier source.  Values that can appear unquoted in CIF 1.1 but not in CIF 2.0 cannot be marked unquoted by this
+ * function, but attempts to do so will be silently ineffective instead of returning an error code.
+ *
+ * This function may coerce values in-place between kind @c CIF_CHAR_KIND and either @c CIF_UNK_KIND or @c
+ * CIF_NA_KIND.  It must must not be called with @c QUOTED as its second argument when the first has kind
+ * @c CIF_LIST_KIND or @c CIF_TABLE_KIND.
+ *
+ * Values of character kind representing reserved strings (see @c cif_is_reserved_string()) cannot be set unquoted.
+ * Values of character kind containing CIF whitespace, square brackets, or curly braces cannot be set unquoted.
+ * Values of list or table kind cannot be set quoted, regardless of their contents.  If this function is asked to
+ * perform such an action then it will instead return @c CIF_ARGUMENT_ERROR.
+ *
+ * Overall, this function follows CIF 2.0 restrictions about which values can be presented unquoted.  It will
+ * reject attempts to set other values unquoted, even if they could be presented unquoted in earlier versions
+ * of CIF.
+ *
+ * @param[in, out] value a pointer to the value object whose quoting status is requested; must point at an initialized
+ *      value
+ *
+ * @param[in] quoted the quoting status to set
+ *
+ * @return Returns @c CIF_OK on success, or an error code (typically @c CIF_ARGUMENT_ERROR or @c CIF_ERROR ) on failure.
+ *     In particular, if @p value is of CHAR kind then a return code of @c CIF_ARGUMENT_ERROR means the value cannot
+ *     be presented in CIF unquoted in any supported version of CIF, not even via coercion to a different kind.
+ */
+CIF_INTFUNC_DECL(cif_value_try_quoted, (
         cif_value_tp *value,
         cif_quoted_tp quoted
         ));
@@ -3124,7 +3164,7 @@ CIF_INTFUNC_DECL(cif_cstr_to_ustr, (
  * those that is not explicitly excluded via function argument, and which is consistent with the input string.  It
  * applies CIF 2.0 rules for its evaluation in all cases, which will result in text-field (or triple-quoted) form
  * being recommended for some values that could be expressed in CIF 1.1 with just apostrophe or quotation-mark
- * delimiters.
+ * delimiters, or even whitespace delimters.
  *
  * For generality, this function always recommends one of the quoted forms for strings beginning with a semicolon.
  * Some such strings can be presented whitespace-delimited, <em>but not at the beginning of a line</em>.  Since the

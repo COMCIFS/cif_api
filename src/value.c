@@ -2360,12 +2360,13 @@ cif_quoted_tp cif_value_is_quoted(cif_value_tp *value) {
     }
 }
 
-int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
+static int cif_value_set_quoted_impl(cif_value_tp *value, cif_quoted_tp quoted, int conditional_char_result) {
     static const UChar unk_string[] = { UCHAR_QUERY, 0 };
     static const UChar  na_string[] = { UCHAR_DECIMAL, 0 };
     static const UChar disallowed_chars[] = {
             UCHAR_OBRK, UCHAR_CBRK, UCHAR_OBRC, UCHAR_CBRC, UCHAR_SP, UCHAR_TAB, UCHAR_NL, UCHAR_CR, 0
     };
+    static const UChar * const hard_disallowed_chars = disallowed_chars + 4;
     int result;
 
     switch (value->kind) {
@@ -2392,20 +2393,37 @@ int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
                 result = CIF_OK;
             } else {
                 /* quoted to unquoted */
-                if (!*(value->as_char.text)) {
+                if (*value->as_char.text == 0) {
                     /* empty string */
                     result = CIF_ARGUMENT_ERROR;
                 } else if (!u_strcmp(value->as_char.text, unk_string)) {
                     result = cif_value_init(value, CIF_UNK_KIND);
                 } else if (!u_strcmp(value->as_char.text, na_string)) {
                     result = cif_value_init(value, CIF_NA_KIND);
-                } else if (cif_is_reserved_string(value->as_char.text)
-                        || (value->as_char.text[u_strcspn(value->as_char.text, disallowed_chars)])) {
-                    /* reserved or whitespace-containing string */
+                } else if (cif_is_reserved_string(value->as_char.text)) {
+                    /* reserved string */
                     result = CIF_ARGUMENT_ERROR;
                 } else {
-                    value->as_char.quoted = quoted;
-                    result = CIF_OK;
+                    UChar *tail = u_strpbrk(value->as_char.text, disallowed_chars);
+                    
+                    if (tail == NULL) {
+                        value->as_char.quoted = quoted;
+                        result = CIF_OK;
+                    } else if (u_strpbrk(tail, hard_disallowed_chars) != NULL) {
+                        /* whitespace containing string */
+                        result = CIF_ARGUMENT_ERROR;
+                    } else {
+                        /* bracket or brace containing string */
+                        /* do not set unquoted */
+                        result = conditional_char_result;
+                    }
+                    /*
+                     * NOTE: Although CIF 1.1 does not allow square brackets
+                     * (opening or closing) as the first character of an
+                     * unquoted data value, CIF 1.0 does allow them, so their
+                     * appearance causes only a conditional failure even at
+                     * that position.
+                     */
                 }
             }
             break;
@@ -2419,6 +2437,13 @@ int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
     return result;
 }
 
+int cif_value_set_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
+    return cif_value_set_quoted_impl(value, quoted, CIF_ARGUMENT_ERROR);
+}
+
+int cif_value_try_quoted(cif_value_tp *value, cif_quoted_tp quoted) {
+    return cif_value_set_quoted_impl(value, quoted, CIF_OK);
+}
 
 int cif_value_get_number(cif_value_tp *n, double *val) {
     struct numb_value_s *numb;
