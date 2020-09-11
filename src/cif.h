@@ -2091,8 +2091,8 @@ CIF_INTFUNC_DECL(cif_pktitr_close, (
  * @param[in,out] iterator a pointer to the packet iterator object to abort; must be a non-NULL pointer to an active
  *         iterator
  *
- * @return Returns @c CIF_OK on success, @c CIF_NOT_SUPPORTED if aborting is not supported, or an error code (typically
- *         @c CIF_ERROR ) in all other cases
+ * @return Returns @c CIF_OK on success, @c CIF_NOT_SUPPORTED if aborting is not possible because the implementation
+ *         does not support it, or another error code (typically @c CIF_ERROR ) in all other cases
  */
 CIF_INTFUNC_DECL(cif_pktitr_abort, (
         cif_pktitr_tp *iterator
