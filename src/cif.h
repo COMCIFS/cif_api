@@ -1063,8 +1063,6 @@ struct cif_parse_opts_s {
 
 /**
  * @brief Represents a collection of CIF writing options.
- *
- * This is a place-holder for future options.  No CIF write options are defined for the present version of the CIF API.
  */
 struct cif_write_opts_s {
 
