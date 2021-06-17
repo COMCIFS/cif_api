@@ -43,7 +43,7 @@ AC_DEFUN([AX_ICUIO], [
   AC_LANG_PUSH([C])
   AC_REQUIRE([AC_PROG_CPP])dnl
   AC_REQUIRE([AC_PROG_SED])dnl
-  AC_PATH_PROG([PKG_CONFIG], [pkg-config], [:])
+  AC_PATH_TOOL([PKG_CONFIG], [pkg-config], [:])
   AS_IF([test "${PKG_CONFIG}" = :], [AC_MSG_ERROR([The 'pkg-config' command was not found])])
 
   ICU_PKG=
