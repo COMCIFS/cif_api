@@ -1347,7 +1347,7 @@ CIF_INTFUNC_DECL(cif_create, (
  * to the provided handle itself are also released, but not those belonging to any other handle.  The original external
  * source (if any) of the CIF data is not affected.
  *
- * @param[in] cif the handle on the CIF to destroy; must not be NULL.  On success, this handle ceases to be valid.
+ * @param[in,out] cif the handle on the CIF to destroy; must not be NULL.  On success, this handle ceases to be valid.
  *
  * @return Returns @c CIF_OK on success or an error code (typically @c CIF_ERROR ) on failure.
  */
@@ -1565,7 +1565,7 @@ CIF_INTFUNC_DECL(cif_container_create_frame, (
  * @brief Frees any resources associated with the specified container handle without
  * modifying the associated managed CIF
  *
- * @param[in] container a handle on the container object to free; must be non-NULL and valid on entry, but is
+ * @param[in,out] container a handle on the container object to free; must be non-NULL and valid on entry, but is
  *         invalidated by this function
  */
 CIF_VOIDFUNC_DECL(cif_container_free, (
@@ -1860,7 +1860,7 @@ CIF_INTFUNC_DECL(cif_container_remove_item, (
  * @brief Releases any resources associated with the given loop handle without modifying the managed CIF with which
  *         it is associated.
  *
- * @param[in] loop the loop handle to free; must be non-NULL and valid
+ * @param[in,out] loop the loop handle to free; must be non-NULL and valid
  */
 CIF_VOIDFUNC_DECL(cif_loop_free, (
         cif_loop_tp *loop
@@ -2300,7 +2300,7 @@ CIF_INTFUNC_DECL(cif_packet_remove_item, (
  *
  * This function is a safe no-op when the argument is NULL.
  *
- * @param[in] packet a pointer to the packet to free
+ * @param[in,out] packet a pointer to the packet to free
  */
 CIF_VOIDFUNC_DECL(cif_packet_free, (
         cif_packet_tp *packet
@@ -2384,9 +2384,6 @@ CIF_INTFUNC_DECL(cif_value_create, (
  * wants @c cif_value_free() instead.  This function does not directly affect any managed CIF.
  *
  * @param[in,out] value a valid pointer to the value object to clean
- *
- * @return Returns @c CIF_OK on success.  In principle, an error code such as @c CIF_ERROR is returned on failure, but
- *         no specific failure conditions are currently defined.
  */
 CIF_VOIDFUNC_DECL(cif_value_clean, (
         cif_value_tp *value

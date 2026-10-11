@@ -247,10 +247,6 @@
  * <tr><td colspan='3'>CIF 2.0 does not allow text blocks to be used as table keys, but this is a somewhat artificial
  *     restriction.  If the parser encounters a table key quoted with newline/semicolon delimiters then it can recover
  *     by accepting that key as valid.</td></tr>
- * <tr><td>Missing text prefix</td><td>@c CIF_MISSING_PREFIX</td><td>accept</td></tr>
- * <tr><td colspan='3'>The text prefixing protocol requires every line of a prefixed text field to start with the
- *     chosen prefix.  If any line fails to do so then the parser can typically recover by simply accepting that
- *     line verbatim.</td></tr>
  * <tr><td>Invalid unquoted value</td><td>@c CIF_INVALID_BARE_VALUE</td><td>accept</td></tr>
  * <tr><td colspan='3'>A whitespace-delimited data value has a restricted character repertoire and a more-restricted
  *     first character.  When the parser recognizes that one of these restrictions has not been obeyed, it can recover
